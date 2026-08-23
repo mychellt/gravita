@@ -1,0 +1,126 @@
+<app-page-header title="Vendas & CRM" subtitle="Orçamento · Pedido · Faturamento · Funil de Vendas">
+  <button class="btn btn-ghost"><i class="ti ti-users"></i> Clientes</button>
+  <button class="btn btn-primary"><i class="ti ti-plus"></i> Novo orçamento</button>
+</app-page-header>
+
+<div class="tabs">
+  <div class="tab" [class.active]="activeTab() === 'funil'"    (click)="activeTab.set('funil')">Funil de Vendas</div>
+  <div class="tab" [class.active]="activeTab() === 'pedidos'"  (click)="activeTab.set('pedidos')">Pedidos</div>
+  <div class="tab" [class.active]="activeTab() === 'clientes'" (click)="activeTab.set('clientes')">Clientes</div>
+  <div class="tab" [class.active]="activeTab() === 'metas'"    (click)="activeTab.set('metas')">Metas</div>
+</div>
+
+@if (activeTab() === 'funil') {
+  <!-- Funil Kanban -->
+  <div class="funil-wrap">
+    @for (estagio of estagios; track estagio.key) {
+      <div class="funil-col">
+        <div class="funil-col-head" [style.color]="estagio.color || 'var(--text3)'">
+          {{ estagio.label }}
+          <span class="funil-count">{{ opsByEstagio(estagio.key).length }}</span>
+        </div>
+        @for (op of opsByEstagio(estagio.key); track op.id) {
+          <div class="funil-card"
+               [class.won]="estagio.key === 'fechado'"
+               [class.lost]="estagio.key === 'perdido'">
+            <div class="funil-card-title">{{ op.titulo }}</div>
+            <div class="funil-card-val" [style.color]="estagio.key === 'fechado' ? 'var(--success)' : 'var(--accent)'">
+              {{ op.valor | brl }}
+            </div>
+            <div class="funil-card-meta">
+              {{ op.responsavel }}
+              @if (op.probabilidade > 0 && op.probabilidade < 100) {
+                · {{ op.probabilidade }}%
+              }
+            </div>
+          </div>
+        }
+        @if (opsByEstagio(estagio.key).length === 0) {
+          <div class="funil-empty">Nenhuma oportunidade</div>
+        }
+      </div>
+    }
+  </div>
+}
+
+@if (activeTab() === 'clientes') {
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Clientes</span>
+      <button class="btn btn-primary btn-sm"><i class="ti ti-plus"></i> Novo</button>
+    </div>
+    @for (c of clientes(); track c.id) {
+      <div class="customer-row">
+        <div class="cust-avatar" [style.background]="c.id === 'c1' ? '#4F6EF7' : c.id === 'c2' ? '#7C3AED' : '#D97706'">
+          {{ c.nome.slice(0,2).toUpperCase() }}
+        </div>
+        <div class="cust-info">
+          <div class="cust-name">{{ c.nome }}</div>
+          <div class="cust-doc">{{ c.documento }}</div>
+        </div>
+        <div class="cust-limit">
+          <div style="font-size:12px;color:var(--text3)">Limite</div>
+          <div class="text-success" style="font-weight:600;font-size:13px">{{ c.limiteCredito | brl }}</div>
+        </div>
+        <div>
+          <app-badge [value]="c.status" />
+          @if (c.status === 'inadimplente') {
+            <div class="overdue" style="font-size:10px;margin-top:2px">{{ c.saldoDevedor | brl }} vencido</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+
+@if (activeTab() === 'pedidos') {
+  <div class="card">
+    <div class="card-head"><span class="card-title">Pedidos de venda</span></div>
+    <div style="padding:40px;text-align:center;color:var(--text3)">
+      <i class="ti ti-shopping-cart" style="font-size:32px;display:block;margin-bottom:8px"></i>
+      Nenhum pedido aberto no momento
+    </div>
+  </div>
+}
+
+@if (activeTab() === 'metas') {
+  <div class="metas-grid">
+    <div class="card">
+      <div class="card-head"><span class="card-title">Meta do mês — Maio 2026</span></div>
+      <div class="card-body">
+        <div class="meta-row">
+          <span class="meta-label">Empresa</span>
+          <div class="meta-bar-wrap">
+            <div class="meta-bar"><div class="meta-fill" style="width:74%"></div></div>
+            <span class="meta-pct">74%</span>
+          </div>
+          <span class="meta-vals">R$ 92.400 / R$ 125.000</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Ricardo L.</span>
+          <div class="meta-bar-wrap">
+            <div class="meta-bar"><div class="meta-fill" style="width:88%"></div></div>
+            <span class="meta-pct">88%</span>
+          </div>
+          <span class="meta-vals">R$ 44.000 / R$ 50.000</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Ana Paula</span>
+          <div class="meta-bar-wrap">
+            <div class="meta-bar"><div class="meta-fill green" style="width:60%"></div></div>
+            <span class="meta-pct">60%</span>
+          </div>
+          <span class="meta-vals">R$ 24.200 / R$ 40.000</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Carlos M.</span>
+          <div class="meta-bar-wrap">
+            <div class="meta-bar"><div class="meta-fill amber" style="width:69%"></div></div>
+            <span class="meta-pct">69%</span>
+          </div>
+          <span class="meta-vals">R$ 24.200 / R$ 35.000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+}

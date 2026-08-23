@@ -1,0 +1,75 @@
+<app-page-header title="NFS-e — Serviços" subtitle="Multi-município · ABRASF 2.x e NFS-e Nacional SEFAZ">
+  <button class="btn btn-primary" (click)="emitirRps()">
+    <i class="ti ti-plus"></i> Emitir RPS
+  </button>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="nfse-kpis">
+  <div class="kpi">
+    <div class="kpi-icon blue"><i class="ti ti-receipt"></i></div>
+    <div class="kpi-label">NFS-e no mês</div>
+    <div class="kpi-value">{{ nfses().length }}</div>
+    <div class="kpi-sub">R$ 23.700 em serviços</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon amber"><i class="ti ti-building-store"></i></div>
+    <div class="kpi-label">Municípios ativos</div>
+    <div class="kpi-value">3</div>
+    <div class="kpi-sub">SP · Campinas · Santos</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon green"><i class="ti ti-coin"></i></div>
+    <div class="kpi-label">ISS retido</div>
+    <div class="kpi-value">R$ 516</div>
+    <div class="kpi-sub">2,0% médio efetivo</div>
+  </div>
+</div>
+
+<!-- Info box -->
+<div class="info-box">
+  <i class="ti ti-info-circle info-icon"></i>
+  <span>Para municípios sem integração homologada, o sistema gera o XML no padrão correto e orienta o upload manual no portal da prefeitura.</span>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">RPS / NFS-e emitidos</span>
+    <button class="card-action">Exportar</button>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Número RPS</th>
+        <th>Tomador</th>
+        <th>Município</th>
+        <th>Padrão</th>
+        <th>Serviço (LC116)</th>
+        <th class="td-right">Valor</th>
+        <th class="td-right">ISS</th>
+        <th>Data</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (n of nfses(); track n.id) {
+        <tr>
+          <td class="td-mono">{{ n.rpsNumero }}</td>
+          <td class="td-name">{{ n.tomadorNome }}</td>
+          <td>{{ n.municipio }}/{{ n.uf }}</td>
+          <td>
+            <span class="badge" [ngClass]="n.padrao === 'abrasf' ? 'proc' : 'rascunho'">
+              <span class="badge-dot"></span>
+              {{ n.padrao === 'abrasf' ? 'ABRASF 2.x' : 'Nacional SEFAZ' }}
+            </span>
+          </td>
+          <td style="font-size:11px">{{ n.codigoServico }} — {{ n.discriminacao | slice:0:30 }}...</td>
+          <td class="td-amount">{{ n.valorServico | brl }}</td>
+          <td class="td-right td-mono">{{ n.valorIss | brl }}</td>
+          <td style="font-size:12px;color:var(--text3)">{{ n.dataEmissao | date:'dd/MM/yy' }}</td>
+          <td><app-badge [value]="n.status" /></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,15 @@
+.fin-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.cf-chart { display: flex; gap: 6px; height: 100px; align-items: flex-end; padding: 4px 0; }
+.cf-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cf-bars { display: flex; gap: 3px; align-items: flex-end; width: 100%; justify-content: center; }
+.cf-in  { flex: 1; max-width: 16px; border-radius: 2px 2px 0 0; background: var(--success); opacity: .75; min-height: 3px; }
+.cf-out { flex: 1; max-width: 16px; border-radius: 2px 2px 0 0; background: var(--danger);  opacity: .65; min-height: 3px; }
+.cf-label { font-size: 10px; color: var(--text3); }
+.cf-legend { display: flex; gap: 16px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+.cf-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+.cf-dot { width: 10px; height: 10px; border-radius: 2px; }
+.cf-dot.green { background: var(--success); opacity: .75; }
+.cf-dot.red   { background: var(--danger);  opacity: .65; }
+.cf-saldo-proj { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 10px 14px; background: var(--surface2); border-radius: var(--r8); }
+.cf-saldo-label { font-size: 13px; font-weight: 500; }
+.cf-saldo-val   { font-size: 18px; font-weight: 700; }

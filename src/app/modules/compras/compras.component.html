@@ -1,0 +1,83 @@
+<app-page-header title="Compras" subtitle="Solicitação · Cotação · Pedido · Recebimento · Devolução">
+  <button class="btn btn-ghost"><i class="ti ti-upload"></i> Importar XML</button>
+  <button class="btn btn-primary"><i class="ti ti-plus"></i> Nova solicitação</button>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="compras-kpis">
+  <div class="kpi">
+    <div class="kpi-icon amber"><i class="ti ti-clock"></i></div>
+    <div class="kpi-label">Pedidos abertos</div>
+    <div class="kpi-value">{{ totals().abertos }}</div>
+    <div class="kpi-sub text-warn">inclui aguardando aprovação</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon blue"><i class="ti ti-truck"></i></div>
+    <div class="kpi-label">Aguardando entrega</div>
+    <div class="kpi-value">{{ totals().entrega }}</div>
+    <div class="kpi-sub">em trânsito</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon green"><i class="ti ti-package"></i></div>
+    <div class="kpi-label">Recebidos no mês</div>
+    <div class="kpi-value">{{ totals().recebidos }}</div>
+    <div class="kpi-sub">pedidos encerrados</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon purple"><i class="ti ti-users"></i></div>
+    <div class="kpi-label">Fornecedores ativos</div>
+    <div class="kpi-value">{{ totals().fornecedores }}</div>
+    <div class="kpi-sub">cadastrados</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab" [class.active]="activeTab() === 'pedidos'"      (click)="activeTab.set('pedidos')">Pedidos</div>
+  <div class="tab" [class.active]="activeTab() === 'cotacoes'"     (click)="activeTab.set('cotacoes')">Cotações</div>
+  <div class="tab" [class.active]="activeTab() === 'recebimentos'" (click)="activeTab.set('recebimentos')">Recebimentos</div>
+  <div class="tab" [class.active]="activeTab() === 'devolucoes'"   (click)="activeTab.set('devolucoes')">Devoluções</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">Pedidos de compra</span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Fornecedor</th>
+        <th>Data</th>
+        <th>Previsão</th>
+        <th class="td-right">Total</th>
+        <th>Status</th>
+        <th class="td-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of pedidos(); track p.id) {
+        <tr>
+          <td class="td-mono">{{ p.numero }}</td>
+          <td class="td-name">{{ p.fornecedorNome }}</td>
+          <td style="font-size:12px;color:var(--text3)">{{ p.dataPedido | date:'dd/MM/yy' }}</td>
+          <td style="font-size:12px;color:var(--text3)">{{ p.dataPrevisao ? (p.dataPrevisao | date:'dd/MM/yy') : '—' }}</td>
+          <td class="td-amount">{{ p.valorTotal | brl }}</td>
+          <td><app-badge [value]="p.status" /></td>
+          <td class="td-actions">
+            @if (p.status === 'aguarda_aprovacao') {
+              <button class="action-btn success" (click)="aprovar(p.id)">Aprovar</button>
+            }
+            @if (p.status === 'em_transito') {
+              <button class="action-btn success" (click)="receber(p.id)">Receber</button>
+            }
+            @if (p.status === 'encerrado') {
+              <button class="action-btn">XML NF</button>
+            }
+            <button class="action-btn">Ver</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
