@@ -17,12 +17,13 @@ class PlanPersistenceMapper {
 	}
 
 	PlanJpaEntity toEntity(PlanDomain domain) {
-		return new PlanJpaEntity(
-				domain.getId(),
-				domain.getName(),
-				domain.getTier(),
-				domain.getPriceMonthly(),
-				domain.getPriceAnnual(),
-				domain.getFeatures());
+		return PlanJpaEntity.builder()
+				.id(domain.getId())
+				.name(domain.getName())
+				.tier(domain.getTier())
+				.priceMonthly(domain.getPriceMonthly())
+				.priceAnnual(domain.getPriceAnnual())
+				.features(domain.getFeatures())
+				.build();
 	}
 }
