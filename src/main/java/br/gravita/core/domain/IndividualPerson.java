@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,4 +16,5 @@ import lombok.experimental.SuperBuilder;
 public final class IndividualPerson extends Person {
 	private String email;
 	private String password;
+	private LocalDateTime emailVerifiedAt;
 }

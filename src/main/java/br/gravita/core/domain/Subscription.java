@@ -1,5 +1,6 @@
 package br.gravita.core.domain;
 
+import br.gravita.core.domain.exceptions.BusinessRuleException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,16 +32,23 @@ public class Subscription extends AbstractDomain {
 	private LocalDate activationDate;
 	private LocalDate expirationDate;
 
-	public static Subscription activate(PlanDomain plan, CompanyPerson person, BillingCycle billingCycle) {
-		LocalDate today = LocalDate.now();
+	public static Subscription request(PlanDomain plan, CompanyPerson person, BillingCycle billingCycle) {
 		return Subscription.builder()
 				.plan(plan)
 				.person(person)
 				.billingCycle(billingCycle)
-				.status(SubscriptionStatus.ACTIVE)
-				.activationDate(today)
-				.expirationDate(nextExpirationDate(today, billingCycle))
+				.status(SubscriptionStatus.PENDING)
 				.build();
+	}
+
+	public void activate() {
+		if (status != SubscriptionStatus.PENDING) {
+			throw new BusinessRuleException("Only a pending subscription can be activated");
+		}
+		LocalDate today = LocalDate.now();
+		this.activationDate = today;
+		this.expirationDate = nextExpirationDate(today, billingCycle);
+		this.status = SubscriptionStatus.ACTIVE;
 	}
 
 	public void registerPayment(Payment payment) {
