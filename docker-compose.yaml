@@ -20,5 +20,18 @@ services:
       - "8025:8025"
       - "1025:1025"
 
+  localstack:
+    image: localstack/localstack:3
+    container_name: localstack-gravita
+    ports:
+      - "4566:4566"
+    environment:
+      DEBUG: 0
+      PERSISTENCE: 1
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   postgres_data:
+  localstack_data:
