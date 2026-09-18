@@ -1,5 +1,15 @@
 # Hexagonal Architecture — Gravita
 
+This is a monorepo: the Spring Boot/Maven backend lives at the repo root
+(`pom.xml`, `src/`, as below), and the Angular frontend lives under `web/`
+(merged in via `git subtree` from a formerly separate `gravita-web` repo,
+history preserved). The two builds are fully independent — `mvn` at the root,
+`npm`/`ng` inside `web/` — and CI is path-filtered accordingly
+(`.github/workflows/deploy-web-aws.yml` only fires on `web/**` changes; there
+is no backend CI workflow yet). See the `gravita-web` skill
+(`.claude/skills/gravita-web/`) for a guide to the frontend's structure and
+how it maps onto the modules below.
+
 The project follows hexagonal architecture (ports & adapters) combined with
 package-by-feature: each business context of the ERP (see `docs/ERP MVP
 formato DOC.pdf`, module map M1–M10) is a top-level package under
