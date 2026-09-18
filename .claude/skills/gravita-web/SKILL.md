@@ -1,6 +1,6 @@
 ---
 name: gravita-web
-description: Explores the Angular frontend under web/ (same repo) to explain its routes, screens, module structure and the data shapes it currently expects, and cross-references them against the backend specs in docs/specs/. Use whenever a question or task touches the web UI — its screens, routes, components, frontend data contracts — or backend/frontend alignment (e.g. "what does the PDV screen show", "does Customer match what the frontend expects", "check how NFe is displayed", "align the API with the web app").
+description: Explores, builds and runs the Angular frontend under web/ (same repo) — its routes, screens, module structure, the data shapes it currently expects, and how to actually launch it locally — and cross-references it against the backend specs in docs/specs/. Use whenever a question or task touches the web UI — its screens, routes, components, frontend data contracts, building/running it — or backend/frontend alignment (e.g. "what does the PDV screen show", "does Customer match what the frontend expects", "run the web app", "align the API with the web app").
 ---
 
 # Gravita Web — Frontend Understanding
@@ -34,7 +34,28 @@ an existing API contract, only the shape the UI *expects* one to have.
 | `web/src/app/layout/{shell,sidebar,topbar}/` | App chrome — not module-specific. |
 | `web/src/app/modules/<name>/` | One folder per screen/module (`.ts` + `.html` + `.scss`); `nfe/nfe-form/` is a nested sub-screen. |
 | `web/src/app/shared/{components,pipes}/` | Reusable UI: `badge`, `page-header`, `toast`, `brl.pipe` (BRL currency formatting). |
+| `web/public/index.html` | A **separate static marketing/landing page** (hero, pricing, FAQ, `register.html` signup flow) — not the Angular app. See below. |
 | `.github/workflows/deploy-web-aws.yml` | CI: builds and deploys `web/` to S3, triggered only on `web/**` changes. |
+
+## Two sites in one build — don't confuse them
+
+`web/angular.json`'s `build.options.index` sets `input: src/index.html,
+output: app.html` — the real Angular SPA is built to **`app.html`**, not
+`index.html`. Meanwhile `web/public/index.html` (a separate, static,
+hand-built marketing page — hero section, pricing, FAQ, `register.html` for
+signup) is copied verbatim to the build output root as `assets`, so it ends
+up occupying `index.html`. Net effect, both in `ng serve` and the built
+`dist/gravita-web/`:
+
+- `/` → the static marketing page (`public/index.html`) — not part of the
+  Angular app, has its own `app.js`/`styles.css`, nothing here reflects
+  `docs/specs/`.
+- `/app.html`, and any Angular route (`/dashboard`, `/pdv`, `/nfe`, …) → the
+  actual ERP SPA (`src/index.html` → `<app-root>` → `app.routes.ts`).
+
+If you navigate to `localhost:4200` and see a marketing hero with "Começar
+grátis" instead of a sidebar and dashboard, you're on the landing page — go
+to `/app.html` (or any route from the table below) for the real app.
 
 ## Module → route → backend module map
 
@@ -75,6 +96,38 @@ model" section, and call out every field that doesn't have an obvious match
 in either direction — don't assume the frontend mock is authoritative (it's a
 prototype guess) or that the backend spec is complete (it's derived from a
 functional doc, not from this frontend).
+
+## Building and running it locally
+
+```bash
+cd web
+npm ci            # first time, or after package.json changes
+npm run build     # sanity-check: production bundle compiles, no errors
+npm start &        # ng serve — http://localhost:4200 (backgrounded; see below)
+```
+
+Then open `/app.html` (or any Angular route) in a browser — not bare `/`, see
+above. Poll instead of guessing when it's ready:
+`timeout 60 bash -c 'until curl -sf http://localhost:4200 >/dev/null; do sleep 1; done'`.
+
+**Gotcha that recurs — a stale server squats the port.** Before starting,
+check nothing already owns 4200 and confirm *whose* it is before trusting it:
+
+```bash
+lsof -ti:4200 -sTCP:LISTEN                              # PID, if any
+readlink -f /proc/<that PID>/cwd                         # where it's rooted
+```
+
+This repo used to be two separate checkouts (`gravita` and `gravita-web`,
+before the `git subtree` merge into `web/`); the old standalone
+`~/dev/gravita-web` directory can still exist on disk with its own orphaned
+`ng serve` left running from before the merge. If the cwd isn't
+`.../gravita/web`, it's not this repo's server — `ng serve` will otherwise
+hang at an unanswerable interactive "port in use, try another? (Y/n)" prompt
+when backgrounded, and curling/opening the port will silently show you the
+*stale* build instead of what you just changed. Kill the wrong PID, not the
+port blindly, then start fresh. Stop your own server the same way:
+`lsof -ti:4200 -sTCP:LISTEN | xargs kill`.
 
 ## How to explore
 
