@@ -51,6 +51,7 @@ public class CalculateTaxService implements CalculateTaxUseCase {
 		List<TaxItemCommand> items = command.items();
 		List<ItemTaxBreakdown> breakdowns = new ArrayList<>(items.size());
 		for (int itemIndex = 0; itemIndex < items.size(); itemIndex++) {
+			int currentItemIndex = itemIndex;
 			TaxItemCommand item = items.get(itemIndex);
 			ProductTaxProfile profile = productTaxProfileRepositoryPort.findByProductRef(item.productRef())
 					.orElseThrow(() -> new TaxDomainException(
@@ -63,7 +64,7 @@ public class CalculateTaxService implements CalculateTaxUseCase {
 			ItemTaxInput input = new ItemTaxInput(itemIndex, item.productRef(), item.quantity(), item.unitPrice(),
 					applicableRates);
 			List<TaxOverrideInput> overridesForItem = overrides.stream()
-					.filter(override -> override.itemIndex() == itemIndex)
+					.filter(override -> override.itemIndex() == currentItemIndex)
 					.toList();
 
 			breakdowns.add(taxEngine.calculate(input, overridesForItem));

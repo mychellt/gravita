@@ -21,7 +21,7 @@ public record InterstateIcmsRateImportRequest(@NotEmpty List<@Valid Row> rates) 
 
 	public List<InterstateIcmsRateDomain> toDomainList() {
 		return rates.stream()
-				.map(row -> InterstateIcmsRateDomain.builder()
+				.<InterstateIcmsRateDomain>map(row -> InterstateIcmsRateDomain.builder()
 						.originState(row.originState())
 						.destinationState(row.destinationState())
 						.ratePercent(row.ratePercent())

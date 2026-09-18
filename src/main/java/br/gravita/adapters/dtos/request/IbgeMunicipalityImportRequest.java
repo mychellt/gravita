@@ -18,7 +18,7 @@ public record IbgeMunicipalityImportRequest(@NotEmpty List<@Valid Row> municipal
 
 	public List<IbgeMunicipalityDomain> toDomainList() {
 		return municipalities.stream()
-				.map(row -> IbgeMunicipalityDomain.builder()
+				.<IbgeMunicipalityDomain>map(row -> IbgeMunicipalityDomain.builder()
 						.ibgeCode(row.ibgeCode())
 						.name(row.name())
 						.stateCode(row.stateCode())
