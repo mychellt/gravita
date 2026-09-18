@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ERP MVP — O ERP completo para o varejo brasileiro</title>
+  <meta name="description" content="Fiscal, estoque, financeiro, PDV e CRM em uma única plataforma. NF-e, NFC-e, NFS-e, Simples Nacional, Lucro Presumido e Lucro Real. Implantação em 24h." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── NAVIGATION ─────────────────────────────────────────── -->
+  <nav class="nav" id="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-mark"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+      <span class="nav-logo-text">ERP<span>MVP</span></span>
+    </div>
+    <div class="nav-links">
+      <a href="#services">Serviços</a>
+      <a href="#mission">Missão</a>
+      <a href="#modules">Módulos</a>
+      <a href="#pricing">Planos</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a href="app.html" class="btn">Entrar</a>
+      <a href="#pricing" class="btn btn-primary">Começar grátis</a>
+    </div>
+    <button class="nav-mobile-toggle" id="mobile-toggle" aria-label="Menu">
+      <i class="ti ti-menu-2"></i>
+    </button>
+  </nav>
+
+  <!-- Mobile nav drawer -->
+  <div class="mobile-nav" id="mobile-nav">
+    <a href="#services">Serviços</a>
+    <a href="#mission">Missão</a>
+    <a href="#modules">Módulos</a>
+    <a href="#pricing">Planos</a>
+    <a href="#faq">FAQ</a>
+    <a href="app.html" class="btn" style="justify-content:center">Entrar</a>
+    <a href="#pricing" class="btn btn-primary" style="justify-content:center">Começar grátis</a>
+  </div>
+
+  <!-- ── HERO ──────────────────────────────────────────────── -->
+  <section class="hero" id="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Plataforma 100% brasileira &nbsp;·&nbsp; Simples Nacional &nbsp;·&nbsp; NFe &nbsp;·&nbsp; NFCe &nbsp;·&nbsp; NFSe
+      </div>
+      <h1>O ERP completo para o <em>varejo brasileiro</em></h1>
+      <p class="hero-sub">Fiscal, estoque, financeiro, PDV e CRM em uma única plataforma — sem customizações, sem surpresas, pronto para operar em até 24h.</p>
+      <div class="hero-actions">
+        <a href="#pricing" class="btn btn-primary btn-lg">
+          <i class="ti ti-rocket" aria-hidden="true"></i> Ver planos e preços
+        </a>
+        <a href="#services" class="btn btn-lg">
+          <i class="ti ti-player-play" aria-hidden="true"></i> Ver o que oferecemos
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val">+2.400</div>
+          <div class="hero-stat-label">empresas ativas</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">R$ 4,2 bi</div>
+          <div class="hero-stat-label">em NF-e emitidas</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">99,98%</div>
+          <div class="hero-stat-label">uptime garantido</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val">&lt; 3s</div>
+          <div class="hero-stat-label">tempo médio de autorização</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SERVICES ───────────────────────────────────────────── -->
+  <section class="section section-alt" id="services">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-tag">Serviços</div>
+        <h2 class="section-title">Tudo que sua operação precisa</h2>
+        <p class="section-sub">Do caixa ao SPED, uma plataforma única cobre todos os processos do varejo brasileiro sem módulos opcionais frágeis.</p>
+      </div>
+      <div class="services-grid">
+
+        <div class="service-card">
+          <div class="service-icon blue"><i class="ti ti-file-invoice" aria-hidden="true"></i></div>
+          <h3>Emissão fiscal completa</h3>
+          <p>NF-e, NFC-e e NFS-e com transmissão automática ao SEFAZ, contingência offline e fila de retransmissão com retry exponencial. Contingência SVC-AN/SVC-RS ativada automaticamente.</p>
+          <div class="service-tags">
+            <span class="tag">NF-e M55</span>
+            <span class="tag">NFC-e M65</span>
+            <span class="tag">NFS-e</span>
+            <span class="tag">SPED</span>
+            <span class="tag">CC-e</span>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon purple"><i class="ti ti-device-desktop" aria-hidden="true"></i></div>
+          <h3>PDV de alta velocidade</h3>
+          <p>Frente de caixa projetada para venda em menos de 30 segundos. Operável apenas com teclado numérico, suporte a múltiplos caixas e fechamento automático com relatório Z.</p>
+          <div class="service-tags">
+            <span class="tag">PDV offline</span>
+            <span class="tag">Multi-caixa</span>
+            <span class="tag">Contingência</span>
+            <span class="tag">Sangria</span>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon green"><i class="ti ti-box" aria-hidden="true"></i></div>
+          <h3>Estoque em tempo real</h3>
+          <p>Movimentações automáticas, rastreabilidade por lote e número de série, alertas de estoque mínimo, controle de validade e sugestão automática de reposição.</p>
+          <div class="service-tags">
+            <span class="tag">Lote/Série</span>
+            <span class="tag">CMV</span>
+            <span class="tag">Inventário</span>
+            <span class="tag">Transferência</span>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon amber"><i class="ti ti-cash" aria-hidden="true"></i></div>
+          <h3>Financeiro integrado</h3>
+          <p>Contas a pagar e receber, boleto bancário via API, PIX cobrança com QR Code dinâmico, conciliação automática via CNAB 240/400 e fluxo de caixa projetado.</p>
+          <div class="service-tags">
+            <span class="tag">PIX</span>
+            <span class="tag">Boleto</span>
+            <span class="tag">CNAB</span>
+            <span class="tag">OFX</span>
+            <span class="tag">Aging list</span>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon red"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <h3>Vendas &amp; CRM</h3>
+          <p>Funil Kanban visual, orçamentos com validade configurável, pedidos e faturamento em 1 clique. Follow-up automático por regras, metas por vendedor e comissões apuradas.</p>
+          <div class="service-tags">
+            <span class="tag">Funil Kanban</span>
+            <span class="tag">Orçamentos</span>
+            <span class="tag">Comissões</span>
+            <span class="tag">Follow-up</span>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="service-icon teal"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+          <h3>BI &amp; Relatórios</h3>
+          <p>Dashboard executivo, Curva ABC, DRE gerencial, livros fiscais e exportação SPED. Carregamento em menos de 3 segundos mesmo em grandes volumes de dados.</p>
+          <div class="service-tags">
+            <span class="tag">Curva ABC</span>
+            <span class="tag">DRE</span>
+            <span class="tag">SPED</span>
+            <span class="tag">Livros fiscais</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MISSION ────────────────────────────────────────────── -->
+  <section class="section" id="mission">
+    <div class="container">
+      <div class="mission-grid">
+        <div class="mission-content">
+          <div class="section-tag">Nossa missão</div>
+          <h2 class="section-title">Simplificar a gestão do varejo brasileiro</h2>
+          <p class="mission-text">Acreditamos que uma empresa de varejo — independentemente do porte ou segmento — merece um sistema robusto sem precisar pagar por consultorias, customizações ou integrações quebradas.</p>
+          <p class="mission-text">Nossa plataforma é construída com uma filosofia clara: menos telas, mais resultado. Qualquer operação do dia a dia em no máximo 3 cliques. Configuração por parâmetro, nunca por código.</p>
+          <div class="mission-pillars">
+            <div class="pillar">
+              <div class="pillar-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+              <div>
+                <div class="pillar-title">Padrão único, zero ajuste por cliente</div>
+                <div class="pillar-desc">Simples Nacional, Lucro Presumido e Lucro Real na mesma base de código, sem customizações.</div>
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+              <div>
+                <div class="pillar-title">Robusto desde o primeiro dia</div>
+                <div class="pillar-desc">Fila de retransmissão fiscal, contingência offline, trilha de auditoria imutável e backup automático diário.</div>
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+              <div>
+                <div class="pillar-title">Conformidade fiscal garantida</div>
+                <div class="pillar-desc">Motor tributário único atualizado automaticamente — ICMS, IPI, PIS, COFINS, ISS sem risco de erro.</div>
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+              <div>
+                <div class="pillar-title">Experiência que respeita o operador</div>
+                <div class="pillar-desc">Alertas como toast, nunca modal bloqueante. O sistema nunca perde dados digitados. Fluxos críticos em menos de 30 segundos.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mission-metrics">
+          <div class="mission-metric">
+            <div class="mission-metric-val">3</div>
+            <div class="mission-metric-label">cliques para qualquer operação</div>
+          </div>
+          <div class="mission-metric">
+            <div class="mission-metric-val">24h</div>
+            <div class="mission-metric-label">implantação completa</div>
+          </div>
+          <div class="mission-metric">
+            <div class="mission-metric-val">100%</div>
+            <div class="mission-metric-label">conformidade fiscal</div>
+          </div>
+          <div class="mission-metric">
+            <div class="mission-metric-val">0</div>
+            <div class="mission-metric-label">customizações necessárias</div>
+          </div>
+          <div class="mission-metric">
+            <div class="mission-metric-val">5 anos</div>
+            <div class="mission-metric-label">retenção de XMLs fiscais</div>
+          </div>
+          <div class="mission-metric">
+            <div class="mission-metric-val">2FA</div>
+            <div class="mission-metric-label">segurança obrigatória para admins</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MODULES ────────────────────────────────────────────── -->
+  <section class="section section-alt" id="modules">
+    <div class="container">
+      <div class="section-head center">
+        <div class="section-tag">Módulos</div>
+        <h2 class="section-title">10 módulos, uma plataforma</h2>
+        <p class="section-sub">Todos os módulos estão sempre disponíveis. Se sua empresa não usa NFS-e, o menu simplesmente não aparece — mas o código está lá.</p>
+      </div>
+      <div class="modules-grid">
+        <div class="module-item">
+          <div class="module-num">M1</div>
+          <div><div class="module-name">Cadastros Base</div><div class="module-sub">Empresa, clientes, fornecedores, produtos, tabelas</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M2</div>
+          <div><div class="module-name">NF-e (Modelo 55)</div><div class="module-sub">Emissão, transmissão, DANFE, XML, SPED, CC-e</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M3</div>
+          <div><div class="module-name">NFC-e + PDV</div><div class="module-sub">Frente de caixa, contingência offline, multi-caixa</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M4</div>
+          <div><div class="module-name">NFS-e</div><div class="module-sub">Multi-município, ABRASF 2.x, Nacional SEFAZ</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M5</div>
+          <div><div class="module-name">Estoque</div><div class="module-sub">Movimentações, lote/série, CMV, inventário</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M6</div>
+          <div><div class="module-name">Compras</div><div class="module-sub">Solicitação, cotação, pedido, recebimento</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M7</div>
+          <div><div class="module-name">Vendas &amp; CRM</div><div class="module-sub">Orçamento, pedido, faturamento, funil, follow-up</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M8</div>
+          <div><div class="module-name">Financeiro</div><div class="module-sub">CR/CP, fluxo de caixa, PIX, boleto, conciliação</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M9</div>
+          <div><div class="module-name">Relatórios &amp; BI</div><div class="module-sub">Dashboard, Curva ABC, DRE, livros fiscais</div></div>
+        </div>
+        <div class="module-item">
+          <div class="module-num">M10</div>
+          <div><div class="module-name">Sistema</div><div class="module-sub">Usuários, permissões, 2FA, auditoria, backup</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRICING ────────────────────────────────────────────── -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-head center">
+        <div class="section-tag">Planos e preços</div>
+        <h2 class="section-title">Escolha o plano ideal para sua empresa</h2>
+        <p class="section-sub">Sem taxa de implantação. Sem fidelidade. Cancele quando quiser. Todos os planos incluem suporte técnico e atualizações fiscais automáticas.</p>
+      </div>
+
+      <!-- Annual toggle -->
+      <div class="pricing-toggle-wrap">
+        <span class="toggle-label">Mensal</span>
+        <button class="toggle-btn" id="annual-toggle" onclick="toggleAnnual()" aria-label="Alternar plano anual">
+          <div class="toggle-thumb" id="toggle-thumb"></div>
+        </button>
+        <span class="toggle-label">Anual</span>
+        <span class="annual-badge" id="annual-badge">2 meses grátis</span>
+      </div>
+
+      <div class="pricing-grid">
+
+        <!-- Bronze -->
+        <div class="pricing-card" id="card-bronze">
+          <div class="pricing-header">
+            <div class="plan-tier">
+              <div class="tier-badge bronze"><i class="ti ti-medal" aria-hidden="true"></i></div>
+              <span class="plan-name">Bronze</span>
+            </div>
+            <div class="plan-price">
+              <span class="price-currency">R$</span>
+              <span class="price-amount" id="price-bronze">297</span>
+              <span class="price-period">/mês</span>
+            </div>
+            <p class="plan-desc">Para pequenos varejos com até 1 CNPJ e operação simplificada.</p>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <ul class="feature-list">
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>1 CNPJ / 1 filial</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>NF-e e NFC-e ilimitadas</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>PDV — 1 caixa</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Estoque e Compras</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Financeiro básico (CR/CP)</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>3 usuários incluídos</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Dashboard executivo</li>
+              <li class="feature-item feature-no"><span class="feature-icon cross"><i class="ti ti-minus" aria-hidden="true"></i></span>NFS-e (serviços)</li>
+              <li class="feature-item feature-no"><span class="feature-icon cross"><i class="ti ti-minus" aria-hidden="true"></i></span>Integração bancária (boleto/PIX)</li>
+              <li class="feature-item feature-no"><span class="feature-icon cross"><i class="ti ti-minus" aria-hidden="true"></i></span>Integração e-commerce</li>
+              <li class="feature-item feature-no"><span class="feature-icon cross"><i class="ti ti-minus" aria-hidden="true"></i></span>API REST + Webhooks</li>
+            </ul>
+          </div>
+          <div class="pricing-footer">
+            <a href="register.html?plan=bronze" class="btn-plan" id="cta-bronze">Começar com Bronze</a>
+          </div>
+        </div>
+
+        <!-- Silver (featured) -->
+        <div class="pricing-card featured" id="card-silver">
+          <div class="popular-badge-wrap">
+            <span class="popular-badge">Mais popular</span>
+          </div>
+          <div class="pricing-header">
+            <div class="plan-tier">
+              <div class="tier-badge silver"><i class="ti ti-star" aria-hidden="true"></i></div>
+              <span class="plan-name">Silver</span>
+            </div>
+            <div class="plan-price">
+              <span class="price-currency">R$</span>
+              <span class="price-amount" id="price-silver">597</span>
+              <span class="price-period">/mês</span>
+            </div>
+            <p class="plan-desc">Para varejos em crescimento com múltiplos caixas, NFS-e e integrações.</p>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <ul class="feature-list">
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>1 CNPJ + até 3 filiais</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>NF-e, NFC-e e NFS-e ilimitadas</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>PDV — até 5 caixas</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Estoque, Compras e CRM completo</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Financeiro + integração bancária</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>10 usuários incluídos</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>NFS-e multi-município</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>WhatsApp Business API</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Relatórios avançados + DRE</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Conciliação bancária (OFX/CSV)</li>
+              <li class="feature-item feature-no"><span class="feature-icon cross"><i class="ti ti-minus" aria-hidden="true"></i></span>API REST + Webhooks</li>
+            </ul>
+          </div>
+          <div class="pricing-footer">
+            <a href="register.html?plan=silver" class="btn-plan btn-plan-featured" id="cta-silver">Começar com Silver</a>
+          </div>
+        </div>
+
+        <!-- Gold -->
+        <div class="pricing-card" id="card-gold">
+          <div class="pricing-header">
+            <div class="plan-tier">
+              <div class="tier-badge gold"><i class="ti ti-crown" aria-hidden="true"></i></div>
+              <span class="plan-name">Gold</span>
+            </div>
+            <div class="plan-price">
+              <span class="price-currency">R$</span>
+              <span class="price-amount" id="price-gold">1.197</span>
+              <span class="price-period">/mês</span>
+            </div>
+            <p class="plan-desc">Para redes de varejo e operações complexas com múltiplos CNPJs e API aberta.</p>
+          </div>
+          <div class="pricing-divider"></div>
+          <div class="pricing-features">
+            <ul class="feature-list">
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>CNPJs ilimitados + filiais ilimitadas</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>NF-e, NFC-e e NFS-e ilimitadas</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>PDV — caixas ilimitados</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Todos os módulos incluídos</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Usuários ilimitados</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>API REST + Webhooks</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Integração e-commerce (Shopify, VTEX)</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>SLA 99,98% + suporte prioritário 24/7</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Ambiente sandbox incluso</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Exportação contábil configurável</li>
+              <li class="feature-item feature-yes"><span class="feature-icon check"><i class="ti ti-check" aria-hidden="true"></i></span>Gerente de conta dedicado</li>
+            </ul>
+          </div>
+          <div class="pricing-footer">
+            <a href="register.html?plan=gold" class="btn-plan" id="cta-gold">Começar com Gold</a>
+          </div>
+        </div>
+
+      </div>
+      <p class="pricing-note">Todos os planos incluem certificado digital A1, suporte por e-mail e atualizações fiscais automáticas. Não há taxa de implantação.</p>
+    </div>
+  </section>
+
+  <!-- ── TESTIMONIALS ───────────────────────────────────────── -->
+  <section class="section section-alt" id="testimonials">
+    <div class="container">
+      <div class="section-head center">
+        <div class="section-tag">Depoimentos</div>
+        <h2 class="section-title">O que nossos clientes dizem</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+          </div>
+          <p class="testimonial-text">"Migramos do sistema anterior em 1 dia. A emissão de NF-e ficou 3x mais rápida e o PDV nunca travou desde então. O suporte é excepcional e a equipe responde em minutos."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#4F6EF7">MM</div>
+            <div>
+              <div class="author-name">Marina Mendes</div>
+              <div class="author-company">Supermercado Bom Preço · São Paulo/SP · Plano Silver</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+          </div>
+          <p class="testimonial-text">"A conciliação bancária automática economizou 2 horas por dia do meu time financeiro. O fluxo de caixa projetado mudou completamente nossa tomada de decisão."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#7C3AED">RC</div>
+            <div>
+              <div class="author-name">Roberto Costa</div>
+              <div class="author-company">Atacadão Regional · Campinas/SP · Plano Silver</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+            <i class="ti ti-star-filled" aria-hidden="true"></i>
+          </div>
+          <p class="testimonial-text">"Temos 5 filiais e precisávamos de multi-CNPJ sem duplicar custo. O plano Gold resolveu tudo. A API nos permitiu integrar ao Shopify em menos de 1 semana."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar" style="background:#059669">AF</div>
+            <div>
+              <div class="author-name">Ana Freitas</div>
+              <div class="author-company">Rede Flores Varejo · Rio de Janeiro/RJ · Plano Gold</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ────────────────────────────────────────────────── -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-head center">
+        <div class="section-tag">Dúvidas frequentes</div>
+        <h2 class="section-title">Perguntas mais comuns</h2>
+      </div>
+      <div class="faq-list">
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Preciso instalar algum software?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Não. O ERP MVP é 100% web e acessível em qualquer navegador moderno (Chrome, Firefox, Edge, Safari). O PDV funciona em modo offline e sincroniza automaticamente ao reconectar à internet.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Como funciona a migração do sistema atual?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Nossa equipe realiza a migração de cadastros (clientes, produtos, fornecedores) e configurações fiscais em até 24h. Disponibilizamos importadores para os principais sistemas do mercado brasileiro.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>O sistema atende Simples Nacional e Lucro Presumido?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Sim. O motor fiscal suporta Simples Nacional, Lucro Presumido e Lucro Real na mesma base de código, sem nenhuma alteração de código ou módulo adicional. A troca de regime é feita por parâmetro de cadastro.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>O PDV funciona sem internet?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Sim. O modo de contingência offline numera as vendas com flag de pendência e sincroniza automaticamente ao reconectar. A numeração não transmitida é inutilizada automaticamente no final do dia. Nenhuma venda é perdida.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Posso cancelar ou mudar de plano a qualquer momento?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Sim, sem multa e sem fidelidade. Você pode cancelar, fazer upgrade ou downgrade a qualquer momento pelo painel de configurações. O cancelamento é efetivo ao final do período já pago.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Os XMLs fiscais ficam armazenados por quanto tempo?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Por no mínimo 5 anos, conforme exigência legal do fisco brasileiro. Os XMLs são armazenados em storage de objetos com backup redundante diário e disponíveis para download a qualquer momento pelo próprio usuário.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Quais bancos têm integração para boleto e PIX?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Atualmente integramos com Itaú, Bradesco, Banco do Brasil, Sicoob e Sicredi via API de boleto e PIX Cobrança. A remessa CNAB 240/400 e o retorno funcionam com qualquer banco que suporte o padrão FEBRABAN.</div>
+        </div>
+
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">
+            <span>Como funciona o suporte técnico?</span>
+            <i class="ti ti-chevron-down faq-icon" aria-hidden="true"></i>
+          </div>
+          <div class="faq-a">Os planos Bronze e Silver incluem suporte via e-mail e chat com SLA de resposta em até 8h úteis. O plano Gold inclui suporte prioritário 24/7 por telefone, chat e gerente de conta dedicado com SLA de 2h.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA BANNER ─────────────────────────────────────────── -->
+  <section class="cta-banner">
+    <div class="container">
+      <div class="cta-inner">
+        <h2>Pronto para simplificar sua gestão?</h2>
+        <p>Comece hoje mesmo. Configuração em 24h, suporte humano incluído, sem cartão de crédito para testar.</p>
+        <div class="cta-actions">
+          <a href="#pricing" class="btn btn-primary btn-lg">
+            <i class="ti ti-rocket" aria-hidden="true"></i> Criar conta grátis
+          </a>
+          <a href="mailto:contato@erpmvp.com.br" class="btn btn-outline-white btn-lg">
+            <i class="ti ti-phone" aria-hidden="true"></i> Falar com consultor
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <div class="nav-logo-mark"><i class="ti ti-building-store" aria-hidden="true"></i></div>
+            <span class="nav-logo-text">ERP<span>MVP</span></span>
+          </div>
+          <p class="footer-brand-desc">ERP completo para o varejo brasileiro. Fiscal, financeiro, PDV e CRM em uma única plataforma sem customizações.</p>
+          <div class="footer-social">
+            <a href="#" class="social-link" aria-label="LinkedIn"><i class="ti ti-brand-linkedin" aria-hidden="true"></i></a>
+            <a href="#" class="social-link" aria-label="Instagram"><i class="ti ti-brand-instagram" aria-hidden="true"></i></a>
+            <a href="#" class="social-link" aria-label="YouTube"><i class="ti ti-brand-youtube" aria-hidden="true"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Produto</div>
+          <ul class="footer-links">
+            <li><a href="#services">Funcionalidades</a></li>
+            <li><a href="#modules">Módulos</a></li>
+            <li><a href="#pricing">Preços</a></li>
+            <li><a href="#">Integrações</a></li>
+            <li><a href="#">Changelog</a></li>
+            <li><a href="#">Roadmap</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Empresa</div>
+          <ul class="footer-links">
+            <li><a href="#">Sobre nós</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Carreiras</a></li>
+            <li><a href="#">Imprensa</a></li>
+            <li><a href="mailto:contato@erpmvp.com.br">Contato</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Suporte</div>
+          <ul class="footer-links">
+            <li><a href="#">Central de ajuda</a></li>
+            <li><a href="#">Documentação API</a></li>
+            <li><a href="#">Status do sistema</a></li>
+            <li><a href="#">Política de privacidade</a></li>
+            <li><a href="#">Termos de uso</a></li>
+            <li><a href="#">LGPD</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 ERP MVP. Todos os direitos reservados.</span>
+        <span>CNPJ 00.000.000/0001-00 &nbsp;·&nbsp; São Paulo, SP &nbsp;·&nbsp; <a href="mailto:contato@erpmvp.com.br">contato@erpmvp.com.br</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

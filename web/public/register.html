@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar conta — ERP MVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="register.css" />
+</head>
+<body class="reg-body">
+
+  <!-- ── TOP BAR ───────────────────────────────────────────── -->
+  <header class="reg-header">
+    <a href="index.html" class="reg-logo">
+      <div class="reg-logo-mark"><i class="ti ti-building-store"></i></div>
+      <span>ERP<span class="accent">MVP</span></span>
+    </a>
+    <a href="index.html" class="reg-back-link">
+      <i class="ti ti-arrow-left"></i> Voltar aos planos
+    </a>
+  </header>
+
+  <!-- ── MAIN ──────────────────────────────────────────────── -->
+  <main class="reg-main">
+
+    <!-- Left: form area -->
+    <div class="reg-form-side">
+
+      <!-- Progress steps -->
+      <div class="reg-steps">
+        <div class="reg-step active" id="step-dot-1">
+          <div class="step-dot">1</div>
+          <span class="step-label">Acesso</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="reg-step" id="step-dot-2">
+          <div class="step-dot">2</div>
+          <span class="step-label">Empresa</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="reg-step" id="step-dot-3">
+          <div class="step-dot"><i class="ti ti-check"></i></div>
+          <span class="step-label">Pronto!</span>
+        </div>
+      </div>
+
+      <!-- ── STEP 1: Acesso ── -->
+      <div class="reg-card" id="form-step-1">
+        <div class="reg-card-head">
+          <h1 class="reg-title">Crie sua conta</h1>
+          <p class="reg-sub">Comece em segundos — sem cartão de crédito agora.</p>
+        </div>
+
+        <form class="reg-form" id="form1" novalidate>
+          <div class="field-group">
+            <label class="field-label" for="full-name">Nome completo</label>
+            <div class="field-wrap">
+              <i class="ti ti-user field-icon"></i>
+              <input class="field-input" id="full-name" type="text" placeholder="Ana Souza" autocomplete="name" required />
+            </div>
+            <span class="field-error" id="err-name"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="email">E-mail</label>
+            <div class="field-wrap">
+              <i class="ti ti-mail field-icon"></i>
+              <input class="field-input" id="email" type="email" placeholder="ana@empresa.com.br" autocomplete="email" required />
+            </div>
+            <span class="field-error" id="err-email"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="password">Senha</label>
+            <div class="field-wrap">
+              <i class="ti ti-lock field-icon"></i>
+              <input class="field-input" id="password" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required />
+              <button type="button" class="field-eye" id="eye-toggle" aria-label="Mostrar senha">
+                <i class="ti ti-eye" id="eye-icon"></i>
+              </button>
+            </div>
+            <div class="password-strength" id="pw-strength">
+              <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+              <span class="strength-label" id="strength-label"></span>
+            </div>
+            <span class="field-error" id="err-password"></span>
+          </div>
+
+          <button type="submit" class="btn-reg" id="btn-next-1">
+            Continuar <i class="ti ti-arrow-right"></i>
+          </button>
+        </form>
+
+        <p class="reg-footer-text">
+          Já tem uma conta? <a href="app.html">Entrar</a>
+        </p>
+      </div>
+
+      <!-- ── STEP 2: Empresa ── -->
+      <div class="reg-card hidden" id="form-step-2">
+        <div class="reg-card-head">
+          <h1 class="reg-title">Sobre sua empresa</h1>
+          <p class="reg-sub">Só mais dois dados e você está dentro.</p>
+        </div>
+
+        <form class="reg-form" id="form2" novalidate>
+          <div class="field-group">
+            <label class="field-label" for="company-name">Nome da empresa</label>
+            <div class="field-wrap">
+              <i class="ti ti-building field-icon"></i>
+              <input class="field-input" id="company-name" type="text" placeholder="Loja do João LTDA" autocomplete="organization" required />
+            </div>
+            <span class="field-error" id="err-company"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="cnpj">CNPJ</label>
+            <div class="field-wrap">
+              <i class="ti ti-id-badge field-icon"></i>
+              <input class="field-input field-mono" id="cnpj" type="text" placeholder="00.000.000/0001-00" maxlength="18" autocomplete="off" required />
+            </div>
+            <span class="field-error" id="err-cnpj"></span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="phone">
+              Telefone <span class="field-optional">(opcional)</span>
+            </label>
+            <div class="field-wrap">
+              <i class="ti ti-phone field-icon"></i>
+              <input class="field-input field-mono" id="phone" type="tel" placeholder="(11) 99999-9999" maxlength="15" autocomplete="tel" />
+            </div>
+          </div>
+
+          <div class="reg-form-actions">
+            <button type="button" class="btn-reg-secondary" id="btn-back">
+              <i class="ti ti-arrow-left"></i> Voltar
+            </button>
+            <button type="submit" class="btn-reg flex-1" id="btn-submit">
+              <span id="btn-submit-text">Criar conta</span>
+              <i class="ti ti-check" id="btn-submit-icon"></i>
+              <span class="spinner hidden" id="btn-spinner"><i class="ti ti-loader-2 spin"></i></span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ── STEP 3: Success ── -->
+      <div class="reg-card hidden" id="form-step-3">
+        <div class="success-wrap">
+          <div class="success-icon">
+            <i class="ti ti-check"></i>
+          </div>
+          <h2 class="success-title">Conta criada!</h2>
+          <p class="success-sub">Enviamos um e-mail de confirmação para <strong id="confirm-email"></strong>. Verifique sua caixa de entrada e acesse o painel.</p>
+          <a href="app.html" class="btn-reg" style="text-decoration:none; margin-top: 8px;">
+            <i class="ti ti-layout-dashboard"></i> Ir para o painel
+          </a>
+          <p class="success-note">Não recebeu o e-mail? <button class="link-btn" id="resend-btn">Reenviar</button></p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: plan summary -->
+    <div class="reg-plan-side" id="plan-side">
+      <div class="plan-summary-card" id="plan-summary">
+        <!-- Filled by JS -->
+      </div>
+      <div class="reg-trust">
+        <div class="trust-item"><i class="ti ti-shield-check"></i> Dados criptografados com TLS 1.3</div>
+        <div class="trust-item"><i class="ti ti-certificate"></i> Servidor certificado LGPD</div>
+        <div class="trust-item"><i class="ti ti-clock"></i> Implantação em até 24h</div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="register.js"></script>
+</body>
+</html>

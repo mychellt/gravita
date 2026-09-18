@@ -1,0 +1,134 @@
+<app-page-header title="Controle de Estoque" subtitle="Movimentações em tempo real · Rastreabilidade por lote/série">
+  <button class="btn btn-ghost"><i class="ti ti-list-check"></i> Inventário</button>
+  <button class="btn btn-primary"><i class="ti ti-plus"></i> Ajuste manual</button>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="stock-kpis">
+  <div class="stock-kpi">
+    <div class="stock-kpi-val">{{ totalSKUs() }}</div>
+    <div class="stock-kpi-label">SKUs ativos</div>
+    <div class="progress-bar" style="margin-top:8px">
+      <div class="progress-fill blue" style="width:82%"></div>
+    </div>
+  </div>
+  <div class="stock-kpi">
+    <div class="stock-kpi-val text-danger">{{ criticalProdutos().length }}</div>
+    <div class="stock-kpi-label">Abaixo do mínimo</div>
+    <div class="progress-bar" style="margin-top:8px">
+      <div class="progress-fill red" [style.width.%]="(criticalProdutos().length / totalSKUs()) * 100"></div>
+    </div>
+  </div>
+  <div class="stock-kpi">
+    <div class="stock-kpi-val text-warn">3</div>
+    <div class="stock-kpi-label">Lotes a vencer (7d)</div>
+    <div class="progress-bar" style="margin-top:8px">
+      <div class="progress-fill amber" style="width:30%"></div>
+    </div>
+  </div>
+</div>
+
+<div class="estoque-layout">
+
+  <!-- Movements table -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Movimentações recentes</span>
+      <div style="display:flex;gap:8px">
+        <input class="filter-input" type="text" placeholder="Buscar produto..."
+               [value]="searchQuery()"
+               (input)="searchQuery.set($any($event.target).value)" />
+        <select class="filter-select" (change)="filterTipo.set($any($event.target).value)">
+          <option value="">Todos</option>
+          <option value="entrada">Entrada</option>
+          <option value="saida">Saída</option>
+          <option value="ajuste">Ajuste</option>
+          <option value="transferencia">Transferência</option>
+        </select>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data/Hora</th>
+          <th>Produto</th>
+          <th>Tipo</th>
+          <th>Quantidade</th>
+          <th>Saldo após</th>
+          <th>Origem</th>
+          <th>Usuário</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of movimentos(); track m.id) {
+          <tr>
+            <td style="font-size:11px;color:var(--text3)">{{ m.dataHora | date:'dd/MM HH:mm' }}</td>
+            <td class="td-name">{{ m.produtoNome }}</td>
+            <td>
+              <span class="badge" [ngClass]="m.tipo === 'entrada' ? 'auth' : m.tipo === 'saida' ? 'canc' : 'rascunho'">
+                <span class="badge-dot"></span>
+                {{ m.tipo === 'entrada' ? '↑ Entrada' : m.tipo === 'saida' ? '↓ Saída' : '± ' + m.tipo }}
+              </span>
+            </td>
+            <td class="td-mono" [class.text-success]="m.quantidade > 0" [class.text-danger]="m.quantidade < 0">
+              {{ m.quantidade > 0 ? '+' : '' }}{{ m.quantidade }} un
+            </td>
+            <td class="td-mono" [class.text-danger]="m.saldoApos <= 20" [class.text-warn]="m.saldoApos <= 50 && m.saldoApos > 20">
+              {{ m.saldoApos }} un
+              @if (m.saldoApos <= 20) { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
+            </td>
+            <td style="font-size:11px">{{ m.origem }}</td>
+            <td style="font-size:11px;color:var(--text3)">{{ m.usuario }}</td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Nenhuma movimentação encontrada</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Alerts panel -->
+  <div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Alertas críticos</span></div>
+      @for (p of criticalProdutos(); track p.id) {
+        <div class="alert-item">
+          <div class="alert-dot red"></div>
+          <div class="alert-info">
+            <div class="alert-prod">{{ p.descricao }}</div>
+            <div class="alert-stock text-danger">{{ p.estoque }} un (mín: {{ p.estoqueMinimo }})</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" (click)="solicitarCompra(p.descricao)">Pedir</button>
+        </div>
+      }
+      <div class="alert-item">
+        <div class="alert-dot amber"></div>
+        <div class="alert-info">
+          <div class="alert-prod">Queijo Mussarela</div>
+          <div class="alert-stock text-warn">Lote vence em 4 dias</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Ver lote</button>
+      </div>
+      <div class="alert-item">
+        <div class="alert-dot amber"></div>
+        <div class="alert-info">
+          <div class="alert-prod">Iogurte Natural</div>
+          <div class="alert-stock text-warn">Lote vence em 6 dias</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Ver lote</button>
+      </div>
+      <div class="alert-item" style="border-bottom:none">
+        <div class="alert-dot blue"></div>
+        <div class="alert-info">
+          <div class="alert-prod">Transferência pendente</div>
+          <div class="alert-stock" style="color:var(--info)">50 un Óleo → Filial 02</div>
+        </div>
+        <button class="btn btn-ghost btn-sm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

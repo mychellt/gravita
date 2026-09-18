@@ -1,0 +1,52 @@
+<aside class="sidebar">
+
+  <div class="sidebar-logo">
+    <div class="logo-mark">E</div>
+    <div>
+      <div class="logo-text">ERP MVP</div>
+      <div class="logo-sub">v1.0</div>
+    </div>
+  </div>
+
+  <div class="sidebar-company">
+    <div class="company-pill">
+      <div class="company-dot">MM</div>
+      <div>
+        <div class="company-name">Mercado Moderno</div>
+        <div class="company-regime">Simples Nacional</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (section of sections; track section.title) {
+      <div class="nav-section">{{ section.title }}</div>
+      @for (item of section.items; track item.route) {
+        <a class="nav-item"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: !!item.exact }">
+          <i class="ni ti {{ item.icon }}"></i>
+          <span class="nav-label">{{ item.label }}</span>
+          @if (item.live) {
+            <span class="live-dot" style="margin-left:auto"></span>
+          }
+          @if (item.badge) {
+            <span class="nav-badge" [class.warn]="item.badgeWarn">{{ item.badge }}</span>
+          }
+        </a>
+      }
+    }
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar">RL</div>
+      <div>
+        <div class="user-name">Ricardo Lima</div>
+        <div class="user-role">Administrador</div>
+      </div>
+    </div>
+  </div>
+
+</aside>

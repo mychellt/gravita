@@ -1,0 +1,67 @@
+.report-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.report-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r12);
+  padding: 14px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.report-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.report-card-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--r8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 10px;
+}
+.report-card-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.report-card-desc  { font-size: 11px; color: var(--text3); }
+
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ABC chart */
+.abc-chart {
+  display: flex; gap: 6px; height: 100px;
+  align-items: flex-end; padding: 4px 0;
+}
+.abc-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.abc-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 3px; }
+.abc-bar.a { background: var(--accent); }
+.abc-bar.b { background: var(--accent2); }
+.abc-bar.c { background: var(--surface3); }
+.abc-label { font-size: 9px; color: var(--text3); text-align: center; }
+.abc-val   { font-size: 9px; font-weight: 600; color: var(--text3); }
+.abc-legend {
+  display: flex; gap: 14px; margin-top: 8px;
+  padding-top: 8px; border-top: 1px solid var(--border);
+}
+.abc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+.abc-dot { width: 10px; height: 10px; border-radius: 2px; }
+.abc-dot.a { background: var(--accent); }
+.abc-dot.b { background: var(--accent2); }
+.abc-dot.c { background: var(--surface3); border: 1px solid var(--border2); }
+
+/* DRE table */
+.dre-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dre-table tr { border-bottom: 1px solid var(--border); }
+.dre-table tr:last-child { border-bottom: none; }
+.dre-table td { padding: 7px 0; font-size: 13px; }
+.dre-table .td-pct { width: 50px; text-align: right; font-size: 12px; }
+.dre-separator { border-top: 2px solid var(--border2) !important; }
+.dre-result td { padding-top: 10px; }

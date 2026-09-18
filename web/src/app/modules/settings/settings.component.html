@@ -1,0 +1,136 @@
+<app-page-header title="Configurações" subtitle="Empresa · Usuários · Permissões · Integrações · Auditoria">
+</app-page-header>
+
+<div class="settings-layout">
+  <!-- Menu -->
+  <div class="settings-menu card">
+    @for (m of menus; track m.key) {
+      <div class="settings-menu-item" [class.active]="activeMenu() === m.key" (click)="activeMenu.set(m.key)">
+        <i class="ti {{ m.icon }}"></i>{{ m.label }}
+      </div>
+    }
+  </div>
+
+  <!-- Panel -->
+  <div class="settings-panel card">
+
+    @if (activeMenu() === 'empresa') {
+      <div class="settings-panel-head">
+        <div class="settings-panel-title">Dados da Empresa</div>
+        <div class="settings-panel-sub">Informações fiscais e operacionais · Mercado Moderno Ltda</div>
+      </div>
+      <div class="form-row cols-2">
+        <div class="form-field">
+          <label class="form-label">CNPJ</label>
+          <input class="form-input" type="text" [value]="cnpj()" readonly />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Razão Social</label>
+          <input class="form-input" type="text" [value]="razaoSocial()" (input)="razaoSocial.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="form-row cols-3">
+        <div class="form-field">
+          <label class="form-label">Regime Tributário</label>
+          <select class="form-select" [value]="regime()" (change)="regime.set($any($event.target).value)">
+            <option value="simples_nacional">Simples Nacional</option>
+            <option value="lucro_presumido">Lucro Presumido</option>
+            <option value="lucro_real">Lucro Real</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">CNAE principal</label>
+          <input class="form-input" type="text" [value]="cnae()" (input)="cnae.set($any($event.target).value)" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Inscrição Estadual</label>
+          <input class="form-input" type="text" [value]="ie()" (input)="ie.set($any($event.target).value)" />
+        </div>
+      </div>
+      <hr class="settings-divider" />
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Ambiente SEFAZ</div>
+          <div class="setting-desc">Alternar entre Produção e Homologação sem reiniciar</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="env-badge" [class.prod]="ambienteProd()" [class.hom]="!ambienteProd()">
+            {{ ambienteProd() ? 'Produção' : 'Homologação' }}
+          </span>
+          <button class="toggle" [class.on]="ambienteProd()" (click)="ambienteProd.set(!ambienteProd())"></button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Autenticação 2FA</div>
+          <div class="setting-desc">TOTP obrigatório para perfil Administrador</div>
+        </div>
+        <button class="toggle" [class.on]="twoFa()" (click)="twoFa.set(!twoFa())"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Modo escuro automático</div>
+          <div class="setting-desc">Respeitar preferência do sistema operacional</div>
+        </div>
+        <button class="toggle" [class.on]="darkModeAuto()" (click)="darkModeAuto.set(!darkModeAuto())"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Bloquear estoque negativo</div>
+          <div class="setting-desc">Impede saída sem saldo disponível</div>
+        </div>
+        <button class="toggle" [class.on]="estoqueNegativo()" (click)="estoqueNegativo.set(!estoqueNegativo())"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Backup automático</div>
+          <div class="setting-desc">Diário às 02:00 · Retenção 90 dias mínimo</div>
+        </div>
+        <button class="toggle" [class.on]="backupAuto()" (click)="backupAuto.set(!backupAuto())"></button>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:8px">
+        <button class="btn btn-primary" (click)="save()"><i class="ti ti-device-floppy"></i> Salvar</button>
+        <button class="btn btn-ghost">Cancelar</button>
+      </div>
+    }
+
+    @if (activeMenu() === 'usuarios') {
+      <div class="settings-panel-head">
+        <div class="settings-panel-title">Usuários</div>
+        <div class="settings-panel-sub">Gerencie acessos e perfis</div>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>2FA</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="td-name">Ricardo Lima</td><td>ricardo&#64;empresa.com.br</td><td>Administrador</td><td><i class="ti ti-check text-success"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
+          <tr><td class="td-name">Ana Paula</td><td>ana&#64;empresa.com.br</td><td>Vendedor</td><td><i class="ti ti-x text-danger"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
+          <tr><td class="td-name">Carlos Mendes</td><td>carlos&#64;empresa.com.br</td><td>Operador PDV</td><td><i class="ti ti-x text-danger"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
+        </tbody>
+      </table>
+    }
+
+    @if (activeMenu() === 'integracoes') {
+      <div class="settings-panel-head">
+        <div class="settings-panel-title">Integrações</div>
+        <div class="settings-panel-sub">Conexões com serviços externos</div>
+      </div>
+      <div class="integracoes-list">
+        <div class="integ-item"><div class="integ-icon"><i class="ti ti-file-invoice"></i></div><div class="integ-info"><div class="integ-name">SEFAZ NF-e / NFC-e</div><div class="integ-desc">Autorização, cancelamento e consulta</div></div><span class="badge auth"><span class="badge-dot"></span>Conectado</span></div>
+        <div class="integ-item"><div class="integ-icon"><i class="ti ti-receipt"></i></div><div class="integ-info"><div class="integ-name">NFS-e Municipal</div><div class="integ-desc">ABRASF 2.x e Nacional SEFAZ</div></div><span class="badge auth"><span class="badge-dot"></span>Conectado</span></div>
+        <div class="integ-item"><div class="integ-icon"><i class="ti ti-building-government"></i></div><div class="integ-info"><div class="integ-name">Receita Federal (CNPJ)</div><div class="integ-desc">Consulta automática de cadastro</div></div><span class="badge auth"><span class="badge-dot"></span>Conectado</span></div>
+        <div class="integ-item"><div class="integ-icon"><i class="ti ti-brand-whatsapp"></i></div><div class="integ-info"><div class="integ-name">WhatsApp Business API</div><div class="integ-desc">Envio de DANFE, boleto e cobrança</div></div><span class="badge inativo"><span class="badge-dot"></span>Desconectado</span></div>
+        <div class="integ-item"><div class="integ-icon"><i class="ti ti-shopping-bag"></i></div><div class="integ-info"><div class="integ-name">Shopify / WooCommerce</div><div class="integ-desc">Importação de pedidos via webhook</div></div><span class="badge inativo"><span class="badge-dot"></span>Desconectado</span></div>
+      </div>
+    }
+
+    @if (activeMenu() !== 'empresa' && activeMenu() !== 'usuarios' && activeMenu() !== 'integracoes') {
+      <div class="settings-panel-head">
+        <div class="settings-panel-title">{{ activeMenuLabel() }}</div>
+      </div>
+      <div style="padding:40px;text-align:center;color:var(--text3)">
+        <i class="ti ti-settings" style="font-size:32px;display:block;margin-bottom:8px"></i>
+        Em desenvolvimento
+      </div>
+    }
+  </div>
+</div>

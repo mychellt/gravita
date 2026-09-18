@@ -1,0 +1,86 @@
+<app-page-header title="Relatórios & BI" subtitle="Dashboard executivo · Curva ABC · DRE gerencial · Livros fiscais">
+  <button class="btn btn-ghost"><i class="ti ti-download"></i> Exportar</button>
+</app-page-header>
+
+<!-- Report cards -->
+<div class="report-cards-grid">
+  @for (card of reportCards; track card.title) {
+    <div class="report-card" (click)="generate(card.title)">
+      <div class="report-card-icon" [style.background]="card.iconBg">
+        <i class="ti {{ card.icon }}" [style.color]="card.iconColor"></i>
+      </div>
+      <div class="report-card-title">{{ card.title }}</div>
+      <div class="report-card-desc">{{ card.desc }}</div>
+    </div>
+  }
+</div>
+
+<!-- Charts row -->
+<div class="charts-row">
+
+  <!-- ABC Chart -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Curva ABC — Top 10 Produtos</span>
+    </div>
+    <div class="card-body">
+      <div class="abc-chart">
+        @for (item of abcData; track item.label) {
+          <div class="abc-col">
+            <div class="abc-bar {{ item.cls }}" [style.height.px]="(item.pct / maxPct) * 90"></div>
+            <div class="abc-label">{{ item.label }}</div>
+            <div class="abc-val">{{ item.pct }}%</div>
+          </div>
+        }
+      </div>
+      <div class="abc-legend">
+        <div class="abc-legend-item"><div class="abc-dot a"></div>Classe A (66%)</div>
+        <div class="abc-legend-item"><div class="abc-dot b"></div>Classe B (19%)</div>
+        <div class="abc-legend-item"><div class="abc-dot c"></div>Classe C (15%)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DRE -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">DRE Gerencial — Maio 2026</span>
+      <button class="card-action" (click)="generate('DRE Gerencial')">Exportar</button>
+    </div>
+    <div class="card-body">
+      <table class="dre-table">
+        <tr>
+          <td>Receita Bruta</td>
+          <td class="td-right" style="font-weight:700">R$ 124.820</td>
+          <td class="td-pct text-muted">100%</td>
+        </tr>
+        <tr>
+          <td class="text-muted">(−) Impostos s/ venda</td>
+          <td class="td-right text-danger" style="font-weight:600">−R$ 14.980</td>
+          <td class="td-pct text-muted">12%</td>
+        </tr>
+        <tr>
+          <td class="text-muted">(−) CMV</td>
+          <td class="td-right text-danger" style="font-weight:600">−R$ 68.650</td>
+          <td class="td-pct text-muted">55%</td>
+        </tr>
+        <tr class="dre-separator">
+          <td style="font-weight:700">= Lucro Bruto</td>
+          <td class="td-right text-success" style="font-weight:700">R$ 41.190</td>
+          <td class="td-pct text-success" style="font-weight:700">33%</td>
+        </tr>
+        <tr>
+          <td class="text-muted">(−) Despesas operacionais</td>
+          <td class="td-right text-danger" style="font-weight:600">−R$ 24.300</td>
+          <td class="td-pct text-muted">19,5%</td>
+        </tr>
+        <tr class="dre-result">
+          <td style="font-weight:700">= Resultado Líquido</td>
+          <td class="td-right text-accent" style="font-weight:700;font-size:15px">R$ 16.890</td>
+          <td class="td-pct text-accent" style="font-weight:700">13,5%</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,140 @@
+<div class="pdv-wrap">
+
+  <!-- LEFT: Products -->
+  <div class="pdv-left">
+    <div class="pdv-search-bar">
+      <i class="ti ti-barcode search-icon"></i>
+      <input type="text" placeholder="Código de barras, nome ou código interno..."
+             [value]="search()"
+             (input)="search.set($any($event.target).value)" />
+      <span class="env-badge hom">CAIXA 01</span>
+    </div>
+
+    <div class="pdv-grid-label">Produtos</div>
+
+    <div class="pdv-products">
+      @for (p of filteredProdutos(); track p.id) {
+        <div class="pdv-prod" (click)="addToCart(p)"
+             [class.critical]="p.estoque <= p.estoqueMinimo">
+          <div class="pdv-prod-icon">
+            {{ p.grupo === 'Alimentos' ? '🛒' : p.grupo === 'Laticínios' ? '🥛' : p.grupo === 'Bebidas' ? '☕' : '📦' }}
+          </div>
+          <div class="pdv-prod-name">{{ p.descricao }}</div>
+          <div class="pdv-prod-price">{{ p.precoVenda | brl }}</div>
+          <div class="pdv-prod-stock" [class.low]="p.estoque <= p.estoqueMinimo">
+            Estoque: {{ p.estoque }} un
+          </div>
+        </div>
+      }
+      @empty {
+        <div class="pdv-empty">Nenhum produto encontrado</div>
+      }
+    </div>
+  </div>
+
+  <!-- RIGHT: Cart -->
+  <div class="pdv-right">
+    <div class="cart-head">
+      <span class="cart-head-title">
+        <i class="ti ti-shopping-bag"></i> Carrinho ({{ cart().length }})
+      </span>
+      @if (cart().length > 0) {
+        <button class="btn btn-ghost btn-sm" style="color:var(--danger);border-color:var(--danger)"
+                (click)="clearCart()">
+          <i class="ti ti-trash"></i> Limpar
+        </button>
+      }
+    </div>
+
+    <div class="cart-items">
+      @if (cart().length === 0) {
+        <div class="cart-empty">
+          <div class="cart-empty-icon">🛒</div>
+          <div>Adicione produtos<br>clicando nos cards</div>
+        </div>
+      }
+      @for (item of cart(); track item.produto.id) {
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <div class="cart-item-name">{{ item.produto.descricao }}</div>
+            <div class="cart-item-unit">{{ item.produto.precoVenda | brl }} / un</div>
+          </div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" (click)="changeQty(item.produto.id, -1)">−</button>
+            <span class="qty-val">{{ item.quantidade }}</span>
+            <button class="qty-btn" (click)="changeQty(item.produto.id, 1)">+</button>
+          </div>
+          <div class="cart-item-price">{{ item.subtotal | brl }}</div>
+        </div>
+      }
+    </div>
+
+    <div class="cart-footer">
+      <div class="cart-row">
+        <span>Subtotal</span>
+        <span>{{ cartTotal() | brl }}</span>
+      </div>
+      <div class="cart-row">
+        <span>Desconto</span>
+        <span class="text-success">R$ 0,00</span>
+      </div>
+      <div class="cart-total-row">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-val">{{ cartTotal() | brl }}</span>
+      </div>
+      <input class="cpf-input" type="text" placeholder="CPF na nota (opcional)"
+             [value]="cpfNota()"
+             (input)="cpfNota.set($any($event.target).value)" />
+      <button class="btn-finalize" (click)="openPayment()">
+        <i class="ti ti-check"></i> Finalizar Venda
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Payment Modal -->
+@if (showPayModal()) {
+  <div class="pay-overlay" (click)="showPayModal.set(false)">
+    <div class="pay-modal" (click)="$event.stopPropagation()">
+      <div class="pay-modal-head">
+        <span class="pay-modal-title">Finalizar Venda</span>
+        <button class="pay-close" (click)="showPayModal.set(false)">✕</button>
+      </div>
+      <div class="pay-total-banner">
+        <div class="pay-total-label">Total a pagar</div>
+        <div class="pay-total-amount">{{ cartTotal() | brl }}</div>
+      </div>
+      <div class="pay-methods">
+        <div class="pay-method" [class.sel]="selectedMethod() === 'dinheiro'"
+             (click)="selectMethod('dinheiro')">
+          <div class="pay-method-icon">💵</div>
+          <div class="pay-method-name">Dinheiro</div>
+        </div>
+        <div class="pay-method" [class.sel]="selectedMethod() === 'cartao'"
+             (click)="selectMethod('cartao')">
+          <div class="pay-method-icon">💳</div>
+          <div class="pay-method-name">Cartão</div>
+        </div>
+        <div class="pay-method" [class.sel]="selectedMethod() === 'pix'"
+             (click)="selectMethod('pix')">
+          <div class="pay-method-icon">⚡</div>
+          <div class="pay-method-name">PIX</div>
+        </div>
+      </div>
+      <div class="pay-input-section">
+        <label class="form-label">Valor recebido</label>
+        <input class="pay-input" type="number" step="0.01"
+               [value]="valorRecebido()"
+               (input)="valorRecebido.set(+$any($event.target).value)" />
+      </div>
+      <div class="pay-troco">
+        <span>Troco</span>
+        <span class="troco-val">{{ troco() | brl }}</span>
+      </div>
+      <button class="pay-btn-confirm" (click)="confirmSale()">
+        <i class="ti ti-check"></i> Confirmar · Emitir NFC-e
+      </button>
+    </div>
+  </div>
+}

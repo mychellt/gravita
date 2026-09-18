@@ -1,0 +1,116 @@
+<!-- KPI Row -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
+    <div class="kpi-label">Faturamento Hoje</div>
+    <div class="kpi-value">{{ faturamentoHoje | brl }}</div>
+    <div class="kpi-change up">↑ 12,4% vs. ontem</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon green"><i class="ti ti-file-check"></i></div>
+    <div class="kpi-label">NF-e Emitidas</div>
+    <div class="kpi-value">{{ nfCount }}</div>
+    <div class="kpi-sub">38 NFC-e · 9 NF-e</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon amber"><i class="ti ti-clock"></i></div>
+    <div class="kpi-label">A Receber (30d)</div>
+    <div class="kpi-value">{{ receber30d() | brl }}</div>
+    <div class="kpi-change dn">R$ 4.200 vencido</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon red"><i class="ti ti-alert-triangle"></i></div>
+    <div class="kpi-label">Estoque Crítico</div>
+    <div class="kpi-value">{{ estoqueCritico() }}</div>
+    <div class="kpi-sub">itens abaixo do mínimo</div>
+  </div>
+</div>
+
+<!-- Main grid -->
+<div class="dash-grid">
+  <!-- Chart -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Faturamento — últimos 7 dias</span>
+      <a routerLink="/relatorios" class="card-action">Ver relatório completo</a>
+    </div>
+    <div class="card-body">
+      <div class="chart-bars">
+        @for (bar of chartBars; track bar.day) {
+          <div class="bar-col">
+            <div class="bar"
+                 [style.height.px]="bar.height"
+                 [class.highlight]="bar.highlight"
+                 [title]="bar.value | brl"></div>
+            <div class="bar-label">{{ bar.day }}</div>
+          </div>
+        }
+      </div>
+      <div class="chart-footer">
+        <span class="text-muted" style="font-size:11px">
+          Total semana: <strong style="color:var(--text);font-weight:700">R$ 123.420</strong>
+        </span>
+        <span class="text-success" style="font-size:11px">Margem bruta: 38,2%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity feed -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Atividade recente</span>
+      <button class="card-action">Ver tudo</button>
+    </div>
+    @for (item of activity; track item.time) {
+      <div class="activity-item">
+        <div class="activity-dot {{ item.type }}">
+          <i class="ti {{ item.icon }}"></i>
+        </div>
+        <div class="activity-text">
+          <div class="activity-main">{{ item.title }}</div>
+          <div class="activity-meta">{{ item.time }} · {{ item.value }}</div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Recent NF-e table -->
+<div class="card mt-14">
+  <div class="card-head">
+    <span class="card-title">Últimas NF-e emitidas</span>
+    <a routerLink="/nfe" class="card-action">Ver todas</a>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Destinatário</th>
+        <th>CFOP</th>
+        <th>Data</th>
+        <th class="td-right">Valor</th>
+        <th>Status</th>
+        <th class="td-right">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (nf of recentNfes(); track nf.id) {
+        <tr>
+          <td class="td-mono">#{{ nf.numero }}</td>
+          <td class="td-name">{{ nf.clienteNome }}</td>
+          <td class="td-mono">{{ nf.cfop }}</td>
+          <td style="font-size:12px;color:var(--text3)">{{ nf.dataEmissao | date:'dd/MM HH:mm' }}</td>
+          <td class="td-amount">{{ nf.valorTotal | brl }}</td>
+          <td><app-badge [value]="nf.status" /></td>
+          <td class="td-actions">
+            @if (nf.status === 'autorizada') {
+              <button class="action-btn">DANFE</button>
+              <button class="action-btn">XML</button>
+            }
+            <button class="action-btn">Ver</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

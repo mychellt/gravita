@@ -1,0 +1,134 @@
+<app-page-header title="Notas Fiscais (NF-e)" subtitle="Emissão, transmissão e gestão · Modelo 55">
+  <button class="btn btn-ghost"><i class="ti ti-upload"></i> Importar XML</button>
+  <a routerLink="/nfe/nova" class="btn btn-primary"><i class="ti ti-plus"></i> Nova NF-e</a>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="nfe-kpis">
+  <div class="kpi">
+    <div class="kpi-icon green"><i class="ti ti-file-check"></i></div>
+    <div class="kpi-label">Autorizadas hoje</div>
+    <div class="kpi-value">9</div>
+    <div class="kpi-sub">R$ 26.742 em valor</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon amber"><i class="ti ti-clock"></i></div>
+    <div class="kpi-label">Em fila / pendentes</div>
+    <div class="kpi-value">1</div>
+    <div class="kpi-sub">aguardando SEFAZ</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon red"><i class="ti ti-file-x"></i></div>
+    <div class="kpi-label">Canceladas no mês</div>
+    <div class="kpi-value">2</div>
+    <div class="kpi-sub">dentro do prazo legal</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-icon blue"><i class="ti ti-file-invoice"></i></div>
+    <div class="kpi-label">Total do mês</div>
+    <div class="kpi-value">234</div>
+    <div class="kpi-sub">R$ 482.300 em NF-e</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab" [class.active]="activeTab()==='emitidas'"   (click)="activeTab.set('emitidas')">Emitidas</div>
+  <div class="tab" [class.active]="activeTab()==='entradas'"   (click)="activeTab.set('entradas')">Entradas</div>
+  <div class="tab" [class.active]="activeTab()==='canceladas'" (click)="activeTab.set('canceladas')">Canceladas</div>
+  <div class="tab" [class.active]="activeTab()==='sped'"       (click)="activeTab.set('sped')">SPED</div>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">NF-e {{ activeTab() }}</span>
+    <div class="card-head-filters">
+      <input class="filter-input" type="text" placeholder="Buscar destinatário, nº..."
+             [value]="searchQuery()"
+             (input)="searchQuery.set($any($event.target).value)" />
+      <select class="filter-select">
+        <option value="">Todos os status</option>
+        <option value="autorizada">Autorizada</option>
+        <option value="em_fila">Em fila</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+    </div>
+  </div>
+
+  @if (activeTab() === 'sped') {
+    <div class="sped-panel">
+      <div class="sped-item">
+        <div class="sped-icon"><i class="ti ti-file-text"></i></div>
+        <div class="sped-info">
+          <div class="sped-title">SPED Fiscal — EFD ICMS/IPI</div>
+          <div class="sped-sub">Gerar arquivo TXT para o período selecionado</div>
+        </div>
+        <button class="btn btn-ghost"><i class="ti ti-download"></i> Gerar</button>
+      </div>
+      <div class="sped-item">
+        <div class="sped-icon"><i class="ti ti-file-text"></i></div>
+        <div class="sped-info">
+          <div class="sped-title">SPED Contribuições — EFD PIS/COFINS</div>
+          <div class="sped-sub">Apuração de PIS e COFINS por período</div>
+        </div>
+        <button class="btn btn-ghost"><i class="ti ti-download"></i> Gerar</button>
+      </div>
+      <div class="sped-item">
+        <div class="sped-icon"><i class="ti ti-book"></i></div>
+        <div class="sped-info">
+          <div class="sped-title">Livros Fiscais</div>
+          <div class="sped-sub">Entradas, Saídas e Apuração de ICMS</div>
+        </div>
+        <button class="btn btn-ghost"><i class="ti ti-download"></i> Gerar</button>
+      </div>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Série</th>
+          <th>Destinatário</th>
+          <th>CFOP</th>
+          <th>Emissão</th>
+          <th class="td-right">Valor Total</th>
+          <th class="td-right">ICMS</th>
+          <th>Status</th>
+          <th class="td-right">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (nf of filtered(); track nf.id) {
+          <tr>
+            <td class="td-mono">#{{ nf.numero }}</td>
+            <td class="td-mono">{{ nf.serie }}</td>
+            <td class="td-name">{{ nf.clienteNome }}</td>
+            <td class="td-mono">{{ nf.cfop }}</td>
+            <td style="font-size:12px;color:var(--text3)">{{ nf.dataEmissao | date:'dd/MM/yy HH:mm' }}</td>
+            <td class="td-amount">{{ nf.valorTotal | brl }}</td>
+            <td class="td-right" style="font-size:11px;color:var(--text3)">
+              {{ nf.valorIcms > 0 ? (nf.valorIcms | brl) : '—' }}
+            </td>
+            <td><app-badge [value]="nf.status" /></td>
+            <td class="td-actions">
+              @if (nf.status === 'autorizada') {
+                <button class="action-btn" (click)="downloadDanfe(nf)">DANFE</button>
+                <button class="action-btn" (click)="downloadXml(nf)">XML</button>
+                <button class="action-btn danger" (click)="cancelNfe(nf.id)">Cancelar</button>
+              } @else {
+                <button class="action-btn">Ver</button>
+              }
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">
+              Nenhuma NF-e encontrada
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
