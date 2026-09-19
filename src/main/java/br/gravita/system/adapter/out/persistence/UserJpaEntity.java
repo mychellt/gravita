@@ -1,7 +1,10 @@
 package br.gravita.system.adapter.out.persistence;
 
+import br.gravita.system.domain.model.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -41,6 +44,10 @@ public class UserJpaEntity {
 
 	@Column(name = "two_factor_enabled", nullable = false)
 	private boolean twoFactorEnabled;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private UserStatus status;
 
 	@CreationTimestamp
 	@Column(name = "created_at", nullable = false, updatable = false)

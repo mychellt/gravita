@@ -29,6 +29,7 @@ public class User {
 	private String rawPassword;
 	private UUID profileId;
 	private boolean twoFactorEnabled;
+	private UserStatus status;
 
 	public static User register(String name, String email, String rawPassword, ProfileReference profile) {
 		validate(name, email, rawPassword, profile);
@@ -39,7 +40,37 @@ public class User {
 				.rawPassword(rawPassword)
 				.profileId(profile.id())
 				.twoFactorEnabled(profile.isAdministrator())
+				.status(UserStatus.ACTIVE)
 				.build();
+	}
+
+	/**
+	 * Applies only the non-null fields (doc §11.1/§11.2): {@code profile} switching to
+	 * Administrator forces {@code twoFactorEnabled}, mirroring {@link #register}; switching away
+	 * does not turn it back off, since 2FA may have been enabled independently of the profile.
+	 */
+	public void update(String name, String email, ProfileReference profile, UserStatus status) {
+		if (name != null) {
+			if (name.isBlank()) {
+				throw new BusinessRuleException("Name is required");
+			}
+			this.name = name;
+		}
+		if (email != null) {
+			if (!EMAIL.matcher(email).matches()) {
+				throw new BusinessRuleException("A valid email is required");
+			}
+			this.email = email;
+		}
+		if (profile != null) {
+			this.profileId = profile.id();
+			if (profile.isAdministrator()) {
+				this.twoFactorEnabled = true;
+			}
+		}
+		if (status != null) {
+			this.status = status;
+		}
 	}
 
 	private static void validate(String name, String email, String rawPassword, ProfileReference profile) {

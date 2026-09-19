@@ -2,14 +2,19 @@ package br.gravita.system.adapter.out.persistence;
 
 import br.gravita.system.domain.model.ProfileReference;
 import br.gravita.system.domain.model.User;
+import br.gravita.system.domain.model.UserId;
+import br.gravita.system.domain.model.UserNotFoundException;
+import br.gravita.system.domain.model.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import({UserRepositoryAdapter.class, PasswordHasher.class})
@@ -53,5 +58,48 @@ class UserRepositoryAdapterTest {
 
 		UserJpaEntity stored = jpaRepository.findAll().get(0);
 		assertThat(stored.isTwoFactorEnabled()).isTrue();
+	}
+
+	@Test
+	void shouldFindPersistedUserById() {
+		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
+		repositoryAdapter.save(user);
+
+		Optional<User> found = repositoryAdapter.findById(user.getId());
+
+		assertThat(found).isPresent();
+		assertThat(found.get().getEmail()).isEqualTo("jane@example.com");
+		assertThat(found.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	void shouldReturnEmptyWhenUserIdIsUnknown() {
+		assertThat(repositoryAdapter.findById(UserId.generate())).isEmpty();
+	}
+
+	@Test
+	void shouldUpdateUserWithoutTouchingThePasswordHash() {
+		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
+		repositoryAdapter.save(user);
+		String originalHash = jpaRepository.findAll().get(0).getPasswordHash();
+
+		User loaded = repositoryAdapter.findById(user.getId()).orElseThrow();
+		loaded.update("Jane Roe", null, null, UserStatus.INACTIVE);
+		repositoryAdapter.update(loaded);
+
+		UserJpaEntity stored = jpaRepository.findAll().get(0);
+		assertThat(stored.getName()).isEqualTo("Jane Roe");
+		assertThat(stored.getStatus()).isEqualTo(UserStatus.INACTIVE);
+		assertThat(stored.getPasswordHash()).isEqualTo(originalHash);
+	}
+
+	@Test
+	void shouldFailToUpdateAnUnknownUser() {
+		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
+
+		assertThatThrownBy(() -> repositoryAdapter.update(user)).isInstanceOf(UserNotFoundException.class);
 	}
 }

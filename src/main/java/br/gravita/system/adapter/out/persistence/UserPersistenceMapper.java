@@ -13,6 +13,7 @@ class UserPersistenceMapper {
 				.passwordHash(passwordHash)
 				.profileId(domain.getProfileId())
 				.twoFactorEnabled(domain.isTwoFactorEnabled())
+				.status(domain.getStatus())
 				.build();
 	}
 
@@ -24,6 +25,7 @@ class UserPersistenceMapper {
 				.rawPassword(entity.getPasswordHash())
 				.profileId(entity.getProfileId())
 				.twoFactorEnabled(entity.isTwoFactorEnabled())
+				.status(entity.getStatus())
 				.build();
 	}
 }

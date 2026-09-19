@@ -55,4 +55,58 @@ class UserTest {
 		assertThatThrownBy(() -> User.register("Jane Doe", "jane@example.com", "s3cret!", null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
+
+	@Test
+	void shouldRegisterUserAsActive() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	void shouldApplyOnlyNonNullFieldsOnUpdate() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		user.update("Jane Roe", null, null, null);
+
+		assertThat(user.getName()).isEqualTo("Jane Roe");
+		assertThat(user.getEmail()).isEqualTo("jane@example.com");
+		assertThat(user.getProfileId()).isEqualTo(SALESPERSON.id());
+		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	void shouldForceTwoFactorEnabledWhenProfileSwitchesToAdministrator() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		user.update(null, null, ADMINISTRATOR, null);
+
+		assertThat(user.getProfileId()).isEqualTo(ADMINISTRATOR.id());
+		assertThat(user.isTwoFactorEnabled()).isTrue();
+	}
+
+	@Test
+	void shouldDeactivateUserOnUpdate() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		user.update(null, null, null, UserStatus.INACTIVE);
+
+		assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
+	}
+
+	@Test
+	void shouldRejectBlankNameOnUpdate() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		assertThatThrownBy(() -> user.update(" ", null, null, null))
+				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void shouldRejectInvalidEmailOnUpdate() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		assertThatThrownBy(() -> user.update(null, "not-an-email", null, null))
+				.isInstanceOf(BusinessRuleException.class);
+	}
 }

@@ -2,8 +2,12 @@ package br.gravita.system.adapter.in.web;
 
 import br.gravita.system.application.port.in.RegisterUserCommand;
 import br.gravita.system.application.port.in.RegisterUserUseCase;
+import br.gravita.system.application.port.in.UpdateUserCommand;
+import br.gravita.system.application.port.in.UpdateUserUseCase;
 import br.gravita.system.domain.model.UnknownProfileException;
 import br.gravita.system.domain.model.UserId;
+import br.gravita.system.domain.model.UserNotFoundException;
+import br.gravita.system.domain.model.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -34,6 +39,9 @@ class UserControllerTest {
 
 	@MockitoBean
 	private RegisterUserUseCase registerUserUseCase;
+
+	@MockitoBean
+	private UpdateUserUseCase updateUserUseCase;
 
 	@Test
 	void shouldReturn201WithLocationWhenRegistrationSucceeds() throws Exception {
@@ -75,5 +83,47 @@ class UserControllerTest {
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Unknown profile")));
+	}
+
+	@Test
+	void shouldReturn204WhenUpdateSucceeds() throws Exception {
+		UUID userId = UUID.randomUUID();
+		UUID profileId = UUID.randomUUID();
+		UpdateUserRequest request = new UpdateUserRequest("Jane Roe", "jane.roe@example.com", profileId, UserStatus.INACTIVE);
+
+		mockMvc.perform(patch("/api/users/{id}", userId)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isNoContent());
+
+		ArgumentCaptor<UpdateUserCommand> captor = ArgumentCaptor.forClass(UpdateUserCommand.class);
+		verify(updateUserUseCase).execute(captor.capture());
+		assertThat(captor.getValue().userId()).isEqualTo(userId);
+		assertThat(captor.getValue().name()).isEqualTo("Jane Roe");
+		assertThat(captor.getValue().email()).isEqualTo("jane.roe@example.com");
+		assertThat(captor.getValue().profileId()).isEqualTo(profileId);
+		assertThat(captor.getValue().status()).isEqualTo(UserStatus.INACTIVE);
+	}
+
+	@Test
+	void shouldReturn404WhenUserIsUnknown() throws Exception {
+		UUID userId = UUID.randomUUID();
+		UpdateUserRequest request = new UpdateUserRequest("Jane Roe", null, null, null);
+		doThrow(new UserNotFoundException(userId)).when(updateUserUseCase).execute(any());
+
+		mockMvc.perform(patch("/api/users/{id}", userId)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString(userId.toString())));
+	}
+
+	@Test
+	void shouldReturn400WhenUpdateEmailIsInvalid() throws Exception {
+		UUID userId = UUID.randomUUID();
+		String body = objectMapper.writeValueAsString(new UpdateUserRequest(null, "not-an-email", null, null));
+
+		mockMvc.perform(patch("/api/users/{id}", userId).contentType("application/json").content(body))
+				.andExpect(status().isBadRequest());
 	}
 }
