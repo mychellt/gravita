@@ -5,6 +5,8 @@ import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
 import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
 
+import java.util.ArrayList;
+
 class ProfilePersistenceMapper {
 
 	ProfileDomain toDomain(ProfileJpaEntity entity) {
@@ -19,7 +21,7 @@ class ProfilePersistenceMapper {
 		return ProfileJpaEntity.builder()
 				.id(domain.getId())
 				.name(domain.getName())
-				.permissions(domain.getPermissions().stream().map(this::toEntity).toList())
+				.permissions(new ArrayList<>(domain.getPermissions().stream().map(this::toEntity).toList()))
 				.build();
 	}
 

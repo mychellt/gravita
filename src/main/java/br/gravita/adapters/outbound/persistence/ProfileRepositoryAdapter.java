@@ -30,7 +30,9 @@ class ProfileRepositoryAdapter implements ProfileRepositoryPort {
 
 	@Override
 	public ProfileDomain save(ProfileDomain profile) {
-		ProfileJpaEntity saved = jpaRepository.save(mapper.toEntity(profile));
+		ProfileJpaEntity entity = mapper.toEntity(profile);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		ProfileJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
 	}
 }

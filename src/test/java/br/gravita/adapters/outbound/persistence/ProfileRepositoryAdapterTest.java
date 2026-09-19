@@ -54,4 +54,29 @@ class ProfileRepositoryAdapterTest {
 	void shouldReturnEmptyWhenNameNotFound() {
 		assertThat(repositoryAdapter.findByName("Unknown Profile")).isEmpty();
 	}
+
+	@Test
+	void shouldReplacePermissionsWithoutAffectingOtherProfiles() {
+		ProfileDomain financial = ProfileDomain.builder().id(UUID.randomUUID()).name("Financial")
+				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")
+						.action(PermissionAction.VIEW).build()))
+				.build();
+		ProfileDomain salesperson = ProfileDomain.builder().id(UUID.randomUUID()).name("Salesperson")
+				.permissions(List.of(PermissionDomain.builder().module("sales").screen("orders")
+						.action(PermissionAction.VIEW).build()))
+				.build();
+		repositoryAdapter.save(financial);
+		repositoryAdapter.save(salesperson);
+
+		financial.setPermissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")
+				.action(PermissionAction.EDIT).build()));
+		repositoryAdapter.save(financial);
+
+		assertThat(repositoryAdapter.findById(financial.getId())).isPresent().get()
+				.satisfies(found -> assertThat(found.getPermissions().get(0).getAction())
+						.isEqualTo(PermissionAction.EDIT));
+		assertThat(repositoryAdapter.findById(salesperson.getId())).isPresent().get()
+				.satisfies(found -> assertThat(found.getPermissions().get(0).getAction())
+						.isEqualTo(PermissionAction.VIEW));
+	}
 }
