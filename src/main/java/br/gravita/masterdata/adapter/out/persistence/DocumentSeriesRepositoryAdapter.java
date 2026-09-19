@@ -16,7 +16,9 @@ class DocumentSeriesRepositoryAdapter implements DocumentSeriesRepositoryPort {
 
 	@Override
 	public DocumentSeries save(DocumentSeries documentSeries) {
-		DocumentSeriesJpaEntity saved = jpaRepository.save(mapper.toEntity(documentSeries));
+		DocumentSeriesJpaEntity entity = mapper.toEntity(documentSeries);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		DocumentSeriesJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
 	}
 }

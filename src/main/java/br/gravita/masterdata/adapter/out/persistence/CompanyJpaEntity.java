@@ -6,17 +6,18 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,11 +29,22 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "companies")
-public class CompanyJpaEntity {
+public class CompanyJpaEntity implements Persistable<UUID> {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
+
+	// id is always application-assigned (RegisterCompanyService); the repository
+	// adapter sets this from existsById before save so Spring Data picks
+	// persist() over merge() for a row that doesn't exist yet.
+	@Transient
+	@Builder.Default
+	private boolean isNew = true;
+
+	@Override
+	public boolean isNew() {
+		return isNew;
+	}
 
 	@Column(nullable = false, unique = true, length = 14)
 	private String cnpj;

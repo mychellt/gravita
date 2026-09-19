@@ -19,7 +19,9 @@ class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 
 	@Override
 	public Company save(Company company) {
-		CompanyJpaEntity saved = jpaRepository.save(mapper.toEntity(company));
+		CompanyJpaEntity entity = mapper.toEntity(company);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		CompanyJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
 	}
 
