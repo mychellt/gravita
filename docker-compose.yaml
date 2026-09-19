@@ -1,4 +1,23 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gravita-app
+    restart: on-failure
+    depends_on:
+      - postgres
+      - localstack
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gravita_db
+      SPRING_DATASOURCE_USERNAME: gravita
+      SPRING_DATASOURCE_PASSWORD: gravita
+      AWS_SQS_ENDPOINT: http://localstack:4566
+      AWS_SQS_EMAIL_QUEUE_URL: http://localstack:4566/000000000000/gravita-email-notifications
+
   postgres:
     image: postgres:15
     container_name: postgres-db-gravita

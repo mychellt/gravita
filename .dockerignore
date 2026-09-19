@@ -1,0 +1,10 @@
+target/
+web/
+docs/
+collections/
+.git/
+.github/
+.idea/
+.claude/
+*.md
+HELP.md
