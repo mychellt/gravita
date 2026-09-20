@@ -27,6 +27,6 @@ public class PriceTableEntryEmbeddable {
 	@Column(name = "reference_id", nullable = false)
 	private String referenceId;
 
-	@Column(nullable = false)
+	@Column(name = "entry_value", nullable = false)
 	private BigDecimal value;
 }

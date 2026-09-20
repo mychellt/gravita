@@ -23,6 +23,6 @@ public class CustomerContactEmbeddable {
 	@Column(nullable = false, length = 20)
 	private ContactType type;
 
-	@Column(nullable = false)
+	@Column(name = "contact_value", nullable = false)
 	private String value;
 }

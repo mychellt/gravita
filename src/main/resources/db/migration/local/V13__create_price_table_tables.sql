@@ -13,7 +13,7 @@ CREATE TABLE price_table_entries (
     price_table_id UUID NOT NULL REFERENCES price_tables (id),
     ref_type       VARCHAR(20) NOT NULL CHECK (ref_type IN ('PRODUCT', 'PRODUCT_CLASS')),
     reference_id   VARCHAR(255) NOT NULL,
-    value          NUMERIC(14, 4) NOT NULL
+    entry_value    NUMERIC(14, 4) NOT NULL
 );
 
 CREATE INDEX idx_price_table_entries_price_table_id ON price_table_entries (price_table_id);

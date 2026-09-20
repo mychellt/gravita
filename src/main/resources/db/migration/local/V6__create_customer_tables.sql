@@ -33,7 +33,7 @@ CREATE INDEX idx_customer_addresses_customer_id ON customer_addresses (customer_
 CREATE TABLE customer_contacts (
     customer_id UUID NOT NULL REFERENCES customers (id),
     type        VARCHAR(20) NOT NULL CHECK (type IN ('EMAIL', 'WHATSAPP', 'PHONE')),
-    value       VARCHAR(255) NOT NULL
+    contact_value VARCHAR(255) NOT NULL
 );
 
 CREATE INDEX idx_customer_contacts_customer_id ON customer_contacts (customer_id);
