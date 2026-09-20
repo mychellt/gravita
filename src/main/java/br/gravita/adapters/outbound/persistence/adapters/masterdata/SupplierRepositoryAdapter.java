@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
 import br.gravita.adapters.outbound.persistence.entities.masterdata.SupplierJpaEntity;
-import br.gravita.masterdata.adapter.out.persistence.mappers.SupplierPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.SupplierPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.masterdata.SupplierJpaRepository;
 import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 import br.gravita.core.domain.masterdata.Supplier;

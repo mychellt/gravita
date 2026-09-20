@@ -5,9 +5,9 @@ import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
 
-class CompanyPersistenceMapper {
+public class CompanyPersistenceMapper {
 
-	Company toDomain(CompanyJpaEntity entity) {
+	public Company toDomain(CompanyJpaEntity entity) {
 		return Company.of(
 				CompanyId.of(entity.getId()),
 				Document.cnpj(entity.getCnpj()),
@@ -24,7 +24,7 @@ class CompanyPersistenceMapper {
 				entity.getParentCompanyId() == null ? null : CompanyId.of(entity.getParentCompanyId()));
 	}
 
-	CompanyJpaEntity toEntity(Company domain) {
+	public CompanyJpaEntity toEntity(Company domain) {
 		return CompanyJpaEntity.builder()
 				.id(domain.getId() == null ? null : domain.getId().value())
 				.cnpj(domain.getCnpj().number())

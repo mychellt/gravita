@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
 import br.gravita.adapters.outbound.persistence.entities.masterdata.PriceTableJpaEntity;
-import br.gravita.masterdata.adapter.out.persistence.mappers.PriceTablePersistenceMapper;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.PriceTablePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.masterdata.PriceTableJpaRepository;
 import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
 import br.gravita.core.domain.masterdata.PriceTable;

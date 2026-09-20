@@ -4,7 +4,6 @@ import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
 import br.gravita.core.domain.shared.PersonType;
 import jakarta.persistence.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -12,8 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Getter
 @Setter
@@ -62,12 +59,4 @@ public class SupplierJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "default_purchase_cfop", length = 4)
 	private String defaultPurchaseCfop;
-
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
-
-	@UpdateTimestamp
-	@Column(name = "modified_at", nullable = false)
-	private LocalDateTime modifiedAt;
 }

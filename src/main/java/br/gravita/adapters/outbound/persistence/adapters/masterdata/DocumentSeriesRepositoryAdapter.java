@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
 import br.gravita.adapters.outbound.persistence.entities.masterdata.DocumentSeriesJpaEntity;
-import br.gravita.masterdata.adapter.out.persistence.mappers.DocumentSeriesPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.DocumentSeriesPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.masterdata.DocumentSeriesJpaRepository;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.domain.masterdata.DocumentSeries;

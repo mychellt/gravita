@@ -9,10 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -63,12 +60,4 @@ public class CompanyJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "parent_company_id")
 	private UUID parentCompanyId;
-
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
-
-	@UpdateTimestamp
-	@Column(name = "modified_at", nullable = false)
-	private LocalDateTime modifiedAt;
 }

@@ -4,9 +4,9 @@ import br.gravita.adapters.outbound.persistence.entities.masterdata.DocumentSeri
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DocumentSeries;
 
-class DocumentSeriesPersistenceMapper {
+public class DocumentSeriesPersistenceMapper {
 
-	DocumentSeries toDomain(DocumentSeriesJpaEntity entity) {
+	public DocumentSeries toDomain(DocumentSeriesJpaEntity entity) {
 		return DocumentSeries.of(
 				entity.getId(),
 				CompanyId.of(entity.getCompanyId()),
@@ -15,7 +15,7 @@ class DocumentSeriesPersistenceMapper {
 				entity.getNextNumber());
 	}
 
-	DocumentSeriesJpaEntity toEntity(DocumentSeries domain) {
+	public DocumentSeriesJpaEntity toEntity(DocumentSeries domain) {
 		return DocumentSeriesJpaEntity.builder()
 				.id(domain.getId())
 				.companyId(domain.getCompanyId().value())

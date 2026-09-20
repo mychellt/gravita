@@ -15,9 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class SupplierPersistenceMapper {
+public class SupplierPersistenceMapper {
 
-	Supplier toDomain(SupplierJpaEntity entity) {
+	public Supplier toDomain(SupplierJpaEntity entity) {
 		Document document = entity.getPersonType() == PersonType.INDIVIDUAL
 				? Document.cpf(entity.getDocument())
 				: Document.cnpj(entity.getDocument());
@@ -34,7 +34,7 @@ class SupplierPersistenceMapper {
 				entity.getDefaultPurchaseCfop());
 	}
 
-	SupplierJpaEntity toEntity(Supplier domain) {
+	public SupplierJpaEntity toEntity(Supplier domain) {
 		BankAccount bankAccount = domain.getBankAccount();
 		PixKey pixKey = domain.getPixKey();
 

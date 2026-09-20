@@ -8,10 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -38,12 +35,4 @@ public class DocumentSeriesJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "next_number")
 	private Long nextNumber;
-
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private LocalDateTime createdAt;
-
-	@UpdateTimestamp
-	@Column(name = "modified_at", nullable = false)
-	private LocalDateTime modifiedAt;
 }

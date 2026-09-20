@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class PriceTablePersistenceMapper {
+public class PriceTablePersistenceMapper {
 
-	PriceTable toDomain(PriceTableJpaEntity entity) {
+	public PriceTable toDomain(PriceTableJpaEntity entity) {
 		return PriceTable.of(
 				PriceTableId.of(entity.getId()),
 				entity.getFormation(),
@@ -23,7 +23,7 @@ class PriceTablePersistenceMapper {
 				toEntries(entity.getEntries()));
 	}
 
-	PriceTableJpaEntity toEntity(PriceTable domain) {
+	public PriceTableJpaEntity toEntity(PriceTable domain) {
 		return PriceTableJpaEntity.builder()
 				.id(domain.getId() == null ? null : domain.getId().value())
 				.formation(domain.getFormation())
