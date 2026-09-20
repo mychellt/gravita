@@ -1,10 +1,12 @@
 package br.gravita.adapters.inbound.controllers;
 
 import br.gravita.adapters.dtos.request.RegisterProductRequest;
+import br.gravita.adapters.dtos.request.UpdateProductRequest;
 import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.ports.business.RegisterProductPort;
+import br.gravita.core.ports.business.UpdateProductPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -17,6 +19,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +35,9 @@ class ProductRestControllerTest {
 
 	@MockitoBean
 	private RegisterProductPort registerProductPort;
+
+	@MockitoBean
+	private UpdateProductPort updateProductPort;
 
 	private final RegisterProductRequest request = new RegisterProductRequest(
 			"SKU-1", List.of("7891234567895"), ProductType.SIMPLE, "12345678", "0100", 0,
@@ -76,5 +82,22 @@ class ProductRestControllerTest {
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(missingType)))
 				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void shouldReturn200WhenPartiallyUpdatingProduct() throws Exception {
+		UUID id = UUID.randomUUID();
+		UpdateProductRequest partialUpdate = new UpdateProductRequest(
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, ProductStatus.INACTIVE, null, null);
+		ProductDomain updated = request.toDomain(id);
+		updated.setStatus(ProductStatus.INACTIVE);
+		when(updateProductPort.execute(any())).thenReturn(updated);
+
+		mockMvc.perform(patch("/api/products/" + id)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(partialUpdate)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status").value("INACTIVE"));
 	}
 }

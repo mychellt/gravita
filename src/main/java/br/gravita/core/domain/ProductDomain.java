@@ -46,6 +46,75 @@ public class ProductDomain extends AbstractDomain {
 	private List<KitComponentDomain> kitComponents;
 	private List<ProductVariantDomain> variants;
 
+	public void applyPartialUpdate(ProductDomain patch) {
+		if (patch.internalCode != null) {
+			this.internalCode = patch.internalCode;
+		}
+		if (patch.barcodes != null) {
+			this.barcodes = patch.barcodes;
+		}
+		if (patch.type != null) {
+			this.type = patch.type;
+		}
+		if (patch.ncm != null) {
+			this.ncm = patch.ncm;
+		}
+		if (patch.cest != null) {
+			this.cest = patch.cest;
+		}
+		if (patch.origin != null) {
+			this.origin = patch.origin;
+		}
+		if (patch.defaultCfopByOperation != null) {
+			this.defaultCfopByOperation = patch.defaultCfopByOperation;
+		}
+		if (patch.cstCsosnByState != null) {
+			this.cstCsosnByState = patch.cstCsosnByState;
+		}
+		if (patch.taxProfile != null) {
+			this.taxProfile = patch.taxProfile;
+		}
+		if (patch.averageCost != null) {
+			this.averageCost = patch.averageCost;
+		}
+		if (patch.basePrice != null) {
+			this.basePrice = patch.basePrice;
+		}
+		if (patch.stock != null) {
+			this.stock = patch.stock;
+		}
+		if (patch.purchaseUnit != null) {
+			this.purchaseUnit = patch.purchaseUnit;
+		}
+		if (patch.saleUnit != null) {
+			this.saleUnit = patch.saleUnit;
+		}
+		if (patch.conversionFactor != null) {
+			this.conversionFactor = patch.conversionFactor;
+		}
+		if (patch.lotControl != null) {
+			this.lotControl = patch.lotControl;
+		}
+		if (patch.serialControl != null) {
+			this.serialControl = patch.serialControl;
+		}
+		if (patch.classification != null) {
+			this.classification = patch.classification;
+		}
+		if (patch.images != null) {
+			this.images = patch.images;
+		}
+		if (patch.status != null) {
+			this.status = patch.status;
+		}
+		if (patch.kitComponents != null) {
+			this.kitComponents = patch.kitComponents;
+		}
+		if (patch.variants != null) {
+			this.variants = patch.variants;
+		}
+	}
+
 	public void validate() {
 		validateImages();
 		validateBarcodes();
