@@ -1,6 +1,5 @@
 package br.gravita.core.usercases;
 
-import br.gravita.core.domain.Context;
 import br.gravita.core.ports.inbound.masterdata.ManagePriceTableUseCase;
 import br.gravita.core.ports.inbound.masterdata.UpsertPriceTableCommand;
 import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
@@ -26,8 +25,7 @@ public class ManagePriceTable implements ManagePriceTableUseCase {
 	}
 
 	@Override
-	public PriceTableId execute(Context context) {
-		var command = context.getData(UpsertPriceTableCommand.class);
+	public PriceTableId execute(UpsertPriceTableCommand command) {
 		var id = command.priceTableId() == null
 				? PriceTableId.of(UUID.randomUUID())
 				: requireExisting(command.priceTableId());
