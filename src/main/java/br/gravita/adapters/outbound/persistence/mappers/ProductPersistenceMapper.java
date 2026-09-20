@@ -12,9 +12,11 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductVariantDomain;
 import br.gravita.core.domain.StockParametersDomain;
 import br.gravita.core.domain.TaxProfileDomain;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ProductPersistenceMapper {
 
     ProductDomain map(final ProductJpaEntity entity);

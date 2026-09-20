@@ -8,11 +8,14 @@ import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.ContactDomain;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerPriceTableLink;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValueMappingStrategy;
 
-@Mapper(imports = br.gravita.core.domain.shared.Document.class,
+@Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
+        imports = br.gravita.core.domain.shared.Document.class,
         nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface CustomerPersistenceMapper {
 
@@ -23,10 +26,8 @@ public interface CustomerPersistenceMapper {
     @Mapping(target = "personType", source = "documentDomain.personType")
     CustomerJpaEntity map(final CustomerDomain domain);
 
-    @Mapping(target = "isDefault", source = "default")
     AddressDomain map(final CustomerAddressEmbeddable embeddable);
 
-    @Mapping(target = "isDefault", source = "default")
     CustomerAddressEmbeddable map(final AddressDomain domain);
 
     ContactDomain map(final CustomerContactEmbeddable embeddable);

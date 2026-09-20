@@ -4,9 +4,11 @@ import br.gravita.adapters.outbound.persistence.entities.masterdata.CompanyJpaEn
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface CompanyPersistenceMapper {
 
     default Company toDomain(final CompanyJpaEntity entity) {

@@ -11,13 +11,15 @@ import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.shared.PersonType;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.NullValueCheckStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface SupplierPersistenceMapper {
 
     default Supplier toDomain(final SupplierJpaEntity entity) {

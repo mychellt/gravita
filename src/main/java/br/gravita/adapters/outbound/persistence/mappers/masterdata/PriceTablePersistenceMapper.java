@@ -6,13 +6,15 @@ import br.gravita.core.domain.masterdata.PriceTable;
 import br.gravita.core.domain.masterdata.PriceTableEntry;
 import br.gravita.core.domain.masterdata.PriceTableId;
 import br.gravita.core.domain.masterdata.ProductOrClassRef;
+import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.NullValueCheckStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper
+@Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface PriceTablePersistenceMapper {
 
     default PriceTable toDomain(final PriceTableJpaEntity entity) {
