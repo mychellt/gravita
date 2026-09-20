@@ -5,10 +5,12 @@ import br.gravita.core.domain.IeIndicator;
 import br.gravita.core.domain.PersonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,11 +23,22 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "customers")
-public class CustomerJpaEntity extends AbstractEntity<UUID> {
+public class CustomerJpaEntity extends AbstractEntity<UUID> implements Persistable<UUID> {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
+
+	// id is always application-assigned (CustomerRegistrationAdapter); the
+	// repository adapter sets this from existsById before save so Spring Data
+	// picks persist() over merge() for a row that doesn't exist yet.
+	@Transient
+	@Builder.Default
+	private boolean isNew = true;
+
+	@Override
+	public boolean isNew() {
+		return isNew;
+	}
 
 	@Column(nullable = false)
 	private String name;

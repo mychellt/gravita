@@ -31,7 +31,9 @@ class CustomerRepositoryAdapter implements CustomerRepositoryPort {
 
 	@Override
 	public CustomerDomain save(CustomerDomain model) {
-		CustomerJpaEntity saved = jpaRepository.save(mapper.toEntity(model));
+		CustomerJpaEntity entity = mapper.toEntity(model);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		CustomerJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
 	}
 }
