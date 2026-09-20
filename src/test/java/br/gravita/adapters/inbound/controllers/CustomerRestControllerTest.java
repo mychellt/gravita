@@ -138,4 +138,16 @@ class CustomerRestControllerTest {
 						.content(objectMapper.writeValueAsBytes(update)))
 				.andExpect(status().isConflict());
 	}
+
+	@Test
+	void shouldReturn409WhenUpdatingDocumentWithInvalidCheckDigit() throws Exception {
+		UUID id = UUID.randomUUID();
+		UpdateCustomerRequest update = new UpdateCustomerRequest(
+				PersonType.INDIVIDUAL, "111.444.777-36", null, null, null, null, null, null, null, null, null, null);
+
+		mockMvc.perform(patch("/api/customers/" + id)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(update)))
+				.andExpect(status().isConflict());
+	}
 }
