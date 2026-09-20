@@ -28,6 +28,7 @@ public class CustomerDomain extends AbstractDomain {
 	private BigDecimal creditLimit;
 	private BigDecimal currentBalance;
 	private CustomerStatus status;
+	private Long version;
 	private List<AddressDomain> addresses;
 	private List<ContactDomain> contacts;
 	private List<CustomerPriceTableLink> priceTables;

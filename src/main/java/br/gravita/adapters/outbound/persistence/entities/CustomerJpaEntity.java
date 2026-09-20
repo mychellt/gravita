@@ -57,6 +57,12 @@ public class CustomerJpaEntity extends AbstractEntity<UUID> {
 	@Enumerated(EnumType.STRING)
 	private CustomerStatus status;
 
+	// detects a concurrent write racing with an update (e.g. this update and
+	// UC-08's credit-status change) so one doesn't silently overwrite the other
+	@Version
+	@Column(nullable = false)
+	private Long version;
+
 	@ElementCollection
 	@CollectionTable(name = "customer_addresses", joinColumns = @JoinColumn(name = "customer_id"))
 	private List<CustomerAddressEmbeddable> addresses;

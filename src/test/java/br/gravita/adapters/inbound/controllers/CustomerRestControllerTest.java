@@ -2,10 +2,13 @@ package br.gravita.adapters.inbound.controllers;
 
 import br.gravita.adapters.dtos.request.RegisterCustomerRequest;
 import br.gravita.adapters.dtos.request.RegisterCustomerRequest.AddressRequest;
+import br.gravita.adapters.dtos.request.UpdateCustomerRequest;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
+import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
+import br.gravita.core.ports.inbound.masterdata.UpdateCustomerUseCase;
 import br.gravita.core.domain.shared.PersonType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +22,11 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +42,9 @@ class CustomerRestControllerTest {
 
 	@MockitoBean
 	private CustomerRegistrationPort customerRegistrationPort;
+
+	@MockitoBean
+	private UpdateCustomerUseCase updateCustomerUseCase;
 
 	private final RegisterCustomerRequest request = new RegisterCustomerRequest(
 			PersonType.INDIVIDUAL,
@@ -89,5 +98,44 @@ class CustomerRestControllerTest {
 	void shouldReturn200WhenFindingCustomer() throws Exception {
 		mockMvc.perform(get("/api/customers/" + UUID.randomUUID()))
 				.andExpect(status().isOk());
+	}
+
+	@Test
+	void shouldReturn204WhenUpdatingCustomer() throws Exception {
+		UUID id = UUID.randomUUID();
+		UpdateCustomerRequest update = new UpdateCustomerRequest(
+				null, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
+
+		mockMvc.perform(patch("/api/customers/" + id)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(update)))
+				.andExpect(status().isNoContent());
+
+		verify(updateCustomerUseCase).execute(update.toCommand(id));
+	}
+
+	@Test
+	void shouldReturn404WhenUpdatingUnknownCustomer() throws Exception {
+		UUID id = UUID.randomUUID();
+		UpdateCustomerRequest update = new UpdateCustomerRequest(
+				null, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
+		doThrow(new ResourceNotFoundException("Customer not found: " + id)).when(updateCustomerUseCase).execute(any());
+
+		mockMvc.perform(patch("/api/customers/" + id)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(update)))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	void shouldReturn409WhenUpdatingDocumentWithoutType() throws Exception {
+		UUID id = UUID.randomUUID();
+		UpdateCustomerRequest update = new UpdateCustomerRequest(
+				null, "111.444.777-35", null, null, null, null, null, null, null, null, null, null);
+
+		mockMvc.perform(patch("/api/customers/" + id)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(update)))
+				.andExpect(status().isConflict());
 	}
 }

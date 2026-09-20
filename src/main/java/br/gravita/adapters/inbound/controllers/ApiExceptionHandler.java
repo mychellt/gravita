@@ -5,6 +5,7 @@ import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -14,6 +15,12 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+	}
+
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ResponseEntity<String> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body("The record was updated by another request in the meantime; reload and retry.");
 	}
 
 	@ExceptionHandler(DuplicateResourceException.class)

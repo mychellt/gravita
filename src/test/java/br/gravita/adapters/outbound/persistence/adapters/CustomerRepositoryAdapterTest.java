@@ -9,13 +9,16 @@ import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import({CustomerRepositoryAdapter.class, CustomerPersistenceMapperImpl.class})
@@ -23,6 +26,9 @@ class CustomerRepositoryAdapterTest {
 
 	@Autowired
 	private CustomerRepositoryAdapter repositoryAdapter;
+
+	@Autowired
+	private TestEntityManager entityManager;
 
 	@Test
 	void shouldSaveAndRetrieveCustomerWithAddresses() {
@@ -42,6 +48,25 @@ class CustomerRepositoryAdapterTest {
 					assertThat(found.getAddresses().get(0).getCity()).isEqualTo("São Paulo");
 					assertThat(found.getAddresses().get(0).isDefault()).isTrue();
 				});
+	}
+
+	@Test
+	void shouldRejectStaleUpdateInsteadOfSilentlyOverwritingAConcurrentWrite() {
+		CustomerDomain saved = repositoryAdapter.save(customer("Maria Silva", "111.444.777-35"));
+		entityManager.flush();
+		entityManager.clear();
+
+		CustomerDomain firstReader = repositoryAdapter.get(saved.getId()).orElseThrow();
+		CustomerDomain secondReader = repositoryAdapter.get(saved.getId()).orElseThrow();
+
+		firstReader.setCurrentBalance(new BigDecimal("500.00"));
+		repositoryAdapter.save(firstReader);
+		entityManager.flush();
+		entityManager.clear();
+
+		secondReader.setEmail("new-email@example.com");
+		assertThatThrownBy(() -> repositoryAdapter.save(secondReader))
+				.isInstanceOf(ObjectOptimisticLockingFailureException.class);
 	}
 
 	@Test
