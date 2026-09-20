@@ -1,6 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -13,8 +14,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CustomerDomainTest {
 
-	private final DocumentDomain cpf = DocumentDomain.cpf("111.444.777-35");
-	private final DocumentDomain cnpj = DocumentDomain.cnpj("11.222.333/0001-81");
+	private final Document cpf = Document.cpf("111.444.777-35");
+	private final Document cnpj = Document.cnpj("11.222.333/0001-81");
 
 	@Test
 	void shouldExposeCustomerData() {
@@ -134,7 +135,7 @@ class CustomerDomainTest {
 				.build();
 	}
 
-	private CustomerDomain baseCustomer(DocumentDomain document, List<AddressDomain> addresses) {
+	private CustomerDomain baseCustomer(Document document, List<AddressDomain> addresses) {
 		return CustomerDomain.builder()
 				.name("Maria Silva")
 				.documentDomain(document)

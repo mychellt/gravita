@@ -2,11 +2,11 @@ package br.gravita.core.usercases;
 
 import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.Context;
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.LookupPersonByDocumentQuery;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.integration.CepLookupPort;
 import br.gravita.core.ports.integration.CnpjLookupPort;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,7 +30,7 @@ class LookupPersonByDocumentAdapterTest {
 	@Test
 	void shouldReturnNameAndAddressForCnpjQuery() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		DocumentDomain cnpj = DocumentDomain.cnpj("11444777000161");
+		Document cnpj = Document.cnpj("11444777000161");
 		AddressDomain address = AddressDomain.builder()
 				.street("Rua A").number("10").neighborhood("Centro").city("São Paulo").state("SP").zipCode("01000-000")
 				.build();
@@ -61,7 +61,7 @@ class LookupPersonByDocumentAdapterTest {
 	@Test
 	void shouldDegradeToEmptyResultWhenCnpjLookupFails() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		DocumentDomain cnpj = DocumentDomain.cnpj("11444777000161");
+		Document cnpj = Document.cnpj("11444777000161");
 		when(cnpjLookupPort.lookup(cnpj)).thenReturn(Optional.empty());
 
 		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));

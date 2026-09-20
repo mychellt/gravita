@@ -6,9 +6,9 @@ import br.gravita.core.domain.ContactDomain;
 import br.gravita.core.domain.ContactType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerPriceTableLink;
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.IeIndicator;
-import br.gravita.core.domain.PersonType;
+import br.gravita.shared.Document;
+import br.gravita.shared.PersonType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,7 +32,7 @@ public record RegisterCustomerRequest(
 		@Valid List<PriceTableLinkRequest> priceTables) {
 
 	public CustomerDomain toDomain() {
-		DocumentDomain documentDomain = type == PersonType.COMPANY ? DocumentDomain.cnpj(document) : DocumentDomain.cpf(document);
+		Document documentDomain = type == PersonType.COMPANY ? Document.cnpj(document) : Document.cpf(document);
 		return CustomerDomain.builder()
 				.name(name)
 				.documentDomain(documentDomain)

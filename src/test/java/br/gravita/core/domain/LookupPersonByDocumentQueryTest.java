@@ -1,6 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,7 +11,7 @@ class LookupPersonByDocumentQueryTest {
 
 	@Test
 	void shouldBuildDocumentQuery() {
-		DocumentDomain cnpj = DocumentDomain.cnpj("11444777000161");
+		Document cnpj = Document.cnpj("11444777000161");
 
 		LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byDocument(cnpj);
 
@@ -34,7 +35,7 @@ class LookupPersonByDocumentQueryTest {
 
 	@Test
 	void shouldRejectBothDocumentAndCep() {
-		DocumentDomain cnpj = DocumentDomain.cnpj("11444777000161");
+		Document cnpj = Document.cnpj("11444777000161");
 
 		assertThatThrownBy(() -> new LookupPersonByDocumentQuery(cnpj, "20000000"))
 				.isInstanceOf(BusinessRuleException.class);

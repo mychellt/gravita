@@ -8,7 +8,7 @@ import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.ContactDomain;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerPriceTableLink;
-import br.gravita.core.domain.DocumentDomain;
+import br.gravita.shared.Document;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ class CustomerPersistenceMapper {
 		return CustomerDomain.builder()
 				.id(entity.getId())
 				.name(entity.getName())
-				.documentDomain(new DocumentDomain(entity.getDocument(), entity.getPersonType()))
+				.documentDomain(new Document(entity.getDocument(), entity.getPersonType()))
 				.email(entity.getEmail())
 				.ieIndicator(entity.getIeIndicator())
 				.finalConsumer(entity.getFinalConsumer())

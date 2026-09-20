@@ -5,9 +5,9 @@ import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.persistence.CustomerRepositoryPort;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +36,7 @@ class CustomerRegistrationAdapterTest {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
 		CustomerDomain customer = CustomerDomain.builder()
 				.name("Maria Silva")
-				.documentDomain(DocumentDomain.cpf("111.444.777-35"))
+				.documentDomain(Document.cpf("111.444.777-35"))
 				.addresses(List.of(billingAddress()))
 				.build();
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -58,7 +58,7 @@ class CustomerRegistrationAdapterTest {
 		CustomerDomain customer = CustomerDomain.builder()
 				.id(existingId)
 				.name("Maria Silva")
-				.documentDomain(DocumentDomain.cpf("111.444.777-35"))
+				.documentDomain(Document.cpf("111.444.777-35"))
 				.addresses(List.of(billingAddress()))
 				.build();
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -73,7 +73,7 @@ class CustomerRegistrationAdapterTest {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
 		CustomerDomain customer = CustomerDomain.builder()
 				.name("Maria Silva")
-				.documentDomain(DocumentDomain.cpf("111.444.777-35"))
+				.documentDomain(Document.cpf("111.444.777-35"))
 				.addresses(List.of())
 				.build();
 
@@ -87,7 +87,7 @@ class CustomerRegistrationAdapterTest {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
 		CustomerDomain customer = CustomerDomain.builder()
 				.name("Acme LTDA")
-				.documentDomain(DocumentDomain.cnpj("11.222.333/0001-81"))
+				.documentDomain(Document.cnpj("11.222.333/0001-81"))
 				.addresses(List.of(billingAddress()))
 				.build();
 

@@ -6,7 +6,7 @@ import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerPriceTableLink;
 import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.IeIndicator;
-import br.gravita.core.domain.PersonType;
+import br.gravita.shared.PersonType;
 
 import java.math.BigDecimal;
 import java.util.List;

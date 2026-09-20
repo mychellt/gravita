@@ -1,6 +1,8 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.shared.Document;
+import br.gravita.shared.PersonType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +21,7 @@ import java.util.Set;
 @SuperBuilder
 public class CustomerDomain extends AbstractDomain {
 	private String name;
-	private DocumentDomain documentDomain;
+	private Document documentDomain;
 	private String email;
 	private IeIndicator ieIndicator;
 	private Boolean finalConsumer;

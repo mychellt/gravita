@@ -2,11 +2,11 @@ package br.gravita.adapters.inbound.controllers;
 
 import br.gravita.adapters.dtos.response.PersonLookupResponse;
 import br.gravita.core.domain.Context;
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.LookupPersonByDocumentQuery;
 import br.gravita.core.domain.PersonLookupResult;
-import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.business.LookupPersonByDocumentPort;
+import br.gravita.shared.BusinessRuleException;
+import br.gravita.shared.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,9 +29,9 @@ public class LookupRestController {
 
 	@GetMapping("/cnpj/{cnpj}")
 	public ResponseEntity<PersonLookupResponse> lookupByCnpj(@PathVariable String cnpj) {
-		DocumentDomain document;
+		Document document;
 		try {
-			document = DocumentDomain.cnpj(cnpj);
+			document = Document.cnpj(cnpj);
 		} catch (BusinessRuleException e) {
 			return ResponseEntity.badRequest().build();
 		}

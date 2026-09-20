@@ -4,7 +4,7 @@ import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
-import br.gravita.core.domain.DocumentDomain;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -54,7 +54,7 @@ class CustomerRepositoryAdapterTest {
 	private CustomerDomain customer(String name, String cpf) {
 		CustomerDomain customer = CustomerDomain.builder()
 				.name(name)
-				.documentDomain(DocumentDomain.cpf(cpf))
+				.documentDomain(Document.cpf(cpf))
 				.creditLimit(BigDecimal.ZERO)
 				.currentBalance(BigDecimal.ZERO)
 				.status(CustomerStatus.REGULAR)

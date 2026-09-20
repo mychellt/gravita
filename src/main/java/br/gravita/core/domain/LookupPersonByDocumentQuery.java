@@ -1,8 +1,9 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.shared.Document;
 
-public record LookupPersonByDocumentQuery(DocumentDomain document, String cep) {
+public record LookupPersonByDocumentQuery(Document document, String cep) {
 
 	public LookupPersonByDocumentQuery {
 		boolean hasDocument = document != null;
@@ -12,7 +13,7 @@ public record LookupPersonByDocumentQuery(DocumentDomain document, String cep) {
 		}
 	}
 
-	public static LookupPersonByDocumentQuery byDocument(DocumentDomain document) {
+	public static LookupPersonByDocumentQuery byDocument(Document document) {
 		return new LookupPersonByDocumentQuery(document, null);
 	}
 

@@ -3,9 +3,9 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.persistence.CustomerRepositoryPort;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -92,7 +92,7 @@ class SetCustomerCreditStatusAdapterTest {
 		return CustomerDomain.builder()
 				.id(id)
 				.name("Maria Silva")
-				.documentDomain(DocumentDomain.cpf("111.444.777-35"))
+				.documentDomain(Document.cpf("111.444.777-35"))
 				.status(status)
 				.currentBalance(currentBalance)
 				.build();

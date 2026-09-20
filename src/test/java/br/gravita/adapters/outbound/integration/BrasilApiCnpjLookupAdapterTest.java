@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.integration;
 
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.PersonLookupResult;
+import br.gravita.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -16,7 +16,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 class BrasilApiCnpjLookupAdapterTest {
 
-	private static final DocumentDomain CNPJ = DocumentDomain.cnpj("11444777000161");
+	private static final Document CNPJ = Document.cnpj("11444777000161");
 
 	@Test
 	void shouldReturnNameAndAddressOnSuccess() {

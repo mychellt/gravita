@@ -1,8 +1,8 @@
 package br.gravita.adapters.outbound.integration;
 
-import br.gravita.core.domain.DocumentDomain;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.integration.CnpjLookupPort;
+import br.gravita.shared.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,7 +27,7 @@ public class BrasilApiCnpjLookupAdapter implements CnpjLookupPort {
 	}
 
 	@Override
-	public Optional<PersonLookupResult> lookup(DocumentDomain cnpj) {
+	public Optional<PersonLookupResult> lookup(Document cnpj) {
 		try {
 			BrasilApiCnpjResponse response = restClient.get()
 					.uri("/cnpj/v1/{cnpj}", cnpj.number())
