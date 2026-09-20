@@ -3,7 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.IbgeMunicipalityDomain;
 import br.gravita.core.ports.business.ListIbgeMunicipalitiesPort;
-import br.gravita.core.ports.persistence.IbgeMunicipalityRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.IbgeMunicipalityRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

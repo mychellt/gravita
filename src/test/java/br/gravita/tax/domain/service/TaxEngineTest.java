@@ -1,13 +1,13 @@
 package br.gravita.tax.domain.service;
 
-import br.gravita.tax.domain.TaxDomainException;
-import br.gravita.tax.domain.model.ItemTaxBreakdown;
-import br.gravita.tax.domain.model.ItemTaxInput;
-import br.gravita.tax.domain.model.TaxLineBreakdown;
-import br.gravita.tax.domain.model.TaxOverrideInput;
-import br.gravita.tax.domain.model.TaxRateRule;
-import br.gravita.tax.domain.model.TaxRegime;
-import br.gravita.tax.domain.model.TaxType;
+import br.gravita.core.domain.tax.TaxDomainException;
+import br.gravita.core.domain.tax.ItemTaxBreakdown;
+import br.gravita.core.domain.tax.ItemTaxInput;
+import br.gravita.core.domain.tax.TaxLineBreakdown;
+import br.gravita.core.domain.tax.TaxOverrideInput;
+import br.gravita.core.domain.tax.TaxRateRule;
+import br.gravita.core.domain.tax.TaxRegime;
+import br.gravita.core.domain.tax.TaxType;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

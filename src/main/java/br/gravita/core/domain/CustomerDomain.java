@@ -1,8 +1,8 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
-import br.gravita.shared.Document;
-import br.gravita.shared.PersonType;
+import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.shared.PersonType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

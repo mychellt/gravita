@@ -6,7 +6,7 @@ import br.gravita.core.domain.LookupPersonByDocumentQuery;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.integration.CepLookupPort;
 import br.gravita.core.ports.integration.CnpjLookupPort;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

@@ -4,8 +4,8 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.DeleteCostCenterPort;
-import br.gravita.core.ports.persistence.CostCenterRepositoryPort;
-import br.gravita.core.ports.persistence.FinanceUsageQueryPort;
+import br.gravita.core.ports.outbound.persistence.CostCenterRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.FinanceUsageQueryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

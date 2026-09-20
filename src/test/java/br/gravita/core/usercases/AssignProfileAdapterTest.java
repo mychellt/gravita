@@ -6,7 +6,7 @@ import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.SaveCustomProfilePort;
-import br.gravita.core.ports.persistence.ProfileRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

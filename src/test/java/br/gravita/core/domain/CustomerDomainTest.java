@@ -1,7 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

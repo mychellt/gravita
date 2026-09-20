@@ -2,7 +2,7 @@ package br.gravita.core.usercases;
 
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.InterstateIcmsRateDomain;
-import br.gravita.core.ports.persistence.InterstateIcmsRateRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.InterstateIcmsRateRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

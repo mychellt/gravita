@@ -1,5 +1,7 @@
 package br.gravita.system.domain.model;
 
+import br.gravita.core.domain.system.ApprovalModule;
+import br.gravita.core.domain.system.UnknownApprovalModuleException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;

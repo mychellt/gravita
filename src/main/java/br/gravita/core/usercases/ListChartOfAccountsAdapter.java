@@ -3,7 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.ChartOfAccountsDomain;
 import br.gravita.core.domain.Context;
 import br.gravita.core.ports.business.ListChartOfAccountsPort;
-import br.gravita.core.ports.persistence.ChartOfAccountsRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ChartOfAccountsRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

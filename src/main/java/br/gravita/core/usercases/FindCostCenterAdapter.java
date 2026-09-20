@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CostCenterDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.FindCostCenterPort;
-import br.gravita.core.ports.persistence.CostCenterRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CostCenterRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

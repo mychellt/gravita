@@ -7,14 +7,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.gravita.masterdata.application.port.in.UpsertPriceTableCommand;
-import br.gravita.masterdata.application.port.out.PriceTableRepositoryPort;
-import br.gravita.masterdata.domain.model.PriceFormation;
-import br.gravita.masterdata.domain.model.PriceTable;
-import br.gravita.masterdata.domain.model.PriceTableEntry;
-import br.gravita.masterdata.domain.model.PriceTableId;
-import br.gravita.masterdata.domain.model.PriceTableNotFoundException;
-import br.gravita.masterdata.domain.model.ProductOrClassRef;
+import br.gravita.core.ports.inbound.masterdata.UpsertPriceTableCommand;
+import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
+import br.gravita.core.usercases.ManagePriceTable;
+import br.gravita.core.domain.masterdata.PriceFormation;
+import br.gravita.core.domain.masterdata.PriceTable;
+import br.gravita.core.domain.masterdata.PriceTableEntry;
+import br.gravita.core.domain.masterdata.PriceTableId;
+import br.gravita.core.domain.masterdata.PriceTableNotFoundException;
+import br.gravita.core.domain.masterdata.ProductOrClassRef;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,7 +37,7 @@ class ManagePriceTableServiceTest {
 
 	@Test
 	void shouldCreateNewPriceTableWhenNoIdIsProvided() {
-		ManagePriceTableService service = new ManagePriceTableService(priceTableRepositoryPort);
+		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
 		when(priceTableRepositoryPort.save(any(PriceTable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		UpsertPriceTableCommand command = new UpsertPriceTableCommand(null, PriceFormation.FIXED,
@@ -58,7 +59,7 @@ class ManagePriceTableServiceTest {
 		when(priceTableRepositoryPort.findById(PriceTableId.of(existingId))).thenReturn(Optional.of(existing));
 		when(priceTableRepositoryPort.save(any(PriceTable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ManagePriceTableService service = new ManagePriceTableService(priceTableRepositoryPort);
+		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
 		UpsertPriceTableCommand command = new UpsertPriceTableCommand(existingId, PriceFormation.PERCENT_OVER_BASE,
 				LocalDate.of(2026, 2, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(15))));
@@ -76,7 +77,7 @@ class ManagePriceTableServiceTest {
 		UUID unknownId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(unknownId))).thenReturn(Optional.empty());
 
-		ManagePriceTableService service = new ManagePriceTableService(priceTableRepositoryPort);
+		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
 		UpsertPriceTableCommand command = new UpsertPriceTableCommand(unknownId, PriceFormation.FIXED,
 				LocalDate.of(2026, 1, 1), null, null, null, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 

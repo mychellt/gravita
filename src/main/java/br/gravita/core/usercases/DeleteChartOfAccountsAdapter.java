@@ -4,8 +4,8 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.DeleteChartOfAccountsPort;
-import br.gravita.core.ports.persistence.ChartOfAccountsRepositoryPort;
-import br.gravita.core.ports.persistence.FinanceUsageQueryPort;
+import br.gravita.core.ports.outbound.persistence.ChartOfAccountsRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.FinanceUsageQueryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

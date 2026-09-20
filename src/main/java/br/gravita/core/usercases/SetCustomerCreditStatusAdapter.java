@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.SetCustomerCreditStatusPort;
-import br.gravita.core.ports.persistence.CustomerRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component

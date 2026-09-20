@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence;
 
+import br.gravita.adapters.outbound.persistence.adapters.PlanRepositoryAdapter;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import org.junit.jupiter.api.Test;

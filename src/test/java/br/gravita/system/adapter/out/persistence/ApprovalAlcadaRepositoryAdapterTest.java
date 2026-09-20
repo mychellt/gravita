@@ -1,9 +1,10 @@
 package br.gravita.system.adapter.out.persistence;
 
+import br.gravita.adapters.outbound.persistence.adapters.tax.ApprovalAlcadaRepositoryAdapter;
 import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
-import br.gravita.system.domain.model.ApprovalAlcada;
-import br.gravita.system.domain.model.ApprovalModule;
-import br.gravita.system.domain.model.ProfileReference;
+import br.gravita.core.domain.system.ApprovalAlcada;
+import br.gravita.core.domain.system.ApprovalModule;
+import br.gravita.core.domain.system.ProfileReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

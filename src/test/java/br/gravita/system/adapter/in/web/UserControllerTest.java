@@ -1,13 +1,16 @@
 package br.gravita.system.adapter.in.web;
 
-import br.gravita.system.application.port.in.RegisterUserCommand;
-import br.gravita.system.application.port.in.RegisterUserUseCase;
-import br.gravita.system.application.port.in.UpdateUserCommand;
-import br.gravita.system.application.port.in.UpdateUserUseCase;
-import br.gravita.system.domain.model.UnknownProfileException;
-import br.gravita.system.domain.model.UserId;
-import br.gravita.system.domain.model.UserNotFoundException;
-import br.gravita.system.domain.model.UserStatus;
+import br.gravita.adapters.inbound.controllers.tax.RegisterUserRequest;
+import br.gravita.adapters.inbound.controllers.tax.UpdateUserRequest;
+import br.gravita.adapters.inbound.controllers.tax.UserController;
+import br.gravita.core.usercases.system.RegisterUserCommand;
+import br.gravita.core.usercases.system.RegisterUserUseCase;
+import br.gravita.core.usercases.system.UpdateUserCommand;
+import br.gravita.core.usercases.system.UpdateUserUseCase;
+import br.gravita.core.domain.system.UnknownProfileException;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.domain.system.UserNotFoundException;
+import br.gravita.core.domain.system.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;

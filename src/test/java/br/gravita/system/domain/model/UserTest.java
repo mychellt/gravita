@@ -1,6 +1,9 @@
 package br.gravita.system.domain.model;
 
-import br.gravita.shared.BusinessRuleException;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.User;
+import br.gravita.core.domain.system.UserStatus;
+import br.gravita.core.domain.shared.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

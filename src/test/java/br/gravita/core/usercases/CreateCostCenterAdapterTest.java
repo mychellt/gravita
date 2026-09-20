@@ -3,10 +3,9 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CostCenterDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
-import br.gravita.core.ports.persistence.CostCenterRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CostCenterRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 

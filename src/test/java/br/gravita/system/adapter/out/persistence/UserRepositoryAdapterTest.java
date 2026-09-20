@@ -1,10 +1,14 @@
 package br.gravita.system.adapter.out.persistence;
 
-import br.gravita.system.domain.model.ProfileReference;
-import br.gravita.system.domain.model.User;
-import br.gravita.system.domain.model.UserId;
-import br.gravita.system.domain.model.UserNotFoundException;
-import br.gravita.system.domain.model.UserStatus;
+import br.gravita.adapters.outbound.persistence.adapters.tax.UserRepositoryAdapter;
+import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
+import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
+import br.gravita.adapters.outbound.security.PasswordHasher;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.User;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.domain.system.UserNotFoundException;
+import br.gravita.core.domain.system.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

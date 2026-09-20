@@ -2,14 +2,15 @@ package br.gravita.masterdata.adapter.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.gravita.masterdata.domain.model.Address;
-import br.gravita.masterdata.domain.model.BankAccount;
-import br.gravita.masterdata.domain.model.Contact;
-import br.gravita.masterdata.domain.model.ContactType;
-import br.gravita.masterdata.domain.model.PixKey;
-import br.gravita.masterdata.domain.model.Supplier;
-import br.gravita.masterdata.domain.model.SupplierId;
-import br.gravita.shared.Document;
+import br.gravita.masterdata.adapter.out.persistence.adapters.SupplierRepositoryAdapter;
+import br.gravita.core.domain.masterdata.Address;
+import br.gravita.core.domain.masterdata.BankAccount;
+import br.gravita.core.domain.masterdata.Contact;
+import br.gravita.core.domain.masterdata.ContactType;
+import br.gravita.core.domain.masterdata.PixKey;
+import br.gravita.core.domain.masterdata.Supplier;
+import br.gravita.core.domain.masterdata.SupplierId;
+import br.gravita.core.domain.shared.Document;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

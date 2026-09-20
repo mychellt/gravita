@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.ports.business.SaveCustomProfilePort;
-import br.gravita.core.ports.persistence.ProfileRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
 import org.springframework.stereotype.Component;
 
 /**

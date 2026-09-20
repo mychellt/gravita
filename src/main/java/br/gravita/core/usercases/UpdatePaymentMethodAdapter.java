@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PaymentMethodDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.UpdatePaymentMethodPort;
-import br.gravita.core.ports.persistence.PaymentMethodRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.PaymentMethodRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component

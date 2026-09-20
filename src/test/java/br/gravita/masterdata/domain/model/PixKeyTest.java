@@ -3,7 +3,9 @@ package br.gravita.masterdata.domain.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import br.gravita.shared.BusinessRuleException;
+import br.gravita.core.domain.masterdata.PixKey;
+import br.gravita.core.domain.masterdata.PixKeyType;
+import br.gravita.core.domain.shared.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 
 class PixKeyTest {

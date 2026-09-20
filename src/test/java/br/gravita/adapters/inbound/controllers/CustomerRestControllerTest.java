@@ -6,7 +6,7 @@ import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
-import br.gravita.shared.PersonType;
+import br.gravita.core.domain.shared.PersonType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

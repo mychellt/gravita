@@ -1,12 +1,13 @@
 package br.gravita.system.application.service;
 
-import br.gravita.shared.BusinessRuleException;
-import br.gravita.system.application.port.in.ConfigureIntegrationCredentialCommand;
-import br.gravita.system.application.port.out.IntegrationCredentialRepositoryPort;
-import br.gravita.system.domain.model.IntegrationCredential;
-import br.gravita.system.domain.model.IntegrationEnvironment;
-import br.gravita.system.domain.model.IntegrationName;
-import br.gravita.system.domain.model.UnknownIntegrationException;
+import br.gravita.core.usercases.tax.ConfigureIntegrationCredentialService;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.usercases.system.ConfigureIntegrationCredentialCommand;
+import br.gravita.core.ports.outbound.persistence.system.IntegrationCredentialRepositoryPort;
+import br.gravita.core.domain.system.IntegrationCredential;
+import br.gravita.core.domain.system.IntegrationEnvironment;
+import br.gravita.core.domain.system.IntegrationName;
+import br.gravita.core.domain.system.UnknownIntegrationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

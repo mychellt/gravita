@@ -3,7 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.DeletePaymentTermPort;
-import br.gravita.core.ports.persistence.PaymentTermRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.PaymentTermRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

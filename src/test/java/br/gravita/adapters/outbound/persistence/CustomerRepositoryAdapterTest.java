@@ -1,10 +1,11 @@
 package br.gravita.adapters.outbound.persistence;
 
+import br.gravita.adapters.outbound.persistence.adapters.CustomerRepositoryAdapter;
 import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

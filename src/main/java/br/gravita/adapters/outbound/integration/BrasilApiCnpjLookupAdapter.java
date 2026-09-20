@@ -2,7 +2,7 @@ package br.gravita.adapters.outbound.integration;
 
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.integration.CnpjLookupPort;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;

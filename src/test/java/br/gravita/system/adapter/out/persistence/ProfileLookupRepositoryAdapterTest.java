@@ -1,7 +1,8 @@
 package br.gravita.system.adapter.out.persistence;
 
+import br.gravita.adapters.outbound.persistence.adapters.tax.ProfileLookupRepositoryAdapter;
 import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
-import br.gravita.system.domain.model.ProfileReference;
+import br.gravita.core.domain.system.ProfileReference;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

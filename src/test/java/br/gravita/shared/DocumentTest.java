@@ -1,5 +1,8 @@
 package br.gravita.shared;
 
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.shared.PersonType;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

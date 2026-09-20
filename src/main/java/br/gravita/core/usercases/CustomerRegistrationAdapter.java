@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
-import br.gravita.core.ports.persistence.CustomerRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

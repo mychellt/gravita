@@ -1,8 +1,12 @@
 package br.gravita.system.adapter.out.persistence;
 
-import br.gravita.system.domain.model.IntegrationCredential;
-import br.gravita.system.domain.model.IntegrationEnvironment;
-import br.gravita.system.domain.model.IntegrationName;
+import br.gravita.adapters.outbound.persistence.adapters.tax.IntegrationCredentialRepositoryAdapter;
+import br.gravita.adapters.outbound.persistence.entities.tax.IntegrationCredentialJpaEntity;
+import br.gravita.adapters.outbound.persistence.repositories.tax.IntegrationCredentialJpaRepository;
+import br.gravita.adapters.outbound.security.CredentialCipher;
+import br.gravita.core.domain.system.IntegrationCredential;
+import br.gravita.core.domain.system.IntegrationEnvironment;
+import br.gravita.core.domain.system.IntegrationName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

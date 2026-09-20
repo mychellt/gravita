@@ -1,6 +1,9 @@
 package br.gravita.system.domain.model;
 
-import br.gravita.shared.BusinessRuleException;
+import br.gravita.core.domain.system.IntegrationCredential;
+import br.gravita.core.domain.system.IntegrationEnvironment;
+import br.gravita.core.domain.system.IntegrationName;
+import br.gravita.core.domain.shared.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

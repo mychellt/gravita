@@ -1,14 +1,15 @@
 package br.gravita.system.application.service;
 
-import br.gravita.shared.BusinessRuleException;
-import br.gravita.system.application.port.in.ConfigureApprovalAlcadaCommand;
-import br.gravita.system.application.port.out.ApprovalAlcadaRepositoryPort;
-import br.gravita.system.application.port.out.ProfileRepositoryPort;
-import br.gravita.system.domain.model.ApprovalAlcada;
-import br.gravita.system.domain.model.ApprovalModule;
-import br.gravita.system.domain.model.ProfileReference;
-import br.gravita.system.domain.model.UnknownApprovalModuleException;
-import br.gravita.system.domain.model.UnknownProfileException;
+import br.gravita.core.usercases.tax.ConfigureApprovalAlcadaService;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.usercases.system.ConfigureApprovalAlcadaCommand;
+import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
+import br.gravita.core.domain.system.ApprovalAlcada;
+import br.gravita.core.domain.system.ApprovalModule;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.UnknownApprovalModuleException;
+import br.gravita.core.domain.system.UnknownProfileException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

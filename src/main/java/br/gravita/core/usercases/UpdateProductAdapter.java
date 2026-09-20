@@ -5,8 +5,8 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.UpdateProductPort;
-import br.gravita.core.ports.persistence.InventoryLotSerialRepositoryPort;
-import br.gravita.core.ports.persistence.ProductRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.InventoryLotSerialRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component

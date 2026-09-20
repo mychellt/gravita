@@ -1,9 +1,11 @@
 package br.gravita.system.adapter.in.web;
 
-import br.gravita.system.application.port.in.ConfigureIntegrationCredentialCommand;
-import br.gravita.system.application.port.in.ConfigureIntegrationCredentialUseCase;
-import br.gravita.system.domain.model.IntegrationEnvironment;
-import br.gravita.system.domain.model.UnknownIntegrationException;
+import br.gravita.adapters.inbound.controllers.tax.ConfigureIntegrationCredentialRequest;
+import br.gravita.adapters.inbound.controllers.tax.IntegrationCredentialController;
+import br.gravita.core.usercases.system.ConfigureIntegrationCredentialCommand;
+import br.gravita.core.usercases.system.ConfigureIntegrationCredentialUseCase;
+import br.gravita.core.domain.system.IntegrationEnvironment;
+import br.gravita.core.domain.system.UnknownIntegrationException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;

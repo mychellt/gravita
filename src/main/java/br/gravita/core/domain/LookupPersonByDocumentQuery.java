@@ -1,7 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 
 public record LookupPersonByDocumentQuery(Document document, String cep) {
 

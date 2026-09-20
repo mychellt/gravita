@@ -3,7 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.InterstateIcmsRateDomain;
 import br.gravita.core.ports.business.ImportInterstateIcmsRatesPort;
-import br.gravita.core.ports.persistence.InterstateIcmsRateRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.InterstateIcmsRateRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

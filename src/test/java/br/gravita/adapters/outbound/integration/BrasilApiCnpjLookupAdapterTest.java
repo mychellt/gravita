@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.integration;
 
 import br.gravita.core.domain.PersonLookupResult;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;

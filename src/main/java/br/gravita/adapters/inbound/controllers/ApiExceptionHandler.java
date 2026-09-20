@@ -26,8 +26,8 @@ public class ApiExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
-	@ExceptionHandler(br.gravita.shared.BusinessRuleException.class)
-	public ResponseEntity<String> handleSharedBusinessRuleViolation(br.gravita.shared.BusinessRuleException ex) {
+	@ExceptionHandler(br.gravita.core.domain.shared.BusinessRuleException.class)
+	public ResponseEntity<String> handleSharedBusinessRuleViolation(br.gravita.core.domain.shared.BusinessRuleException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 }

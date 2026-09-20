@@ -1,8 +1,10 @@
 package br.gravita.system.adapter.in.web;
 
-import br.gravita.system.application.port.in.ConfigureApprovalAlcadaCommand;
-import br.gravita.system.application.port.in.ConfigureApprovalAlcadaUseCase;
-import br.gravita.system.domain.model.UnknownApprovalModuleException;
+import br.gravita.adapters.inbound.controllers.tax.ApprovalAlcadaController;
+import br.gravita.adapters.inbound.controllers.tax.ConfigureApprovalAlcadaRequest;
+import br.gravita.core.usercases.system.ConfigureApprovalAlcadaCommand;
+import br.gravita.core.usercases.system.ConfigureApprovalAlcadaUseCase;
+import br.gravita.core.domain.system.UnknownApprovalModuleException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;

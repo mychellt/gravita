@@ -1,5 +1,7 @@
 package br.gravita.system.domain.model;
 
+import br.gravita.core.domain.system.IntegrationName;
+import br.gravita.core.domain.system.UnknownIntegrationException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.Test;

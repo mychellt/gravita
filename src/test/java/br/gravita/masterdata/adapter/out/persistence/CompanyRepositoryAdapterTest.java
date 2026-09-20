@@ -1,10 +1,11 @@
 package br.gravita.masterdata.adapter.out.persistence;
 
-import br.gravita.masterdata.domain.model.Company;
-import br.gravita.masterdata.domain.model.CompanyId;
-import br.gravita.masterdata.domain.model.SefazEnvironment;
-import br.gravita.masterdata.domain.model.TaxRegime;
-import br.gravita.shared.Document;
+import br.gravita.masterdata.adapter.out.persistence.adapters.CompanyRepositoryAdapter;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

@@ -3,7 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PaymentTermDomain;
 import br.gravita.core.ports.business.ListPaymentTermsPort;
-import br.gravita.core.ports.persistence.PaymentTermRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.PaymentTermRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

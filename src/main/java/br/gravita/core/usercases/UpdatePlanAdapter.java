@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.business.UpdatePlanPort;
-import br.gravita.core.ports.persistence.PlanRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component

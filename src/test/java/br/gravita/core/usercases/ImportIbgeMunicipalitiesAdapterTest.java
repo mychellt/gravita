@@ -2,7 +2,7 @@ package br.gravita.core.usercases;
 
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.IbgeMunicipalityDomain;
-import br.gravita.core.ports.persistence.IbgeMunicipalityRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.IbgeMunicipalityRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

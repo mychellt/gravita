@@ -1,6 +1,6 @@
 package br.gravita.core.domain;
 
-import br.gravita.shared.Document;
+import br.gravita.core.domain.shared.Document;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

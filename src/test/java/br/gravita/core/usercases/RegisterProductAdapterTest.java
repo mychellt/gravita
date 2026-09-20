@@ -6,7 +6,7 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
-import br.gravita.core.ports.persistence.ProductRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

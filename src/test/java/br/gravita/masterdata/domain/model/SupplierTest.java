@@ -4,9 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import br.gravita.shared.BusinessRuleException;
-import br.gravita.shared.Document;
-import br.gravita.shared.PersonType;
+import br.gravita.core.domain.masterdata.*;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.shared.PersonType;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

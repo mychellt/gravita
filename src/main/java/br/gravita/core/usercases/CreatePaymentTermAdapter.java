@@ -4,7 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PaymentTermDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.business.CreatePaymentTermPort;
-import br.gravita.core.ports.persistence.PaymentTermRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.PaymentTermRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

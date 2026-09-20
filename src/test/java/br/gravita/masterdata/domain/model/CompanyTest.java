@@ -1,7 +1,11 @@
 package br.gravita.masterdata.domain.model;
 
-import br.gravita.shared.BusinessRuleException;
-import br.gravita.shared.Document;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

@@ -1,14 +1,15 @@
 package br.gravita.system.application.service;
 
-import br.gravita.shared.BusinessRuleException;
-import br.gravita.system.application.port.in.UpdateUserCommand;
-import br.gravita.system.application.port.out.ProfileRepositoryPort;
-import br.gravita.system.application.port.out.UserRepositoryPort;
-import br.gravita.system.domain.model.ProfileReference;
-import br.gravita.system.domain.model.UnknownProfileException;
-import br.gravita.system.domain.model.User;
-import br.gravita.system.domain.model.UserNotFoundException;
-import br.gravita.system.domain.model.UserStatus;
+import br.gravita.core.usercases.tax.UpdateUserService;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.usercases.system.UpdateUserCommand;
+import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.UnknownProfileException;
+import br.gravita.core.domain.system.User;
+import br.gravita.core.domain.system.UserNotFoundException;
+import br.gravita.core.domain.system.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

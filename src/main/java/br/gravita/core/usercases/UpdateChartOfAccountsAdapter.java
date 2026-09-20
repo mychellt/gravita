@@ -5,7 +5,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.UpdateChartOfAccountsPort;
-import br.gravita.core.ports.persistence.ChartOfAccountsRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ChartOfAccountsRepositoryPort;
 import org.springframework.stereotype.Component;
 
 @Component

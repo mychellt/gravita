@@ -2,7 +2,7 @@ package br.gravita.adapters.outbound.persistence.entities;
 
 import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.IeIndicator;
-import br.gravita.shared.PersonType;
+import br.gravita.core.domain.shared.PersonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

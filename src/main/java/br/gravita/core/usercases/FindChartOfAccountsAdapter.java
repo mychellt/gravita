@@ -4,7 +4,7 @@ import br.gravita.core.domain.ChartOfAccountsDomain;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.FindChartOfAccountsPort;
-import br.gravita.core.ports.persistence.ChartOfAccountsRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ChartOfAccountsRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

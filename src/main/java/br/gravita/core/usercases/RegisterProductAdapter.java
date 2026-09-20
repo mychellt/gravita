@@ -7,7 +7,7 @@ import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.business.RegisterProductPort;
-import br.gravita.core.ports.persistence.ProductRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
