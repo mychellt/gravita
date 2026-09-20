@@ -4,9 +4,9 @@ import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
 
-class UserPersistenceMapper {
+public class UserPersistenceMapper {
 
-	UserJpaEntity toEntity(User domain, String passwordHash) {
+	public UserJpaEntity toEntity(User domain, String passwordHash) {
 		return UserJpaEntity.builder()
 				.id(domain.getId().value())
 				.name(domain.getName())
@@ -18,7 +18,7 @@ class UserPersistenceMapper {
 				.build();
 	}
 
-	User toDomain(UserJpaEntity entity) {
+	public User toDomain(UserJpaEntity entity) {
 		return User.builder()
 				.id(UserId.of(entity.getId()))
 				.name(entity.getName())

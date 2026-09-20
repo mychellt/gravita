@@ -12,5 +12,5 @@ import java.util.UUID;
  * through the existing {@link ProfileJpaEntity} rather than duplicating the profile aggregate
  * under this context.
  */
-interface ProfileLookupJpaRepository extends JpaRepository<ProfileJpaEntity, UUID> {
+public interface ProfileLookupJpaRepository extends JpaRepository<ProfileJpaEntity, UUID> {
 }

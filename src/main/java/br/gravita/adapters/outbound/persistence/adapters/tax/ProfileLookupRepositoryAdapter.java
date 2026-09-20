@@ -3,7 +3,7 @@ package br.gravita.adapters.outbound.persistence.adapters.tax;
 import br.gravita.core.domain.shared.PersistenceAdapter;
 import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
 import br.gravita.core.domain.system.ProfileReference;
-import br.gravita.system.adapter.out.persistence.ProfileLookupJpaRepository;
+import br.gravita.adapters.outbound.persistence.repositories.tax.ProfileLookupJpaRepository;
 
 import java.util.Optional;
 import java.util.UUID;

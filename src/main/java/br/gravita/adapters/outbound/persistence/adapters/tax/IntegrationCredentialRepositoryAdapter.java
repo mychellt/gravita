@@ -7,8 +7,8 @@ import br.gravita.core.ports.outbound.persistence.system.IntegrationCredentialRe
 import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.core.domain.system.IntegrationEnvironment;
 import br.gravita.core.domain.system.IntegrationName;
-import br.gravita.system.adapter.out.persistence.CredentialCipher;
-import br.gravita.system.adapter.out.persistence.IntegrationCredentialJpaRepository;
+import br.gravita.adapters.outbound.security.CredentialCipher;
+import br.gravita.adapters.outbound.persistence.repositories.tax.IntegrationCredentialJpaRepository;
 
 import java.util.Optional;
 

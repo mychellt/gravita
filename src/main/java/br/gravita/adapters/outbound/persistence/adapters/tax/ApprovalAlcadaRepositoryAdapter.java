@@ -6,7 +6,7 @@ import br.gravita.core.domain.shared.PersistenceAdapter;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;
-import br.gravita.system.adapter.out.persistence.ApprovalAlcadaJpaRepository;
+import br.gravita.adapters.outbound.persistence.repositories.tax.ApprovalAlcadaJpaRepository;
 
 import java.util.Optional;
 

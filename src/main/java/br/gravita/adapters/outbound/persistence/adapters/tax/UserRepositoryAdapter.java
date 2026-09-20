@@ -7,8 +7,8 @@ import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserNotFoundException;
-import br.gravita.system.adapter.out.persistence.PasswordHasher;
-import br.gravita.system.adapter.out.persistence.UserJpaRepository;
+import br.gravita.adapters.outbound.security.PasswordHasher;
+import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 
 import java.util.Optional;
 

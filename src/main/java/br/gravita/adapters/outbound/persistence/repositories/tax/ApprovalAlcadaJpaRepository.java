@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-interface ApprovalAlcadaJpaRepository extends JpaRepository<ApprovalAlcadaJpaEntity, UUID> {
+public interface ApprovalAlcadaJpaRepository extends JpaRepository<ApprovalAlcadaJpaEntity, UUID> {
 	Optional<ApprovalAlcadaJpaEntity> findByModule(ApprovalModule module);
 }

@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
  * on purpose: a stored {@code User} never needs its plaintext password back.
  */
 @Component
-class PasswordHasher {
+public class PasswordHasher {
 
 	private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-	String hash(String rawPassword) {
+	public String hash(String rawPassword) {
 		return encoder.encode(rawPassword);
 	}
 }

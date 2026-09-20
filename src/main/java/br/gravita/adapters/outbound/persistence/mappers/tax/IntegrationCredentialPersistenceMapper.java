@@ -3,9 +3,9 @@ package br.gravita.adapters.outbound.persistence.mappers.tax;
 import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.adapters.outbound.persistence.entities.tax.IntegrationCredentialJpaEntity;
 
-class IntegrationCredentialPersistenceMapper {
+public class IntegrationCredentialPersistenceMapper {
 
-	IntegrationCredentialJpaEntity toEntity(IntegrationCredential domain, String encryptedCredentialPayload) {
+	public IntegrationCredentialJpaEntity toEntity(IntegrationCredential domain, String encryptedCredentialPayload) {
 		return IntegrationCredentialJpaEntity.builder()
 				.id(domain.getId())
 				.integrationName(domain.getIntegrationName())
@@ -16,7 +16,7 @@ class IntegrationCredentialPersistenceMapper {
 				.build();
 	}
 
-	IntegrationCredential toDomain(IntegrationCredentialJpaEntity entity, String decryptedCredentialPayload) {
+	public IntegrationCredential toDomain(IntegrationCredentialJpaEntity entity, String decryptedCredentialPayload) {
 		return IntegrationCredential.builder()
 				.id(entity.getId())
 				.integrationName(entity.getIntegrationName())

@@ -4,10 +4,10 @@ import br.gravita.core.domain.tax.*;
 import br.gravita.adapters.outbound.persistence.repositories.tax.ProductTaxProfileRepositoryPort;
 import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRateQuery;
 import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRuleTableRepositoryPort;
-import br.gravita.tax.application.port.in.CalculateTaxCommand;
-import br.gravita.tax.application.port.in.CalculateTaxUseCase;
-import br.gravita.tax.application.port.in.TaxCalculationResult;
-import br.gravita.tax.application.port.in.TaxItemCommand;
+import br.gravita.core.ports.inbound.tax.CalculateTaxCommand;
+import br.gravita.core.ports.inbound.tax.CalculateTaxUseCase;
+import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
+import br.gravita.core.ports.inbound.tax.TaxItemCommand;
 
 import java.util.ArrayList;
 import java.util.List;

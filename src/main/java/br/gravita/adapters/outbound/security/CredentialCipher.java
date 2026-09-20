@@ -20,7 +20,7 @@ import java.util.Base64;
  * production profile.
  */
 @Component
-class CredentialCipher {
+public class CredentialCipher {
 
 	private static final String TRANSFORMATION = "AES/GCM/NoPadding";
 	private static final int GCM_TAG_LENGTH_BITS = 128;
@@ -29,11 +29,11 @@ class CredentialCipher {
 	private final SecretKeySpec key;
 	private final SecureRandom secureRandom = new SecureRandom();
 
-	CredentialCipher(@Value("${gravita.system.integration-credential-encryption-key}") String base64Key) {
+	public CredentialCipher(@Value("${gravita.system.integration-credential-encryption-key}") String base64Key) {
 		this.key = new SecretKeySpec(Base64.getDecoder().decode(base64Key), "AES");
 	}
 
-	String encrypt(String plaintext) {
+	public String encrypt(String plaintext) {
 		try {
 			byte[] iv = new byte[IV_LENGTH_BYTES];
 			secureRandom.nextBytes(iv);
@@ -49,7 +49,7 @@ class CredentialCipher {
 		}
 	}
 
-	String decrypt(String encoded) {
+	public String decrypt(String encoded) {
 		try {
 			ByteBuffer buffer = ByteBuffer.wrap(Base64.getDecoder().decode(encoded));
 			byte[] iv = new byte[IV_LENGTH_BYTES];

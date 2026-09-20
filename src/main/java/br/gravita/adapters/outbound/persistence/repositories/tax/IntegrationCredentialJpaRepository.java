@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-interface IntegrationCredentialJpaRepository extends JpaRepository<IntegrationCredentialJpaEntity, UUID> {
+public interface IntegrationCredentialJpaRepository extends JpaRepository<IntegrationCredentialJpaEntity, UUID> {
 	Optional<IntegrationCredentialJpaEntity> findByIntegrationNameAndEnvironment(IntegrationName integrationName,
 			IntegrationEnvironment environment);
 }

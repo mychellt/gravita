@@ -3,9 +3,9 @@ package br.gravita.adapters.outbound.persistence.mappers.tax;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.adapters.outbound.persistence.entities.tax.ApprovalAlcadaJpaEntity;
 
-class ApprovalAlcadaPersistenceMapper {
+public class ApprovalAlcadaPersistenceMapper {
 
-	ApprovalAlcadaJpaEntity toEntity(ApprovalAlcada domain) {
+	public ApprovalAlcadaJpaEntity toEntity(ApprovalAlcada domain) {
 		return ApprovalAlcadaJpaEntity.builder()
 				.id(domain.getId())
 				.module(domain.getModule())
@@ -16,7 +16,7 @@ class ApprovalAlcadaPersistenceMapper {
 				.build();
 	}
 
-	ApprovalAlcada toDomain(ApprovalAlcadaJpaEntity entity) {
+	public ApprovalAlcada toDomain(ApprovalAlcadaJpaEntity entity) {
 		return ApprovalAlcada.builder()
 				.id(entity.getId())
 				.module(entity.getModule())
