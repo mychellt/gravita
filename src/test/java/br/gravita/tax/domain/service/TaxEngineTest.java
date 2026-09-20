@@ -1,5 +1,6 @@
 package br.gravita.tax.domain.service;
 
+import br.gravita.core.usercases.tax.TaxEngine;
 import br.gravita.core.domain.tax.TaxDomainException;
 import br.gravita.core.domain.tax.ItemTaxBreakdown;
 import br.gravita.core.domain.tax.ItemTaxInput;

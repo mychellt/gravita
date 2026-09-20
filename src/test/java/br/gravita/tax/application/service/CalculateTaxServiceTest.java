@@ -1,9 +1,10 @@
 package br.gravita.tax.application.service;
 
-import br.gravita.tax.application.port.in.CalculateTaxCommand;
-import br.gravita.tax.application.port.in.TaxCalculationResult;
-import br.gravita.tax.application.port.in.TaxItemCommand;
-import br.gravita.tax.application.port.in.TaxOverrideCommand;
+import br.gravita.core.usercases.tax.CalculateTaxService;
+import br.gravita.core.ports.inbound.tax.CalculateTaxCommand;
+import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
+import br.gravita.core.ports.inbound.tax.TaxItemCommand;
+import br.gravita.core.ports.inbound.tax.TaxOverrideCommand;
 import br.gravita.adapters.outbound.persistence.repositories.tax.ProductTaxProfileRepositoryPort;
 import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRateQuery;
 import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRuleTableRepositoryPort;
