@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
+import br.gravita.adapters.outbound.persistence.mappers.ProfilePersistenceMapperImpl;
 import br.gravita.core.domain.PermissionAction;
 import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(ProfileRepositoryAdapter.class)
+@Import({ProfileRepositoryAdapter.class, ProfilePersistenceMapperImpl.class})
 class ProfileRepositoryAdapterTest {
 
 	@Autowired

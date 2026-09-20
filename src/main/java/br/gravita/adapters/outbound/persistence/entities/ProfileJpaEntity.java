@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.domain.Persistable;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +25,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "profiles")
-public class ProfileJpaEntity extends AbstractEntity<UUID> implements Persistable<UUID> {
+public class ProfileJpaEntity extends AbstractEntity<UUID> {
 	@Id
 	private UUID id;
 

@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-interface CostCenterJpaRepository extends JpaRepository<CostCenterJpaEntity, UUID> {
-	boolean existsByParentId(UUID parentId);
+public interface CostCenterJpaRepository extends JpaRepository<CostCenterJpaEntity, UUID> {
+    boolean existsByParentId(UUID parentId);
 }

@@ -2,24 +2,12 @@ package br.gravita.adapters.outbound.persistence.mappers;
 
 import br.gravita.adapters.outbound.persistence.entities.IbgeMunicipalityJpaEntity;
 import br.gravita.core.domain.IbgeMunicipalityDomain;
+import org.mapstruct.Mapper;
 
-class IbgeMunicipalityPersistenceMapper {
+@Mapper
+public interface IbgeMunicipalityPersistenceMapper {
 
-	IbgeMunicipalityDomain toDomain(IbgeMunicipalityJpaEntity entity) {
-		return IbgeMunicipalityDomain.builder()
-				.id(entity.getId())
-				.ibgeCode(entity.getIbgeCode())
-				.name(entity.getName())
-				.stateCode(entity.getStateCode())
-				.build();
-	}
+    IbgeMunicipalityDomain map(final IbgeMunicipalityJpaEntity entity);
 
-	IbgeMunicipalityJpaEntity toEntity(IbgeMunicipalityDomain domain) {
-		return IbgeMunicipalityJpaEntity.builder()
-				.id(domain.getId())
-				.ibgeCode(domain.getIbgeCode())
-				.name(domain.getName())
-				.stateCode(domain.getStateCode())
-				.build();
-	}
+    IbgeMunicipalityJpaEntity map(final IbgeMunicipalityDomain domain);
 }

@@ -17,11 +17,13 @@ class IntegrationCredentialRepositoryAdapter implements IntegrationCredentialRep
 
 	private final IntegrationCredentialJpaRepository jpaRepository;
 	private final CredentialCipher cipher;
-	private final IntegrationCredentialPersistenceMapper mapper = new IntegrationCredentialPersistenceMapper();
+	private final IntegrationCredentialPersistenceMapper mapper;
 
-	IntegrationCredentialRepositoryAdapter(IntegrationCredentialJpaRepository jpaRepository, CredentialCipher cipher) {
+	IntegrationCredentialRepositoryAdapter(IntegrationCredentialJpaRepository jpaRepository, CredentialCipher cipher,
+			IntegrationCredentialPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.cipher = cipher;
+		this.mapper = mapper;
 	}
 
 	@Override

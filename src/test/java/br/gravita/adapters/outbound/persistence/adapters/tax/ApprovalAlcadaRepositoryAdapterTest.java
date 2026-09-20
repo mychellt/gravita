@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.ApprovalAlcadaPersistenceMapperImpl;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.domain.system.ProfileReference;
@@ -18,7 +19,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(ApprovalAlcadaRepositoryAdapter.class)
+@Import({ApprovalAlcadaRepositoryAdapter.class, ApprovalAlcadaPersistenceMapperImpl.class})
 class ApprovalAlcadaRepositoryAdapterTest {
 
 	@Autowired

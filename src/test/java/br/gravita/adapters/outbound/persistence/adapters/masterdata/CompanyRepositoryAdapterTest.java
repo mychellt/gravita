@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.CompanyPersistenceMapperImpl;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
@@ -15,7 +16,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(CompanyRepositoryAdapter.class)
+@Import({CompanyRepositoryAdapter.class, CompanyPersistenceMapperImpl.class})
 class CompanyRepositoryAdapterTest {
 
 	@Autowired

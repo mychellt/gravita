@@ -11,10 +11,11 @@ import br.gravita.core.domain.shared.PersistenceAdapter;
 class DocumentSeriesRepositoryAdapter implements DocumentSeriesRepositoryPort {
 
 	private final DocumentSeriesJpaRepository jpaRepository;
-	private final DocumentSeriesPersistenceMapper mapper = new DocumentSeriesPersistenceMapper();
+	private final DocumentSeriesPersistenceMapper mapper;
 
-	DocumentSeriesRepositoryAdapter(DocumentSeriesJpaRepository jpaRepository) {
+	DocumentSeriesRepositoryAdapter(DocumentSeriesJpaRepository jpaRepository, DocumentSeriesPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override

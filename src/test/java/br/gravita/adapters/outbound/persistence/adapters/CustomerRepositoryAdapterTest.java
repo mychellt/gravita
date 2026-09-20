@@ -4,6 +4,7 @@ import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
+import br.gravita.adapters.outbound.persistence.mappers.CustomerPersistenceMapperImpl;
 import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(CustomerRepositoryAdapter.class)
+@Import({CustomerRepositoryAdapter.class, CustomerPersistenceMapperImpl.class})
 class CustomerRepositoryAdapterTest {
 
 	@Autowired

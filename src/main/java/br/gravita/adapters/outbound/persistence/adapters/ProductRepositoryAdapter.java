@@ -15,26 +15,27 @@ import java.util.UUID;
 class ProductRepositoryAdapter implements ProductRepositoryPort {
 
 	private final ProductJpaRepository jpaRepository;
-	private final ProductPersistenceMapper mapper = new ProductPersistenceMapper();
+	private final ProductPersistenceMapper mapper;
 
-	ProductRepositoryAdapter(ProductJpaRepository jpaRepository) {
+	ProductRepositoryAdapter(ProductJpaRepository jpaRepository, ProductPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public ProductDomain save(ProductDomain product) {
-		ProductJpaEntity saved = jpaRepository.save(mapper.toEntity(product));
-		return mapper.toDomain(saved);
+		ProductJpaEntity saved = jpaRepository.save(mapper.map(product));
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<ProductDomain> get(UUID id) {
-		return jpaRepository.findById(id).map(mapper::toDomain);
+		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
 	public List<ProductDomain> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.IntegrationCredentialJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.IntegrationCredentialPersistenceMapperImpl;
 import br.gravita.adapters.outbound.persistence.repositories.tax.IntegrationCredentialJpaRepository;
 import br.gravita.adapters.outbound.security.CredentialCipher;
 import br.gravita.core.domain.system.IntegrationCredential;
@@ -16,7 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import({IntegrationCredentialRepositoryAdapter.class, CredentialCipher.class})
+@Import({IntegrationCredentialRepositoryAdapter.class, CredentialCipher.class, IntegrationCredentialPersistenceMapperImpl.class})
 class IntegrationCredentialRepositoryAdapterTest {
 
 	@Autowired

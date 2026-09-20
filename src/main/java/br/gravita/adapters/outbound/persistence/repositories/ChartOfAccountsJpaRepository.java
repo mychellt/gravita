@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;
 
-interface ChartOfAccountsJpaRepository extends JpaRepository<ChartOfAccountsJpaEntity, UUID> {
-	boolean existsByParentId(UUID parentId);
+public interface ChartOfAccountsJpaRepository extends JpaRepository<ChartOfAccountsJpaEntity, UUID> {
+    boolean existsByParentId(UUID parentId);
 }

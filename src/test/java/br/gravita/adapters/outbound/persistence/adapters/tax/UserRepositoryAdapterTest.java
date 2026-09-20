@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.UserPersistenceMapperImpl;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 import br.gravita.adapters.outbound.security.PasswordHasher;
 import br.gravita.core.domain.system.ProfileReference;
@@ -20,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
-@Import({UserRepositoryAdapter.class, PasswordHasher.class})
+@Import({UserRepositoryAdapter.class, PasswordHasher.class, UserPersistenceMapperImpl.class})
 class UserRepositoryAdapterTest {
 
 	@Autowired

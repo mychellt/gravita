@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.springframework.data.domain.Persistable;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "customers")
-public class CustomerJpaEntity extends AbstractEntity<UUID> implements Persistable<UUID> {
+public class CustomerJpaEntity extends AbstractEntity<UUID> {
 
 	@Id
 	private UUID id;

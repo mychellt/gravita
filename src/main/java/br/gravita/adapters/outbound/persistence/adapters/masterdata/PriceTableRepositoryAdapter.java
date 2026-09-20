@@ -13,10 +13,11 @@ import java.util.Optional;
 class PriceTableRepositoryAdapter implements PriceTableRepositoryPort {
 
 	private final PriceTableJpaRepository jpaRepository;
-	private final PriceTablePersistenceMapper mapper = new PriceTablePersistenceMapper();
+	private final PriceTablePersistenceMapper mapper;
 
-	PriceTableRepositoryAdapter(PriceTableJpaRepository jpaRepository) {
+	PriceTableRepositoryAdapter(PriceTableJpaRepository jpaRepository, PriceTablePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override

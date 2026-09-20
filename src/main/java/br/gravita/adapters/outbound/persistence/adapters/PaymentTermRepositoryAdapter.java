@@ -15,26 +15,27 @@ import java.util.UUID;
 class PaymentTermRepositoryAdapter implements PaymentTermRepositoryPort {
 
 	private final PaymentTermJpaRepository jpaRepository;
-	private final PaymentTermPersistenceMapper mapper = new PaymentTermPersistenceMapper();
+	private final PaymentTermPersistenceMapper mapper;
 
-	PaymentTermRepositoryAdapter(PaymentTermJpaRepository jpaRepository) {
+	PaymentTermRepositoryAdapter(PaymentTermJpaRepository jpaRepository, PaymentTermPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public PaymentTermDomain save(PaymentTermDomain model) {
-		PaymentTermJpaEntity saved = jpaRepository.save(mapper.toEntity(model));
-		return mapper.toDomain(saved);
+		PaymentTermJpaEntity saved = jpaRepository.save(mapper.map(model));
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PaymentTermDomain> get(UUID id) {
-		return jpaRepository.findById(id).map(mapper::toDomain);
+		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
 	public List<PaymentTermDomain> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
 
 	@Override

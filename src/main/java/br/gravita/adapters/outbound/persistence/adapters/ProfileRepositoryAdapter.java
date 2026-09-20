@@ -14,27 +14,28 @@ import java.util.UUID;
 class ProfileRepositoryAdapter implements ProfileRepositoryPort {
 
 	private final ProfileJpaRepository jpaRepository;
-	private final ProfilePersistenceMapper mapper = new ProfilePersistenceMapper();
+	private final ProfilePersistenceMapper mapper;
 
-	ProfileRepositoryAdapter(ProfileJpaRepository jpaRepository) {
+	ProfileRepositoryAdapter(ProfileJpaRepository jpaRepository, ProfilePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public Optional<ProfileDomain> findById(UUID id) {
-		return jpaRepository.findById(id).map(mapper::toDomain);
+		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
 	public Optional<ProfileDomain> findByName(String name) {
-		return jpaRepository.findByName(name).map(mapper::toDomain);
+		return jpaRepository.findByName(name).map(mapper::map);
 	}
 
 	@Override
 	public ProfileDomain save(ProfileDomain profile) {
-		ProfileJpaEntity entity = mapper.toEntity(profile);
+		ProfileJpaEntity entity = mapper.map(profile);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		ProfileJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 }

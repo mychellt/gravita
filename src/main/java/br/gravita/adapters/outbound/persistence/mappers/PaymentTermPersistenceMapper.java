@@ -2,22 +2,12 @@ package br.gravita.adapters.outbound.persistence.mappers;
 
 import br.gravita.adapters.outbound.persistence.entities.PaymentTermJpaEntity;
 import br.gravita.core.domain.PaymentTermDomain;
+import org.mapstruct.Mapper;
 
-public class PaymentTermPersistenceMapper {
+@Mapper
+public interface PaymentTermPersistenceMapper {
 
-	public PaymentTermDomain toDomain(PaymentTermJpaEntity entity) {
-		return PaymentTermDomain.builder()
-				.id(entity.getId())
-				.name(entity.getName())
-				.installmentIntervalsDays(entity.getInstallmentIntervalsDays())
-				.build();
-	}
+    PaymentTermDomain map(final PaymentTermJpaEntity entity);
 
-	public PaymentTermJpaEntity toEntity(PaymentTermDomain domain) {
-		return PaymentTermJpaEntity.builder()
-				.id(domain.getId())
-				.name(domain.getName())
-				.installmentIntervalsDays(domain.getInstallmentIntervalsDays())
-				.build();
-	}
+    PaymentTermJpaEntity map(final PaymentTermDomain domain);
 }

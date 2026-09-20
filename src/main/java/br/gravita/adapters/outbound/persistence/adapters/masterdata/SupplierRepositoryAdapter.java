@@ -13,10 +13,11 @@ import java.util.Optional;
 class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 
 	private final SupplierJpaRepository jpaRepository;
-	private final SupplierPersistenceMapper mapper = new SupplierPersistenceMapper();
+	private final SupplierPersistenceMapper mapper;
 
-	SupplierRepositoryAdapter(SupplierJpaRepository jpaRepository) {
+	SupplierRepositoryAdapter(SupplierJpaRepository jpaRepository, SupplierPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override

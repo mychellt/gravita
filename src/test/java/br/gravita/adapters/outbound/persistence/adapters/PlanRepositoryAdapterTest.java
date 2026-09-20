@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
+import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapperImpl;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(PlanRepositoryAdapter.class)
+@Import({PlanRepositoryAdapter.class, PlanPersistenceMapperImpl.class})
 class PlanRepositoryAdapterTest {
 
 	@Autowired

@@ -14,20 +14,21 @@ import java.util.Optional;
 class ApprovalAlcadaRepositoryAdapter implements ApprovalAlcadaRepositoryPort {
 
 	private final ApprovalAlcadaJpaRepository jpaRepository;
-	private final ApprovalAlcadaPersistenceMapper mapper = new ApprovalAlcadaPersistenceMapper();
+	private final ApprovalAlcadaPersistenceMapper mapper;
 
-	ApprovalAlcadaRepositoryAdapter(ApprovalAlcadaJpaRepository jpaRepository) {
+	ApprovalAlcadaRepositoryAdapter(ApprovalAlcadaJpaRepository jpaRepository, ApprovalAlcadaPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public ApprovalAlcada save(ApprovalAlcada alcada) {
-		ApprovalAlcadaJpaEntity saved = jpaRepository.save(mapper.toEntity(alcada));
-		return mapper.toDomain(saved);
+		ApprovalAlcadaJpaEntity saved = jpaRepository.save(mapper.map(alcada));
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<ApprovalAlcada> findByModule(ApprovalModule module) {
-		return jpaRepository.findByModule(module).map(mapper::toDomain);
+		return jpaRepository.findByModule(module).map(mapper::map);
 	}
 }

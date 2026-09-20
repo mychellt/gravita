@@ -17,11 +17,12 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 
 	private final UserJpaRepository jpaRepository;
 	private final PasswordHasher passwordHasher;
-	private final UserPersistenceMapper mapper = new UserPersistenceMapper();
+	private final UserPersistenceMapper mapper;
 
-	UserRepositoryAdapter(UserJpaRepository jpaRepository, PasswordHasher passwordHasher) {
+	UserRepositoryAdapter(UserJpaRepository jpaRepository, PasswordHasher passwordHasher, UserPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.passwordHasher = passwordHasher;
+		this.mapper = mapper;
 	}
 
 	@Override

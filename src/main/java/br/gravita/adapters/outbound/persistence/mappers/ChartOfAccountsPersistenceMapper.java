@@ -2,26 +2,12 @@ package br.gravita.adapters.outbound.persistence.mappers;
 
 import br.gravita.adapters.outbound.persistence.entities.ChartOfAccountsJpaEntity;
 import br.gravita.core.domain.ChartOfAccountsDomain;
+import org.mapstruct.Mapper;
 
-class ChartOfAccountsPersistenceMapper {
+@Mapper
+public interface ChartOfAccountsPersistenceMapper {
 
-	ChartOfAccountsDomain toDomain(ChartOfAccountsJpaEntity entity) {
-		return ChartOfAccountsDomain.builder()
-				.id(entity.getId())
-				.code(entity.getCode())
-				.name(entity.getName())
-				.accountType(entity.getAccountType())
-				.parentId(entity.getParentId())
-				.build();
-	}
+    ChartOfAccountsDomain map(final ChartOfAccountsJpaEntity entity);
 
-	ChartOfAccountsJpaEntity toEntity(ChartOfAccountsDomain domain) {
-		return ChartOfAccountsJpaEntity.builder()
-				.id(domain.getId())
-				.code(domain.getCode())
-				.name(domain.getName())
-				.accountType(domain.getAccountType())
-				.parentId(domain.getParentId())
-				.build();
-	}
+    ChartOfAccountsJpaEntity map(final ChartOfAccountsDomain domain);
 }

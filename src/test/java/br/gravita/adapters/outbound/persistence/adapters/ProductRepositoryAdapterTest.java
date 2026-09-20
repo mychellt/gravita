@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
+import br.gravita.adapters.outbound.persistence.mappers.ProductPersistenceMapperImpl;
 import br.gravita.core.domain.ClassificationDomain;
 import br.gravita.core.domain.KitComponentDomain;
 import br.gravita.core.domain.ProductDomain;
@@ -19,7 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(ProductRepositoryAdapter.class)
+@Import({ProductRepositoryAdapter.class, ProductPersistenceMapperImpl.class})
 class ProductRepositoryAdapterTest {
 
 	@Autowired

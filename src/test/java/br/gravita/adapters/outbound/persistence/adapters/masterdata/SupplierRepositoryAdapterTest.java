@@ -2,6 +2,7 @@ package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.SupplierPersistenceMapperImpl;
 import br.gravita.core.domain.masterdata.Address;
 import br.gravita.core.domain.masterdata.BankAccount;
 import br.gravita.core.domain.masterdata.Contact;
@@ -18,7 +19,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(SupplierRepositoryAdapter.class)
+@Import({SupplierRepositoryAdapter.class, SupplierPersistenceMapperImpl.class})
 class SupplierRepositoryAdapterTest {
 
 	private static final Address VALID_ADDRESS =

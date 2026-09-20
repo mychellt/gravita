@@ -15,26 +15,27 @@ import java.util.UUID;
 class PlanRepositoryAdapter implements PlanRepositoryPort {
 
 	private final PlanJpaRepository jpaRepository;
-	private final PlanPersistenceMapper mapper = new PlanPersistenceMapper();
+	private final PlanPersistenceMapper mapper;
 
-	PlanRepositoryAdapter(PlanJpaRepository jpaRepository) {
+	PlanRepositoryAdapter(PlanJpaRepository jpaRepository, PlanPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public PlanDomain save(PlanDomain plan) {
-		PlanJpaEntity saved = jpaRepository.save(mapper.toEntity(plan));
-		return mapper.toDomain(saved);
+		PlanJpaEntity saved = jpaRepository.save(mapper.map(plan));
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PlanDomain> findById(UUID id) {
-		return jpaRepository.findById(id).map(mapper::toDomain);
+		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
 	public List<PlanDomain> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
 
 	@Override

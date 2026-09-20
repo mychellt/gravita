@@ -14,10 +14,11 @@ import java.util.Optional;
 class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 
 	private final CompanyJpaRepository jpaRepository;
-	private final CompanyPersistenceMapper mapper = new CompanyPersistenceMapper();
+	private final CompanyPersistenceMapper mapper;
 
-	CompanyRepositoryAdapter(CompanyJpaRepository jpaRepository) {
+	CompanyRepositoryAdapter(CompanyJpaRepository jpaRepository, CompanyPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
