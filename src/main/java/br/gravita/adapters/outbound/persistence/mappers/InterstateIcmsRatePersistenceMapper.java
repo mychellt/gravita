@@ -3,9 +3,9 @@ package br.gravita.adapters.outbound.persistence.mappers;
 import br.gravita.adapters.outbound.persistence.entities.InterstateIcmsRateJpaEntity;
 import br.gravita.core.domain.InterstateIcmsRateDomain;
 
-class InterstateIcmsRatePersistenceMapper {
+public class InterstateIcmsRatePersistenceMapper {
 
-	InterstateIcmsRateDomain toDomain(InterstateIcmsRateJpaEntity entity) {
+	public InterstateIcmsRateDomain toDomain(InterstateIcmsRateJpaEntity entity) {
 		return InterstateIcmsRateDomain.builder()
 				.id(entity.getId())
 				.originState(entity.getOriginState())
@@ -14,7 +14,7 @@ class InterstateIcmsRatePersistenceMapper {
 				.build();
 	}
 
-	InterstateIcmsRateJpaEntity toEntity(InterstateIcmsRateDomain domain) {
+	public InterstateIcmsRateJpaEntity toEntity(InterstateIcmsRateDomain domain) {
 		return InterstateIcmsRateJpaEntity.builder()
 				.id(domain.getId())
 				.originState(domain.getOriginState())

@@ -3,9 +3,9 @@ package br.gravita.adapters.outbound.persistence.mappers;
 import br.gravita.adapters.outbound.persistence.entities.PlanJpaEntity;
 import br.gravita.core.domain.PlanDomain;
 
-class PlanPersistenceMapper {
+public class PlanPersistenceMapper {
 
-	PlanDomain toDomain(PlanJpaEntity entity) {
+	public PlanDomain toDomain(PlanJpaEntity entity) {
 		return PlanDomain.builder()
 				.id(entity.getId())
 				.name(entity.getName())
@@ -16,7 +16,7 @@ class PlanPersistenceMapper {
 				.build();
 	}
 
-	PlanJpaEntity toEntity(PlanDomain domain) {
+	public PlanJpaEntity toEntity(PlanDomain domain) {
 		return PlanJpaEntity.builder()
 				.id(domain.getId())
 				.name(domain.getName())

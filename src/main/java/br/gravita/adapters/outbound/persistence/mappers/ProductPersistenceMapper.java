@@ -13,9 +13,9 @@ import br.gravita.core.domain.ProductVariantDomain;
 import br.gravita.core.domain.StockParametersDomain;
 import br.gravita.core.domain.TaxProfileDomain;
 
-class ProductPersistenceMapper {
+public class ProductPersistenceMapper {
 
-	ProductDomain toDomain(ProductJpaEntity entity) {
+	public ProductDomain toDomain(ProductJpaEntity entity) {
 		return ProductDomain.builder()
 				.id(entity.getId())
 				.internalCode(entity.getInternalCode())
@@ -45,7 +45,7 @@ class ProductPersistenceMapper {
 				.build();
 	}
 
-	ProductJpaEntity toEntity(ProductDomain domain) {
+	public ProductJpaEntity toEntity(ProductDomain domain) {
 		return ProductJpaEntity.builder()
 				.id(domain.getId())
 				.internalCode(domain.getInternalCode())

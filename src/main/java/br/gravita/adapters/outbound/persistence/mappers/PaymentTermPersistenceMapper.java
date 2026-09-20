@@ -3,9 +3,9 @@ package br.gravita.adapters.outbound.persistence.mappers;
 import br.gravita.adapters.outbound.persistence.entities.PaymentTermJpaEntity;
 import br.gravita.core.domain.PaymentTermDomain;
 
-class PaymentTermPersistenceMapper {
+public class PaymentTermPersistenceMapper {
 
-	PaymentTermDomain toDomain(PaymentTermJpaEntity entity) {
+	public PaymentTermDomain toDomain(PaymentTermJpaEntity entity) {
 		return PaymentTermDomain.builder()
 				.id(entity.getId())
 				.name(entity.getName())
@@ -13,7 +13,7 @@ class PaymentTermPersistenceMapper {
 				.build();
 	}
 
-	PaymentTermJpaEntity toEntity(PaymentTermDomain domain) {
+	public PaymentTermJpaEntity toEntity(PaymentTermDomain domain) {
 		return PaymentTermJpaEntity.builder()
 				.id(domain.getId())
 				.name(domain.getName())

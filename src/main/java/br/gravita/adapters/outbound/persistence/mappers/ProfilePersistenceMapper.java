@@ -7,9 +7,9 @@ import br.gravita.core.domain.ProfileDomain;
 
 import java.util.ArrayList;
 
-class ProfilePersistenceMapper {
+public class ProfilePersistenceMapper {
 
-	ProfileDomain toDomain(ProfileJpaEntity entity) {
+	public ProfileDomain toDomain(ProfileJpaEntity entity) {
 		return ProfileDomain.builder()
 				.id(entity.getId())
 				.name(entity.getName())
@@ -17,7 +17,7 @@ class ProfilePersistenceMapper {
 				.build();
 	}
 
-	ProfileJpaEntity toEntity(ProfileDomain domain) {
+	public ProfileJpaEntity toEntity(ProfileDomain domain) {
 		return ProfileJpaEntity.builder()
 				.id(domain.getId())
 				.name(domain.getName())
