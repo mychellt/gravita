@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.integration;
 
 import br.gravita.core.domain.AddressDomain;
+import br.gravita.core.domain.Context;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -31,7 +32,7 @@ class ViaCepLookupAdapterTest {
 						""", MediaType.APPLICATION_JSON));
 		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.lookup("20000-000");
+		Optional<AddressDomain> result = adapter.execute(new Context("20000-000"));
 
 		assertThat(result).isPresent();
 		assertThat(result.get().getCity()).isEqualTo("Rio de Janeiro");
@@ -47,7 +48,7 @@ class ViaCepLookupAdapterTest {
 						""", MediaType.APPLICATION_JSON));
 		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.lookup("99999999");
+		Optional<AddressDomain> result = adapter.execute(new Context("99999999"));
 
 		assertThat(result).isEmpty();
 	}
@@ -60,7 +61,7 @@ class ViaCepLookupAdapterTest {
 				.andRespond(withServerError());
 		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.lookup("20000000");
+		Optional<AddressDomain> result = adapter.execute(new Context("20000000"));
 
 		assertThat(result).isEmpty();
 	}

@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.integration;
 
+import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class BrasilApiCnpjLookupAdapterTest {
 						""", MediaType.APPLICATION_JSON));
 		BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
 
-		Optional<PersonLookupResult> result = adapter.lookup(CNPJ);
+		Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
 
 		assertThat(result).isPresent();
 		assertThat(result.get().name()).isEqualTo("Acme LTDA");
@@ -52,7 +53,7 @@ class BrasilApiCnpjLookupAdapterTest {
 				.andRespond(withServerError());
 		BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
 
-		Optional<PersonLookupResult> result = adapter.lookup(CNPJ);
+		Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
 
 		assertThat(result).isEmpty();
 	}

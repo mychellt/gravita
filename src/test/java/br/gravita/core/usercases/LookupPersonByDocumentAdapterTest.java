@@ -34,7 +34,7 @@ class LookupPersonByDocumentAdapterTest {
 		AddressDomain address = AddressDomain.builder()
 				.street("Rua A").number("10").neighborhood("Centro").city("São Paulo").state("SP").zipCode("01000-000")
 				.build();
-		when(cnpjLookupPort.lookup(cnpj)).thenReturn(Optional.of(new PersonLookupResult("Acme LTDA", address)));
+		when(cnpjLookupPort.execute(new Context(cnpj))).thenReturn(Optional.of(new PersonLookupResult("Acme LTDA", address)));
 
 		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
 
@@ -49,7 +49,7 @@ class LookupPersonByDocumentAdapterTest {
 		AddressDomain address = AddressDomain.builder()
 				.street("Rua B").neighborhood("Bairro").city("Rio de Janeiro").state("RJ").zipCode("20000-000")
 				.build();
-		when(cepLookupPort.lookup("20000000")).thenReturn(Optional.of(address));
+		when(cepLookupPort.execute(new Context("20000000"))).thenReturn(Optional.of(address));
 
 		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("20000000")));
 
@@ -62,7 +62,7 @@ class LookupPersonByDocumentAdapterTest {
 	void shouldDegradeToEmptyResultWhenCnpjLookupFails() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
 		Document cnpj = Document.cnpj("11444777000161");
-		when(cnpjLookupPort.lookup(cnpj)).thenReturn(Optional.empty());
+		when(cnpjLookupPort.execute(new Context(cnpj))).thenReturn(Optional.empty());
 
 		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
 
@@ -73,7 +73,7 @@ class LookupPersonByDocumentAdapterTest {
 	@Test
 	void shouldDegradeToEmptyResultWhenCepLookupFails() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		when(cepLookupPort.lookup("99999999")).thenReturn(Optional.empty());
+		when(cepLookupPort.execute(new Context("99999999"))).thenReturn(Optional.empty());
 
 		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("99999999")));
 

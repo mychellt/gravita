@@ -23,9 +23,9 @@ public class LookupPersonByDocumentAdapter implements LookupPersonByDocumentPort
 	public PersonLookupResult execute(Context context) {
 		LookupPersonByDocumentQuery query = context.getData(LookupPersonByDocumentQuery.class);
 		if (query.isDocumentQuery()) {
-			return cnpjLookupPort.lookup(query.document()).orElseGet(PersonLookupResult::notFound);
+			return cnpjLookupPort.execute(new Context(query.document())).orElseGet(PersonLookupResult::notFound);
 		}
-		return cepLookupPort.lookup(query.cep())
+		return cepLookupPort.execute(new Context(query.cep()))
 				.map(address -> new PersonLookupResult(null, address))
 				.orElseGet(PersonLookupResult::notFound);
 	}
