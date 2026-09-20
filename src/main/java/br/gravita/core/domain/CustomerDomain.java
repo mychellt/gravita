@@ -41,6 +41,17 @@ public class CustomerDomain extends AbstractDomain {
 		this.status = CustomerStatus.REGULAR;
 	}
 
+	public void applyCreditStatus(BigDecimal currentBalance, CustomerStatus status) {
+		if (currentBalance == null) {
+			throw new BusinessRuleException("Current balance is required");
+		}
+		if (status == null) {
+			throw new BusinessRuleException("Status is required");
+		}
+		this.currentBalance = currentBalance;
+		this.status = status;
+	}
+
 	public void validateForRegistration() {
 		if (name == null || name.isBlank()) {
 			throw new BusinessRuleException("Customer name is required");

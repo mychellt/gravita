@@ -3,6 +3,7 @@ package br.gravita.core.domain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +40,26 @@ class CustomerDomainTest {
 		customer.reactivate();
 
 		assertThat(customer.getStatus()).isEqualTo(CustomerStatus.REGULAR);
+	}
+
+	@Test
+	void shouldApplyFinanceComputedCreditStatusAndBalance() {
+		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+
+		customer.applyCreditStatus(new BigDecimal("2500.00"), CustomerStatus.DELINQUENT);
+
+		assertThat(customer.getStatus()).isEqualTo(CustomerStatus.DELINQUENT);
+		assertThat(customer.getCurrentBalance()).isEqualByComparingTo("2500.00");
+	}
+
+	@Test
+	void shouldRejectCreditStatusUpdateMissingBalanceOrStatus() {
+		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+
+		assertThatThrownBy(() -> customer.applyCreditStatus(null, CustomerStatus.BLOCKED))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> customer.applyCreditStatus(BigDecimal.ZERO, null))
+				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
