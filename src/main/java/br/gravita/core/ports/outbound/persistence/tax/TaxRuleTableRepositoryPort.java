@@ -1,4 +1,4 @@
-package br.gravita.adapters.outbound.persistence.repositories.tax;
+package br.gravita.core.ports.outbound.persistence.tax;
 
 import br.gravita.core.domain.tax.TaxRateRule;
 

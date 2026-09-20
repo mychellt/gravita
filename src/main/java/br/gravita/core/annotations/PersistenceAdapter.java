@@ -1,4 +1,4 @@
-package br.gravita.core.domain.shared;
+package br.gravita.core.annotations;
 
 import org.springframework.stereotype.Component;
 
@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Component
-public @interface UseCase {
+public @interface PersistenceAdapter {
 }

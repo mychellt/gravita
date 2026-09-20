@@ -2,7 +2,7 @@ package br.gravita.core.usercases;
 
 import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierNotFoundException;
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import br.gravita.core.ports.inbound.masterdata.UpdateSupplierCommand;
 import br.gravita.core.ports.inbound.masterdata.UpdateSupplierUseCase;
 import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;

@@ -26,7 +26,6 @@ import java.util.UUID;
 @Table(name = "payment_methods")
 public class PaymentMethodJpaEntity extends AbstractEntity<UUID> {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
 
 	@Column(nullable = false)

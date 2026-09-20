@@ -1,7 +1,7 @@
 package br.gravita.core.usercases.tax;
 
 import br.gravita.core.domain.shared.BusinessRuleException;
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import br.gravita.core.usercases.system.UpdateUserCommand;
 import br.gravita.core.usercases.system.UpdateUserUseCase;
 import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;

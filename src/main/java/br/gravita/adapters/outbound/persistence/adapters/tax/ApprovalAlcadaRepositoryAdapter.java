@@ -2,7 +2,7 @@ package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.ApprovalAlcadaJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.tax.ApprovalAlcadaPersistenceMapper;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;

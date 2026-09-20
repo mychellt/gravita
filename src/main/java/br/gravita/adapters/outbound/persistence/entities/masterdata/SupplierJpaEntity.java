@@ -21,7 +21,6 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "suppliers")
 public class SupplierJpaEntity extends AbstractEntity<UUID> {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
 
 	@Column(nullable = false, unique = true, length = 20)

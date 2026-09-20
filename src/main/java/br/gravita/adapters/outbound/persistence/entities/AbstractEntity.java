@@ -2,6 +2,8 @@ package br.gravita.adapters.outbound.persistence.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Transient;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +30,7 @@ public abstract class AbstractEntity<K>  implements Persistable<K> {
 	private Date modifiedAt;
 
 	@Column(nullable = false)
+	@Builder.Default
 	private boolean active = true;
 
 	@Transient
@@ -37,6 +40,17 @@ public abstract class AbstractEntity<K>  implements Persistable<K> {
 	@Override
 	public boolean isNew() {
 		return isNew;
+	}
+
+	// Hibernate hydrates loaded/inserted rows via reflection, bypassing this
+	// field's @Builder.Default, so a fetched or just-inserted row would
+	// otherwise still report isNew()==true (its default) — which makes
+	// SimpleJpaRepository#delete/deleteById silently no-op, since it skips
+	// the actual removal whenever isNew() is true.
+	@PostLoad
+	@PostPersist
+	void markNotNew() {
+		this.isNew = false;
 	}
 
 }

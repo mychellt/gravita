@@ -2,7 +2,7 @@ package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.tax.UserPersistenceMapper;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;

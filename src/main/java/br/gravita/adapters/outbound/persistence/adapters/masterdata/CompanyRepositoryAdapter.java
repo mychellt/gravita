@@ -6,7 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.masterdata.CompanyJ
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 
 import java.util.Optional;
 

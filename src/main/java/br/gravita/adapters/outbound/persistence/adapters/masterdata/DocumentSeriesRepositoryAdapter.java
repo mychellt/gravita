@@ -5,7 +5,7 @@ import br.gravita.adapters.outbound.persistence.mappers.masterdata.DocumentSerie
 import br.gravita.adapters.outbound.persistence.repositories.masterdata.DocumentSeriesJpaRepository;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.domain.masterdata.DocumentSeries;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 
 @PersistenceAdapter
 class DocumentSeriesRepositoryAdapter implements DocumentSeriesRepositoryPort {

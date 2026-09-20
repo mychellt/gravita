@@ -1,6 +1,6 @@
 package br.gravita.core.usercases.tax;
 
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import br.gravita.core.usercases.system.ConfigureIntegrationCredentialCommand;
 import br.gravita.core.usercases.system.ConfigureIntegrationCredentialUseCase;
 import br.gravita.core.ports.outbound.persistence.system.IntegrationCredentialRepositoryPort;

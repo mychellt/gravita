@@ -7,9 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,6 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "profiles")
 public class ProfileJpaEntity extends AbstractEntity<UUID> {
+	// id is always caller-assigned (URL path variable); repository adapter sets isNew from existsById before save
 	@Id
 	private UUID id;
 
@@ -35,14 +34,4 @@ public class ProfileJpaEntity extends AbstractEntity<UUID> {
 	@ElementCollection
 	@CollectionTable(name = "profile_permissions", joinColumns = @JoinColumn(name = "profile_id"))
 	private List<PermissionJpaEntity> permissions;
-
-	// id is always caller-assigned (URL path variable); repository adapter sets this from existsById before save
-	@Transient
-	@Builder.Default
-	private boolean isNew = true;
-
-	@Override
-	public boolean isNew() {
-		return isNew;
-	}
 }

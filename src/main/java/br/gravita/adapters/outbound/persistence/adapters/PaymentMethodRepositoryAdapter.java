@@ -24,7 +24,9 @@ class PaymentMethodRepositoryAdapter implements PaymentMethodRepositoryPort {
 
 	@Override
 	public PaymentMethodDomain save(PaymentMethodDomain model) {
-		PaymentMethodJpaEntity saved = jpaRepository.save(mapper.map(model));
+		PaymentMethodJpaEntity entity = mapper.map(model);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		PaymentMethodJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
@@ -40,6 +42,13 @@ class PaymentMethodRepositoryAdapter implements PaymentMethodRepositoryPort {
 
 	@Override
 	public void deleteById(UUID id) {
-		jpaRepository.deleteById(id);
+		// Not jpaRepository.deleteById(id): Spring Data's delete() no-ops whenever
+		// Persistable#isNew() is true, which a freshly application-assigned-id
+		// entity still is until Hibernate's own lifecycle callbacks flip it — so
+		// look the row up first and clear the flag before deleting it.
+		jpaRepository.findById(id).ifPresent(entity -> {
+			entity.setNew(false);
+			jpaRepository.delete(entity);
+		});
 	}
 }

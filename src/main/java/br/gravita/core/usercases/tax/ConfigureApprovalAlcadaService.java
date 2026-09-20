@@ -1,6 +1,6 @@
 package br.gravita.core.usercases.tax;
 
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import br.gravita.core.usercases.system.ConfigureApprovalAlcadaCommand;
 import br.gravita.core.usercases.system.ConfigureApprovalAlcadaUseCase;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;

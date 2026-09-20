@@ -24,7 +24,9 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 
 	@Override
 	public ProductDomain save(ProductDomain product) {
-		ProductJpaEntity saved = jpaRepository.save(mapper.map(product));
+		ProductJpaEntity entity = mapper.map(product);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		ProductJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 

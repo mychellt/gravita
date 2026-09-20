@@ -6,7 +6,7 @@ import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
 import br.gravita.core.domain.masterdata.PriceTable;
 import br.gravita.core.domain.masterdata.PriceTableId;
 import br.gravita.core.domain.masterdata.PriceTableNotFoundException;
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import java.util.UUID;
 
 @UseCase

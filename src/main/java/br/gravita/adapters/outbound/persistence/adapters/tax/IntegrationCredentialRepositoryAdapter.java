@@ -2,7 +2,7 @@ package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.IntegrationCredentialJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.tax.IntegrationCredentialPersistenceMapper;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.ports.outbound.persistence.system.IntegrationCredentialRepositoryPort;
 import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.core.domain.system.IntegrationEnvironment;

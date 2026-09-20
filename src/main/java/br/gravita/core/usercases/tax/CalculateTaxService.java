@@ -1,9 +1,9 @@
 package br.gravita.core.usercases.tax;
 
 import br.gravita.core.domain.tax.*;
-import br.gravita.adapters.outbound.persistence.repositories.tax.ProductTaxProfileRepositoryPort;
-import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRateQuery;
-import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRuleTableRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.ProductTaxProfileRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.TaxRateQuery;
+import br.gravita.core.ports.outbound.persistence.tax.TaxRuleTableRepositoryPort;
 import br.gravita.core.ports.inbound.tax.CalculateTaxCommand;
 import br.gravita.core.ports.inbound.tax.CalculateTaxUseCase;
 import br.gravita.core.ports.inbound.tax.TaxCalculationResult;

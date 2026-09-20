@@ -6,7 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.masterdata.PriceTab
 import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
 import br.gravita.core.domain.masterdata.PriceTable;
 import br.gravita.core.domain.masterdata.PriceTableId;
-import br.gravita.core.domain.shared.PersistenceAdapter;
+import br.gravita.core.annotations.PersistenceAdapter;
 import java.util.Optional;
 
 @PersistenceAdapter

@@ -10,7 +10,7 @@ import br.gravita.core.domain.masterdata.DocumentSeries;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.shared.BusinessRuleException;
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 
 import java.util.UUID;
 

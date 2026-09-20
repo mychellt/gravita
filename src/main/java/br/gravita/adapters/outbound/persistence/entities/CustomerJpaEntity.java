@@ -5,7 +5,6 @@ import br.gravita.core.domain.IeIndicator;
 import br.gravita.core.domain.shared.PersonType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,20 +23,11 @@ import java.util.UUID;
 @Table(name = "customers")
 public class CustomerJpaEntity extends AbstractEntity<UUID> {
 
+	// id is always application-assigned (CustomerRegistrationAdapter); the
+	// repository adapter sets isNew from existsById before save so Spring
+	// Data picks persist() over merge() for a row that doesn't exist yet.
 	@Id
 	private UUID id;
-
-	// id is always application-assigned (CustomerRegistrationAdapter); the
-	// repository adapter sets this from existsById before save so Spring Data
-	// picks persist() over merge() for a row that doesn't exist yet.
-	@Transient
-	@Builder.Default
-	private boolean isNew = true;
-
-	@Override
-	public boolean isNew() {
-		return isNew;
-	}
 
 	@Column(nullable = false)
 	private String name;

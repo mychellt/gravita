@@ -5,7 +5,7 @@ import br.gravita.core.ports.inbound.masterdata.RegisterSupplierUseCase;
 import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
-import br.gravita.core.domain.shared.UseCase;
+import br.gravita.core.annotations.UseCase;
 import java.util.UUID;
 
 @UseCase
