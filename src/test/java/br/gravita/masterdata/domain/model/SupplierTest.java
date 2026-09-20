@@ -1,0 +1,184 @@
+package br.gravita.masterdata.domain.model;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import br.gravita.shared.BusinessRuleException;
+import br.gravita.shared.Document;
+import br.gravita.shared.PersonType;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+
+class SupplierTest {
+
+	private static final Document VALID_CNPJ = Document.cnpj("11222333000181");
+	private static final Document VALID_CPF = Document.cpf("52998224725");
+	private static final Address VALID_ADDRESS =
+			new Address("Rua Teste", "100", null, "Centro", "Sao Paulo", "SP", "01000-000");
+
+	@Test
+	void shouldRegisterPjSupplierWithOptionalPurchasingFieldsAbsent() {
+		Supplier supplier = validBuilder().build();
+
+		assertThat(supplier.personType()).isEqualTo(PersonType.COMPANY);
+		assertThat(supplier.getDocument()).isEqualTo(VALID_CNPJ);
+		assertThat(supplier.getBankAccount()).isNull();
+		assertThat(supplier.getPixKey()).isNull();
+		assertThat(supplier.getAverageLeadTimeDays()).isNull();
+		assertThat(supplier.getDefaultPurchaseCfop()).isNull();
+	}
+
+	@Test
+	void shouldRegisterPfSupplierReusingSharedDocumentValueObject() {
+		Supplier supplier = validBuilder().document(VALID_CPF).build();
+
+		assertThat(supplier.personType()).isEqualTo(PersonType.INDIVIDUAL);
+		assertThat(supplier.getDocument()).isEqualTo(VALID_CPF);
+	}
+
+	@Test
+	void shouldRejectNullDocument() {
+		assertThatThrownBy(() -> build(b -> b.document(null)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("document");
+	}
+
+	@Test
+	void shouldRejectBlankName() {
+		assertThatThrownBy(() -> build(b -> b.name(" ")))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("name");
+	}
+
+	@Test
+	void shouldRejectEmptyAddressList() {
+		assertThatThrownBy(() -> build(b -> b.addresses(List.of())))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("address");
+	}
+
+	@Test
+	void shouldAllowEmptyContactsList() {
+		assertThatCode(() -> build(b -> b.contacts(List.of()))).doesNotThrowAnyException();
+	}
+
+	@Test
+	void shouldAcceptOptionalBankAccountAndPixKey() {
+		BankAccount bankAccount = new BankAccount("001", "1234", "56789-0");
+		PixKey pixKey = PixKey.of("supplier@example.com");
+
+		Supplier supplier = validBuilder().bankAccount(bankAccount).pixKey(pixKey).build();
+
+		assertThat(supplier.getBankAccount()).isEqualTo(bankAccount);
+		assertThat(supplier.getPixKey()).isEqualTo(pixKey);
+	}
+
+	@Test
+	void shouldRejectNonPositiveAverageLeadTimeDays() {
+		assertThatThrownBy(() -> build(b -> b.averageLeadTimeDays(0)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("lead time");
+	}
+
+	@Test
+	void shouldRejectMalformedDefaultPurchaseCfop() {
+		assertThatThrownBy(() -> build(b -> b.defaultPurchaseCfop("abc")))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("CFOP");
+	}
+
+	@Test
+	void shouldAllowUsingSupplierInPurchaseOrderOnceBothPurchasingFieldsAreSet() {
+		Supplier supplier = validBuilder().averageLeadTimeDays(5).defaultPurchaseCfop("1102").build();
+
+		assertThatCode(supplier::assertReadyForPurchasing).doesNotThrowAnyException();
+	}
+
+	@Test
+	void shouldRejectPurchaseOrderUseWhenAverageLeadTimeDaysIsMissing() {
+		Supplier supplier = validBuilder().defaultPurchaseCfop("1102").build();
+
+		assertThatThrownBy(supplier::assertReadyForPurchasing)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("lead time");
+	}
+
+	@Test
+	void shouldRejectPurchaseOrderUseWhenDefaultPurchaseCfopIsMissing() {
+		Supplier supplier = validBuilder().averageLeadTimeDays(5).build();
+
+		assertThatThrownBy(supplier::assertReadyForPurchasing)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("CFOP");
+	}
+
+	private void build(java.util.function.Consumer<Builder> customize) {
+		Builder builder = validBuilder();
+		customize.accept(builder);
+		builder.build();
+	}
+
+	private Builder validBuilder() {
+		return new Builder();
+	}
+
+	/** Small local builder to keep each test focused on a single overridden field. */
+	private static final class Builder {
+		private SupplierId id = SupplierId.of(UUID.randomUUID());
+		private Document document = VALID_CNPJ;
+		private String name = "Acme Supplies";
+		private List<Address> addresses = List.of(VALID_ADDRESS);
+		private List<Contact> contacts = List.of(new Contact(ContactType.EMAIL, "contact@acme.com"));
+		private BankAccount bankAccount = null;
+		private PixKey pixKey = null;
+		private Integer averageLeadTimeDays = null;
+		private String defaultPurchaseCfop = null;
+
+		Builder document(Document document) {
+			this.document = document;
+			return this;
+		}
+
+		Builder name(String name) {
+			this.name = name;
+			return this;
+		}
+
+		Builder addresses(List<Address> addresses) {
+			this.addresses = addresses;
+			return this;
+		}
+
+		Builder contacts(List<Contact> contacts) {
+			this.contacts = contacts;
+			return this;
+		}
+
+		Builder bankAccount(BankAccount bankAccount) {
+			this.bankAccount = bankAccount;
+			return this;
+		}
+
+		Builder pixKey(PixKey pixKey) {
+			this.pixKey = pixKey;
+			return this;
+		}
+
+		Builder averageLeadTimeDays(Integer averageLeadTimeDays) {
+			this.averageLeadTimeDays = averageLeadTimeDays;
+			return this;
+		}
+
+		Builder defaultPurchaseCfop(String defaultPurchaseCfop) {
+			this.defaultPurchaseCfop = defaultPurchaseCfop;
+			return this;
+		}
+
+		Supplier build() {
+			return Supplier.of(id, document, name, addresses, contacts, bankAccount, pixKey, averageLeadTimeDays,
+					defaultPurchaseCfop);
+		}
+	}
+}

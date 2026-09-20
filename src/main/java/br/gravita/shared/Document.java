@@ -32,16 +32,16 @@ public record Document(String number, PersonType personType) {
 		return personType == PersonType.INDIVIDUAL ? formatCpf() : formatCnpj();
 	}
 
+	public static String digitsOnly(String value) {
+		return NON_DIGIT.matcher(value == null ? "" : value).replaceAll("");
+	}
+
 	private String formatCpf() {
 		return number.replaceFirst("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
 	}
 
 	private String formatCnpj() {
 		return number.replaceFirst("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
-	}
-
-	private static String digitsOnly(String value) {
-		return NON_DIGIT.matcher(value == null ? "" : value).replaceAll("");
 	}
 
 	private static boolean isValidCpf(String cpf) {
