@@ -1,6 +1,5 @@
-package br.gravita.adapters.outbound.persistence;
+package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.adapters.outbound.persistence.adapters.ProductRepositoryAdapter;
 import br.gravita.core.domain.ClassificationDomain;
 import br.gravita.core.domain.KitComponentDomain;
 import br.gravita.core.domain.ProductDomain;

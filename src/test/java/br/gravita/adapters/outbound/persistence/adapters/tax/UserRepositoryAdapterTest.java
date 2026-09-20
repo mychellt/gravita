@@ -1,6 +1,5 @@
-package br.gravita.system.adapter.out.persistence;
+package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.adapters.tax.UserRepositoryAdapter;
 import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 import br.gravita.adapters.outbound.security.PasswordHasher;

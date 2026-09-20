@@ -1,6 +1,5 @@
-package br.gravita.adapters.outbound.persistence;
+package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.adapters.outbound.persistence.adapters.ProfileRepositoryAdapter;
 import br.gravita.core.domain.PermissionAction;
 import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;

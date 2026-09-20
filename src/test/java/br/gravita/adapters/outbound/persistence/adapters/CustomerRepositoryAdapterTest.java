@@ -1,6 +1,5 @@
-package br.gravita.adapters.outbound.persistence;
+package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.adapters.outbound.persistence.adapters.CustomerRepositoryAdapter;
 import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;

@@ -1,8 +1,7 @@
-package br.gravita.masterdata.adapter.out.persistence;
+package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.gravita.masterdata.adapter.out.persistence.adapters.SupplierRepositoryAdapter;
 import br.gravita.core.domain.masterdata.Address;
 import br.gravita.core.domain.masterdata.BankAccount;
 import br.gravita.core.domain.masterdata.Contact;

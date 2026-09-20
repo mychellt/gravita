@@ -1,6 +1,5 @@
-package br.gravita.system.adapter.out.persistence;
+package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.adapters.tax.ApprovalAlcadaRepositoryAdapter;
 import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;

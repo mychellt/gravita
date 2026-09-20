@@ -1,6 +1,5 @@
-package br.gravita.system.adapter.out.persistence;
+package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.adapters.tax.IntegrationCredentialRepositoryAdapter;
 import br.gravita.adapters.outbound.persistence.entities.tax.IntegrationCredentialJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.IntegrationCredentialJpaRepository;
 import br.gravita.adapters.outbound.security.CredentialCipher;

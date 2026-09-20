@@ -1,6 +1,5 @@
-package br.gravita.masterdata.adapter.out.persistence;
+package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
-import br.gravita.masterdata.adapter.out.persistence.adapters.CompanyRepositoryAdapter;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
