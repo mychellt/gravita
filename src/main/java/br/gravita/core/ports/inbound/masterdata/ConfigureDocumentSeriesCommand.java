@@ -1,0 +1,11 @@
+package br.gravita.core.ports.inbound.masterdata;
+
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.FiscalDocumentType;
+
+public record ConfigureDocumentSeriesCommand(
+		CompanyId companyId,
+		FiscalDocumentType documentType,
+		String series,
+		Long nextNumber) {
+}

@@ -1,5 +1,6 @@
 package br.gravita.core.domain.masterdata;
 
+import br.gravita.core.domain.shared.BusinessRuleException;
 import lombok.Getter;
 
 import java.util.UUID;
@@ -32,5 +33,20 @@ public final class DocumentSeries {
 
 	public static DocumentSeries placeholder(CompanyId companyId, FiscalDocumentType documentType) {
 		return new DocumentSeries(UUID.randomUUID(), companyId, documentType, null, 1L);
+	}
+
+	/**
+	 * UC-04: {@code series} is still {@code null} until the first configuration,
+	 * so that call may set any starting {@code nextNumber}. Once configured, the
+	 * series is considered live (UC-15 may already have allocated numbers from
+	 * it), so {@code nextNumber} can only move forward, never backward, to avoid
+	 * duplicate document numbers.
+	 */
+	public DocumentSeries reconfigure(String newSeries, Long newNextNumber) {
+		if (this.series != null && newNextNumber < this.nextNumber) {
+			throw new BusinessRuleException("nextNumber cannot be decreased once the series is already configured "
+					+ "(current=" + this.nextNumber + ", requested=" + newNextNumber + ")");
+		}
+		return new DocumentSeries(this.id, this.companyId, this.documentType, newSeries, newNextNumber);
 	}
 }
