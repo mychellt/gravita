@@ -20,7 +20,6 @@ import java.util.UUID;
 @Table(name = "document_series")
 public class DocumentSeriesJpaEntity extends AbstractEntity<UUID> {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
 
 	@Column(name = "company_id", nullable = false)
