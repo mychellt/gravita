@@ -16,7 +16,8 @@ public interface DocumentSeriesPersistenceMapper {
                 CompanyId.of(entity.getCompanyId()),
                 entity.getDocumentType(),
                 entity.getSeries(),
-                entity.getNextNumber());
+                entity.getNextNumber(),
+                entity.getVersion());
     }
 
     default DocumentSeriesJpaEntity toEntity(final DocumentSeries domain) {
@@ -26,6 +27,7 @@ public interface DocumentSeriesPersistenceMapper {
                 .documentType(domain.getDocumentType())
                 .series(domain.getSeries())
                 .nextNumber(domain.getNextNumber())
+                .version(domain.getVersion())
                 .build();
     }
 }

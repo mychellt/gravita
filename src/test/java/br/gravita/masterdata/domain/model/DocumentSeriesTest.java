@@ -51,4 +51,23 @@ class DocumentSeriesTest {
 		assertThat(nfe.getNextNumber()).isEqualTo(100L);
 		assertThat(nfce.getNextNumber()).isEqualTo(1L);
 	}
+
+	@Test
+	void shouldAdvanceNextNumberByOneOnAllocation() {
+		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
+
+		DocumentSeries advanced = configured.allocateNext();
+
+		assertThat(advanced.getNextNumber()).isEqualTo(501L);
+		assertThat(advanced.getSeries()).isEqualTo("001");
+	}
+
+	@Test
+	void shouldRejectAllocationWhenSeriesNotYetConfigured() {
+		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
+
+		assertThatThrownBy(placeholder::allocateNext)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("not configured");
+	}
 }
