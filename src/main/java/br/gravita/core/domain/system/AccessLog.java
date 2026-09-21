@@ -20,6 +20,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class AccessLog {
 
+	/** Retention window from doc §11.1: "mantido por 12 meses" (UC-M10-07). */
+	public static final int RETENTION_MONTHS = 12;
+
 	private UUID id;
 	private UserId userId;
 	private String email;
