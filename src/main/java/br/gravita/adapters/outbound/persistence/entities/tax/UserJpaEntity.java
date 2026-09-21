@@ -39,6 +39,9 @@ public class UserJpaEntity {
 	@Column(name = "password_hash", nullable = false)
 	private String passwordHash;
 
+	@Column(name = "totp_secret")
+	private String totpSecret;
+
 	@Column(name = "profile_id", nullable = false)
 	private UUID profileId;
 
