@@ -8,6 +8,7 @@ import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.outbound.persistence.system.AccessLogRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import br.gravita.core.ports.outbound.security.PasswordVerificationPort;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
 import br.gravita.core.ports.outbound.security.TotpVerificationPort;
 import br.gravita.core.usercases.system.AuthResult;
 import br.gravita.core.usercases.system.AuthStatus;
@@ -44,8 +45,12 @@ class AuthenticateServiceTest {
 	@Mock
 	private PasswordVerificationPort passwordVerificationPort;
 
+	@Mock
+	private SessionStorePort sessionStorePort;
+
 	private AuthenticateService service() {
-		return new AuthenticateService(userRepositoryPort, totpVerificationPort, accessLogRepositoryPort, passwordVerificationPort);
+		return new AuthenticateService(userRepositoryPort, totpVerificationPort, accessLogRepositoryPort,
+				passwordVerificationPort, sessionStorePort);
 	}
 
 	private static final ProfileReference SALESPERSON = new ProfileReference(UUID.randomUUID(), "Salesperson");
@@ -116,6 +121,7 @@ class AuthenticateServiceTest {
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().isSuccessful()).isTrue();
 		assertThat(captor.getValue().getUserId()).isEqualTo(user.getId());
+		verify(sessionStorePort).store(result.sessionToken(), user.getId());
 	}
 
 	@Test
@@ -161,5 +167,6 @@ class AuthenticateServiceTest {
 		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().isSuccessful()).isTrue();
+		verify(sessionStorePort).store(result.sessionToken(), user.getId());
 	}
 }

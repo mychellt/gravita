@@ -22,11 +22,14 @@ public interface AuthenticateUseCase {
 
 `AuthenticateCommand`: `email`, `rawPassword`, optional `totpCode` (required on the second call when `twoFactorEnabled`). `AuthResult`: `{status: AUTHENTICATED | TOTP_REQUIRED | REJECTED, sessionToken?}`.
 
+`sessionToken` is an opaque, random string (currently `UUID.randomUUID()`) with no embedded claims - it is a bearer capability, not a JWT. On successful authentication, `AuthenticateUseCase` stores the `sessionToken → UserId` mapping via `SessionStorePort` (see UC-M10-06 for how that mapping is consumed).
+
 ## Outbound ports required
 
 - `UserRepositoryPort`
 - `TotpVerificationPort`
 - `AccessLogRepositoryPort`
+- `SessionStorePort` — records the `sessionToken → UserId` mapping issued on successful authentication (see `br.gravita.core.ports.outbound.security.SessionStorePort`, backed today by an in-memory `InMemorySessionStoreAdapter` - MVP-only, no expiry, single-instance).
 
 ## REST endpoint
 

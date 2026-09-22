@@ -8,6 +8,7 @@ import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.outbound.persistence.system.AccessLogRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import br.gravita.core.ports.outbound.security.PasswordVerificationPort;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
 import br.gravita.core.ports.outbound.security.TotpVerificationPort;
 import br.gravita.core.usercases.system.AuthResult;
 import br.gravita.core.usercases.system.AuthenticateCommand;
@@ -23,13 +24,16 @@ public class AuthenticateService implements AuthenticateUseCase {
 	private final TotpVerificationPort totpVerificationPort;
 	private final AccessLogRepositoryPort accessLogRepositoryPort;
 	private final PasswordVerificationPort passwordVerificationPort;
+	private final SessionStorePort sessionStorePort;
 
 	public AuthenticateService(UserRepositoryPort userRepositoryPort, TotpVerificationPort totpVerificationPort,
-			AccessLogRepositoryPort accessLogRepositoryPort, PasswordVerificationPort passwordVerificationPort) {
+			AccessLogRepositoryPort accessLogRepositoryPort, PasswordVerificationPort passwordVerificationPort,
+			SessionStorePort sessionStorePort) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.totpVerificationPort = totpVerificationPort;
 		this.accessLogRepositoryPort = accessLogRepositoryPort;
 		this.passwordVerificationPort = passwordVerificationPort;
+		this.sessionStorePort = sessionStorePort;
 	}
 
 	@Override
@@ -67,6 +71,8 @@ public class AuthenticateService implements AuthenticateUseCase {
 
 	private AuthResult authenticate(UserId userId, AuthenticateCommand command) {
 		accessLogRepositoryPort.save(AccessLog.login(userId, command.email(), true, command.ip(), command.device()));
-		return AuthResult.authenticated(UUID.randomUUID().toString());
+		String sessionToken = UUID.randomUUID().toString();
+		sessionStorePort.store(sessionToken, userId);
+		return AuthResult.authenticated(sessionToken);
 	}
 }
