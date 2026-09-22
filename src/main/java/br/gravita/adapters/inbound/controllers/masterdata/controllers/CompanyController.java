@@ -11,12 +11,18 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.masterdata.ConfigureDocumentSeriesUseCase;
 import br.gravita.core.ports.inbound.masterdata.RegisterCompanyUseCase;
 import br.gravita.core.ports.inbound.masterdata.SwitchSefazEnvironmentUseCase;
+import br.gravita.core.ports.inbound.masterdata.UploadDigitalCertificateCommand;
+import br.gravita.core.ports.inbound.masterdata.UploadDigitalCertificateUseCase;
 import br.gravita.core.domain.masterdata.CompanyId;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
@@ -28,13 +34,16 @@ public class CompanyController {
 	private final RegisterCompanyUseCase registerCompanyUseCase;
 	private final SwitchSefazEnvironmentUseCase switchSefazEnvironmentUseCase;
 	private final ConfigureDocumentSeriesUseCase configureDocumentSeriesUseCase;
+	private final UploadDigitalCertificateUseCase uploadDigitalCertificateUseCase;
 
 	public CompanyController(RegisterCompanyUseCase registerCompanyUseCase,
 			SwitchSefazEnvironmentUseCase switchSefazEnvironmentUseCase,
-			ConfigureDocumentSeriesUseCase configureDocumentSeriesUseCase) {
+			ConfigureDocumentSeriesUseCase configureDocumentSeriesUseCase,
+			UploadDigitalCertificateUseCase uploadDigitalCertificateUseCase) {
 		this.registerCompanyUseCase = registerCompanyUseCase;
 		this.switchSefazEnvironmentUseCase = switchSefazEnvironmentUseCase;
 		this.configureDocumentSeriesUseCase = configureDocumentSeriesUseCase;
+		this.uploadDigitalCertificateUseCase = uploadDigitalCertificateUseCase;
 	}
 
 	@PostMapping
@@ -62,6 +71,23 @@ public class CompanyController {
 			@Valid @RequestBody ConfigureDocumentSeriesRequest request) {
 		configureDocumentSeriesUseCase.execute(request.toCommand(CompanyId.of(id), parseDocumentType(type)));
 		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping(value = "/{id}/certificate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Void> uploadCertificate(@PathVariable UUID id,
+			@RequestPart("pfxFile") MultipartFile pfxFile, @RequestParam String password,
+			@RequestParam(required = false, defaultValue = "A1") String type) {
+		uploadDigitalCertificateUseCase
+				.execute(new UploadDigitalCertificateCommand(CompanyId.of(id), type, readBytes(pfxFile), password));
+		return ResponseEntity.noContent().build();
+	}
+
+	private byte[] readBytes(MultipartFile file) {
+		try {
+			return file.getBytes();
+		} catch (IOException e) {
+			throw new UncheckedIOException("Unable to read uploaded certificate file", e);
+		}
 	}
 
 	private FiscalDocumentType parseDocumentType(String type) {
