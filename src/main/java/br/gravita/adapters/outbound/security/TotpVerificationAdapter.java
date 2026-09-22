@@ -4,6 +4,7 @@ import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.ports.outbound.security.TotpVerificationPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
@@ -35,6 +36,7 @@ public class TotpVerificationAdapter implements TotpVerificationPort {
 	private final UserJpaRepository userJpaRepository;
 	private final Clock clock;
 
+	@Autowired
 	public TotpVerificationAdapter(UserJpaRepository userJpaRepository) {
 		this(userJpaRepository, Clock.systemUTC());
 	}
