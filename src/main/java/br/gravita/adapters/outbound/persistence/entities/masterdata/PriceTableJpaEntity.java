@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "price_tables")
 public class PriceTableJpaEntity extends AbstractEntity<UUID> {
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
 
 	@Enumerated(EnumType.STRING)
