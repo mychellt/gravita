@@ -37,6 +37,24 @@ public final class PurchaseRequest {
 		return new PurchaseRequest(id, origin, items, requestedBy, PurchaseRequestStatus.OPEN);
 	}
 
+	public static PurchaseRequest of(PurchaseRequestId id, PurchaseRequestOrigin origin,
+			List<PurchaseRequestItem> items, UUID requestedBy, PurchaseRequestStatus status) {
+		return new PurchaseRequest(id, origin, items, requestedBy, status);
+	}
+
+	/**
+	 * UC-M6-04: converts this request into a {@code PurchaseOrder}. Only a
+	 * request still awaiting conversion ({@code OPEN} or {@code QUOTED}) can be
+	 * converted.
+	 */
+	public PurchaseRequest convert() {
+		if (status != PurchaseRequestStatus.OPEN && status != PurchaseRequestStatus.QUOTED) {
+			throw new BusinessRuleException(
+					"Only a request in status OPEN or QUOTED can be converted to a purchase order, was " + status);
+		}
+		return new PurchaseRequest(id, origin, items, requestedBy, PurchaseRequestStatus.CONVERTED);
+	}
+
 	private static List<PurchaseRequestItem> requireNonEmptyItems(List<PurchaseRequestItem> items) {
 		List<PurchaseRequestItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {

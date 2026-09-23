@@ -16,11 +16,12 @@ import org.mapstruct.NullValueCheckStrategy;
 public interface PurchaseRequestPersistenceMapper {
 
 	default PurchaseRequest toDomain(final PurchaseRequestJpaEntity entity) {
-		return PurchaseRequest.open(
+		return PurchaseRequest.of(
 				PurchaseRequestId.of(entity.getId()),
 				entity.getOrigin(),
 				toItems(entity.getItems()),
-				entity.getRequestedBy());
+				entity.getRequestedBy(),
+				entity.getStatus());
 	}
 
 	default PurchaseRequestJpaEntity toEntity(final PurchaseRequest domain) {
