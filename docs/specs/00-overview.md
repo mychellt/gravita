@@ -33,7 +33,7 @@ The MVP specifies a generic ERP for Brazilian retail, built to serve multiple se
 | M4 | Fiscal — NFSe | [m4-fiscal-nfse.md](m4-fiscal-nfse.md) | [6](m4-fiscal-nfse/README.md) | `br.gravita.tax` |
 | M5 | Estoque (Inventory) | [m5-estoque.md](m5-estoque.md) | [11](m5-estoque/README.md) | `br.gravita.inventory` |
 | M6 | Compras (Purchasing) | [m6-compras.md](m6-compras.md) | [9](m6-compras/README.md) | `br.gravita.purchasing` |
-| M7 | Vendas & CRM | [m7-vendas-crm.md](m7-vendas-crm.md) | [15](m7-vendas-crm/README.md) | `br.gravita.sales` |
+| M7 | Vendas & CRM | [m7-vendas-crm.md](m7-vendas-crm.md) | [16](m7-vendas-crm/README.md) | `br.gravita.sales` |
 | M8 | Financeiro | [m8-financeiro.md](m8-financeiro.md) | [20](m8-financeiro/README.md) | `br.gravita.finance` |
 | M9 | Relatórios & BI | [m9-relatorios-bi.md](m9-relatorios-bi.md) | [9](m9-relatorios-bi/README.md) | `br.gravita.reporting` |
 | M10 | Configurações e Sistema | [m10-sistema.md](m10-sistema.md) | [13](m10-sistema/README.md) | `br.gravita.system` |
@@ -66,13 +66,13 @@ Each ticket also carries a **roadmap phase** (doc §14), which doesn't always ma
 | 1 — Fundação | M1 (all) + M2's `CalculateTaxUseCase` (tax engine) + M10 users/permissions/alçada/integration-credentials | 25 |
 | 2 — Fiscal Core | M2 issuance/transmission/inbound (all but tax engine and SPED) + M3 online PDV flow | 16 |
 | 3 — Operação | M5 (all) + M6 (all) | 20 |
-| 4 — Comercial | M7 (all) | 15 |
+| 4 — Comercial | M7 (all) | 16 |
 | 5 — Financeiro | M8 (all) | 20 |
 | 6 — Serviços | M4 (all; its `CalculateTaxUseCase` row links to M2's Phase 1 ticket instead of duplicating it) | 6 |
 | 7 — Visibilidade | M2's SPED/livros/accounting-export use cases + M9 (all) | 13 |
 | 8 — Robustez | M3's contingency/void use cases + M10's audit-trail query, SEFAZ monitoring, backup, alerting | 6 |
 
-That's 121 tickets total. The two exceptions worth remembering: M2's tax engine (`CalculateTaxUseCase`) is built in Phase 1 because M3 and M4 depend on it from day one, and M2's SPED/fiscal-books/accounting-export use cases ship in Phase 7 with reporting, not in Phase 2 with the rest of NFe.
+That's 122 tickets total (M7 counts 16: use case 16, "Manage Follow-up Rule," was added after the initial split to give use case 12 a CRUD port to evaluate — see [m7-vendas-crm/README.md](m7-vendas-crm/README.md#patched-gaps)). The two exceptions worth remembering: M2's tax engine (`CalculateTaxUseCase`) is built in Phase 1 because M3 and M4 depend on it from day one, and M2's SPED/fiscal-books/accounting-export use cases ship in Phase 7 with reporting, not in Phase 2 with the rest of NFe.
 
 ## Technical mapping conventions
 
