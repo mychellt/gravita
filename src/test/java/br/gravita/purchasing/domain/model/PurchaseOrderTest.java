@@ -56,6 +56,36 @@ class PurchaseOrderTest {
 				.hasMessageContaining("cannot be negative");
 	}
 
+	@Test
+	void aFullyReceivedOrderCloses() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false);
+
+		PurchaseOrder updated = order.afterReceiptConfirmed(true);
+
+		assertThat(updated.getStatus()).isEqualTo(PurchaseOrderStatus.CLOSED);
+	}
+
+	@Test
+	void aPartiallyReceivedOrderStaysPartiallyReceived() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false);
+
+		PurchaseOrder updated = order.afterReceiptConfirmed(false);
+
+		assertThat(updated.getStatus()).isEqualTo(PurchaseOrderStatus.PARTIALLY_RECEIVED);
+	}
+
+	@Test
+	void confirmingAReceiptAgainstAClosedOrderIsRejected() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
+
+		assertThatThrownBy(() -> order.afterReceiptConfirmed(true))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("CLOSED");
+	}
+
 	private PurchaseOrder create(List<PurchaseOrderItem> items, boolean approvalRequired) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, SupplierId.of(UUID.randomUUID()), items, approvalRequired);

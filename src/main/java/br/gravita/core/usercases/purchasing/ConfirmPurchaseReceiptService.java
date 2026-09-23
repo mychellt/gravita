@@ -1,0 +1,111 @@
+package br.gravita.core.usercases.purchasing;
+
+import br.gravita.core.annotations.UseCase;
+import br.gravita.core.domain.purchasing.PurchaseOrder;
+import br.gravita.core.domain.purchasing.PurchaseOrderItem;
+import br.gravita.core.domain.purchasing.PurchaseOrderNotFoundException;
+import br.gravita.core.domain.purchasing.PurchaseReceipt;
+import br.gravita.core.domain.purchasing.PurchaseReceiptItem;
+import br.gravita.core.domain.purchasing.PurchaseReceiptNotFoundException;
+import br.gravita.core.domain.purchasing.PurchaseReceiptStatus;
+import br.gravita.core.ports.inbound.purchasing.ConfirmPurchaseReceiptCommand;
+import br.gravita.core.ports.inbound.purchasing.ConfirmPurchaseReceiptUseCase;
+import br.gravita.core.ports.outbound.persistence.purchasing.GeneratePayableFromReceiptPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.GeneratePayableFromReceiptPort.GeneratePayableFromReceiptCommand;
+import br.gravita.core.ports.outbound.persistence.purchasing.GeneratePayableFromReceiptPort.GeneratePayableFromReceiptCommand.Installment;
+import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseReceiptRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.RegisterStockEntryPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.RegisterStockEntryPort.RegisterStockEntryCommand;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * UC-M6-08. One stock entry is registered per received item, accounts-payable
+ * are generated from the receipt's own installment terms (already resolved by
+ * UC-M6-06/UC-M6-07 - see {@link PurchaseReceipt}), and the order is
+ * recomputed to {@code CLOSED}/{@code PARTIALLY_RECEIVED} based on every one
+ * of its confirmed receipts, not just this one.
+ */
+@UseCase
+public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseCase {
+
+	private final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort;
+	private final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
+	private final RegisterStockEntryPort registerStockEntryPort;
+	private final GeneratePayableFromReceiptPort generatePayableFromReceiptPort;
+
+	public ConfirmPurchaseReceiptService(PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
+			PurchaseOrderRepositoryPort purchaseOrderRepositoryPort, RegisterStockEntryPort registerStockEntryPort,
+			GeneratePayableFromReceiptPort generatePayableFromReceiptPort) {
+		this.purchaseReceiptRepositoryPort = purchaseReceiptRepositoryPort;
+		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
+		this.registerStockEntryPort = registerStockEntryPort;
+		this.generatePayableFromReceiptPort = generatePayableFromReceiptPort;
+	}
+
+	@Override
+	public void execute(ConfirmPurchaseReceiptCommand command) {
+		PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
+				.orElseThrow(() -> new PurchaseReceiptNotFoundException(command.receiptId().value()));
+		PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
+				.orElseThrow(() -> new PurchaseOrderNotFoundException(receipt.getOrderId().value()));
+
+		// Guards "already confirmed" and "conference not completed" before any side
+		// effect is triggered, so a retried request never double-generates them.
+		PurchaseReceipt confirmed = receipt.confirm();
+
+		for (PurchaseReceiptItem item : confirmed.getReceivedItems()) {
+			registerStockEntryPort.registerEntry(new RegisterStockEntryCommand(item.productId(), item.receivedQty(),
+					resolveUnitCost(order, item.productId()), confirmed.getId().value()));
+		}
+
+		generatePayableFromReceiptPort.generatePayables(new GeneratePayableFromReceiptCommand(confirmed.getId().value(),
+				order.getSupplierId().value(), toInstallments(confirmed)));
+
+		purchaseReceiptRepositoryPort.save(confirmed);
+
+		List<PurchaseReceipt> otherConfirmedReceipts = purchaseReceiptRepositoryPort.findByOrderId(order.getId())
+				.stream()
+				.filter(other -> !other.getId().equals(confirmed.getId()))
+				.filter(other -> other.getStatus() == PurchaseReceiptStatus.CONFIRMED)
+				.toList();
+
+		boolean fullyReceived = isFullyReceived(order, confirmed, otherConfirmedReceipts);
+		purchaseOrderRepositoryPort.save(order.afterReceiptConfirmed(fullyReceived));
+	}
+
+	private BigDecimal resolveUnitCost(PurchaseOrder order, UUID productId) {
+		return order.getItems().stream()
+				.filter(item -> item.productId().equals(productId))
+				.map(PurchaseOrderItem::unitPrice)
+				.findFirst()
+				.orElse(BigDecimal.ZERO);
+	}
+
+	private List<Installment> toInstallments(PurchaseReceipt receipt) {
+		return receipt.getInstallmentTerms().stream()
+				.map(term -> new Installment(term.amount(), term.dueDate()))
+				.toList();
+	}
+
+	private boolean isFullyReceived(PurchaseOrder order, PurchaseReceipt justConfirmed,
+			List<PurchaseReceipt> otherConfirmedReceipts) {
+		Map<UUID, BigDecimal> receivedByProduct = new HashMap<>();
+		accumulate(receivedByProduct, justConfirmed);
+		otherConfirmedReceipts.forEach(other -> accumulate(receivedByProduct, other));
+
+		return order.getItems().stream()
+				.allMatch(orderItem -> receivedByProduct.getOrDefault(orderItem.productId(), BigDecimal.ZERO)
+						.compareTo(orderItem.quantity()) >= 0);
+	}
+
+	private void accumulate(Map<UUID, BigDecimal> receivedByProduct, PurchaseReceipt receipt) {
+		for (PurchaseReceiptItem item : receipt.getReceivedItems()) {
+			receivedByProduct.merge(item.productId(), item.receivedQty(), BigDecimal::add);
+		}
+	}
+}
