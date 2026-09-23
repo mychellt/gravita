@@ -8,6 +8,7 @@ import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.ports.inbound.purchasing.CreatePurchaseOrderCommand;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.QuotationRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
 import br.gravita.core.usercases.purchasing.CreatePurchaseOrderService;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,6 +34,9 @@ class CreatePurchaseOrderServiceTest {
 
     @Mock
     private PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
+
+    @Mock
+    private QuotationRepositoryPort quotationRepositoryPort;
 
     @Mock
     private PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
@@ -50,10 +55,6 @@ class CreatePurchaseOrderServiceTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING)).thenReturn(Optional.empty());
-
-        when(purchaseRequestRepositoryPort.findById(any())).thenReturn(Optional.of(PurchaseRequest.builder()
-                .status(PurchaseRequestStatus.OPEN)
-                .build()));
 
         SupplierId supplierId = SupplierId.of(UUID.randomUUID());
         List<PurchaseOrderItem> items = List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
@@ -75,25 +76,36 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
-    void createsAnOrderFromAQuotedRequestCarryingTheQuotationId() {
+    void createsAnOrderFromAQuotedRequestPricingItemsFromTheSelectedSuppliersResponse() {
         PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
+        UUID productId = UUID.randomUUID();
         when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.of(
                 PurchaseRequest.of(requestId, PurchaseRequestOrigin.USER,
-                        List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)), UUID.randomUUID(),
+                        List.of(new PurchaseRequestItem(productId, BigDecimal.ONE)), UUID.randomUUID(),
                         PurchaseRequestStatus.QUOTED)));
         when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING)).thenReturn(Optional.empty());
+
         UUID quotationId = UUID.randomUUID();
-        List<PurchaseOrderItem> items = List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.ONE,
+        SupplierId supplierId = SupplierId.of(UUID.randomUUID());
+        Quotation quotation = Quotation.send(QuotationId.of(quotationId), requestId,
+                        List.of(new QuotationItem(productId, BigDecimal.ONE)), List.of(supplierId))
+                .registerResponse(supplierId, List.of(new QuotationItemPrice(productId, new BigDecimal("9.99"))),
+                        LocalDate.now().plusDays(5));
+        when(quotationRepositoryPort.findById(QuotationId.of(quotationId))).thenReturn(Optional.of(quotation));
+
+        // Command items carry no real pricing intent here - the quotation response is authoritative.
+        List<PurchaseOrderItem> commandItems = List.of(new PurchaseOrderItem(productId, BigDecimal.ONE,
                 BigDecimal.TEN));
 
-        service.execute(new CreatePurchaseOrderCommand(requestId, quotationId, SupplierId.of(UUID.randomUUID()),
-                items));
+        service.execute(new CreatePurchaseOrderCommand(requestId, quotationId, supplierId, commandItems));
 
         ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
         verify(purchaseOrderRepositoryPort).save(savedOrder.capture());
         assertThat(savedOrder.getValue().getQuotationId()).isEqualTo(quotationId);
+        assertThat(savedOrder.getValue().getItems()).extracting(PurchaseOrderItem::unitPrice)
+                .containsExactly(new BigDecimal("9.99"));
     }
 
     @Test

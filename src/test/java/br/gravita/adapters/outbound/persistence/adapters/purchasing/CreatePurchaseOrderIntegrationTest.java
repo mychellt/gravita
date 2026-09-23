@@ -14,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,9 +28,6 @@ import static org.mockito.Mockito.when;
 class CreatePurchaseOrderIntegrationTest {
     @Mock
     private PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
-
-    @Mock
-    private TestEntityManager entityManager;
 
     @Mock
     private ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort;
@@ -69,7 +65,7 @@ class CreatePurchaseOrderIntegrationTest {
         when(purchaseRequestRepositoryPort.findById(any())).thenReturn(Optional.of(PurchaseRequest.builder()
                 .status(PurchaseRequestStatus.OPEN)
                 .build()));
-        
+
         var savedPurchaseOrder = PurchaseOrder.builder()
                 .requestId(PurchaseRequestId.of(UUID.randomUUID()))
                 .build();
