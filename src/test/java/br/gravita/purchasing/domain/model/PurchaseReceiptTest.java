@@ -72,6 +72,36 @@ class PurchaseReceiptTest {
 	}
 
 	@Test
+	void aReceiptWithEveryItemFullyReceivedIsTotal() {
+		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+				PurchaseOrderId.of(UUID.randomUUID()),
+				List.of(new PurchaseReceiptItem(UUID.randomUUID(), BigDecimal.TEN, BigDecimal.TEN)));
+
+		assertThat(receipt.isTotal()).isTrue();
+	}
+
+	@Test
+	void aReceiptWithAnUnderReceivedItemIsPartial() {
+		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+				PurchaseOrderId.of(UUID.randomUUID()),
+				List.of(new PurchaseReceiptItem(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("4"))));
+
+		assertThat(receipt.isTotal()).isFalse();
+	}
+
+	@Test
+	void aReceiptIsOnlyTotalWhenEveryOneOfItsItemsIsFullyReceived() {
+		UUID fullyReceivedProduct = UUID.randomUUID();
+		UUID underReceivedProduct = UUID.randomUUID();
+		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+				PurchaseOrderId.of(UUID.randomUUID()),
+				List.of(new PurchaseReceiptItem(fullyReceivedProduct, BigDecimal.TEN, BigDecimal.TEN),
+						new PurchaseReceiptItem(underReceivedProduct, BigDecimal.TEN, new BigDecimal("9"))));
+
+		assertThat(receipt.isTotal()).isFalse();
+	}
+
+	@Test
 	void rejectsAnEmptyReceivedItemList() {
 		assertThatThrownBy(() -> PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
 				PurchaseOrderId.of(UUID.randomUUID()), List.of()))

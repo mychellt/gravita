@@ -28,9 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * GRA-63: end-to-end verification of ConfirmPurchaseReceiptUseCase
  * (POST /api/purchasing/receipts/{id}/confirm) through the real HTTP stack -
- * real controller, real use case, real H2-backed repositories. Receipt
- * recording (UC-M6-06) doesn't have a REST endpoint yet, so the receipt is
- * seeded directly through its repository port.
+ * real controller, real use case, real H2-backed repositories. The receipt is
+ * seeded directly through its repository port (already past physical
+ * conference) rather than through ReceivePurchaseOrderUseCase's endpoint,
+ * since this test only cares about the confirm step.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc

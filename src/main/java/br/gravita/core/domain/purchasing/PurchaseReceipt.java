@@ -22,6 +22,7 @@ public final class PurchaseReceipt {
 	private final List<PurchaseReceiptItem> receivedItems;
 	private final List<InstallmentTerm> installmentTerms;
 	private final PurchaseReceiptStatus status;
+	private final boolean total;
 
 	private PurchaseReceipt(PurchaseReceiptId id, PurchaseOrderId orderId, List<PurchaseReceiptItem> receivedItems,
 			List<InstallmentTerm> installmentTerms, PurchaseReceiptStatus status) {
@@ -30,6 +31,11 @@ public final class PurchaseReceipt {
 		this.receivedItems = requireNonEmptyItems(receivedItems);
 		this.installmentTerms = installmentTerms == null ? List.of() : List.copyOf(installmentTerms);
 		this.status = Objects.requireNonNull(status, "status is required");
+		// UC-M6-06: total/partial isn't persisted - it's cheap to recompute from
+		// receivedItems (which already carries orderedQty per line) every time this
+		// aggregate is built, whether freshly or rehydrated from storage.
+		this.total = this.receivedItems.stream()
+				.allMatch(item -> item.receivedQty().compareTo(item.orderedQty()) >= 0);
 	}
 
 	public static PurchaseReceipt pending(PurchaseReceiptId id, PurchaseOrderId orderId,

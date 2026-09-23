@@ -54,6 +54,23 @@ public final class PurchaseOrder {
 	}
 
 	/**
+	 * UC-M6-06: an order can only be received while still open for receiving
+	 * and, when it required approval, only once approved. There is no way yet
+	 * to represent "approved" - {@code ApprovePurchaseOrderUseCase} (UC-M6-05)
+	 * hasn't landed - so for now an order flagged {@code approvalRequired}
+	 * simply can't be received at all until that use case exists.
+	 */
+	public void assertReceivable() {
+		if (status != PurchaseOrderStatus.OPEN && status != PurchaseOrderStatus.PARTIALLY_RECEIVED) {
+			throw new BusinessRuleException(
+					"A receipt can only be opened against an OPEN or PARTIALLY_RECEIVED order, was " + status);
+		}
+		if (approvalRequired) {
+			throw new BusinessRuleException("Cannot receive an order pending approval (UC-M6-05)");
+		}
+	}
+
+	/**
 	 * UC-M6-08: applies the outcome of a confirmed receipt. The order closes
 	 * once every item's ordered quantity has been covered across all of its
 	 * confirmed receipts; otherwise it (or stays) {@code PARTIALLY_RECEIVED}.

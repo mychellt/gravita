@@ -1,6 +1,7 @@
 package br.gravita.purchasing.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.gravita.core.domain.masterdata.SupplierId;
@@ -84,6 +85,42 @@ class PurchaseOrderTest {
 		assertThatThrownBy(() -> order.afterReceiptConfirmed(true))
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("CLOSED");
+	}
+
+	@Test
+	void anOpenOrderNotRequiringApprovalIsReceivable() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false);
+
+		assertThatCode(order::assertReceivable).doesNotThrowAnyException();
+	}
+
+	@Test
+	void aPartiallyReceivedOrderIsStillReceivable() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false).afterReceiptConfirmed(false);
+
+		assertThatCode(order::assertReceivable).doesNotThrowAnyException();
+	}
+
+	@Test
+	void aClosedOrderCannotBeReceivedAgainst() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
+
+		assertThatThrownBy(order::assertReceivable)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("CLOSED");
+	}
+
+	@Test
+	void anOrderRequiringApprovalCannotBeReceivedAgainst() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), true);
+
+		assertThatThrownBy(order::assertReceivable)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("pending approval");
 	}
 
 	private PurchaseOrder create(List<PurchaseOrderItem> items, boolean approvalRequired) {
