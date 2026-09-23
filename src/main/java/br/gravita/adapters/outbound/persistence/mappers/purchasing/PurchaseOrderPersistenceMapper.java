@@ -25,7 +25,8 @@ public interface PurchaseOrderPersistenceMapper {
 				SupplierId.of(entity.getSupplierId()),
 				toItems(entity.getItems()),
 				entity.isApprovalRequired(),
-				entity.getStatus());
+				entity.getStatus(),
+				entity.getApprovedBy());
 	}
 
 	default PurchaseOrderJpaEntity toEntity(final PurchaseOrder domain) {
@@ -35,6 +36,7 @@ public interface PurchaseOrderPersistenceMapper {
 				.quotationId(domain.getQuotationId())
 				.supplierId(domain.getSupplierId().value())
 				.approvalRequired(domain.isApprovalRequired())
+				.approvedBy(domain.getApprovedBy())
 				.status(domain.getStatus())
 				.items(toItemEmbeddables(domain.getItems()))
 				.build();

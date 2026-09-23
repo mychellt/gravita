@@ -43,6 +43,9 @@ public class PurchaseOrderJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "approval_required", nullable = false)
 	private boolean approvalRequired;
 
+	@Column(name = "approved_by")
+	private UUID approvedBy;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private PurchaseOrderStatus status;

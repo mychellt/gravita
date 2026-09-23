@@ -1,5 +1,6 @@
 package br.gravita.adapters.inbound.controllers.purchasing.controllers;
 
+import br.gravita.adapters.inbound.controllers.purchasing.dtos.ApprovePurchaseOrderRequest;
 import br.gravita.adapters.inbound.controllers.purchasing.dtos.CreatePurchaseOrderRequest;
 import br.gravita.adapters.inbound.controllers.purchasing.dtos.PurchaseOrderResponse;
 import br.gravita.adapters.inbound.controllers.purchasing.dtos.PurchaseReceiptResponse;
@@ -9,6 +10,7 @@ import br.gravita.core.domain.purchasing.PurchaseOrderNotFoundException;
 import br.gravita.core.domain.purchasing.PurchaseReceiptId;
 import br.gravita.core.domain.purchasing.PurchaseRequestNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.purchasing.ApprovePurchaseOrderUseCase;
 import br.gravita.core.ports.inbound.purchasing.CreatePurchaseOrderUseCase;
 import br.gravita.core.ports.inbound.purchasing.ReceivePurchaseOrderUseCase;
 import jakarta.validation.Valid;
@@ -30,11 +32,14 @@ public class PurchaseOrderController {
 
 	private final CreatePurchaseOrderUseCase createPurchaseOrderUseCase;
 	private final ReceivePurchaseOrderUseCase receivePurchaseOrderUseCase;
+	private final ApprovePurchaseOrderUseCase approvePurchaseOrderUseCase;
 
 	public PurchaseOrderController(CreatePurchaseOrderUseCase createPurchaseOrderUseCase,
-			ReceivePurchaseOrderUseCase receivePurchaseOrderUseCase) {
+			ReceivePurchaseOrderUseCase receivePurchaseOrderUseCase,
+			ApprovePurchaseOrderUseCase approvePurchaseOrderUseCase) {
 		this.createPurchaseOrderUseCase = createPurchaseOrderUseCase;
 		this.receivePurchaseOrderUseCase = receivePurchaseOrderUseCase;
+		this.approvePurchaseOrderUseCase = approvePurchaseOrderUseCase;
 	}
 
 	@PostMapping
@@ -50,6 +55,13 @@ public class PurchaseOrderController {
 		PurchaseReceiptId receiptId = receivePurchaseOrderUseCase.execute(request.toCommand(id));
 		return ResponseEntity.created(URI.create("/api/purchasing/receipts/" + receiptId.value()))
 				.body(PurchaseReceiptResponse.from(receiptId));
+	}
+
+	@PostMapping("/{id}/approve")
+	public ResponseEntity<Void> approve(@PathVariable UUID id,
+			@Valid @RequestBody ApprovePurchaseOrderRequest request) {
+		approvePurchaseOrderUseCase.execute(request.toCommand(id));
+		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(PurchaseRequestNotFoundException.class)

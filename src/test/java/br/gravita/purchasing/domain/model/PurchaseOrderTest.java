@@ -123,6 +123,60 @@ class PurchaseOrderTest {
 				.hasMessageContaining("pending approval");
 	}
 
+	@Test
+	void approvingAnOrderPendingApprovalClearsTheFlagAndMakesItReceivable() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), true);
+		UUID approvedBy = UUID.randomUUID();
+
+		PurchaseOrder approved = order.approve(approvedBy);
+
+		assertThat(approved.isApprovalRequired()).isFalse();
+		assertThat(approved.getApprovedBy()).isEqualTo(approvedBy);
+		assertThat(approved.getStatus()).isEqualTo(PurchaseOrderStatus.OPEN);
+		assertThatCode(approved::assertReceivable).doesNotThrowAnyException();
+	}
+
+	@Test
+	void rejectingAnOrderPendingApprovalCancelsIt() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), true);
+
+		PurchaseOrder rejected = order.reject();
+
+		assertThat(rejected.getStatus()).isEqualTo(PurchaseOrderStatus.CANCELLED);
+	}
+
+	@Test
+	void anOrderNotRequiringApprovalCannotBeApproved() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), false);
+
+		assertThatThrownBy(() -> order.approve(UUID.randomUUID()))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("does not require approval");
+	}
+
+	@Test
+	void anAlreadyApprovedOrderCannotBeApprovedAgain() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), true).approve(UUID.randomUUID());
+
+		assertThatThrownBy(() -> order.approve(UUID.randomUUID()))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("does not require approval");
+	}
+
+	@Test
+	void aCancelledOrderCannotBeRejectedAgain() {
+		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+				new BigDecimal("5.00"))), true).reject();
+
+		assertThatThrownBy(order::reject)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("CANCELLED");
+	}
+
 	private PurchaseOrder create(List<PurchaseOrderItem> items, boolean approvalRequired) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, SupplierId.of(UUID.randomUUID()), items, approvalRequired);

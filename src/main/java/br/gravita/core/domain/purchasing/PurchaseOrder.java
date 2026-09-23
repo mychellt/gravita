@@ -25,17 +25,24 @@ public final class PurchaseOrder {
     private List<PurchaseOrderItem> items;
     private boolean approvalRequired;
     private PurchaseOrderStatus status;
+    private UUID approvedBy;
 
     public static PurchaseOrder create(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
                                        SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired) {
-        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired,
-                PurchaseOrderStatus.OPEN);
+        return new PurchaseOrder(id, requestId, quotationId, supplierId, requireNonEmptyItems(items), approvalRequired,
+                PurchaseOrderStatus.OPEN, null);
     }
 
     public static PurchaseOrder of(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
                                    SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired,
                                    PurchaseOrderStatus status) {
-        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, status);
+        return of(id, requestId, quotationId, supplierId, items, approvalRequired, status, null);
+    }
+
+    public static PurchaseOrder of(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
+                                   SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired,
+                                   PurchaseOrderStatus status, UUID approvedBy) {
+        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, status, approvedBy);
     }
 
     public void assertReceivable() {
@@ -47,7 +54,32 @@ public final class PurchaseOrder {
             throw new BusinessRuleException("Cannot receive an order pending approval (UC-M6-05)");
         }
     }
-	
+
+    /**
+     * UC-M6-05. Only orders flagged {@code approvalRequired} at creation time (per
+     * the resolved {@code approvalAlcada}) go through this gate; below-threshold
+     * orders are already receivable and never reach here.
+     */
+    public PurchaseOrder approve(UUID approvedBy) {
+        assertPendingApproval("approve");
+        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, false, status, approvedBy);
+    }
+
+    public PurchaseOrder reject() {
+        assertPendingApproval("reject");
+        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired,
+                PurchaseOrderStatus.CANCELLED, approvedBy);
+    }
+
+    private void assertPendingApproval(String action) {
+        if (!approvalRequired) {
+            throw new BusinessRuleException(
+                    "Cannot " + action + " an order that does not require approval (UC-M6-05)");
+        }
+        if (status != PurchaseOrderStatus.OPEN) {
+            throw new BusinessRuleException("Cannot " + action + " an order in " + status + " state (UC-M6-05)");
+        }
+    }
 
     public PurchaseOrder afterReceiptConfirmed(boolean fullyReceived) {
         if (status == PurchaseOrderStatus.CLOSED || status == PurchaseOrderStatus.CANCELLED) {
@@ -55,7 +87,7 @@ public final class PurchaseOrder {
         }
         PurchaseOrderStatus newStatus = fullyReceived ? PurchaseOrderStatus.CLOSED
                 : PurchaseOrderStatus.PARTIALLY_RECEIVED;
-        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, newStatus);
+        return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, newStatus, approvedBy);
     }
 
     public BigDecimal totalValue() {
