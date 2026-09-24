@@ -25,7 +25,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 		InboundNfeJpaEntity entity = mapper.toEntity(inboundNfe);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		try {
-			InboundNfeJpaEntity saved = jpaRepository.save(entity);
+			InboundNfeJpaEntity saved = jpaRepository.saveAndFlush(entity);
 			return mapper.toDomain(saved);
 		} catch (DataIntegrityViolationException e) {
 			if (violatesAccessKeyUniqueness(e)) {
