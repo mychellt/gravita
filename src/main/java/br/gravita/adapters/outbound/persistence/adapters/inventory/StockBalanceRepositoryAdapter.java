@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters.inventory;
 
+import br.gravita.adapters.outbound.persistence.entities.inventory.StockBalanceJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.inventory.StockBalancePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.inventory.StockBalanceJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
@@ -28,5 +29,22 @@ class StockBalanceRepositoryAdapter implements StockBalanceRepositoryPort {
 	@Override
 	public List<StockBalance> findByProductId(UUID productId) {
 		return jpaRepository.findByProductId(productId).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<StockBalance> findByWarehouseId(UUID warehouseId) {
+		return jpaRepository.findByWarehouseId(warehouseId).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<StockBalance> findAll() {
+		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public StockBalance save(StockBalance balance) {
+		StockBalanceJpaEntity entity = mapper.toEntity(balance);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		return mapper.toDomain(jpaRepository.save(entity));
 	}
 }

@@ -11,4 +11,6 @@ public interface StockBalanceJpaRepository extends JpaRepository<StockBalanceJpa
 	Optional<StockBalanceJpaEntity> findByProductIdAndWarehouseId(UUID productId, UUID warehouseId);
 
 	List<StockBalanceJpaEntity> findByProductId(UUID productId);
+
+	List<StockBalanceJpaEntity> findByWarehouseId(UUID warehouseId);
 }

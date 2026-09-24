@@ -11,4 +11,10 @@ public interface StockBalanceRepositoryPort {
 	Optional<StockBalance> findByProductIdAndWarehouseId(UUID productId, UUID warehouseId);
 
 	List<StockBalance> findByProductId(UUID productId);
+
+	List<StockBalance> findByWarehouseId(UUID warehouseId);
+
+	List<StockBalance> findAll();
+
+	StockBalance save(StockBalance balance);
 }

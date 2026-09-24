@@ -68,6 +68,30 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 				.containsExactlyInAnyOrder(new BigDecimal("30.0000"), new BigDecimal("70.0000"));
 	}
 
+	@Test
+	void findsEveryRowForAGivenWarehouseAcrossProducts() {
+		UUID warehouseId = UUID.randomUUID();
+		seed(UUID.randomUUID(), warehouseId, "30", "0", "0", "8.00");
+		seed(UUID.randomUUID(), warehouseId, "70", "5", "0", "12.00");
+		seed(UUID.randomUUID(), UUID.randomUUID(), "1000", "0", "0", "1.00");
+		flushAndClear();
+
+		List<StockBalance> found = stockBalanceRepositoryAdapter.findByWarehouseId(warehouseId);
+
+		assertThat(found).hasSize(2);
+	}
+
+	@Test
+	void findsEveryRowAcrossProductsAndWarehousesForASweep() {
+		seed(UUID.randomUUID(), UUID.randomUUID(), "30", "0", "0", "8.00");
+		seed(UUID.randomUUID(), UUID.randomUUID(), "70", "5", "0", "12.00");
+		flushAndClear();
+
+		List<StockBalance> found = stockBalanceRepositoryAdapter.findAll();
+
+		assertThat(found).hasSize(2);
+	}
+
 	private void seed(UUID productId, UUID warehouseId, String onHand, String reserved, String inTransit,
 			String averageCost) {
 		entityManager.persist(StockBalanceJpaEntity.builder()
