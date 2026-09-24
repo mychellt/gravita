@@ -20,4 +20,16 @@ public interface StockBalancePersistenceMapper {
 				entity.getInTransit(),
 				entity.getAverageCost());
 	}
+
+	default StockBalanceJpaEntity toEntity(final StockBalance domain) {
+		return StockBalanceJpaEntity.builder()
+				.id(domain.getId().value())
+				.productId(domain.getProductId())
+				.warehouseId(domain.getWarehouseId())
+				.onHand(domain.getOnHand())
+				.reserved(domain.getReserved())
+				.inTransit(domain.getInTransit())
+				.averageCost(domain.getAverageCost())
+				.build();
+	}
 }
