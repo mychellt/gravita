@@ -48,6 +48,107 @@ class ImportSupplierNfeXmlEndToEndTest {
 				.andExpect(status().isBadRequest());
 	}
 
+	@Test
+	void uploadingXmlMissingRequiredSectionsIsRejectedWith400() throws Exception {
+		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
+				xmlMissingRequiredSections().getBytes(StandardCharsets.UTF_8));
+
+		mockMvc.perform(multipart("/api/nfe/inbound/import-xml")
+						.file(xmlFile)
+						.param("companyId", UUID.randomUUID().toString()))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message").value(
+						org.hamcrest.Matchers.containsString("missing required sections")));
+	}
+
+	@Test
+	void uploadingXmlWithAnInvalidSupplierCnpjIsRejectedWith400() throws Exception {
+		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
+				nfeXmlWithSupplierCnpj("11222333000199").getBytes(StandardCharsets.UTF_8));
+
+		mockMvc.perform(multipart("/api/nfe/inbound/import-xml")
+						.file(xmlFile)
+						.param("companyId", UUID.randomUUID().toString()))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Invalid CNPJ")));
+	}
+
+	@Test
+	void uploadingXmlWithADoctypeDeclarationIsRejectedWith400() throws Exception {
+		String withDoctype = """
+				<?xml version="1.0"?>
+				<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+				<NFe><infNFe Id="NFe35240111222333000181550010000012345123456789"></infNFe></NFe>
+				""";
+		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
+				withDoctype.getBytes(StandardCharsets.UTF_8));
+
+		mockMvc.perform(multipart("/api/nfe/inbound/import-xml")
+						.file(xmlFile)
+						.param("companyId", UUID.randomUUID().toString()))
+				.andExpect(status().isBadRequest());
+	}
+
+	private String xmlMissingRequiredSections() {
+		return """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+				  <infNFe Id="NFe35240111222333000181550010000012345123456792" versao="4.00">
+				    <ide>
+				      <serie>1</serie>
+				      <nNF>12345</nNF>
+				      <dhEmi>2026-01-15T10:00:00-03:00</dhEmi>
+				    </ide>
+				    <emit>
+				      <CNPJ>11222333000181</CNPJ>
+				      <xNome>Fornecedor Exemplo LTDA</xNome>
+				    </emit>
+				  </infNFe>
+				</NFe>
+				""";
+	}
+
+	private String nfeXmlWithSupplierCnpj(String cnpj) {
+		return """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+				  <infNFe Id="NFe35240111222333000181550010000012345123456793" versao="4.00">
+				    <ide>
+				      <serie>1</serie>
+				      <nNF>12345</nNF>
+				      <dhEmi>2026-01-15T10:00:00-03:00</dhEmi>
+				    </ide>
+				    <emit>
+				      <CNPJ>%s</CNPJ>
+				      <xNome>Fornecedor Exemplo LTDA</xNome>
+				    </emit>
+				    <det nItem="1">
+				      <prod>
+				        <cProd>SKU-001</cProd>
+				        <xProd>Parafuso Sextavado M8</xProd>
+				        <NCM>73181500</NCM>
+				        <CFOP>5102</CFOP>
+				        <uCom>UN</uCom>
+				        <qCom>1.0000</qCom>
+				        <vUnCom>10.0000</vUnCom>
+				        <vProd>10.00</vProd>
+				      </prod>
+				      <imposto>
+				        <ICMS><ICMS00><vICMS>1.80</vICMS></ICMS00></ICMS>
+				      </imposto>
+				    </det>
+				    <total>
+				      <ICMSTot>
+				        <vProd>10.00</vProd>
+				        <vICMS>1.80</vICMS>
+				        <vNF>10.00</vNF>
+				      </ICMSTot>
+				    </total>
+				  </infNFe>
+				</NFe>
+				""".formatted(cnpj);
+	}
+
 	private String nfeXml() {
 		return """
 				<?xml version="1.0" encoding="UTF-8"?>
