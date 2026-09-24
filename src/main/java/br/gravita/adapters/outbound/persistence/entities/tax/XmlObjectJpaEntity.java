@@ -33,6 +33,11 @@ public class XmlObjectJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "company_id", nullable = false)
 	private UUID companyId;
 
-	@Column(name = "content", nullable = false)
+	// Without an explicit columnDefinition, Hibernate maps byte[] to a fixed
+	// VARBINARY(255) on H2 - fine for the migration's unbounded Postgres BYTEA,
+	// but too small for a real NFe XML the moment anything forces a flush (only
+	// surfaced once a test issued a query against the DB after storing one -
+	// see GRA-62). Matches V26__create_inbound_nfe_tables.sql's column type.
+	@Column(name = "content", nullable = false, columnDefinition = "bytea")
 	private byte[] content;
 }
