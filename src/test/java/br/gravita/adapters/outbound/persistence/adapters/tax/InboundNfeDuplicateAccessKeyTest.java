@@ -1,9 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeJpaEntity;
-import br.gravita.adapters.outbound.persistence.mappers.tax.InboundNfePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.mappers.tax.InboundNfePersistenceMapperImpl;
-import br.gravita.adapters.outbound.persistence.repositories.tax.InboundNfeJpaRepository;
+import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.InboundNfe;
@@ -19,42 +17,33 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * GRA-68 QA finding: {@code access_key} is unique at the DB level (V26
- * migration / {@code InboundNfeJpaEntity#accessKey}), but nothing between
- * {@link InboundNfeRepositoryAdapter} and {@code InboundNfeController}
- * translates the resulting {@link DataIntegrityViolationException} into a
- * {@code BusinessRuleException}. Confirmed at the HTTP layer: re-uploading
- * an XML with an access key already on file returns a raw 500 with a full
- * stack trace in the JSON body instead of a clean 4xx. This test locks in
- * today's (undesired) behaviour so it fails loudly - and needs updating -
- * once the duplicate is translated into a proper domain exception.
+ * GRA-84: {@code access_key} is unique at the DB level (V26 migration /
+ * {@code InboundNfeJpaEntity#accessKey}). {@link InboundNfeRepositoryAdapter}
+ * must translate the resulting {@code DataIntegrityViolationException} into
+ * a {@link DuplicateResourceException} so the controller layer returns a
+ * clean 409 instead of an unhandled 500 with a leaked stack trace.
  */
 @DataJpaTest
 @Import({InboundNfeRepositoryAdapter.class, InboundNfePersistenceMapperImpl.class})
 class InboundNfeDuplicateAccessKeyTest {
 
 	@Autowired
-	private InboundNfeJpaRepository jpaRepository;
-
-	@Autowired
-	private InboundNfePersistenceMapper mapper;
+	private InboundNfeRepositoryAdapter repositoryAdapter;
 
 	@Test
-	void savingASecondInboundNfeWithAnAlreadyUsedAccessKeyThrowsAnUntranslatedPersistenceException() {
+	void savingASecondInboundNfeWithAnAlreadyUsedAccessKeyThrowsADuplicateResourceException() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		String accessKey = "35240111222333000181550010000012345123456789";
 
-		InboundNfeJpaEntity first = mapper.toEntity(inboundNfe(companyId, accessKey, "xml-object-ref-1"));
-		jpaRepository.saveAndFlush(first);
+		repositoryAdapter.save(inboundNfe(companyId, accessKey, "xml-object-ref-1"));
 
-		InboundNfeJpaEntity duplicate = mapper.toEntity(inboundNfe(companyId, accessKey, "xml-object-ref-2"));
-		assertThatThrownBy(() -> jpaRepository.saveAndFlush(duplicate))
-				.isInstanceOf(DataIntegrityViolationException.class);
+		assertThatThrownBy(() -> repositoryAdapter.save(inboundNfe(companyId, accessKey, "xml-object-ref-2")))
+				.isInstanceOf(DuplicateResourceException.class)
+				.hasMessageContaining(accessKey);
 	}
 
 	private InboundNfe inboundNfe(CompanyId companyId, String accessKey, String xmlStorageRef) {

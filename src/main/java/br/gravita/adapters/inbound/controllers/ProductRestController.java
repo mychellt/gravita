@@ -8,38 +8,30 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.ports.business.RegisterProductPort;
 import br.gravita.core.ports.business.UpdateProductPort;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/products")
 public class ProductRestController {
 
-	private final RegisterProductPort registerProductPort;
-	private final UpdateProductPort updateProductPort;
+    private final RegisterProductPort registerProductPort;
+    private final UpdateProductPort updateProductPort;
 
-	public ProductRestController(RegisterProductPort registerProductPort, UpdateProductPort updateProductPort) {
-		this.registerProductPort = registerProductPort;
-		this.updateProductPort = updateProductPort;
-	}
+    @PostMapping
+    public ResponseEntity<ProductResponse> register(@Valid @RequestBody RegisterProductRequest request) {
+        ProductDomain created = registerProductPort.execute(new Context(request.toDomain(null)));
+        return ResponseEntity.created(URI.create("/api/products/" + created.getId())).body(ProductResponse.from(created));
+    }
 
-	@PostMapping
-	public ResponseEntity<ProductResponse> register(@Valid @RequestBody RegisterProductRequest request) {
-		ProductDomain created = registerProductPort.execute(new Context(request.toDomain(null)));
-		return ResponseEntity.created(URI.create("/api/products/" + created.getId())).body(ProductResponse.from(created));
-	}
-
-	@PatchMapping("/{id}")
-	public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
-		ProductDomain updated = updateProductPort.execute(new Context(request.toDomain(id)));
-		return ResponseEntity.ok(ProductResponse.from(updated));
-	}
+    @PatchMapping("/{id}")
+    public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
+        ProductDomain updated = updateProductPort.execute(new Context(request.toDomain(id)));
+        return ResponseEntity.ok(ProductResponse.from(updated));
+    }
 }

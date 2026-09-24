@@ -11,54 +11,46 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.purchasing.CreatePurchaseRequestUseCase;
 import br.gravita.core.ports.inbound.purchasing.SendQuotationUseCase;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/purchasing/requests")
 public class PurchaseRequestController {
 
-	private final CreatePurchaseRequestUseCase createPurchaseRequestUseCase;
-	private final SendQuotationUseCase sendQuotationUseCase;
+    private final CreatePurchaseRequestUseCase createPurchaseRequestUseCase;
+    private final SendQuotationUseCase sendQuotationUseCase;
 
-	public PurchaseRequestController(CreatePurchaseRequestUseCase createPurchaseRequestUseCase,
-			SendQuotationUseCase sendQuotationUseCase) {
-		this.createPurchaseRequestUseCase = createPurchaseRequestUseCase;
-		this.sendQuotationUseCase = sendQuotationUseCase;
-	}
+    @PostMapping
+    public ResponseEntity<PurchaseRequestResponse> create(@Valid @RequestBody CreatePurchaseRequestRequest request) {
+        PurchaseRequestId id = createPurchaseRequestUseCase.execute(request.toCommand());
+        return ResponseEntity.created(URI.create("/api/purchasing/requests/" + id.value()))
+                .body(PurchaseRequestResponse.from(id));
+    }
 
-	@PostMapping
-	public ResponseEntity<PurchaseRequestResponse> create(@Valid @RequestBody CreatePurchaseRequestRequest request) {
-		PurchaseRequestId id = createPurchaseRequestUseCase.execute(request.toCommand());
-		return ResponseEntity.created(URI.create("/api/purchasing/requests/" + id.value()))
-				.body(PurchaseRequestResponse.from(id));
-	}
+    @PostMapping("/{id}/quotations")
+    public ResponseEntity<SendQuotationResponse> sendQuotation(@PathVariable UUID id,
+                                                               @Valid @RequestBody SendQuotationRequest request) {
+        QuotationId quotationId = sendQuotationUseCase.execute(request.toCommand(id));
+        return ResponseEntity.created(URI.create("/api/purchasing/quotations/" + quotationId.value()))
+                .body(SendQuotationResponse.from(quotationId));
+    }
 
-	@PostMapping("/{id}/quotations")
-	public ResponseEntity<SendQuotationResponse> sendQuotation(@PathVariable UUID id,
-			@Valid @RequestBody SendQuotationRequest request) {
-		QuotationId quotationId = sendQuotationUseCase.execute(request.toCommand(id));
-		return ResponseEntity.created(URI.create("/api/purchasing/quotations/" + quotationId.value()))
-				.body(SendQuotationResponse.from(quotationId));
-	}
+    @ExceptionHandler(PurchaseRequestNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handlePurchaseRequestNotFoundException(
+            PurchaseRequestNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
+    }
 
-	@ExceptionHandler(PurchaseRequestNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handlePurchaseRequestNotFoundException(
-			PurchaseRequestNotFoundException exception) {
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
-	}
-
-	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
-		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
-	}
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+        return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
+    }
 }
