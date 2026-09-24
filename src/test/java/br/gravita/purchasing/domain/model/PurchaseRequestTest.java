@@ -17,6 +17,37 @@ import org.junit.jupiter.api.Test;
 class PurchaseRequestTest {
 
 	@Test
+	void quotingAnOpenRequestTransitionsItToQuoted() {
+		PurchaseRequest request = open();
+
+		PurchaseRequest quoted = request.quote();
+
+		assertThat(quoted.getStatus()).isEqualTo(PurchaseRequestStatus.QUOTED);
+		assertThat(quoted.getId()).isEqualTo(request.getId());
+		assertThat(quoted.getItems()).isEqualTo(request.getItems());
+	}
+
+	@Test
+	void quotingAnAlreadyQuotedRequestIsRejected() {
+		PurchaseRequest quoted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
+				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
+				UUID.randomUUID(), PurchaseRequestStatus.QUOTED);
+
+		assertThatThrownBy(quoted::quote)
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("OPEN");
+	}
+
+	@Test
+	void quotingAConvertedRequestIsRejected() {
+		PurchaseRequest converted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
+				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
+				UUID.randomUUID(), PurchaseRequestStatus.CONVERTED);
+
+		assertThatThrownBy(converted::quote).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
 	void convertingAnOpenRequestTransitionsItToConverted() {
 		PurchaseRequest request = open();
 

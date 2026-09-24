@@ -30,6 +30,14 @@ public final class PurchaseRequest {
         return new PurchaseRequest(id, origin, items, requestedBy, status);
     }
 
+    public PurchaseRequest quote() {
+        if (status != PurchaseRequestStatus.OPEN) {
+            throw new BusinessRuleException(
+                    "Only a request in status OPEN can be sent for quotation, was " + status);
+        }
+        return new PurchaseRequest(id, origin, items, requestedBy, PurchaseRequestStatus.QUOTED);
+    }
+
     public PurchaseRequest convert() {
         if (status != PurchaseRequestStatus.OPEN && status != PurchaseRequestStatus.QUOTED) {
             throw new BusinessRuleException(
