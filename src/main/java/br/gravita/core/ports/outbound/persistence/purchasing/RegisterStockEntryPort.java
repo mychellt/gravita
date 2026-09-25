@@ -6,10 +6,9 @@ import java.util.UUID;
 
 /**
  * Extension point for the inventory context (M5), which owns stock balances.
- * Purchasing has no dependency on M5, so until it exists this is backed by a
- * stub adapter (mirrors {@code FinanceUsageQueryPort}'s pattern); M5's own
- * {@code RegisterStockEntryUseCase} (GRA-11) is expected to supply the real
- * adapter once it lands.
+ * Backed by an adapter that delegates to M5's real
+ * {@code RegisterStockEntryUseCase} (GRA-82; previously a no-op stub from
+ * GRA-63 before M5 shipped).
  */
 public interface RegisterStockEntryPort {
 	void registerEntry(RegisterStockEntryCommand command);

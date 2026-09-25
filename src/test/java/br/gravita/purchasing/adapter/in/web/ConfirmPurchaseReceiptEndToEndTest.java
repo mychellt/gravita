@@ -1,8 +1,13 @@
 package br.gravita.purchasing.adapter.in.web;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.gravita.core.domain.ProductDomain;
+import br.gravita.core.domain.ProductStatus;
+import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.purchasing.InstallmentTerm;
 import br.gravita.core.domain.purchasing.PurchaseOrder;
@@ -12,12 +17,14 @@ import br.gravita.core.domain.purchasing.PurchaseReceipt;
 import br.gravita.core.domain.purchasing.PurchaseReceiptId;
 import br.gravita.core.domain.purchasing.PurchaseReceiptItem;
 import br.gravita.core.domain.purchasing.PurchaseRequestId;
+import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseReceiptRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,7 +54,27 @@ class ConfirmPurchaseReceiptEndToEndTest {
 	@Autowired
 	private PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort;
 
+	@Autowired
+	private ProductRepositoryPort productRepositoryPort;
+
 	private final UUID productId = UUID.randomUUID();
+
+	/**
+	 * Confirming now calls M5's real RegisterStockEntryUseCase (GRA-82), which
+	 * requires the product to exist in masterdata - every test that confirms a
+	 * receipt for {@link #productId} needs it seeded first.
+	 */
+	@BeforeEach
+	void seedProduct() {
+		productRepositoryPort.save(ProductDomain.builder()
+				.id(productId)
+				.internalCode("SKU-" + productId)
+				.type(ProductType.SIMPLE)
+				.status(ProductStatus.ACTIVE)
+				.lotControl(false)
+				.serialControl(false)
+				.build());
+	}
 
 	@Test
 	void confirmingAConferencedReceiptSucceedsWith204() throws Exception {
@@ -56,6 +83,25 @@ class ConfirmPurchaseReceiptEndToEndTest {
 
 		mockMvc.perform(post("/api/purchasing/receipts/" + receiptId.value() + "/confirm"))
 				.andExpect(status().isNoContent());
+	}
+
+	/**
+	 * GRA-82: confirming now calls M5's real RegisterStockEntryUseCase (no
+	 * longer the GRA-63 no-op stub), so the receipt's product balance is
+	 * actually updated in inventory.
+	 */
+	@Test
+	void confirmingAReceiptRegistersARealStockEntryInInventory() throws Exception {
+		PurchaseOrderId orderId = seedOpenOrder();
+		PurchaseReceiptId receiptId = seedConferencedReceipt(orderId, BigDecimal.TEN);
+
+		mockMvc.perform(post("/api/purchasing/receipts/" + receiptId.value() + "/confirm"))
+				.andExpect(status().isNoContent());
+
+		mockMvc.perform(get("/api/inventory/products/" + productId + "/balance"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.onHand").value(10))
+				.andExpect(jsonPath("$.averageCost").value(5.00));
 	}
 
 	@Test
