@@ -49,4 +49,16 @@ public final class StockReservation {
 		}
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.CONSUMED);
 	}
+
+	/**
+	 * Releases this reservation on order cancellation (UC-M5-07, AC3): only an
+	 * {@code ACTIVE} reservation can be released, so an already-released or
+	 * already-fulfilled reservation is rejected rather than silently ignored.
+	 */
+	public StockReservation release() {
+		if (status != StockReservationStatus.ACTIVE) {
+			throw new BusinessRuleException("Reservation " + id.value() + " is not active: " + status);
+		}
+		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.RELEASED);
+	}
 }

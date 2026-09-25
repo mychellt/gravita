@@ -65,6 +65,19 @@ public final class StockBalance {
 	}
 
 	/**
+	 * Releases a previously reserved {@code quantity} (UC-M5-07): moves it back
+	 * from {@code reserved} into {@code available} without touching
+	 * {@code onHand}.
+	 */
+	public StockBalance release(BigDecimal quantity) {
+		if (quantity == null || quantity.signum() <= 0) {
+			throw new BusinessRuleException("Release quantity must be positive");
+		}
+		return new StockBalance(id, productId, warehouseId, onHand, reserved.subtract(quantity), inTransit,
+				averageCost);
+	}
+
+	/**
 	 * Applies a stock entry: increases {@code onHand} and recalculates
 	 * {@code averageCost} (CMV) as a weighted average of the existing balance
 	 * and the new entry (UC-M5-02, AC1).
