@@ -10,7 +10,7 @@
 
 ## Description
 
-Once counted quantities have been submitted for a `PhysicalCount` (moving it to `PENDING_APPROVAL`), an authorized user approves it. Approval compares counted vs. snapshotted system quantities per product and generates an `ADJUSTMENT` `StockMovement` for every divergence, via [UC-M5-04](uc-04-adjust-inventory.md). The count moves to `APPROVED`.
+Once counted quantities have been submitted for a `PhysicalCount` via [UC-M5-08b](uc-08b-submit-physical-count.md) (moving it to `PENDING_APPROVAL`), an authorized user approves it. Approval compares counted vs. snapshotted system quantities per product and generates an `ADJUSTMENT` `StockMovement` for every divergence, via [UC-M5-04](uc-04-adjust-inventory.md). The count moves to `APPROVED`.
 
 ## Port signature
 
@@ -46,5 +46,5 @@ public interface ApprovePhysicalCountUseCase {
 
 ## Dependencies
 
-- **Depends on:** [UC-M5-08](uc-08-start-physical-count.md), [UC-M5-04](uc-04-adjust-inventory.md).
+- **Depends on:** [UC-M5-08b](uc-08b-submit-physical-count.md), [UC-M5-04](uc-04-adjust-inventory.md).
 - **Blocks:** None outside M5.

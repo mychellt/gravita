@@ -3,10 +3,14 @@ package br.gravita.core.domain.inventory;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * PhysicalCount aggregate (UC-M5-08/UC-M5-09). {@link #start} snapshots the
@@ -63,6 +67,47 @@ public final class PhysicalCount {
 			throw new BusinessRuleException("productGroupId is required when scope is PARTIAL_BY_GROUP");
 		}
 		return productGroupId;
+	}
+
+	/**
+	 * Records counted quantities against an {@code IN_PROGRESS} count
+	 * (UC-M5-08b). Submitting is cumulative: a line's previously recorded
+	 * count survives a call that doesn't mention its product, so counting can
+	 * be split across several submissions. Only once every line has a
+	 * counted quantity does the count reach {@code PENDING_APPROVAL} and
+	 * become eligible for UC-M5-09.
+	 */
+	public PhysicalCount submitCounts(Map<UUID, BigDecimal> countedQuantities) {
+		if (status != PhysicalCountStatus.IN_PROGRESS) {
+			throw new BusinessRuleException(
+					"Only a count in IN_PROGRESS can have counts submitted; current status is " + status);
+		}
+		if (countedQuantities == null || countedQuantities.isEmpty()) {
+			throw new BusinessRuleException("countedQuantities is required");
+		}
+
+		Set<UUID> knownProductIds = lines.stream().map(PhysicalCountLine::productId).collect(Collectors.toSet());
+		for (Map.Entry<UUID, BigDecimal> entry : countedQuantities.entrySet()) {
+			if (!knownProductIds.contains(entry.getKey())) {
+				throw new BusinessRuleException("Product " + entry.getKey() + " is not part of this physical count");
+			}
+			if (entry.getValue() == null || entry.getValue().compareTo(BigDecimal.ZERO) < 0) {
+				throw new BusinessRuleException(
+						"Counted quantity for product " + entry.getKey() + " must not be negative");
+			}
+		}
+
+		List<PhysicalCountLine> updatedLines = lines.stream()
+				.map(line -> new PhysicalCountLine(line.productId(), line.systemQuantity(),
+						countedQuantities.getOrDefault(line.productId(), line.countedQuantity())))
+				.toList();
+
+		boolean allCounted = updatedLines.stream().allMatch(line -> line.countedQuantity() != null);
+		PhysicalCountStatus newStatus = allCounted ? PhysicalCountStatus.PENDING_APPROVAL
+				: PhysicalCountStatus.IN_PROGRESS;
+
+		return new PhysicalCount(id, scope, productGroupId, warehouseId, newStatus, startedBy, startedAt,
+				updatedLines);
 	}
 
 	/**

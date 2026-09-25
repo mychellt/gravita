@@ -4,9 +4,12 @@ import br.gravita.adapters.inbound.controllers.inventory.dtos.ApprovePhysicalCou
 import br.gravita.adapters.inbound.controllers.inventory.dtos.ApprovePhysicalCountResponse;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.StartPhysicalCountRequest;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.StartPhysicalCountResponse;
+import br.gravita.adapters.inbound.controllers.inventory.dtos.SubmitPhysicalCountRequest;
+import br.gravita.adapters.inbound.controllers.inventory.dtos.SubmitPhysicalCountResponse;
 import br.gravita.core.domain.inventory.PhysicalCount;
 import br.gravita.core.ports.inbound.inventory.ApprovePhysicalCountUseCase;
 import br.gravita.core.ports.inbound.inventory.StartPhysicalCountUseCase;
+import br.gravita.core.ports.inbound.inventory.SubmitPhysicalCountUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ import java.util.UUID;
 public class PhysicalCountController {
 
     private final StartPhysicalCountUseCase startPhysicalCountUseCase;
+    private final SubmitPhysicalCountUseCase submitPhysicalCountUseCase;
     private final ApprovePhysicalCountUseCase approvePhysicalCountUseCase;
 
     @PostMapping
@@ -28,6 +32,13 @@ public class PhysicalCountController {
         PhysicalCount physicalCount = startPhysicalCountUseCase.execute(request.toCommand());
         return ResponseEntity.created(URI.create("/api/inventory/counts/" + physicalCount.getId().value()))
                 .body(StartPhysicalCountResponse.from(physicalCount));
+    }
+
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<SubmitPhysicalCountResponse> submit(@PathVariable UUID id,
+            @Valid @RequestBody SubmitPhysicalCountRequest request) {
+        PhysicalCount physicalCount = submitPhysicalCountUseCase.execute(request.toCommand(id));
+        return ResponseEntity.ok(SubmitPhysicalCountResponse.from(physicalCount));
     }
 
     @PostMapping("/{id}/approve")

@@ -46,4 +46,4 @@ public interface StartPhysicalCountUseCase {
 ## Dependencies
 
 - **Depends on:** [UC-M5-01](uc-01-get-stock-balance.md).
-- **Blocks:** [UC-M5-09](uc-09-approve-physical-count.md) (a count must be started before it can be approved).
+- **Blocks:** [UC-M5-08b](uc-08b-submit-physical-count.md) (a count must be started before counts can be submitted against it).

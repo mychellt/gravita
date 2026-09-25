@@ -12,8 +12,9 @@ One ticket per use case from the [M5 module spec](../m5-estoque.md), for granula
 | 6 | [Reserve Stock](uc-06-reserve-stock.md) | 3 — Operação | Reserve quantity for an approved sales order. |
 | 7 | [Release Stock Reservation](uc-07-release-stock-reservation.md) | 3 — Operação | Release a reservation on order cancellation. |
 | 8 | [Start Physical Count](uc-08-start-physical-count.md) | 3 — Operação | Open a partial (by group) or total physical count. |
+| 8b | [Submit Physical Count](uc-08b-submit-physical-count.md) | 3 — Operação | Record counted quantities against an in-progress count, moving it to `PENDING_APPROVAL` once complete. |
 | 9 | [Approve Physical Count](uc-09-approve-physical-count.md) | 3 — Operação | Approve a count, auto-generating divergence adjustments. |
 | 10 | [Check Expiring Lots](uc-10-check-expiring-lots.md) | 3 — Operação | Surface lots expiring within a configurable window. |
 | 11 | [Suggest Reorder](uc-11-suggest-reorder.md) | 3 — Operação | Emit a reorder suggestion when balance hits the reorder point. |
 
-Suggested build order within the phase: 1 → 2 → 3 → 4 → (5, 6 → 7 in any order) → 8 → 9 → 10 → 11, since later tickets' acceptance criteria assume the read/write primitives from 1–4 exist.
+Suggested build order within the phase: 1 → 2 → 3 → 4 → (5, 6 → 7 in any order) → 8 → 8b → 9 → 10 → 11, since later tickets' acceptance criteria assume the read/write primitives from 1–4 exist.

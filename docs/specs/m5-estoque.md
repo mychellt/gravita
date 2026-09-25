@@ -46,7 +46,7 @@ Each use case below has a standalone implementation ticket under [`m5-estoque/`]
 | [`AdjustInventoryUseCase`](m5-estoque/uc-04-adjust-inventory.md) | Manual positive/negative adjustment with justification. |
 | [`TransferStockUseCase`](m5-estoque/uc-05-transfer-stock.md) | Between warehouses/branches, with in-transit tracking and destination confirmation. |
 | [`ReserveStockUseCase`](m5-estoque/uc-06-reserve-stock.md) / [`ReleaseStockReservationUseCase`](m5-estoque/uc-07-release-stock-reservation.md) | Tied to order approval/cancellation. |
-| [`StartPhysicalCountUseCase`](m5-estoque/uc-08-start-physical-count.md) / [`ApprovePhysicalCountUseCase`](m5-estoque/uc-09-approve-physical-count.md) | Count workflow, auto-generating adjustments on approval. |
+| [`StartPhysicalCountUseCase`](m5-estoque/uc-08-start-physical-count.md) / [`SubmitPhysicalCountUseCase`](m5-estoque/uc-08b-submit-physical-count.md) / [`ApprovePhysicalCountUseCase`](m5-estoque/uc-09-approve-physical-count.md) | Count workflow, auto-generating adjustments on approval. |
 | [`CheckExpiringLotsUseCase`](m5-estoque/uc-10-check-expiring-lots.md) | Feeds the expiry alert. |
 | [`SuggestReorderUseCase`](m5-estoque/uc-11-suggest-reorder.md) | Feeds M6's purchase suggestion when balance hits the reorder point. |
 
@@ -69,7 +69,7 @@ Each use case below has a standalone implementation ticket under [`m5-estoque/`]
 | `POST /api/inventory/adjustments` | `AdjustInventoryUseCase` |
 | `POST /api/inventory/transfers` / `POST /api/inventory/transfers/{id}/confirm` | `TransferStockUseCase` |
 | `POST /api/inventory/reservations` / `DELETE /api/inventory/reservations/{id}` | Reserve/release |
-| `POST /api/inventory/counts` / `POST /api/inventory/counts/{id}/approve` | Physical count workflow |
+| `POST /api/inventory/counts` / `.../{id}/submit` / `.../{id}/approve` | Physical count workflow |
 | `GET /api/inventory/alerts/low-stock`, `GET /api/inventory/alerts/expiring-lots` | Alert queries |
 
 ### Outbound (`adapter.out.persistence`)
