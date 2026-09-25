@@ -38,6 +38,26 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	void uploadingTheSameAccessKeyTwiceIsRejectedWith409() throws Exception {
+		UUID companyId = UUID.randomUUID();
+
+		mockMvc.perform(multipart("/api/nfe/inbound/import-xml")
+						.file(new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
+								nfeXml().getBytes(StandardCharsets.UTF_8)))
+						.param("companyId", companyId.toString()))
+				.andExpect(status().isCreated());
+
+		mockMvc.perform(multipart("/api/nfe/inbound/import-xml")
+						.file(new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
+								nfeXml().getBytes(StandardCharsets.UTF_8)))
+						.param("companyId", companyId.toString()))
+				.andExpect(status().isConflict())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString(
+								"35240111222333000181550010000012345123456789")));
+	}
+
+	@Test
 	void uploadingAMalformedXmlIsRejectedWith400() throws Exception {
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
 				"not xml".getBytes(StandardCharsets.UTF_8));
