@@ -77,6 +77,44 @@ public final class StockBalance {
 	}
 
 	/**
+	 * Applies a plain stock exit (UC-M5-03): decreases {@code onHand} only.
+	 * Availability against the negative-stock setting is enforced by the
+	 * caller, which decides whether to allow going negative.
+	 */
+	public StockBalance exit(BigDecimal quantity) {
+		if (quantity == null || quantity.signum() <= 0) {
+			throw new BusinessRuleException("Exit quantity must be positive");
+		}
+		return new StockBalance(id, productId, warehouseId, onHand.subtract(quantity), reserved, inTransit,
+				averageCost);
+	}
+
+	/**
+	 * Fulfills an exit against an existing {@link StockReservation} (UC-M5-03,
+	 * AC4): decreases {@code onHand} and {@code reserved} together, so
+	 * {@code available} is unaffected - the quantity was already carved out of
+	 * it when the reservation was created.
+	 */
+	public StockBalance consumeReserved(BigDecimal quantity) {
+		if (quantity == null || quantity.signum() <= 0) {
+			throw new BusinessRuleException("Exit quantity must be positive");
+		}
+		return new StockBalance(id, productId, warehouseId, onHand.subtract(quantity), reserved.subtract(quantity),
+				inTransit, averageCost);
+	}
+
+	/**
+	 * Applies a manual correction (UC-M5-04, AC2): {@code onHand} reflects
+	 * {@code delta} exactly, positive or negative.
+	 */
+	public StockBalance applyAdjustment(BigDecimal delta) {
+		if (delta == null || delta.signum() == 0) {
+			throw new BusinessRuleException("Adjustment quantityDelta must not be zero");
+		}
+		return new StockBalance(id, productId, warehouseId, onHand.add(delta), reserved, inTransit, averageCost);
+	}
+
+	/**
 	 * Initiates a transfer's outbound leg (UC-M5-05, AC1): moves {@code quantity}
 	 * out of {@code onHand} into {@code inTransit} without touching
 	 * {@code reserved}, so {@code available} ({@code onHand - reserved}) drops

@@ -60,6 +60,9 @@ public class StockMovementJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "origin_reference", nullable = false)
 	private String originReference;
 
+	@Column(name = "justification")
+	private String justification;
+
 	@Column(name = "user_id", nullable = false)
 	private UUID user;
 

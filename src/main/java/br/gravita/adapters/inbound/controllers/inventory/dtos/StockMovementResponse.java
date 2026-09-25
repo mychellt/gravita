@@ -9,12 +9,12 @@ import java.util.UUID;
 
 public record StockMovementResponse(UUID id, StockMovementType type, UUID productId, UUID warehouseId,
 		BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers, String originReference,
-		UUID user, Instant timestamp) {
+		String justification, UUID user, Instant timestamp) {
 
 	public static StockMovementResponse from(StockMovement movement) {
 		return new StockMovementResponse(movement.getId().value(), movement.getType(), movement.getProductId(),
 				movement.getWarehouseId(), movement.getQuantity(), movement.getUnitCost(), movement.getLotCode(),
-				movement.getSerialNumbers(), movement.getOriginReference(), movement.getUser(),
-				movement.getTimestamp());
+				movement.getSerialNumbers(), movement.getOriginReference(), movement.getJustification(),
+				movement.getUser(), movement.getTimestamp());
 	}
 }

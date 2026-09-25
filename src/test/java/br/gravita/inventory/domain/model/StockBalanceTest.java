@@ -78,4 +78,41 @@ class StockBalanceTest {
 		assertThat(afterEntry.getReserved()).isEqualByComparingTo("30");
 		assertThat(afterEntry.getInTransit()).isEqualByComparingTo("5");
 	}
+
+	@Test
+	void exitDecreasesOnHandOnlyAndRejectsAZeroOrNegativeQuantity() {
+		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("10"), BigDecimal.ZERO,
+				new BigDecimal("12.50"));
+
+		StockBalance afterExit = balance.exit(new BigDecimal("40"));
+
+		assertThat(afterExit.getOnHand()).isEqualByComparingTo("60");
+		assertThat(afterExit.getReserved()).isEqualByComparingTo("10");
+		assertThatThrownBy(() -> balance.exit(BigDecimal.ZERO)).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> balance.exit(new BigDecimal("-1"))).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void consumeReservedDecreasesOnHandAndReservedTogetherLeavingAvailableUnchanged() {
+		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
+				new BigDecimal("12.50"));
+
+		StockBalance afterExit = balance.consumeReserved(new BigDecimal("20"));
+
+		assertThat(afterExit.getOnHand()).isEqualByComparingTo("80");
+		assertThat(afterExit.getReserved()).isEqualByComparingTo("10");
+		assertThat(afterExit.available()).isEqualByComparingTo(balance.available());
+	}
+
+	@Test
+	void applyAdjustmentReflectsTheDeltaExactlyWhetherPositiveOrNegative() {
+		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));
+
+		assertThat(balance.applyAdjustment(new BigDecimal("5")).getOnHand()).isEqualByComparingTo("105");
+		assertThat(balance.applyAdjustment(new BigDecimal("-5")).getOnHand()).isEqualByComparingTo("95");
+		assertThatThrownBy(() -> balance.applyAdjustment(BigDecimal.ZERO)).isInstanceOf(BusinessRuleException.class);
+	}
 }

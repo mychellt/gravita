@@ -21,6 +21,7 @@ public interface StockMovementPersistenceMapper {
 				entity.getLotCode(),
 				entity.getSerialNumbers(),
 				entity.getOriginReference(),
+				entity.getJustification(),
 				entity.getUser(),
 				entity.getTimestamp());
 	}
@@ -36,6 +37,7 @@ public interface StockMovementPersistenceMapper {
 				.lotCode(domain.getLotCode())
 				.serialNumbers(domain.getSerialNumbers())
 				.originReference(domain.getOriginReference())
+				.justification(domain.getJustification())
 				.user(domain.getUser())
 				.timestamp(domain.getTimestamp())
 				.build();

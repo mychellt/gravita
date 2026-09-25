@@ -74,7 +74,7 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 		StockMovement movement = StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.ENTRY,
 				command.productId(), command.warehouseId(), command.quantity(), command.unitCost(),
 				lotControl ? command.lot().code() : null, serialControl ? command.serials() : List.of(),
-				command.originReference(), command.user(), Instant.now());
+				command.originReference(), null, command.user(), Instant.now());
 		return stockMovementRepositoryPort.save(movement);
 	}
 

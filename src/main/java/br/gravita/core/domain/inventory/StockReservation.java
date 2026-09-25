@@ -1,5 +1,6 @@
 package br.gravita.core.domain.inventory;
 
+import br.gravita.core.domain.exceptions.BusinessRuleException;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -39,5 +40,13 @@ public final class StockReservation {
 	public static StockReservation create(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
 			BigDecimal quantity) {
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.ACTIVE);
+	}
+
+	/** Fulfills this reservation via a stock exit (UC-M5-03, AC4). */
+	public StockReservation consume() {
+		if (status != StockReservationStatus.ACTIVE) {
+			throw new BusinessRuleException("Reservation " + id.value() + " is not active: " + status);
+		}
+		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.CONSUMED);
 	}
 }

@@ -24,12 +24,13 @@ public final class StockMovement {
 	private final String lotCode;
 	private final List<String> serialNumbers;
 	private final String originReference;
+	private final String justification;
 	private final UUID user;
 	private final Instant timestamp;
 
 	private StockMovement(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
 			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
-			String originReference, UUID user, Instant timestamp) {
+			String originReference, String justification, UUID user, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.type = Objects.requireNonNull(type, "type is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
@@ -39,14 +40,19 @@ public final class StockMovement {
 		this.lotCode = lotCode;
 		this.serialNumbers = serialNumbers == null ? List.of() : List.copyOf(serialNumbers);
 		this.originReference = Objects.requireNonNull(originReference, "originReference is required");
+		this.justification = justification;
 		this.user = Objects.requireNonNull(user, "user is required");
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
+	/**
+	 * {@code justification} is only ever non-null for {@code ADJUSTMENT}
+	 * movements (UC-M5-04, AC4); every other movement type passes {@code null}.
+	 */
 	public static StockMovement of(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
 			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
-			String originReference, UUID user, Instant timestamp) {
+			String originReference, String justification, UUID user, Instant timestamp) {
 		return new StockMovement(id, type, productId, warehouseId, quantity, unitCost, lotCode, serialNumbers,
-				originReference, user, timestamp);
+				originReference, justification, user, timestamp);
 	}
 }

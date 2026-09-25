@@ -67,7 +67,6 @@ class RegisterStockEntryServiceTest {
 	void setUp() {
 		service = new RegisterStockEntryService(stockBalanceRepositoryPort, stockMovementRepositoryPort,
 				lotRepositoryPort, serialUnitRepositoryPort, productRepositoryPort);
-		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
 	@Test
@@ -112,6 +111,7 @@ class RegisterStockEntryServiceTest {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
+		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		StockMovement movement = service.execute(entryCommand(new BigDecimal("10"), new BigDecimal("5.00")));
 

@@ -40,4 +40,14 @@ public final class Lot {
 	public Lot receive(BigDecimal additionalQuantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, quantity.add(additionalQuantity));
 	}
+
+	/** Whether this lot can no longer be allocated to an exit (UC-M5-03, AC1). */
+	public boolean isExpired(LocalDate asOf) {
+		return expiryDate.isBefore(asOf);
+	}
+
+	/** Decrements this lot's quantity when it is allocated to an exit (UC-M5-03). */
+	public Lot issue(BigDecimal quantity) {
+		return new Lot(id, productId, warehouseId, code, expiryDate, this.quantity.subtract(quantity));
+	}
 }

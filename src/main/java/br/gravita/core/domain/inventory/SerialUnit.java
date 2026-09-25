@@ -1,5 +1,6 @@
 package br.gravita.core.domain.inventory;
 
+import br.gravita.core.domain.exceptions.BusinessRuleException;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -26,5 +27,13 @@ public final class SerialUnit {
 
 	public static SerialUnit received(SerialUnitId id, UUID productId, UUID warehouseId, String serialNumber) {
 		return new SerialUnit(id, productId, warehouseId, serialNumber, SerialUnitStatus.IN_STOCK);
+	}
+
+	/** Allocates this unit to an exit (UC-M5-03, AC1); rejects units already issued. */
+	public SerialUnit issue() {
+		if (status != SerialUnitStatus.IN_STOCK) {
+			throw new BusinessRuleException("Serial unit " + serialNumber + " is not in stock: " + status);
+		}
+		return new SerialUnit(id, productId, warehouseId, serialNumber, SerialUnitStatus.ISSUED);
 	}
 }

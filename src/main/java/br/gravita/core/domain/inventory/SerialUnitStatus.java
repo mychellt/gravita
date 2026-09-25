@@ -1,5 +1,6 @@
 package br.gravita.core.domain.inventory;
 
 public enum SerialUnitStatus {
-	IN_STOCK
+	IN_STOCK,
+	ISSUED
 }
