@@ -9,7 +9,7 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
