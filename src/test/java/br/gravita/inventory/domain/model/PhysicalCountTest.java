@@ -53,6 +53,28 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	void approvingAPendingApprovalCountMovesItToApproved() {
+		PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
+				UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL, UUID.randomUUID(), Instant.now(), List.of());
+
+		PhysicalCount approved = pending.approve();
+
+		assertThat(approved.getStatus()).isEqualTo(PhysicalCountStatus.APPROVED);
+	}
+
+	@Test
+	void approvingACountThatIsNotPendingApprovalIsRejected() {
+		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(), List.of());
+		PhysicalCount alreadyApproved = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()),
+				PhysicalCountScope.TOTAL, null, UUID.randomUUID(), PhysicalCountStatus.APPROVED, UUID.randomUUID(),
+				Instant.now(), List.of());
+
+		assertThatThrownBy(inProgress::approve).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(alreadyApproved::approve).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
 	void reconstructingFromPersistenceStillEnforcesTheGroupInvariant() {
 		assertThatThrownBy(() -> PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.PARTIAL_BY_GROUP, null, UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL,

@@ -64,4 +64,18 @@ public final class PhysicalCount {
 		}
 		return productGroupId;
 	}
+
+	/**
+	 * Transitions to {@code APPROVED} (UC-M5-09, AC1). Only a count that has
+	 * had its counted quantities submitted, reaching {@code PENDING_APPROVAL},
+	 * may be approved.
+	 */
+	public PhysicalCount approve() {
+		if (status != PhysicalCountStatus.PENDING_APPROVAL) {
+			throw new BusinessRuleException(
+					"Only a count in PENDING_APPROVAL can be approved; current status is " + status);
+		}
+		return new PhysicalCount(id, scope, productGroupId, warehouseId, PhysicalCountStatus.APPROVED, startedBy,
+				startedAt, lines);
+	}
 }

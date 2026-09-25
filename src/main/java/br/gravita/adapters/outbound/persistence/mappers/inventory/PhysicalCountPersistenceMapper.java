@@ -45,7 +45,7 @@ public interface PhysicalCountPersistenceMapper {
 			return List.of();
 		}
 		return embeddables.stream()
-				.map(e -> new PhysicalCountLine(e.getProductId(), e.getSystemQuantity()))
+				.map(e -> new PhysicalCountLine(e.getProductId(), e.getSystemQuantity(), e.getCountedQuantity()))
 				.toList();
 	}
 
@@ -56,6 +56,7 @@ public interface PhysicalCountPersistenceMapper {
 				.map(line -> PhysicalCountLineEmbeddable.builder()
 						.productId(line.productId())
 						.systemQuantity(line.systemQuantity())
+						.countedQuantity(line.countedQuantity())
 						.build())
 				.collect(Collectors.toCollection(ArrayList::new));
 	}

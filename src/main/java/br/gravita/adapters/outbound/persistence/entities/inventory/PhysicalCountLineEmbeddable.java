@@ -23,4 +23,7 @@ public class PhysicalCountLineEmbeddable {
 
 	@Column(name = "system_quantity", nullable = false, precision = 14, scale = 4)
 	private BigDecimal systemQuantity;
+
+	@Column(name = "counted_quantity", precision = 14, scale = 4)
+	private BigDecimal countedQuantity;
 }
