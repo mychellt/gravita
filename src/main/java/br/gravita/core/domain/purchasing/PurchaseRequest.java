@@ -22,7 +22,8 @@ public final class PurchaseRequest {
 
     public static PurchaseRequest open(PurchaseRequestId id, PurchaseRequestOrigin origin,
                                        List<PurchaseRequestItem> items, UUID requestedBy) {
-        return new PurchaseRequest(id, origin, items, requestedBy, PurchaseRequestStatus.OPEN);
+        return new PurchaseRequest(id, origin, requireNonEmptyItems(items),
+                requireConsistentRequestedBy(origin, requestedBy), PurchaseRequestStatus.OPEN);
     }
 
     public static PurchaseRequest of(PurchaseRequestId id, PurchaseRequestOrigin origin,
