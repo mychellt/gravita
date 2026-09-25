@@ -6,6 +6,8 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.LotJpaRep
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.Lot;
 import br.gravita.core.ports.outbound.persistence.inventory.LotRepositoryPort;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,6 +25,18 @@ class LotRepositoryAdapter implements LotRepositoryPort {
 	@Override
 	public Optional<Lot> findByProductIdAndWarehouseIdAndCode(UUID productId, UUID warehouseId, String code) {
 		return jpaRepository.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, code).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<Lot> findByExpiryDateLessThanEqual(LocalDate cutoffDate) {
+		return jpaRepository.findByExpiryDateLessThanEqual(cutoffDate).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<Lot> findByExpiryDateLessThanEqualAndWarehouseId(LocalDate cutoffDate, UUID warehouseId) {
+		return jpaRepository.findByExpiryDateLessThanEqualAndWarehouseId(cutoffDate, warehouseId).stream()
+				.map(mapper::toDomain)
+				.toList();
 	}
 
 	@Override
