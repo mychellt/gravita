@@ -21,10 +21,6 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DigitalCertificate;
 import br.gravita.core.domain.masterdata.DocumentSeries;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
-import br.gravita.core.domain.masterdata.MaxDiscountBehavior;
-import br.gravita.core.domain.masterdata.PriceFormation;
-import br.gravita.core.domain.masterdata.PriceTable;
-import br.gravita.core.domain.masterdata.PriceTableId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.Document;
@@ -34,37 +30,43 @@ import br.gravita.core.domain.tax.TaxType;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
-import br.gravita.core.ports.outbound.persistence.PriceTableRepositoryPort;
+import com.sun.net.httpserver.HttpServer;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * GRA-91/GRA-92: end-to-end verification of RegisterNfceSaleUseCase +
- * IssueNfceUseCase (POST /api/pdv/sales) through the real HTTP stack. Every
- * successful registration now also attempts issuance (module spec: one
- * shared endpoint), which always lands in contingency here - the default
- * SEFAZ base URL is an RFC 2606 reserved, never-resolvable domain, so no real
- * network access is required for a deterministic "SEFAZ unavailable" result.
+ * GRA-92 AC1: end-to-end verification that a reachable SEFAZ-UF authorizes
+ * the sale in real time through the real HTTP stack, via a local stand-in
+ * server (no real SEFAZ access from a test). The complementary "unavailable"
+ * path (AC2) is already exercised deterministically by
+ * {@code RegisterNfceSaleEndToEndTest}, which relies on the adapter's default
+ * (never-resolvable) SEFAZ base URL.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
-class RegisterNfceSaleEndToEndTest {
+class IssueNfceEndToEndTest {
 
 	private static final String NCM = "85171231";
+	private static HttpServer mockSefazServer;
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -74,9 +76,6 @@ class RegisterNfceSaleEndToEndTest {
 
 	@Autowired
 	private NfceSaleJpaRepository nfceSaleJpaRepository;
-
-	@Autowired
-	private PriceTableRepositoryPort priceTableRepositoryPort;
 
 	@Autowired
 	private CompanyRepositoryPort companyRepositoryPort;
@@ -96,6 +95,29 @@ class RegisterNfceSaleEndToEndTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	@DynamicPropertySource
+	static void sefazBaseUrl(DynamicPropertyRegistry registry) throws Exception {
+		mockSefazServer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+		mockSefazServer.createContext("/nfce/autorizacao", exchange -> {
+			byte[] body = "{\"protocol\":\"protocol-e2e-1\"}".getBytes(StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().add("Content-Type", "application/json");
+			exchange.sendResponseHeaders(200, body.length);
+			try (OutputStream out = exchange.getResponseBody()) {
+				out.write(body);
+			}
+		});
+		mockSefazServer.start();
+		int port = mockSefazServer.getAddress().getPort();
+		registry.add("gravita.sefaz.base-url.homologation", () -> "http://localhost:" + port);
+	}
+
+	@AfterAll
+	static void stopServer() {
+		if (mockSefazServer != null) {
+			mockSefazServer.stop(0);
+		}
+	}
+
 	@BeforeEach
 	void seedIssuanceInfrastructure() throws Exception {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
@@ -106,96 +128,24 @@ class RegisterNfceSaleEndToEndTest {
 				.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFCE).reconfigure("001", 1L));
 		certificateStoragePort.save(DigitalCertificate.upload(companyId, CertificateType.A1, loadCertificateFixture(),
 				"gravita-test-pass", Instant.now().plusSeconds(3600)));
-		taxRateRuleJpaRepository.save(taxRateRule());
+		TaxRateRuleJpaEntity rule = TaxRateRuleJpaEntity.builder()
+				.id(UUID.randomUUID())
+				.ncm(NCM)
+				.originState("SP")
+				.destinationState("SP")
+				.regime(br.gravita.core.domain.tax.TaxRegime.SIMPLES_NACIONAL)
+				.operationType("VENDA_PDV")
+				.taxType(TaxType.ICMS)
+				.ratePercentage(new BigDecimal("18.0000"))
+				.baseReductionPercentage(BigDecimal.ZERO)
+				.mvaPercentage(BigDecimal.ZERO)
+				.build();
+		rule.setNew(true);
+		taxRateRuleJpaRepository.save(rule);
 	}
 
 	@Test
-	void ac1and3and4_registersASaleWithMultiplePaymentsAndDerivesChange() throws Exception {
-		UUID sessionId = seedOpenSession();
-		UUID productId = seedProduct();
-
-		String response = mockMvc.perform(post("/api/pdv/sales")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{
-								  "sessionId": "%s",
-								  "items": [ { "productId": "%s", "quantity": 1, "unitPrice": 80.00 } ],
-								  "payments": [
-								    { "method": "CASH", "amount": 50.00 },
-								    { "method": "CREDIT_CARD", "amount": 32.00 }
-								  ]
-								}
-								""".formatted(sessionId, productId)))
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.id").exists())
-				.andReturn().getResponse().getContentAsString();
-
-		UUID saleId = UUID.fromString(objectMapper.readTree(response).get("id").asString());
-		NfceSaleJpaEntity persisted = nfceSaleJpaRepository.findById(saleId).orElseThrow();
-		assertThat(persisted.getStatus()).isEqualTo(NfceSaleStatus.PENDING_SYNC);
-		assertThat(persisted.isContingencyMode()).isTrue();
-		assertThat(persisted.getAccessKey()).hasSize(44);
-		assertThat(persisted.getPayments()).hasSize(2);
-		assertThat(persisted.getChangeGiven()).isEqualByComparingTo("2.00");
-	}
-
-	@Test
-	void ac2_anItemDiscountExceedingTheLinkedPriceTablesBlockCapIsRejected() throws Exception {
-		UUID sessionId = seedOpenSession();
-		UUID priceTableId = seedPriceTable("5", MaxDiscountBehavior.BLOCK);
-		UUID productId = seedProduct();
-
-		mockMvc.perform(post("/api/pdv/sales")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{
-								  "sessionId": "%s",
-								  "priceTableId": "%s",
-								  "items": [ { "productId": "%s", "quantity": 1, "unitPrice": 100.00, "itemDiscount": 20.00 } ],
-								  "payments": [ { "method": "CASH", "amount": 80.00 } ]
-								}
-								""".formatted(sessionId, priceTableId, productId)))
-				.andExpect(status().isConflict());
-	}
-
-	@Test
-	void ac2_anItemDiscountExceedingTheLinkedPriceTablesAlertCapStillRegistersTheSale() throws Exception {
-		UUID sessionId = seedOpenSession();
-		UUID priceTableId = seedPriceTable("5", MaxDiscountBehavior.ALERT);
-		UUID productId = seedProduct();
-
-		mockMvc.perform(post("/api/pdv/sales")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{
-								  "sessionId": "%s",
-								  "priceTableId": "%s",
-								  "items": [ { "productId": "%s", "quantity": 1, "unitPrice": 100.00, "itemDiscount": 20.00 } ],
-								  "payments": [ { "method": "CASH", "amount": 80.00 } ]
-								}
-								""".formatted(sessionId, priceTableId, productId)))
-				.andExpect(status().isCreated());
-	}
-
-	@Test
-	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() throws Exception {
-		UUID sessionId = seedOpenSession();
-		UUID productId = seedProduct();
-
-		mockMvc.perform(post("/api/pdv/sales")
-						.contentType(MediaType.APPLICATION_JSON)
-						.content("""
-								{
-								  "sessionId": "%s",
-								  "items": [ { "productId": "%s", "quantity": 1, "unitPrice": 50.00 } ],
-								  "payments": [ { "method": "CASH", "amount": 40.00 } ]
-								}
-								""".formatted(sessionId, productId)))
-				.andExpect(status().isConflict());
-	}
-
-	@Test
-	void ac6_aTypedCustomerCpfIsAccepted() throws Exception {
+	void ac1_aReachableSefazAuthorizesTheSaleInRealTimeWithTheProtocol() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID productId = seedProduct();
 
@@ -205,15 +155,21 @@ class RegisterNfceSaleEndToEndTest {
 								{
 								  "sessionId": "%s",
 								  "items": [ { "productId": "%s", "quantity": 1, "unitPrice": 10.00 } ],
-								  "payments": [ { "method": "CASH", "amount": 10.00 } ],
-								  "customerCpf": "529.982.247-25"
+								  "payments": [ { "method": "CASH", "amount": 10.00 } ]
 								}
 								""".formatted(sessionId, productId)))
 				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.status").value("AUTHORIZED"))
+				.andExpect(jsonPath("$.protocol").value("protocol-e2e-1"))
+				.andExpect(jsonPath("$.accessKey").exists())
 				.andReturn().getResponse().getContentAsString();
 
 		UUID saleId = UUID.fromString(objectMapper.readTree(response).get("id").asString());
-		assertThat(nfceSaleJpaRepository.findById(saleId).orElseThrow().getCustomerCpf()).isEqualTo("52998224725");
+		NfceSaleJpaEntity persisted = nfceSaleJpaRepository.findById(saleId).orElseThrow();
+		assertThat(persisted.getStatus()).isEqualTo(NfceSaleStatus.AUTHORIZED);
+		assertThat(persisted.isContingencyMode()).isFalse();
+		assertThat(persisted.getSefazProtocol()).isEqualTo("protocol-e2e-1");
+		assertThat(persisted.getAccessKey()).hasSize(44);
 	}
 
 	private UUID seedOpenSession() {
@@ -227,13 +183,6 @@ class RegisterNfceSaleEndToEndTest {
 				.openedAt(Instant.now())
 				.build());
 		return sessionId;
-	}
-
-	private UUID seedPriceTable(String maxDiscountPercent, MaxDiscountBehavior behavior) {
-		PriceTable priceTable = priceTableRepositoryPort.save(PriceTable.of(PriceTableId.of(UUID.randomUUID()),
-				PriceFormation.FIXED, LocalDate.now().minusDays(1), null, new BigDecimal(maxDiscountPercent), behavior,
-				List.of()));
-		return priceTable.getId().value();
 	}
 
 	private UUID seedProduct() {
@@ -250,23 +199,6 @@ class RegisterNfceSaleEndToEndTest {
 		entity.setNew(true);
 		productJpaRepository.save(entity);
 		return productId;
-	}
-
-	private TaxRateRuleJpaEntity taxRateRule() {
-		TaxRateRuleJpaEntity entity = TaxRateRuleJpaEntity.builder()
-				.id(UUID.randomUUID())
-				.ncm(NCM)
-				.originState("SP")
-				.destinationState("SP")
-				.regime(br.gravita.core.domain.tax.TaxRegime.SIMPLES_NACIONAL)
-				.operationType("VENDA_PDV")
-				.taxType(TaxType.ICMS)
-				.ratePercentage(new BigDecimal("18.0000"))
-				.baseReductionPercentage(BigDecimal.ZERO)
-				.mvaPercentage(BigDecimal.ZERO)
-				.build();
-		entity.setNew(true);
-		return entity;
 	}
 
 	private byte[] loadCertificateFixture() throws Exception {

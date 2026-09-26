@@ -119,4 +119,41 @@ class NfceSaleTest {
 				List.of(oneUnitAt("10.00")), null, List.of(), null, Instant.now()))
 				.isInstanceOf(BusinessRuleException.class);
 	}
+
+	private NfceSale draftSale() {
+		return NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")), null,
+				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
+	}
+
+	@Test
+	void ac1_authorizingADraftSaleMovesItToAuthorizedWithTheSefazProtocol() {
+		NfceSale sale = draftSale();
+
+		NfceSale authorized = sale.authorize("001", 42L, "35" + "0".repeat(42), "protocol-123");
+
+		assertThat(authorized.getStatus()).isEqualTo(NfceSaleStatus.AUTHORIZED);
+		assertThat(authorized.getDocumentSeries()).isEqualTo("001");
+		assertThat(authorized.getDocumentNumber()).isEqualTo(42L);
+		assertThat(authorized.getSefazProtocol()).isEqualTo("protocol-123");
+		assertThat(authorized.isContingencyMode()).isFalse();
+	}
+
+	@Test
+	void ac2_queuingADraftSaleForContingencyMovesItToPendingSyncWithNoProtocol() {
+		NfceSale sale = draftSale();
+
+		NfceSale queued = sale.queueForContingency("001", 43L, "35" + "0".repeat(42));
+
+		assertThat(queued.getStatus()).isEqualTo(NfceSaleStatus.PENDING_SYNC);
+		assertThat(queued.isContingencyMode()).isTrue();
+		assertThat(queued.getSefazProtocol()).isNull();
+	}
+
+	@Test
+	void anAlreadyAuthorizedSaleCannotBeIssuedAgain() {
+		NfceSale authorized = draftSale().authorize("001", 1L, "35" + "0".repeat(42), "protocol-1");
+
+		assertThatThrownBy(() -> authorized.authorize("001", 2L, "35" + "0".repeat(42), "protocol-2"))
+				.isInstanceOf(BusinessRuleException.class);
+	}
 }

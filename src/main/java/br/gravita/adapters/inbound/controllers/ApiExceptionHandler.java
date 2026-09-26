@@ -4,6 +4,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.exceptions.UnauthorizedException;
+import br.gravita.core.domain.tax.TaxDomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -41,6 +42,11 @@ public class ApiExceptionHandler {
 
 	@ExceptionHandler(br.gravita.core.domain.shared.BusinessRuleException.class)
 	public ResponseEntity<String> handleSharedBusinessRuleViolation(br.gravita.core.domain.shared.BusinessRuleException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+	}
+
+	@ExceptionHandler(TaxDomainException.class)
+	public ResponseEntity<String> handleTaxDomainViolation(TaxDomainException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 }

@@ -52,6 +52,21 @@ public class NfceSaleJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "registered_at", nullable = false)
 	private Instant registeredAt;
 
+	@Column(name = "document_series", length = 3)
+	private String documentSeries;
+
+	@Column(name = "document_number")
+	private Long documentNumber;
+
+	@Column(name = "access_key", length = 44)
+	private String accessKey;
+
+	@Column(name = "sefaz_protocol")
+	private String sefazProtocol;
+
+	@Column(name = "contingency_mode", nullable = false)
+	private boolean contingencyMode;
+
 	@ElementCollection
 	@CollectionTable(name = "nfce_sale_items", joinColumns = @JoinColumn(name = "nfce_sale_id"))
 	private List<SaleItemEmbeddable> items;

@@ -28,7 +28,12 @@ public interface NfceSalePersistenceMapper {
 				entity.getChangeGiven(),
 				entity.getCustomerCpf(),
 				entity.getStatus(),
-				entity.getRegisteredAt());
+				entity.getRegisteredAt(),
+				entity.getDocumentSeries(),
+				entity.getDocumentNumber(),
+				entity.getAccessKey(),
+				entity.getSefazProtocol(),
+				entity.isContingencyMode());
 	}
 
 	default NfceSaleJpaEntity toEntity(final NfceSale domain) {
@@ -40,6 +45,11 @@ public interface NfceSalePersistenceMapper {
 				.customerCpf(domain.getCustomerCpf())
 				.status(domain.getStatus())
 				.registeredAt(domain.getCreatedAt())
+				.documentSeries(domain.getDocumentSeries())
+				.documentNumber(domain.getDocumentNumber())
+				.accessKey(domain.getAccessKey())
+				.sefazProtocol(domain.getSefazProtocol())
+				.contingencyMode(domain.isContingencyMode())
 				.items(toItemEmbeddables(domain.getItems()))
 				.payments(toPaymentEmbeddables(domain.getPayments()))
 				.build();

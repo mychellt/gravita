@@ -29,10 +29,16 @@ public final class NfceSale {
 	private final String customerCpf;
 	private final NfceSaleStatus status;
 	private final Instant createdAt;
+	private final String documentSeries;
+	private final Long documentNumber;
+	private final String accessKey;
+	private final String sefazProtocol;
+	private final boolean contingencyMode;
 
 	private NfceSale(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
 			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
-			Instant createdAt) {
+			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
+			boolean contingencyMode) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.sessionId = Objects.requireNonNull(sessionId, "sessionId is required");
 		this.items = requireNonEmptyItems(items);
@@ -42,6 +48,11 @@ public final class NfceSale {
 		this.customerCpf = normalizeCpf(customerCpf);
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+		this.documentSeries = documentSeries;
+		this.documentNumber = documentNumber;
+		this.accessKey = accessKey;
+		this.sefazProtocol = sefazProtocol;
+		this.contingencyMode = contingencyMode;
 	}
 
 	/**
@@ -65,7 +76,7 @@ public final class NfceSale {
 		}
 		BigDecimal changeGiven = paymentsSum.subtract(saleTotal);
 		return new NfceSale(id, sessionId, items, normalizedDiscount, payments, changeGiven, customerCpf,
-				NfceSaleStatus.DRAFT, createdAt);
+				NfceSaleStatus.DRAFT, createdAt, null, null, null, null, false);
 	}
 
 	/**
@@ -73,8 +84,51 @@ public final class NfceSale {
 	 */
 	public static NfceSale of(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
 			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
-			Instant createdAt) {
-		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf, status, createdAt);
+			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
+			boolean contingencyMode) {
+		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf, status, createdAt,
+				documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode);
+	}
+
+	/**
+	 * UC-M3-04, online path: SEFAZ-UF authorized the document in real time
+	 * (AC1). Only a {@code DRAFT} sale can be issued — re-issuing an
+	 * already-decided sale would allocate a second document number for the
+	 * same commercial transaction.
+	 */
+	public NfceSale authorize(String documentSeries, Long documentNumber, String accessKey, String sefazProtocol) {
+		requireDraft();
+		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
+				NfceSaleStatus.AUTHORIZED, createdAt, requireText(documentSeries, "documentSeries"),
+				Objects.requireNonNull(documentNumber, "documentNumber is required"),
+				Objects.requireNonNull(accessKey, "accessKey is required"), requireText(sefazProtocol, "sefazProtocol"),
+				false);
+	}
+
+	/**
+	 * UC-M3-04, contingency path (AC2): SEFAZ-UF was unreachable, so the sale
+	 * is numbered and flagged for a later sync (UC-08) instead of blocking the
+	 * cashier. No protocol is available yet.
+	 */
+	public NfceSale queueForContingency(String documentSeries, Long documentNumber, String accessKey) {
+		requireDraft();
+		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
+				NfceSaleStatus.PENDING_SYNC, createdAt, requireText(documentSeries, "documentSeries"),
+				Objects.requireNonNull(documentNumber, "documentNumber is required"),
+				Objects.requireNonNull(accessKey, "accessKey is required"), null, true);
+	}
+
+	private void requireDraft() {
+		if (status != NfceSaleStatus.DRAFT) {
+			throw new BusinessRuleException("NfceSale " + id.value() + " is not DRAFT (current status: " + status + ")");
+		}
+	}
+
+	private static String requireText(String value, String field) {
+		if (value == null || value.isBlank()) {
+			throw new BusinessRuleException(field + " is required");
+		}
+		return value;
 	}
 
 	public BigDecimal getSaleTotal() {

@@ -36,7 +36,7 @@ public class DigitalCertificateJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false, length = 10)
 	private CertificateType type;
 
-	@Column(name = "encrypted_pfx_payload", nullable = false)
+	@Column(name = "encrypted_pfx_payload", nullable = false, columnDefinition = "bytea")
 	private byte[] encryptedPfxPayload;
 
 	@Column(name = "encrypted_password", nullable = false, columnDefinition = "text")

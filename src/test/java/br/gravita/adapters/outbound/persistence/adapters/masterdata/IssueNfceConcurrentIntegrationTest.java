@@ -1,0 +1,169 @@
+package br.gravita.adapters.outbound.persistence.adapters.masterdata;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import br.gravita.adapters.outbound.persistence.entities.masterdata.CompanyJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.DocumentSeriesPersistenceMapperImpl;
+import br.gravita.core.domain.PaymentMethodType;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.DocumentSeries;
+import br.gravita.core.domain.masterdata.FiscalDocumentType;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.tax.NfceSale;
+import br.gravita.core.domain.tax.NfceSaleId;
+import br.gravita.core.domain.tax.Payment;
+import br.gravita.core.domain.tax.PosSessionId;
+import br.gravita.core.domain.tax.SaleItem;
+import br.gravita.core.domain.tax.SefazUnavailableException;
+import br.gravita.core.ports.inbound.tax.IssueNfceCommand;
+import br.gravita.core.ports.inbound.tax.NfceIssuanceResult;
+import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
+import br.gravita.core.usercases.AllocateDocumentNumberService;
+import br.gravita.core.usercases.tax.IssueNfceService;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.context.annotation.Import;
+
+/**
+ * GRA-92 AC4: two racing UC-04 issuances against the same company/NFCE series
+ * must never return the same document number. Drives the real
+ * {@code AllocateDocumentNumberService} through {@code IssueNfceService}
+ * exactly as the shared REST endpoint would, the same "stale snapshot"
+ * simulation {@code AllocateDocumentNumberConcurrentIntegrationTest} (GRA-31)
+ * uses instead of real threads.
+ */
+@DataJpaTest
+@Import({DocumentSeriesRepositoryAdapter.class, DocumentSeriesPersistenceMapperImpl.class})
+class IssueNfceConcurrentIntegrationTest {
+
+	@Autowired
+	private DocumentSeriesRepositoryAdapter repositoryAdapter;
+
+	@Autowired
+	private TestEntityManager entityManager;
+
+	@Test
+	void twoRacingIssuancesNeverAllocateTheSameDocumentNumber() {
+		CompanyId companyId = persistCompany();
+		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFCE).reconfigure("001", 700L));
+		entityManager.flush();
+		entityManager.clear();
+
+		DocumentSeries staleSnapshot = repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFCE)
+				.orElseThrow();
+		DocumentSeriesRepositoryPort racingPort = racingPortFor(staleSnapshot);
+
+		IssueNfceService winnerService = issueServiceFor(companyId, repositoryAdapter);
+		IssueNfceService loserService = issueServiceFor(companyId, racingPort);
+
+		NfceIssuanceResult winnerResult = winnerService.execute(new IssueNfceCommand(UUID.randomUUID()));
+		entityManager.flush();
+		entityManager.clear();
+
+		NfceIssuanceResult loserResult = loserService.execute(new IssueNfceCommand(UUID.randomUUID()));
+
+		String winnerNumber = winnerResult.accessKey().substring(25, 34);
+		String loserNumber = loserResult.accessKey().substring(25, 34);
+		assertThat(winnerNumber).isEqualTo("000000700");
+		assertThat(loserNumber).isEqualTo("000000701");
+		assertThat(loserNumber).isNotEqualTo(winnerNumber);
+	}
+
+	private IssueNfceService issueServiceFor(CompanyId companyId, DocumentSeriesRepositoryPort documentSeriesPort) {
+		return new IssueNfceService(fakeNfceRepositoryPort(), fakeCompanyRepositoryPort(companyId),
+				command -> new br.gravita.core.ports.inbound.tax.TaxCalculationResult(List.of(),
+						br.gravita.core.domain.tax.TaxCalculationTotals.from(List.of())),
+				new AllocateDocumentNumberService(documentSeriesPort),
+				request -> {
+					throw new SefazUnavailableException("no SEFAZ in this test", null);
+				}, saleId -> {
+				});
+	}
+
+	private NfceRepositoryPort fakeNfceRepositoryPort() {
+		return new NfceRepositoryPort() {
+			@Override
+			public NfceSale save(NfceSale sale) {
+				return sale;
+			}
+
+			@Override
+			public Optional<NfceSale> findById(NfceSaleId id) {
+				SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+				return Optional.of(NfceSale.register(id, PosSessionId.of(UUID.randomUUID()), List.of(item), null,
+						List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now()));
+			}
+		};
+	}
+
+	private br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort fakeCompanyRepositoryPort(CompanyId companyId) {
+		Company company = Company.of(companyId, br.gravita.core.domain.shared.Document.cnpj("11222333000181"),
+				"123456789", "987654", "6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
+				"Rua Teste, 100", "nfce@example.com", "11999999999", null, null);
+		return new br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort() {
+			@Override
+			public Company save(Company c) {
+				return c;
+			}
+
+			@Override
+			public Optional<Company> findById(CompanyId id) {
+				return Optional.of(company);
+			}
+
+			@Override
+			public List<Company> findAll() {
+				return List.of(company);
+			}
+		};
+	}
+
+	private DocumentSeriesRepositoryPort racingPortFor(DocumentSeries staleSnapshot) {
+		return new DocumentSeriesRepositoryPort() {
+			private boolean firstRead = true;
+
+			@Override
+			public DocumentSeries save(DocumentSeries documentSeries) {
+				return repositoryAdapter.save(documentSeries);
+			}
+
+			@Override
+			public Optional<DocumentSeries> findByCompanyIdAndDocumentType(CompanyId companyId,
+					FiscalDocumentType documentType) {
+				if (firstRead) {
+					firstRead = false;
+					return Optional.of(staleSnapshot);
+				}
+				return repositoryAdapter.findByCompanyIdAndDocumentType(companyId, documentType);
+			}
+		};
+	}
+
+	private CompanyId persistCompany() {
+		UUID id = UUID.randomUUID();
+		entityManager.persist(CompanyJpaEntity.builder()
+				.id(id)
+				.cnpj(UUID.randomUUID().toString().substring(0, 14))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.build());
+		return CompanyId.of(id);
+	}
+}
