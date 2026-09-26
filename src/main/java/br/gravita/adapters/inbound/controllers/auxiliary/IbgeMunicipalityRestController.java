@@ -1,4 +1,4 @@
-package br.gravita.adapters.inbound.controllers;
+package br.gravita.adapters.inbound.controllers.auxiliary;
 
 import br.gravita.adapters.dtos.request.IbgeMunicipalityImportRequest;
 import br.gravita.adapters.dtos.response.IbgeMunicipalityResponse;
