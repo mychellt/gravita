@@ -1,0 +1,24 @@
+package br.gravita.adapters.outbound.persistence.adapters.tax;
+
+import br.gravita.adapters.outbound.persistence.mappers.tax.CashMovementPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.tax.CashMovementJpaRepository;
+import br.gravita.core.annotations.PersistenceAdapter;
+import br.gravita.core.domain.tax.CashMovement;
+import br.gravita.core.ports.outbound.persistence.tax.CashMovementRepositoryPort;
+
+@PersistenceAdapter
+class CashMovementRepositoryAdapter implements CashMovementRepositoryPort {
+
+	private final CashMovementJpaRepository jpaRepository;
+	private final CashMovementPersistenceMapper mapper;
+
+	CashMovementRepositoryAdapter(CashMovementJpaRepository jpaRepository, CashMovementPersistenceMapper mapper) {
+		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
+	}
+
+	@Override
+	public CashMovement save(CashMovement cashMovement) {
+		return mapper.toDomain(jpaRepository.save(mapper.toEntity(cashMovement)));
+	}
+}
