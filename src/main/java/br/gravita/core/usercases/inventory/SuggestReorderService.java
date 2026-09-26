@@ -6,6 +6,7 @@ import br.gravita.core.domain.inventory.StockBalance;
 import br.gravita.core.ports.inbound.inventory.ReorderSuggestion;
 import br.gravita.core.ports.inbound.inventory.SuggestReorderQuery;
 import br.gravita.core.ports.inbound.inventory.SuggestReorderUseCase;
+import br.gravita.core.ports.outbound.inventory.NotifyLowStockPort;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 
@@ -17,11 +18,13 @@ public class SuggestReorderService implements SuggestReorderUseCase {
 
 	private final StockBalanceRepositoryPort stockBalanceRepositoryPort;
 	private final ProductRepositoryPort productRepositoryPort;
+	private final NotifyLowStockPort notifyLowStockPort;
 
 	public SuggestReorderService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			ProductRepositoryPort productRepositoryPort) {
+			ProductRepositoryPort productRepositoryPort, NotifyLowStockPort notifyLowStockPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.productRepositoryPort = productRepositoryPort;
+		this.notifyLowStockPort = notifyLowStockPort;
 	}
 
 	@Override
@@ -30,7 +33,10 @@ public class SuggestReorderService implements SuggestReorderUseCase {
 				? stockBalanceRepositoryPort.findByWarehouseId(query.warehouseId())
 				: stockBalanceRepositoryPort.findAll();
 
-		return balances.stream().map(this::toSuggestion).flatMap(Optional::stream).toList();
+		List<ReorderSuggestion> suggestions = balances.stream().map(this::toSuggestion).flatMap(Optional::stream)
+				.toList();
+		notifyLowStockPort.notify(suggestions);
+		return suggestions;
 	}
 
 	/**

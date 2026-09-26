@@ -6,8 +6,11 @@ import br.gravita.adapters.outbound.persistence.repositories.purchasing.Purchase
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.purchasing.PurchaseRequest;
 import br.gravita.core.domain.purchasing.PurchaseRequestId;
+import br.gravita.core.domain.purchasing.PurchaseRequestOrigin;
+import br.gravita.core.domain.purchasing.PurchaseRequestStatus;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepositoryPort;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class PurchaseRequestRepositoryAdapter implements PurchaseRequestRepositoryPort {
@@ -31,5 +34,10 @@ class PurchaseRequestRepositoryAdapter implements PurchaseRequestRepositoryPort 
 	@Override
 	public Optional<PurchaseRequest> findById(PurchaseRequestId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public boolean existsOpenByOriginAndProductId(PurchaseRequestOrigin origin, UUID productId) {
+		return jpaRepository.existsByOriginAndStatusAndItems_ProductId(origin, PurchaseRequestStatus.OPEN, productId);
 	}
 }

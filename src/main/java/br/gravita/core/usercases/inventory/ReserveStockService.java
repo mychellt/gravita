@@ -17,11 +17,14 @@ public class ReserveStockService implements ReserveStockUseCase {
 
 	private final StockBalanceRepositoryPort stockBalanceRepositoryPort;
 	private final StockReservationRepositoryPort stockReservationRepositoryPort;
+	private final LowStockReorderTrigger lowStockReorderTrigger;
 
 	public ReserveStockService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockReservationRepositoryPort stockReservationRepositoryPort) {
+			StockReservationRepositoryPort stockReservationRepositoryPort,
+			LowStockReorderTrigger lowStockReorderTrigger) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockReservationRepositoryPort = stockReservationRepositoryPort;
+		this.lowStockReorderTrigger = lowStockReorderTrigger;
 	}
 
 	@Override
@@ -37,6 +40,8 @@ public class ReserveStockService implements ReserveStockUseCase {
 
 		StockReservation reservation = StockReservation.create(StockReservationId.of(UUID.randomUUID()),
 				command.orderRef(), command.productId(), command.warehouseId(), command.quantity());
-		return stockReservationRepositoryPort.save(reservation);
+		StockReservation saved = stockReservationRepositoryPort.save(reservation);
+		lowStockReorderTrigger.evaluate(command.warehouseId());
+		return saved;
 	}
 }

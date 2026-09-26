@@ -1,6 +1,7 @@
 package br.gravita.inventory.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.gravita.core.domain.ProductDomain;
@@ -9,6 +10,7 @@ import br.gravita.core.domain.inventory.StockBalance;
 import br.gravita.core.domain.inventory.StockBalanceId;
 import br.gravita.core.ports.inbound.inventory.ReorderSuggestion;
 import br.gravita.core.ports.inbound.inventory.SuggestReorderQuery;
+import br.gravita.core.ports.outbound.inventory.NotifyLowStockPort;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 import br.gravita.core.usercases.inventory.SuggestReorderService;
@@ -19,6 +21,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,6 +34,9 @@ class SuggestReorderServiceTest {
 	@Mock
 	private ProductRepositoryPort productRepositoryPort;
 
+	@Mock
+	private NotifyLowStockPort notifyLowStockPort;
+
 	private SuggestReorderService service;
 
 	private final UUID productId = UUID.randomUUID();
@@ -38,7 +44,7 @@ class SuggestReorderServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new SuggestReorderService(stockBalanceRepositoryPort, productRepositoryPort);
+		service = new SuggestReorderService(stockBalanceRepositoryPort, productRepositoryPort, notifyLowStockPort);
 	}
 
 	@Test
@@ -112,6 +118,30 @@ class SuggestReorderServiceTest {
 		List<ReorderSuggestion> suggestions = service.execute(new SuggestReorderQuery(warehouseId));
 
 		assertThat(suggestions).hasSize(1);
+	}
+
+	@Test
+	void ac4NotifiesLowStockPortWithTheProducedSuggestions() {
+		StockBalance balance = balanceOf("15");
+		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
+		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
+
+		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+
+		ArgumentCaptor<List<ReorderSuggestion>> captor = ArgumentCaptor.forClass(List.class);
+		verify(notifyLowStockPort).notify(captor.capture());
+		assertThat(captor.getValue()).isEqualTo(suggestions);
+	}
+
+	@Test
+	void ac4NotifiesLowStockPortWithAnEmptyListWhenNoSuggestionIsProduced() {
+		StockBalance balance = balanceOf("21");
+		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
+		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
+
+		service.execute(SuggestReorderQuery.fullSweep());
+
+		verify(notifyLowStockPort).notify(List.of());
 	}
 
 	private StockBalance balanceOf(String onHand) {

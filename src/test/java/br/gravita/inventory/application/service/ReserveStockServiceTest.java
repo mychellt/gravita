@@ -15,6 +15,7 @@ import br.gravita.core.domain.inventory.StockReservationStatus;
 import br.gravita.core.ports.inbound.inventory.ReserveStockCommand;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
+import br.gravita.core.usercases.inventory.LowStockReorderTrigger;
 import br.gravita.core.usercases.inventory.ReserveStockService;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -35,6 +36,9 @@ class ReserveStockServiceTest {
 	@Mock
 	private StockReservationRepositoryPort stockReservationRepositoryPort;
 
+	@Mock
+	private LowStockReorderTrigger lowStockReorderTrigger;
+
 	private ReserveStockService service;
 
 	private final UUID orderRef = UUID.randomUUID();
@@ -43,7 +47,8 @@ class ReserveStockServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new ReserveStockService(stockBalanceRepositoryPort, stockReservationRepositoryPort);
+		service = new ReserveStockService(stockBalanceRepositoryPort, stockReservationRepositoryPort,
+				lowStockReorderTrigger);
 	}
 
 	@Test
@@ -105,5 +110,18 @@ class ReserveStockServiceTest {
 		assertThat(reservation.getWarehouseId()).isEqualTo(warehouseId);
 		assertThat(reservation.getQuantity()).isEqualByComparingTo("15");
 		assertThat(reservation.getStatus()).isEqualTo(StockReservationStatus.ACTIVE);
+	}
+
+	@Test
+	void evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulReservation() {
+		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("5.00"));
+		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
+				.thenReturn(Optional.of(balance));
+		when(stockReservationRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(new ReserveStockCommand(orderRef, productId, warehouseId, new BigDecimal("15")));
+
+		verify(lowStockReorderTrigger).evaluate(warehouseId);
 	}
 }

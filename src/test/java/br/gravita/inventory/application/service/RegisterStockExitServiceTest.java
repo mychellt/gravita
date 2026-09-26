@@ -23,6 +23,7 @@ import br.gravita.core.ports.outbound.persistence.inventory.SerialUnitRepository
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockMovementRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
+import br.gravita.core.usercases.inventory.LowStockReorderTrigger;
 import br.gravita.core.usercases.inventory.RegisterStockExitService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -54,6 +55,9 @@ class RegisterStockExitServiceTest {
 	@Mock
 	private StockReservationRepositoryPort stockReservationRepositoryPort;
 
+	@Mock
+	private LowStockReorderTrigger lowStockReorderTrigger;
+
 	private RegisterStockExitService service;
 
 	private final UUID productId = UUID.randomUUID();
@@ -63,7 +67,7 @@ class RegisterStockExitServiceTest {
 	@BeforeEach
 	void setUp() {
 		service = new RegisterStockExitService(stockBalanceRepositoryPort, stockMovementRepositoryPort,
-				lotRepositoryPort, serialUnitRepositoryPort, stockReservationRepositoryPort);
+				lotRepositoryPort, serialUnitRepositoryPort, stockReservationRepositoryPort, lowStockReorderTrigger);
 	}
 
 	private RegisterStockExitCommand exitCommand(BigDecimal quantity) {
@@ -172,6 +176,17 @@ class RegisterStockExitServiceTest {
 
 		assertThat(movement.getQuantity()).isEqualByComparingTo("25");
 		assertThat(movement.getType().name()).isEqualTo("EXIT");
+	}
+
+	@Test
+	void ac5_evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulExit() {
+		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
+				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
+		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(exitCommand(new BigDecimal("25")));
+
+		verify(lowStockReorderTrigger).evaluate(warehouseId);
 	}
 
 	@Test

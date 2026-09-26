@@ -33,16 +33,19 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 	private final LotRepositoryPort lotRepositoryPort;
 	private final SerialUnitRepositoryPort serialUnitRepositoryPort;
 	private final StockReservationRepositoryPort stockReservationRepositoryPort;
+	private final LowStockReorderTrigger lowStockReorderTrigger;
 
 	public RegisterStockExitService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
 			StockMovementRepositoryPort stockMovementRepositoryPort, LotRepositoryPort lotRepositoryPort,
 			SerialUnitRepositoryPort serialUnitRepositoryPort,
-			StockReservationRepositoryPort stockReservationRepositoryPort) {
+			StockReservationRepositoryPort stockReservationRepositoryPort,
+			LowStockReorderTrigger lowStockReorderTrigger) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.lotRepositoryPort = lotRepositoryPort;
 		this.serialUnitRepositoryPort = serialUnitRepositoryPort;
 		this.stockReservationRepositoryPort = stockReservationRepositoryPort;
+		this.lowStockReorderTrigger = lowStockReorderTrigger;
 	}
 
 	@Override
@@ -82,7 +85,9 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 				command.productId(), command.warehouseId(), command.quantity(), balance.getAverageCost(),
 				command.lot() != null ? command.lot().code() : null, command.serials(), command.originReference(),
 				null, command.user(), Instant.now());
-		return stockMovementRepositoryPort.save(movement);
+		StockMovement saved = stockMovementRepositoryPort.save(movement);
+		lowStockReorderTrigger.evaluate(command.warehouseId());
+		return saved;
 	}
 
 	private StockReservation resolveReservation(RegisterStockExitCommand command) {
