@@ -39,6 +39,16 @@ public final class Quote {
 		return items.stream().map(QuoteItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
+	public Quote convert(LocalDate today) {
+		if (status == QuoteStatus.CONVERTED) {
+			throw new BusinessRuleException("Quote is already converted: " + id.value());
+		}
+		if (today.isAfter(validUntil)) {
+			throw new BusinessRuleException("Cannot convert an expired quote, validUntil was " + validUntil);
+		}
+		return new Quote(id, customerId, items, validUntil, QuoteStatus.CONVERTED);
+	}
+
 	private static List<QuoteItem> requireNonEmptyItems(List<QuoteItem> items) {
 		List<QuoteItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
