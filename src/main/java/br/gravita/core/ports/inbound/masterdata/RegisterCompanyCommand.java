@@ -13,6 +13,7 @@ public record RegisterCompanyCommand(
 		TaxRegime taxRegime,
 		boolean simplesOptante,
 		String address,
+		String state,
 		String issuingEmail,
 		String phone,
 		String logoUrl,

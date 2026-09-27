@@ -66,7 +66,7 @@ Base registrations are the foundation of every other module. Errors or missing f
 
 ## Domain model
 
-- **Company** (aggregate root) — `cnpj: Document`, `ie`, `im`, `cnae`, `taxRegime: TaxRegime {SIMPLES_NACIONAL, LUCRO_PRESUMIDO, LUCRO_REAL}`, `simplesOptante: boolean`, `sefazEnvironment: SefazEnvironment {PRODUCTION, HOMOLOGATION}`, `address`, `issuingEmail`, `phone`, `logoUrl`. Owns `Branch` entities and `DocumentSeries` (one per document type: NFe, NFCe, NFSe).
+- **Company** (aggregate root) — `cnpj: Document`, `ie`, `im`, `cnae`, `taxRegime: TaxRegime {SIMPLES_NACIONAL, LUCRO_PRESUMIDO, LUCRO_REAL}`, `simplesOptante: boolean`, `sefazEnvironment: SefazEnvironment {PRODUCTION, HOMOLOGATION}`, `address`, `state` (2-letter UF, structured fiscal state used by tax calculation and access-key generation — GRA-96), `issuingEmail`, `phone`, `logoUrl`. Owns `Branch` entities and `DocumentSeries` (one per document type: NFe, NFCe, NFSe).
 - **DigitalCertificate** — value object/entity attached to a `Company`: encrypted `.pfx` payload, expiry date, type (`A1`; `A3` reserved). Invariant: a company cannot issue any fiscal document while its active certificate is expired or absent.
 - **DocumentSeries** — `documentType`, `series`, `nextNumber` per `Company`. Invariant: number allocation must be free of duplicates under concurrent issuance (see [Cross-module dependencies](#cross-module-dependencies) and doc §13, "Numeração de séries").
 - **Person** (shared shape for Customer and Supplier) — `type: PersonType {PF, PJ}`, `document: Document`, name/company name, addresses (billing/delivery, each with a default flag), contacts.

@@ -22,6 +22,7 @@ public interface CompanyPersistenceMapper {
                 entity.isSimplesOptante(),
                 entity.getSefazEnvironment(),
                 entity.getAddress(),
+                entity.getState(),
                 entity.getIssuingEmail(),
                 entity.getPhone(),
                 entity.getLogoUrl(),
@@ -39,6 +40,7 @@ public interface CompanyPersistenceMapper {
                 .simplesOptante(domain.isSimplesOptante())
                 .sefazEnvironment(domain.getSefazEnvironment())
                 .address(domain.getAddress())
+                .state(domain.getState())
                 .issuingEmail(domain.getIssuingEmail())
                 .phone(domain.getPhone())
                 .logoUrl(domain.getLogoUrl())

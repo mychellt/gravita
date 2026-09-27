@@ -22,6 +22,7 @@ import br.gravita.core.domain.tax.NfceSale;
 import br.gravita.core.domain.tax.NfceSaleId;
 import br.gravita.core.domain.tax.NfceSaleStatus;
 import br.gravita.core.domain.tax.Payment;
+import br.gravita.core.domain.tax.PosSession;
 import br.gravita.core.domain.tax.PosSessionId;
 import br.gravita.core.domain.tax.SaleItem;
 import br.gravita.core.domain.tax.SefazUnavailableException;
@@ -34,6 +35,7 @@ import br.gravita.core.ports.inbound.tax.NfceIssuanceResult;
 import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.PosSessionRepositoryPort;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
 import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
 import br.gravita.core.ports.outbound.tax.TransmissionQueuePort;
@@ -58,6 +60,9 @@ class IssueNfceServiceTest {
 	private NfceRepositoryPort nfceRepositoryPort;
 
 	@Mock
+	private PosSessionRepositoryPort posSessionRepositoryPort;
+
+	@Mock
 	private CompanyRepositoryPort companyRepositoryPort;
 
 	@Mock
@@ -75,18 +80,21 @@ class IssueNfceServiceTest {
 	private IssueNfceService service;
 
 	private UUID saleId;
+	private PosSessionId sessionId;
 	private CompanyId companyId;
 
 	@BeforeEach
 	void setUp() {
-		service = new IssueNfceService(nfceRepositoryPort, companyRepositoryPort, calculateTaxUseCase,
-				allocateDocumentNumberUseCase, submitToSefazPort, transmissionQueuePort);
+		service = new IssueNfceService(nfceRepositoryPort, posSessionRepositoryPort, companyRepositoryPort,
+				calculateTaxUseCase, allocateDocumentNumberUseCase, submitToSefazPort, transmissionQueuePort);
 
 		saleId = UUID.randomUUID();
+		sessionId = PosSessionId.of(UUID.randomUUID());
 		companyId = CompanyId.of(UUID.randomUUID());
 
 		lenient().when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(draftSale()));
-		lenient().when(companyRepositoryPort.findAll()).thenReturn(List.of(company()));
+		lenient().when(posSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(session()));
+		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
 		lenient().when(calculateTaxUseCase.execute(any())).thenReturn(emptyTaxResult());
 		lenient().when(allocateDocumentNumberUseCase.execute(any())).thenReturn(new DocumentNumber("001", 10L));
 		lenient().when(nfceRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -94,14 +102,19 @@ class IssueNfceServiceTest {
 
 	private NfceSale draftSale() {
 		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-		return NfceSale.register(NfceSaleId.of(saleId), PosSessionId.of(UUID.randomUUID()), List.of(item), null,
+		return NfceSale.register(NfceSaleId.of(saleId), sessionId, List.of(item), null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
+	}
+
+	private PosSession session() {
+		return PosSession.open(sessionId, UUID.randomUUID(), UUID.randomUUID(), companyId,
+				new BigDecimal("100.00"), Instant.now());
 	}
 
 	private Company company() {
 		return Company.of(companyId, Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "nfce@example.com",
-				"11999999999", null, null);
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
+				"nfce@example.com", "11999999999", null, null);
 	}
 
 	private TaxCalculationResult emptyTaxResult() {

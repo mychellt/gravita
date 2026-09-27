@@ -146,6 +146,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 				TaxRegime.SIMPLES_NACIONAL,
 				true,
 				"Rua Teste, 100",
+				"SP",
 				"nfe@example.com",
 				"11999999999",
 				null,

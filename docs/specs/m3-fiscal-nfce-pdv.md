@@ -39,7 +39,7 @@ The PDV is the most critical screen for the cashier operator. It's designed for 
 
 ## Domain model
 
-- **PosSession** (aggregate root) — `registerId`, `operatorId`, `openingChangeAmount: Money`, `openedAt`, `closedAt`, `status: {OPEN, CLOSED}`. Invariant: only one open session per physical register at a time.
+- **PosSession** (aggregate root) — `registerId`, `operatorId`, `companyId` (the issuing `Company`/branch this register belongs to — GRA-96; `NfceSale` resolves its issuing company transitively through this field rather than duplicating it), `openingChangeAmount: Money`, `openedAt`, `closedAt`, `status: {OPEN, CLOSED}`. Invariant: only one open session per physical register at a time.
 - **NfceSale** (aggregate root) — `session: PosSessionRef`, `items: [SaleItem]`, `discounts`, `payments: [Payment]` (multiple methods per sale), `changeGiven: Money`, `customerCpf` (optional), `contingencyMode: boolean`, `status: {DRAFT, AUTHORIZED, PENDING_SYNC, CANCELLED, VOIDED}`. Reuses the same tax-calculation and transmission-queue collaborators as M2. Invariant: total payments must cover the sale total; `changeGiven` is a derived value, never entered directly.
 - **CashMovement** — `type: {SANGRIA, SUPRIMENTO}`, `amount: Money`, `justification`, `timestamp`, `session: PosSessionRef`.
 - **CashClosingReport (Relatório Z)** — per session: totals by payment method, opening/closing amounts, cash movements, sale count.

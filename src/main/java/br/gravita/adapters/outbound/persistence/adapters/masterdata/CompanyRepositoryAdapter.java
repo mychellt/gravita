@@ -8,7 +8,6 @@ import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.annotations.PersistenceAdapter;
 
-import java.util.List;
 import java.util.Optional;
 
 @PersistenceAdapter
@@ -33,10 +32,5 @@ class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 	@Override
 	public Optional<Company> findById(CompanyId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
-	}
-
-	@Override
-	public List<Company> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
 	}
 }

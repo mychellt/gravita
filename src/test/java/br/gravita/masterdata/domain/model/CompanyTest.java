@@ -93,10 +93,31 @@ class CompanyTest {
 				.hasMessageContaining("Invalid IM");
 	}
 
-	private void build(java.util.function.Consumer<Builder> customize) {
+	@Test
+	void shouldRejectBlankState() {
+		assertThatThrownBy(() -> build(b -> b.state(" ")))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("State");
+	}
+
+	@Test
+	void shouldRejectInvalidState() {
+		assertThatThrownBy(() -> build(b -> b.state("SPX")))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Invalid state");
+	}
+
+	@Test
+	void shouldNormalizeStateToUppercase() {
+		Company company = build(b -> b.state("sp"));
+
+		assertThat(company.getState()).isEqualTo("SP");
+	}
+
+	private Company build(java.util.function.Consumer<Builder> customize) {
 		Builder builder = validCompanyBuilder();
 		customize.accept(builder);
-		builder.build();
+		return builder.build();
 	}
 
 	private Builder validCompanyBuilder() {
@@ -114,6 +135,7 @@ class CompanyTest {
 		private boolean simplesOptante = true;
 		private SefazEnvironment sefazEnvironment = SefazEnvironment.HOMOLOGATION;
 		private String address = "Rua Teste, 100";
+		private String state = "SP";
 		private String issuingEmail = "fiscal@empresa.com";
 		private String phone = "11999999999";
 		private String logoUrl = null;
@@ -149,8 +171,13 @@ class CompanyTest {
 			return this;
 		}
 
+		Builder state(String state) {
+			this.state = state;
+			return this;
+		}
+
 		Company build() {
-			return Company.of(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address,
+			return Company.of(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
 					issuingEmail, phone, logoUrl, parentCompanyId);
 		}
 	}

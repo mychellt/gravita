@@ -20,7 +20,7 @@ public interface RegisterCompanyUseCase {
 }
 ```
 
-`RegisterCompanyCommand`: `cnpj: Document`, `ie`, `im`, `cnae`, `taxRegime`, `simplesOptante`, `address`, `issuingEmail`, `phone`, `logoUrl`, `parentCompanyId` (optional, for a branch). Returns the new `CompanyId`.
+`RegisterCompanyCommand`: `cnpj: Document`, `ie`, `im`, `cnae`, `taxRegime`, `simplesOptante`, `address`, `state` (2-letter UF; GRA-96 — required for tax calculation and NFC-e/NFe access-key generation), `issuingEmail`, `phone`, `logoUrl`, `parentCompanyId` (optional, for a branch). Returns the new `CompanyId`.
 
 ## Outbound ports required
 
@@ -39,6 +39,7 @@ public interface RegisterCompanyUseCase {
 ## Acceptance criteria
 
 - [ ] CNPJ, IE and IM are validated before persisting.
+- [ ] `state` is a valid 2-letter UF code (GRA-96).
 - [ ] `taxRegime` accepts only `SIMPLES_NACIONAL`, `LUCRO_PRESUMIDO`, `LUCRO_REAL`.
 - [ ] A `DocumentSeries` placeholder is created for NFe, NFCe and NFSe on registration.
 - [ ] A branch can be registered against a `parentCompanyId` without requiring a schema migration (doc §2.1 multi-company).

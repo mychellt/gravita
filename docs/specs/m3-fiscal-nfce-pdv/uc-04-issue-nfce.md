@@ -26,6 +26,7 @@ public interface IssueNfceUseCase {
 
 - `TransmissionQueuePort`, `SubmitToSefazPort` (shared with M2)
 - `AllocateDocumentNumberUseCase` (from `masterdata`, called before queuing — per the module spec's cross-module dependency on numbering allocation)
+- `PosSessionRepositoryPort`, `CompanyRepositoryPort` — the issuing `Company` is resolved via the sale's `PosSession.companyId` (GRA-96); `originState`/`destinationState` passed to `CalculateTaxUseCase` are both that company's `state` (NFC-e is always same-state).
 
 ## REST endpoint
 

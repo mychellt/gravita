@@ -16,6 +16,7 @@ public final class Company {
 
 	private static final Pattern IE_DIGITS = Pattern.compile("\\d{2,14}");
 	private static final Pattern IM_DIGITS = Pattern.compile("\\d{1,15}");
+	private static final Pattern UF_CODE = Pattern.compile("[A-Z]{2}");
 	private static final String ISENTO = "ISENTO";
 
 	private final CompanyId id;
@@ -27,14 +28,15 @@ public final class Company {
 	private final boolean simplesOptante;
 	private final SefazEnvironment sefazEnvironment;
 	private final String address;
+	private final String state;
 	private final String issuingEmail;
 	private final String phone;
 	private final String logoUrl;
 	private final CompanyId parentCompanyId;
 
 	private Company(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
-			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String issuingEmail,
-			String phone, String logoUrl, CompanyId parentCompanyId) {
+			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
+			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
 		this.id = id;
 		this.cnpj = requireCnpj(cnpj);
 		this.ie = validateIe(ie);
@@ -44,6 +46,7 @@ public final class Company {
 		this.simplesOptante = simplesOptante;
 		this.sefazEnvironment = requireSefazEnvironment(sefazEnvironment);
 		this.address = address;
+		this.state = validateState(state);
 		this.issuingEmail = issuingEmail;
 		this.phone = phone;
 		this.logoUrl = logoUrl;
@@ -51,9 +54,9 @@ public final class Company {
 	}
 
 	public static Company of(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
-			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String issuingEmail,
-			String phone, String logoUrl, CompanyId parentCompanyId) {
-		return new Company(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address,
+			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
+			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
+		return new Company(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
 				issuingEmail, phone, logoUrl, parentCompanyId);
 	}
 
@@ -96,6 +99,17 @@ public final class Company {
 		String trimmed = im.trim();
 		if (!IM_DIGITS.matcher(trimmed).matches()) {
 			throw new BusinessRuleException("Invalid IM: " + im);
+		}
+		return trimmed;
+	}
+
+	private static String validateState(String state) {
+		if (state == null || state.isBlank()) {
+			throw new BusinessRuleException("State (UF) is required");
+		}
+		String trimmed = state.trim().toUpperCase();
+		if (!UF_CODE.matcher(trimmed).matches()) {
+			throw new BusinessRuleException("Invalid state (UF): " + state);
 		}
 		return trimmed;
 	}

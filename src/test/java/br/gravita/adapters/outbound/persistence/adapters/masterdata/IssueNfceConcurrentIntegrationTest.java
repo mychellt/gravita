@@ -14,6 +14,7 @@ import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.tax.NfceSale;
 import br.gravita.core.domain.tax.NfceSaleId;
 import br.gravita.core.domain.tax.Payment;
+import br.gravita.core.domain.tax.PosSession;
 import br.gravita.core.domain.tax.PosSessionId;
 import br.gravita.core.domain.tax.SaleItem;
 import br.gravita.core.domain.tax.SefazUnavailableException;
@@ -21,6 +22,7 @@ import br.gravita.core.ports.inbound.tax.IssueNfceCommand;
 import br.gravita.core.ports.inbound.tax.NfceIssuanceResult;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.PosSessionRepositoryPort;
 import br.gravita.core.usercases.AllocateDocumentNumberService;
 import br.gravita.core.usercases.tax.IssueNfceService;
 import java.math.BigDecimal;
@@ -80,17 +82,29 @@ class IssueNfceConcurrentIntegrationTest {
 	}
 
 	private IssueNfceService issueServiceFor(CompanyId companyId, DocumentSeriesRepositoryPort documentSeriesPort) {
-		return new IssueNfceService(fakeNfceRepositoryPort(), fakeCompanyRepositoryPort(companyId),
+		PosSessionId sessionId = PosSessionId.of(UUID.randomUUID());
+		return new IssueNfceService(fakeNfceRepositoryPort(sessionId), fakePosSessionRepositoryPort(sessionId, companyId),
+				fakeCompanyRepositoryPort(companyId),
 				command -> new br.gravita.core.ports.inbound.tax.TaxCalculationResult(List.of(),
 						br.gravita.core.domain.tax.TaxCalculationTotals.from(List.of())),
 				new AllocateDocumentNumberService(documentSeriesPort),
-				request -> {
-					throw new SefazUnavailableException("no SEFAZ in this test", null);
+				new br.gravita.core.ports.outbound.tax.SubmitToSefazPort() {
+					@Override
+					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult submit(
+							br.gravita.core.ports.outbound.tax.SefazSubmissionRequest request) {
+						throw new SefazUnavailableException("no SEFAZ in this test", null);
+					}
+
+					@Override
+					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult cancel(
+							br.gravita.core.ports.outbound.tax.SefazCancellationRequest request) {
+						throw new UnsupportedOperationException("not exercised by this test");
+					}
 				}, saleId -> {
 				});
 	}
 
-	private NfceRepositoryPort fakeNfceRepositoryPort() {
+	private NfceRepositoryPort fakeNfceRepositoryPort(PosSessionId sessionId) {
 		return new NfceRepositoryPort() {
 			@Override
 			public NfceSale save(NfceSale sale) {
@@ -100,8 +114,40 @@ class IssueNfceConcurrentIntegrationTest {
 			@Override
 			public Optional<NfceSale> findById(NfceSaleId id) {
 				SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-				return Optional.of(NfceSale.register(id, PosSessionId.of(UUID.randomUUID()), List.of(item), null,
+				return Optional.of(NfceSale.register(id, sessionId, List.of(item), null,
 						List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now()));
+			}
+
+			@Override
+			public Optional<NfceSale> findMostRecent() {
+				throw new UnsupportedOperationException("not exercised by this test");
+			}
+
+			@Override
+			public List<NfceSale> findBySessionId(PosSessionId id) {
+				throw new UnsupportedOperationException("not exercised by this test");
+			}
+		};
+	}
+
+	private PosSessionRepositoryPort fakePosSessionRepositoryPort(PosSessionId sessionId, CompanyId companyId) {
+		PosSession session = PosSession.open(sessionId, UUID.randomUUID(), UUID.randomUUID(), companyId,
+				BigDecimal.ZERO, Instant.now());
+		return new PosSessionRepositoryPort() {
+			@Override
+			public PosSession save(PosSession posSession) {
+				return posSession;
+			}
+
+			@Override
+			public Optional<PosSession> findById(PosSessionId id) {
+				return Optional.of(session);
+			}
+
+			@Override
+			public boolean existsByRegisterIdAndStatus(UUID registerId,
+					br.gravita.core.domain.tax.PosSessionStatus status) {
+				return false;
 			}
 		};
 	}
@@ -109,7 +155,7 @@ class IssueNfceConcurrentIntegrationTest {
 	private br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort fakeCompanyRepositoryPort(CompanyId companyId) {
 		Company company = Company.of(companyId, br.gravita.core.domain.shared.Document.cnpj("11222333000181"),
 				"123456789", "987654", "6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
-				"Rua Teste, 100", "nfce@example.com", "11999999999", null, null);
+				"Rua Teste, 100", "SP", "nfce@example.com", "11999999999", null, null);
 		return new br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort() {
 			@Override
 			public Company save(Company c) {
@@ -119,11 +165,6 @@ class IssueNfceConcurrentIntegrationTest {
 			@Override
 			public Optional<Company> findById(CompanyId id) {
 				return Optional.of(company);
-			}
-
-			@Override
-			public List<Company> findAll() {
-				return List.of(company);
 			}
 		};
 	}

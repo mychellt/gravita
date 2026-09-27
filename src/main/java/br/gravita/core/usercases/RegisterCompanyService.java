@@ -43,8 +43,8 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 	private Company registerNewCompany(RegisterCompanyCommand command) {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		return Company.of(id, command.cnpj(), command.ie(), command.im(), command.cnae(), command.taxRegime(),
-				command.simplesOptante(), SefazEnvironment.HOMOLOGATION, command.address(), command.issuingEmail(),
-				command.phone(), command.logoUrl(), command.parentCompanyId());
+				command.simplesOptante(), SefazEnvironment.HOMOLOGATION, command.address(), command.state(),
+				command.issuingEmail(), command.phone(), command.logoUrl(), command.parentCompanyId());
 	}
 
 	private Company updateExistingCompany(RegisterCompanyCommand command) {
@@ -52,7 +52,8 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.id().value()));
 		return Company.of(existing.getId(), command.cnpj(), command.ie(), command.im(), command.cnae(),
 				command.taxRegime(), command.simplesOptante(), existing.getSefazEnvironment(), command.address(),
-				command.issuingEmail(), command.phone(), command.logoUrl(), command.parentCompanyId());
+				command.state(), command.issuingEmail(), command.phone(), command.logoUrl(),
+				command.parentCompanyId());
 	}
 
 	private void validateParentCompany(CompanyId parentCompanyId) {

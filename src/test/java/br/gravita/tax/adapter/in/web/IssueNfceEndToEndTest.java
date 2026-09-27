@@ -95,6 +95,8 @@ class IssueNfceEndToEndTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	private CompanyId companyId;
+
 	@DynamicPropertySource
 	static void sefazBaseUrl(DynamicPropertyRegistry registry) throws Exception {
 		mockSefazServer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
@@ -120,9 +122,9 @@ class IssueNfceEndToEndTest {
 
 	@BeforeEach
 	void seedIssuanceInfrastructure() throws Exception {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		companyId = CompanyId.of(UUID.randomUUID());
 		companyRepositoryPort.save(Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654",
-				"6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100",
+				"6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfce@example.com", "11999999999", null, null));
 		documentSeriesRepositoryPort
 				.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFCE).reconfigure("001", 1L));
@@ -178,6 +180,7 @@ class IssueNfceEndToEndTest {
 				.id(sessionId)
 				.registerId(UUID.randomUUID())
 				.operatorId(UUID.randomUUID())
+				.companyId(companyId.value())
 				.openingChangeAmount(new BigDecimal("100.00"))
 				.status(PosSessionStatus.OPEN)
 				.openedAt(Instant.now())

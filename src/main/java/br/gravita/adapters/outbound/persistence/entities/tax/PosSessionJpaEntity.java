@@ -35,6 +35,9 @@ public class PosSessionJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "operator_id", nullable = false)
 	private UUID operatorId;
 
+	@Column(name = "company_id")
+	private UUID companyId;
+
 	@Column(name = "opening_change_amount", nullable = false, precision = 14, scale = 2)
 	private BigDecimal openingChangeAmount;
 

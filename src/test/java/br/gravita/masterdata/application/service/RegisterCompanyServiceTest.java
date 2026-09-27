@@ -95,13 +95,13 @@ class RegisterCompanyServiceTest {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		CompanyId existingId = CompanyId.of(UUID.randomUUID());
 		Company existing = Company.of(existingId, VALID_CNPJ, "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.PRODUCTION, "Old address", "old@empresa.com",
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.PRODUCTION, "Old address", "SP", "old@empresa.com",
 				"11999999999", null, null);
 		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existing));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(existingId, VALID_CNPJ, "123456789",
-				"987654", "6201-5/01", TaxRegime.LUCRO_PRESUMIDO, false, "New address", "new@empresa.com",
+				"987654", "6201-5/01", TaxRegime.LUCRO_PRESUMIDO, false, "New address", "SP", "new@empresa.com",
 				"11988888888", null, null);
 
 		service.execute(updateCommand);
@@ -120,8 +120,8 @@ class RegisterCompanyServiceTest {
 		when(companyRepositoryPort.findById(unknownId)).thenReturn(Optional.empty());
 
 		RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(unknownId, VALID_CNPJ, "123456789",
-				"987654", "6201-5/01", TaxRegime.LUCRO_REAL, false, "Address", "email@empresa.com", "11988888888",
-				null, null);
+				"987654", "6201-5/01", TaxRegime.LUCRO_REAL, false, "Address", "SP", "email@empresa.com",
+				"11988888888", null, null);
 
 		assertThatThrownBy(() -> service.execute(updateCommand)).isInstanceOf(BusinessRuleException.class);
 		verify(companyRepositoryPort, never()).save(any());
@@ -129,12 +129,13 @@ class RegisterCompanyServiceTest {
 
 	private RegisterCompanyCommand newCompanyCommand(CompanyId parentCompanyId) {
 		return new RegisterCompanyCommand(null, VALID_CNPJ, "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, "Rua Teste, 100", "fiscal@empresa.com", "11999999999", null,
+				TaxRegime.SIMPLES_NACIONAL, true, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null,
 				parentCompanyId);
 	}
 
 	private Company existingCompany(CompanyId id) {
 		return Company.of(id, VALID_CNPJ, "123456789", "987654", "6201-5/01", TaxRegime.SIMPLES_NACIONAL, true,
-				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "fiscal@empresa.com", "11999999999", null, null);
+				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null,
+				null);
 	}
 }

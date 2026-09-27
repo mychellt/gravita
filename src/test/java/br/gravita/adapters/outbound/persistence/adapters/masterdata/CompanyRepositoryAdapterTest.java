@@ -39,7 +39,8 @@ class CompanyRepositoryAdapterTest {
 
 		Company changed = Company.of(saved.getId(), saved.getCnpj(), saved.getIe(), saved.getIm(), saved.getCnae(),
 				TaxRegime.LUCRO_REAL, saved.isSimplesOptante(), saved.getSefazEnvironment(), "New address",
-				saved.getIssuingEmail(), saved.getPhone(), saved.getLogoUrl(), saved.getParentCompanyId());
+				saved.getState(), saved.getIssuingEmail(), saved.getPhone(), saved.getLogoUrl(),
+				saved.getParentCompanyId());
 
 		repositoryAdapter.save(changed);
 
@@ -49,7 +50,7 @@ class CompanyRepositoryAdapterTest {
 
 	private Company newCompany(CompanyId id) {
 		return Company.of(id, Document.cnpj("11222333000181"), "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100",
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"fiscal@empresa.com", "11999999999", null, null);
 	}
 }

@@ -4,18 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.PosSession;
 import br.gravita.core.domain.tax.PosSessionId;
 import br.gravita.core.domain.tax.PosSessionStatus;
 import br.gravita.core.ports.inbound.tax.OpenPosSessionCommand;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.PosSessionRepositoryPort;
 import br.gravita.core.usercases.tax.OpenPosSessionService;
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,11 +38,24 @@ class OpenPosSessionServiceTest {
 	@Mock
 	private PosSessionRepositoryPort posSessionRepositoryPort;
 
+	@Mock
+	private CompanyRepositoryPort companyRepositoryPort;
+
 	private OpenPosSessionService service;
+
+	private CompanyId companyId;
 
 	@BeforeEach
 	void setUp() {
-		service = new OpenPosSessionService(posSessionRepositoryPort);
+		service = new OpenPosSessionService(posSessionRepositoryPort, companyRepositoryPort);
+		companyId = CompanyId.of(UUID.randomUUID());
+		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
+	}
+
+	private Company company() {
+		return Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654", "6201500",
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
+				"nfce@example.com", "11999999999", null, null);
 	}
 
 	@Test
@@ -44,7 +65,7 @@ class OpenPosSessionServiceTest {
 				.thenReturn(true);
 
 		assertThatThrownBy(() -> service.execute(
-				new OpenPosSessionCommand(registerId, UUID.randomUUID(), new BigDecimal("50.00"))))
+				new OpenPosSessionCommand(registerId, UUID.randomUUID(), companyId, new BigDecimal("50.00"))))
 				.isInstanceOf(BusinessRuleException.class);
 
 		verify(posSessionRepositoryPort, never()).save(any());
@@ -57,7 +78,7 @@ class OpenPosSessionServiceTest {
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		PosSessionId id = service.execute(
-				new OpenPosSessionCommand(registerId, UUID.randomUUID(), new BigDecimal("150.00")));
+				new OpenPosSessionCommand(registerId, UUID.randomUUID(), companyId, new BigDecimal("150.00")));
 
 		ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
 		verify(posSessionRepositoryPort).save(captor.capture());
@@ -75,7 +96,7 @@ class OpenPosSessionServiceTest {
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(eq(registerId), any())).thenReturn(false);
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		service.execute(new OpenPosSessionCommand(registerId, operatorId, new BigDecimal("50.00")));
+		service.execute(new OpenPosSessionCommand(registerId, operatorId, companyId, new BigDecimal("50.00")));
 
 		ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
 		verify(posSessionRepositoryPort).save(captor.capture());
@@ -91,9 +112,9 @@ class OpenPosSessionServiceTest {
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		PosSessionId idA = service.execute(
-				new OpenPosSessionCommand(registerA, UUID.randomUUID(), new BigDecimal("50.00")));
+				new OpenPosSessionCommand(registerA, UUID.randomUUID(), companyId, new BigDecimal("50.00")));
 		PosSessionId idB = service.execute(
-				new OpenPosSessionCommand(registerB, UUID.randomUUID(), new BigDecimal("75.00")));
+				new OpenPosSessionCommand(registerB, UUID.randomUUID(), companyId, new BigDecimal("75.00")));
 
 		assertThat(idA).isNotEqualTo(idB);
 		verify(posSessionRepositoryPort).existsByRegisterIdAndStatus(registerA, PosSessionStatus.OPEN);

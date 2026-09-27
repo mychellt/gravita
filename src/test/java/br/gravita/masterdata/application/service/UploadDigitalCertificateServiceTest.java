@@ -52,7 +52,7 @@ class UploadDigitalCertificateServiceTest {
 
 	private Company existingCompany(CompanyId id) {
 		return Company.of(id, Document.cnpj("11222333000181"), "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100",
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"fiscal@empresa.com", "11999999999", null, null);
 	}
 

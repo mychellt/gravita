@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.MaxDiscountBehavior;
 import br.gravita.core.domain.masterdata.PriceFormation;
 import br.gravita.core.domain.masterdata.PriceTable;
@@ -65,8 +66,8 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	private PosSession openSession() {
-		return PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("100.00"),
-				PosSessionStatus.OPEN, Instant.now(), null);
+		return PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
+				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
 	}
 
 	private RegisterNfceSaleCommand commandWithItemDiscount(BigDecimal itemDiscount, UUID priceTableId) {
@@ -195,7 +196,8 @@ class RegisterNfceSaleServiceTest {
 	@Test
 	void aClosedSessionIsRejected() {
 		PosSession closed = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
-				new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(), Instant.now());
+				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),
+				Instant.now());
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.of(closed));
 
 		assertThatThrownBy(() -> service.execute(commandWithItemDiscount(null, null)))

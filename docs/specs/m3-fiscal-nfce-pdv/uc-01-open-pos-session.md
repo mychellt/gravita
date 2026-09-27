@@ -20,11 +20,12 @@ public interface OpenPosSessionUseCase {
 }
 ```
 
-`OpenPosSessionCommand`: `registerId`, `operatorId`, `openingChangeAmount: Money`. Returns the id of the created `PosSession`.
+`OpenPosSessionCommand`: `registerId`, `operatorId`, `companyId` (the issuing company/branch for every sale under this session — GRA-96), `openingChangeAmount: Money`. Returns the id of the created `PosSession`.
 
 ## Outbound ports required
 
 - `PosSessionRepositoryPort`
+- `CompanyRepositoryPort` — validates `companyId` refers to an existing `Company`/branch (GRA-96).
 
 ## REST endpoint
 

@@ -11,6 +11,7 @@ import br.gravita.core.domain.tax.NfceAccessKeyGenerator.EmissionType;
 import br.gravita.core.domain.tax.NfceSale;
 import br.gravita.core.domain.tax.NfceSaleId;
 import br.gravita.core.domain.tax.NfceSaleStatus;
+import br.gravita.core.domain.tax.PosSession;
 import br.gravita.core.domain.tax.SefazUnavailableException;
 import br.gravita.core.ports.inbound.masterdata.AllocateDocumentNumberCommand;
 import br.gravita.core.ports.inbound.masterdata.AllocateDocumentNumberUseCase;
@@ -23,6 +24,7 @@ import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.inbound.tax.TaxItemCommand;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.PosSessionRepositoryPort;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
 import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
@@ -30,35 +32,32 @@ import br.gravita.core.ports.outbound.tax.TransmissionQueuePort;
 import java.util.List;
 
 /**
- * UC-M3-04. {@code originState}/{@code destinationState} are both the
- * issuing company's own state - NFC-e is a walk-in retail sale, so the
- * consumer is always in the same state as the register - but {@link Company}
- * has no structured UF field yet (only a free-text {@code address}), so
- * {@link #ISSUER_STATE} is a documented placeholder until masterdata models
- * one; flagged to the tech lead alongside this PR. Likewise, nothing in M3
- * ties a {@link br.gravita.core.domain.tax.PosSession}/{@link NfceSale} to a
- * specific {@link Company} (the module spec's own domain model omits it), so
- * {@link #resolveIssuingCompany()} treats the system as single-company for
- * now - the same simplification the module spec's UC-01 note implies is
- * still pending activation.
+ * UC-M3-04. The issuing {@link Company} is resolved transitively through the
+ * sale's {@link PosSession} (GRA-96) rather than duplicating a
+ * {@code companyId} on {@link NfceSale} itself. {@code originState}/
+ * {@code destinationState} are both the issuing company's own
+ * {@link Company#getState()} - NFC-e is a walk-in retail sale, so the
+ * consumer is always in the same state as the register.
  */
 @UseCase
 public class IssueNfceService implements IssueNfceUseCase {
 
 	private static final String OPERATION_TYPE = "VENDA_PDV";
-	private static final String ISSUER_STATE = "SP";
 
 	private final NfceRepositoryPort nfceRepositoryPort;
+	private final PosSessionRepositoryPort posSessionRepositoryPort;
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final CalculateTaxUseCase calculateTaxUseCase;
 	private final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase;
 	private final SubmitToSefazPort submitToSefazPort;
 	private final TransmissionQueuePort transmissionQueuePort;
 
-	public IssueNfceService(NfceRepositoryPort nfceRepositoryPort, CompanyRepositoryPort companyRepositoryPort,
-			CalculateTaxUseCase calculateTaxUseCase, AllocateDocumentNumberUseCase allocateDocumentNumberUseCase,
-			SubmitToSefazPort submitToSefazPort, TransmissionQueuePort transmissionQueuePort) {
+	public IssueNfceService(NfceRepositoryPort nfceRepositoryPort, PosSessionRepositoryPort posSessionRepositoryPort,
+			CompanyRepositoryPort companyRepositoryPort, CalculateTaxUseCase calculateTaxUseCase,
+			AllocateDocumentNumberUseCase allocateDocumentNumberUseCase, SubmitToSefazPort submitToSefazPort,
+			TransmissionQueuePort transmissionQueuePort) {
 		this.nfceRepositoryPort = nfceRepositoryPort;
+		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.calculateTaxUseCase = calculateTaxUseCase;
 		this.allocateDocumentNumberUseCase = allocateDocumentNumberUseCase;
@@ -78,7 +77,7 @@ public class IssueNfceService implements IssueNfceUseCase {
 					"NfceSale " + saleId.value() + " is not DRAFT (current status: " + sale.getStatus() + ")");
 		}
 
-		Company company = resolveIssuingCompany();
+		Company company = resolveIssuingCompany(sale);
 
 		// AC3: tax totals always come from the shared engine, never recomputed here.
 		TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(sale, company));
@@ -112,7 +111,7 @@ public class IssueNfceService implements IssueNfceUseCase {
 	}
 
 	private String accessKey(Company company, DocumentNumber documentNumber, EmissionType emissionType) {
-		return NfceAccessKeyGenerator.generate(ISSUER_STATE, company.getCnpj().number(), documentNumber.series(),
+		return NfceAccessKeyGenerator.generate(company.getState(), company.getCnpj().number(), documentNumber.series(),
 				documentNumber.number(), emissionType);
 	}
 
@@ -124,11 +123,14 @@ public class IssueNfceService implements IssueNfceUseCase {
 		// values (one per module's package boundary); convert by name at the seam.
 		br.gravita.core.domain.tax.TaxRegime taxRegime = br.gravita.core.domain.tax.TaxRegime
 				.valueOf(company.getTaxRegime().name());
-		return new CalculateTaxCommand(items, ISSUER_STATE, ISSUER_STATE, taxRegime, OPERATION_TYPE, List.of());
+		return new CalculateTaxCommand(items, company.getState(), company.getState(), taxRegime, OPERATION_TYPE,
+				List.of());
 	}
 
-	private Company resolveIssuingCompany() {
-		return companyRepositoryPort.findAll().stream().filter(c -> c.getParentCompanyId() == null).findFirst()
-				.orElseThrow(() -> new BusinessRuleException("No issuing company is registered"));
+	private Company resolveIssuingCompany(NfceSale sale) {
+		PosSession session = posSessionRepositoryPort.findById(sale.getSessionId())
+				.orElseThrow(() -> new BusinessRuleException("PosSession not found: " + sale.getSessionId().value()));
+		return companyRepositoryPort.findById(session.getCompanyId())
+				.orElseThrow(() -> new BusinessRuleException("Company not found: " + session.getCompanyId().value()));
 	}
 }

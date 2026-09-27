@@ -49,6 +49,9 @@ public class CompanyJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false)
 	private String address;
 
+	@Column(length = 2)
+	private String state;
+
 	@Column(nullable = false)
 	private String issuingEmail;
 

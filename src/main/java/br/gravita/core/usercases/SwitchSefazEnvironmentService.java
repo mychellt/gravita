@@ -28,8 +28,8 @@ public class SwitchSefazEnvironmentService implements SwitchSefazEnvironmentUseC
 
 		Company updated = Company.of(existing.getId(), existing.getCnpj(), existing.getIe(), existing.getIm(),
 				existing.getCnae(), existing.getTaxRegime(), existing.isSimplesOptante(), command.environment(),
-				existing.getAddress(), existing.getIssuingEmail(), existing.getPhone(), existing.getLogoUrl(),
-				existing.getParentCompanyId());
+				existing.getAddress(), existing.getState(), existing.getIssuingEmail(), existing.getPhone(),
+				existing.getLogoUrl(), existing.getParentCompanyId());
 
 		companyRepositoryPort.save(updated);
 	}

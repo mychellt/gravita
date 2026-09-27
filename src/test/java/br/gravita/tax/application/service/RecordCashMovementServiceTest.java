@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.CashMovement;
 import br.gravita.core.domain.tax.CashMovementId;
 import br.gravita.core.domain.tax.CashMovementType;
@@ -48,7 +49,7 @@ class RecordCashMovementServiceTest {
 
 	private PosSession openSession(UUID sessionId) {
 		return PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
-				new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
+				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
 	}
 
 	@Test
@@ -128,7 +129,8 @@ class RecordCashMovementServiceTest {
 	void ac4_recordingAgainstAClosedSessionIsRejected() {
 		UUID sessionId = UUID.randomUUID();
 		PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
-				new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(), Instant.now());
+				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),
+				Instant.now());
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.of(closedSession));
 
 		assertThatThrownBy(() -> service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA,

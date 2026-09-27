@@ -99,6 +99,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 				br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL,
 				true,
 				"Rua Teste, 100",
+				"SP",
 				"nfe@example.com",
 				"11999999999",
 				null,

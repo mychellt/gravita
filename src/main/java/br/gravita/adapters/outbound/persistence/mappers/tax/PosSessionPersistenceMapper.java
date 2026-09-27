@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.persistence.mappers.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.PosSessionJpaEntity;
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.PosSession;
 import br.gravita.core.domain.tax.PosSessionId;
 import org.mapstruct.Builder;
@@ -15,6 +16,7 @@ public interface PosSessionPersistenceMapper {
 				PosSessionId.of(entity.getId()),
 				entity.getRegisterId(),
 				entity.getOperatorId(),
+				CompanyId.of(entity.getCompanyId()),
 				entity.getOpeningChangeAmount(),
 				entity.getStatus(),
 				entity.getOpenedAt(),
@@ -26,6 +28,7 @@ public interface PosSessionPersistenceMapper {
 				.id(domain.getId() == null ? null : domain.getId().value())
 				.registerId(domain.getRegisterId())
 				.operatorId(domain.getOperatorId())
+				.companyId(domain.getCompanyId().value())
 				.openingChangeAmount(domain.getOpeningChangeAmount())
 				.status(domain.getStatus())
 				.openedAt(domain.getOpenedAt())
