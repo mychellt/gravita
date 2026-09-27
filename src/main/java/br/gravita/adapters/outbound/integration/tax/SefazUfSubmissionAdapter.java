@@ -7,6 +7,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.tax.SefazUnavailableException;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.tax.SefazCancellationRequest;
+import br.gravita.core.ports.outbound.tax.SefazManifestationRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
 import br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest;
@@ -81,6 +82,19 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 				request.startNumber(), request.endNumber(), request.justification());
 
 		return post(client, "/nfe/inutilizacao", payload, "no inutilizacao protocol");
+	}
+
+	@Override
+	public SefazSubmissionResult manifest(SefazManifestationRequest request) {
+		// Manifestação do destinatário isn't tied to the document-issuing
+		// company's own certificate the way submit/cancel/voidNumberRange are -
+		// the use case works by access key alone and may have no local
+		// company/certificate to resolve at all (UC-M2-07's AC3). Real
+		// production wiring needs its own company/identity resolution design
+		// (tracked as a follow-up); left unimplemented here rather than guessing
+		// at one.
+		throw new UnsupportedOperationException(
+				"SEFAZ manifestação transmission is not wired yet - see UC-M2-07 follow-up");
 	}
 
 	private RestClient resolveAuthenticatedClient(CompanyId companyId, SefazEnvironment environment) {

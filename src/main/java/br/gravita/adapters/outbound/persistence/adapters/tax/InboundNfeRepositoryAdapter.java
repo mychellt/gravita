@@ -43,6 +43,11 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
 	}
 
+	@Override
+	public Optional<InboundNfe> findByAccessKey(String accessKey) {
+		return jpaRepository.findByAccessKey(accessKey).map(mapper::toDomain);
+	}
+
 	private boolean violatesAccessKeyUniqueness(DataIntegrityViolationException e) {
 		String message = e.getMostSpecificCause().getMessage();
 		return message != null && message.contains("access_key");
