@@ -39,9 +39,9 @@ public interface VoidDocumentNumberRangeUseCase {
 
 - [ ] `justification` is mandatory; the request is rejected without one.
 - [ ] The resulting record is immutable — no update or delete operation exists for a `VoidedNumberRange`.
-- [ ] The voided range is reflected in SPED/Livros Fiscais generation so numbering gaps are explained, not silently missing.
+- [ ] The voided range is queryable by company/series/date range, ready for later SPED/Livros Fiscais generation to pick up (that generation itself is [UC-M2-13](uc-13-generate-livros-fiscais.md), Phase 7, not part of this ticket).
 
 ## Dependencies
 
-- **Depends on:** M1's document series configuration (the range being voided must belong to a real series).
-- **Blocks:** [UC-M2-13](uc-13-generate-livros-fiscais.md) (books must account for voided ranges).
+- **Depends on:** M1's document series configuration (the range being voided must belong to a real series - assumed in place).
+- **Blocks:** none in Phase 2. [UC-M2-13](uc-13-generate-livros-fiscais.md) (Generate Livros Fiscais, Phase 7) will read `VoidedNumberRange` when that ticket is created.

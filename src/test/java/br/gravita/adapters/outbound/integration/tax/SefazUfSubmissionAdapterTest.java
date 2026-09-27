@@ -17,6 +17,7 @@ import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
+import br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest;
 import com.sun.net.httpserver.HttpServer;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -98,6 +99,30 @@ class SefazUfSubmissionAdapterTest {
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(expiredCertificate()));
 
 		assertThatThrownBy(() -> adapter.submit(submissionRequest())).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void ucM206_returnsTheProtocolWhenSefazAcceptsAVoidRangeRequest() throws Exception {
+		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+		server.createContext("/nfe/inutilizacao", exchange -> {
+			byte[] body = "{\"protocol\":\"void-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().add("Content-Type", "application/json");
+			exchange.sendResponseHeaders(200, body.length);
+			try (OutputStream out = exchange.getResponseBody()) {
+				out.write(body);
+			}
+		});
+		server.start();
+
+		String baseUrl = "http://localhost:" + server.getAddress().getPort();
+		SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
+		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
+
+		SefazSubmissionResult result = adapter.voidNumberRange(new SefazVoidNumberRangeRequest(
+				CompanyId.of(UUID.randomUUID()), SefazEnvironment.HOMOLOGATION, "001", 100L, 110L,
+				"duplicate numbering skipped"));
+
+		assertThat(result.protocol()).isEqualTo("void-protocol-1");
 	}
 
 	private SefazUfSubmissionAdapter adapterFor(String homologationBaseUrl, String productionBaseUrl) {
