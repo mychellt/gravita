@@ -17,7 +17,7 @@ import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
-import br.gravita.core.ports.outbound.tax.SefazVoidRangeRequest;
+import br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest;
 import com.sun.net.httpserver.HttpServer;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -118,8 +118,9 @@ class SefazUfSubmissionAdapterTest {
 		SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
 
-		SefazSubmissionResult result = adapter.voidRange(new SefazVoidRangeRequest(CompanyId.of(UUID.randomUUID()),
-				SefazEnvironment.HOMOLOGATION, "001", 100L, 110L, "duplicate numbering skipped"));
+		SefazSubmissionResult result = adapter.voidNumberRange(new SefazVoidNumberRangeRequest(
+				CompanyId.of(UUID.randomUUID()), SefazEnvironment.HOMOLOGATION, "001", 100L, 110L,
+				"duplicate numbering skipped"));
 
 		assertThat(result.protocol()).isEqualTo("void-protocol-1");
 	}

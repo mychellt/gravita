@@ -1,30 +1,29 @@
 package br.gravita.adapters.outbound.persistence.entities.tax;
 
+import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
+import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-/**
- * No {@code active}/{@code modifiedAt} columns and no update path in the
- * repository adapter - a {@code VoidedNumberRange} is immutable once
- * created (UC-M2-06's AC2), same as {@code AccessLogJpaEntity}.
- */
 @Getter
 @Setter
 @Entity
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "voided_number_ranges")
-public class VoidedNumberRangeJpaEntity {
+public class VoidedNumberRangeJpaEntity extends AbstractEntity<UUID> {
 
 	@Id
 	private UUID id;
@@ -32,7 +31,11 @@ public class VoidedNumberRangeJpaEntity {
 	@Column(name = "company_id", nullable = false)
 	private UUID companyId;
 
-	@Column(nullable = false, length = 20)
+	@Enumerated(EnumType.STRING)
+	@Column(name = "document_type", nullable = false, length = 10)
+	private FiscalDocumentType documentType;
+
+	@Column(length = 10, nullable = false)
 	private String series;
 
 	@Column(name = "start_number", nullable = false)
@@ -44,8 +47,8 @@ public class VoidedNumberRangeJpaEntity {
 	@Column(nullable = false, length = 500)
 	private String justification;
 
-	@Column(nullable = false, length = 100)
-	private String protocol;
+	@Column(name = "sefaz_protocol", nullable = false)
+	private String sefazProtocol;
 
 	@Column(name = "voided_at", nullable = false)
 	private Instant voidedAt;

@@ -15,11 +15,12 @@ public interface VoidedNumberRangePersistenceMapper {
 		return VoidedNumberRange.of(
 				VoidedNumberRangeId.of(entity.getId()),
 				CompanyId.of(entity.getCompanyId()),
+				entity.getDocumentType(),
 				entity.getSeries(),
 				entity.getStartNumber(),
 				entity.getEndNumber(),
 				entity.getJustification(),
-				entity.getProtocol(),
+				entity.getSefazProtocol(),
 				entity.getVoidedAt());
 	}
 
@@ -27,11 +28,12 @@ public interface VoidedNumberRangePersistenceMapper {
 		return VoidedNumberRangeJpaEntity.builder()
 				.id(domain.getId().value())
 				.companyId(domain.getCompanyId().value())
+				.documentType(domain.getDocumentType())
 				.series(domain.getSeries())
 				.startNumber(domain.getStartNumber())
 				.endNumber(domain.getEndNumber())
 				.justification(domain.getJustification())
-				.protocol(domain.getProtocol())
+				.sefazProtocol(domain.getSefazProtocol())
 				.voidedAt(domain.getVoidedAt())
 				.build();
 	}

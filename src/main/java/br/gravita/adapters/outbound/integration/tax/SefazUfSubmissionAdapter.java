@@ -9,7 +9,7 @@ import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.tax.SefazCancellationRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
-import br.gravita.core.ports.outbound.tax.SefazVoidRangeRequest;
+import br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest;
 import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,13 +74,13 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 	}
 
 	@Override
-	public SefazSubmissionResult voidRange(SefazVoidRangeRequest request) {
+	public SefazSubmissionResult voidNumberRange(SefazVoidNumberRangeRequest request) {
 		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
 
-		SefazVoidRangeRequestPayload payload = new SefazVoidRangeRequestPayload(request.series(),
+		SefazVoidNumberRangeRequestPayload payload = new SefazVoidNumberRangeRequestPayload(request.series(),
 				request.startNumber(), request.endNumber(), request.justification());
 
-		return post(client, "/nfe/inutilizacao", payload, "no void protocol");
+		return post(client, "/nfe/inutilizacao", payload, "no inutilizacao protocol");
 	}
 
 	private RestClient resolveAuthenticatedClient(CompanyId companyId, SefazEnvironment environment) {

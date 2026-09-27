@@ -9,20 +9,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
-import br.gravita.core.domain.masterdata.CompanyNotFoundException;
+import br.gravita.core.domain.masterdata.DocumentSeries;
+import br.gravita.core.domain.masterdata.DocumentSeriesNotFoundException;
+import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.VoidedNumberRange;
 import br.gravita.core.ports.inbound.tax.VoidNumberRangeCommand;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.VoidedNumberRangeRepositoryPort;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
-import br.gravita.core.ports.outbound.tax.SefazVoidRangeRequest;
+import br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest;
 import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
 import br.gravita.core.usercases.tax.VoidDocumentNumberRangeService;
+import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +44,9 @@ class VoidDocumentNumberRangeServiceTest {
 	private CompanyRepositoryPort companyRepositoryPort;
 
 	@Mock
+	private DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
+
+	@Mock
 	private SubmitToSefazPort submitToSefazPort;
 
 	@Mock
@@ -50,13 +58,16 @@ class VoidDocumentNumberRangeServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new VoidDocumentNumberRangeService(companyRepositoryPort, submitToSefazPort,
-				voidedNumberRangeRepositoryPort);
+		service = new VoidDocumentNumberRangeService(companyRepositoryPort, documentSeriesRepositoryPort,
+				submitToSefazPort, voidedNumberRangeRepositoryPort);
 
 		companyId = CompanyId.of(UUID.randomUUID());
 
 		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
-		lenient().when(submitToSefazPort.voidRange(any())).thenReturn(new SefazSubmissionResult("void-protocol-1"));
+		lenient().when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE))
+				.thenReturn(Optional.of(configuredSeries()));
+		lenient().when(submitToSefazPort.voidNumberRange(any()))
+				.thenReturn(new SefazSubmissionResult("void-protocol-1"));
 		lenient().when(voidedNumberRangeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
@@ -66,68 +77,97 @@ class VoidDocumentNumberRangeServiceTest {
 				"nfe@example.com", "11999999999", null, null);
 	}
 
-	private VoidNumberRangeCommand command() {
-		return new VoidNumberRangeCommand(companyId.value(), "001", 100L, 110L, "duplicate numbering skipped");
+	private DocumentSeries configuredSeries() {
+		return DocumentSeries.of(UUID.randomUUID(), companyId, FiscalDocumentType.NFE, "001", 500L, 1L);
+	}
+
+	private VoidNumberRangeCommand command(String justification) {
+		return new VoidNumberRangeCommand(companyId, "001", 100L, 110L, justification);
 	}
 
 	@Test
-	void ac1_aRequestWithoutJustificationIsRejected() {
-		VoidNumberRangeCommand command = new VoidNumberRangeCommand(companyId.value(), "001", 100L, 110L, null);
-
-		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class)
+	void ac1_justificationIsMandatoryTheRequestIsRejectedWithoutIt() {
+		assertThatThrownBy(() -> service.execute(command(null))).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("justification");
+		assertThatThrownBy(() -> service.execute(command("  "))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("justification");
 
-		verify(submitToSefazPort, never()).voidRange(any());
+		verify(submitToSefazPort, never()).voidNumberRange(any());
 		verify(voidedNumberRangeRepositoryPort, never()).save(any());
 	}
 
 	@Test
-	void ac1_aRequestWithABlankJustificationIsRejected() {
-		VoidNumberRangeCommand command = new VoidNumberRangeCommand(companyId.value(), "001", 100L, 110L, "   ");
-
-		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class)
-				.hasMessageContaining("justification");
-
-		verify(submitToSefazPort, never()).voidRange(any());
+	void ac2_theResultingRecordIsImmutableNoUpdateOrDeleteOperationExists() {
+		for (Method method : VoidedNumberRangeRepositoryPort.class.getMethods()) {
+			assertThat(method.getName().toLowerCase()).doesNotContain("update").doesNotContain("delete");
+		}
 	}
 
 	@Test
-	void aRangeWhoseStartIsAfterItsEndIsRejected() {
-		VoidNumberRangeCommand command = new VoidNumberRangeCommand(companyId.value(), "001", 110L, 100L, "oops");
+	void ac3_theVoidedRangeCarriesWhatSpedLivrosFiscaisWillNeedToExplainTheGap() {
+		VoidedNumberRange result = service.execute(command("numbers printed on damaged forms"));
 
-		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class)
-				.hasMessageContaining("startNumber");
+		assertThat(result.getCompanyId()).isEqualTo(companyId);
+		assertThat(result.getDocumentType()).isEqualTo(FiscalDocumentType.NFE);
+		assertThat(result.getSeries()).isEqualTo("001");
+		assertThat(result.getStartNumber()).isEqualTo(100L);
+		assertThat(result.getEndNumber()).isEqualTo(110L);
+		assertThat(result.getJustification()).isEqualTo("numbers printed on damaged forms");
+		assertThat(result.getSefazProtocol()).isEqualTo("void-protocol-1");
+		assertThat(result.getVoidedAt()).isNotNull();
 
-		verify(submitToSefazPort, never()).voidRange(any());
+		verify(voidedNumberRangeRepositoryPort).save(result);
 	}
 
 	@Test
-	void aNonExistentCompanyIsRejected() {
+	void successfulVoidTransmitsToSefazBeforePersistingLocally() {
+		service.execute(command("numbers printed on damaged forms"));
+
+		ArgumentCaptor<SefazVoidNumberRangeRequest> captor = ArgumentCaptor.forClass(SefazVoidNumberRangeRequest.class);
+		verify(submitToSefazPort).voidNumberRange(captor.capture());
+		assertThat(captor.getValue().companyId()).isEqualTo(companyId);
+		assertThat(captor.getValue().environment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
+		assertThat(captor.getValue().series()).isEqualTo("001");
+		assertThat(captor.getValue().startNumber()).isEqualTo(100L);
+		assertThat(captor.getValue().endNumber()).isEqualTo(110L);
+		assertThat(captor.getValue().justification()).isEqualTo("numbers printed on damaged forms");
+
+		verify(voidedNumberRangeRepositoryPort).save(any());
+	}
+
+	@Test
+	void aCompanyThatDoesNotExistIsRejected() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(CompanyNotFoundException.class);
+		assertThatThrownBy(() -> service.execute(command("reason"))).isInstanceOf(ResourceNotFoundException.class);
 
-		verify(submitToSefazPort, never()).voidRange(any());
+		verify(submitToSefazPort, never()).voidNumberRange(any());
 	}
 
 	@Test
-	void successfullyVoidingARangeTransmitsToSefazAndPersistsTheImmutableRecord() {
-		VoidedNumberRange result = service.execute(command());
+	void aSeriesNotConfiguredForTheCompanyIsRejected() {
+		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE))
+				.thenReturn(Optional.empty());
 
-		ArgumentCaptor<SefazVoidRangeRequest> requestCaptor = ArgumentCaptor.forClass(SefazVoidRangeRequest.class);
-		verify(submitToSefazPort).voidRange(requestCaptor.capture());
-		assertThat(requestCaptor.getValue().companyId()).isEqualTo(companyId);
-		assertThat(requestCaptor.getValue().environment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
-		assertThat(requestCaptor.getValue().series()).isEqualTo("001");
-		assertThat(requestCaptor.getValue().startNumber()).isEqualTo(100L);
-		assertThat(requestCaptor.getValue().endNumber()).isEqualTo(110L);
-		assertThat(requestCaptor.getValue().justification()).isEqualTo("duplicate numbering skipped");
+		assertThatThrownBy(() -> service.execute(command("reason")))
+				.isInstanceOf(DocumentSeriesNotFoundException.class);
 
-		ArgumentCaptor<VoidedNumberRange> savedCaptor = ArgumentCaptor.forClass(VoidedNumberRange.class);
-		verify(voidedNumberRangeRepositoryPort).save(savedCaptor.capture());
-		assertThat(savedCaptor.getValue().getProtocol()).isEqualTo("void-protocol-1");
-		assertThat(savedCaptor.getValue().getCompanyId()).isEqualTo(companyId);
+		verify(submitToSefazPort, never()).voidNumberRange(any());
+	}
 
-		assertThat(result.getProtocol()).isEqualTo("void-protocol-1");
+	@Test
+	void aSeriesThatDoesNotMatchTheConfiguredOneIsRejected() {
+		assertThatThrownBy(() -> service.execute(new VoidNumberRangeCommand(companyId, "999", 100L, 110L, "reason")))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("999");
+
+		verify(submitToSefazPort, never()).voidNumberRange(any());
+	}
+
+	@Test
+	void anEndNumberBeforeTheStartNumberIsRejected() {
+		assertThatThrownBy(() -> service.execute(new VoidNumberRangeCommand(companyId, "001", 110L, 100L, "reason")))
+				.isInstanceOf(BusinessRuleException.class);
+
+		verify(submitToSefazPort, never()).voidNumberRange(any());
 	}
 }

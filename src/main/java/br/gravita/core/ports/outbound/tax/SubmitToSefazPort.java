@@ -26,10 +26,10 @@ public interface SubmitToSefazPort {
 	SefazSubmissionResult cancel(SefazCancellationRequest request);
 
 	/**
-	 * UC-M2-06: transmits an `Inutilização` event for a range of document
-	 * numbers that were allocated but never used.
+	 * UC-M2-06: transmits an Inutilização event, formally voiding a range of
+	 * document numbers that were allocated but never used.
 	 *
 	 * @throws SefazUnavailableException when SEFAZ-UF can't be reached.
 	 */
-	SefazSubmissionResult voidRange(SefazVoidRangeRequest request);
+	SefazSubmissionResult voidNumberRange(SefazVoidNumberRangeRequest request);
 }

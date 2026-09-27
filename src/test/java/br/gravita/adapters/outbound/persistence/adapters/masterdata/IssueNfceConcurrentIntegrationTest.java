@@ -102,8 +102,8 @@ class IssueNfceConcurrentIntegrationTest {
 					}
 
 					@Override
-					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult voidRange(
-							br.gravita.core.ports.outbound.tax.SefazVoidRangeRequest request) {
+					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult voidNumberRange(
+							br.gravita.core.ports.outbound.tax.SefazVoidNumberRangeRequest request) {
 						throw new UnsupportedOperationException("not exercised by this test");
 					}
 				}, saleId -> {
