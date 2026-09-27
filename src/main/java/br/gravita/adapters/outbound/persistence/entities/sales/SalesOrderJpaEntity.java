@@ -52,4 +52,7 @@ public class SalesOrderJpaEntity extends AbstractEntity<UUID> {
 	@CollectionTable(name = "sales_order_items", joinColumns = @JoinColumn(name = "sales_order_id"))
 	@OrderColumn(name = "line_index")
 	private List<SalesOrderItemEmbeddable> items;
+
+	@Column(name = "cancel_reason")
+	private String cancelReason;
 }

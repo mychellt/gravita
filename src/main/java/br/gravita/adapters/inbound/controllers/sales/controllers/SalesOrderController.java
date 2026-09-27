@@ -1,11 +1,13 @@
 package br.gravita.adapters.inbound.controllers.sales.controllers;
 
 import br.gravita.adapters.inbound.controllers.sales.dtos.ApproveSalesOrderRequest;
+import br.gravita.adapters.inbound.controllers.sales.dtos.CancelSalesOrderRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.SalesOrderResponse;
 import br.gravita.core.domain.sales.SalesOrderNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.ports.inbound.sales.ApproveSalesOrderUseCase;
+import br.gravita.core.ports.inbound.sales.CancelSalesOrderUseCase;
 import br.gravita.core.ports.inbound.sales.SalesOrderView;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +29,19 @@ import java.util.UUID;
 public class SalesOrderController {
 
 	private final ApproveSalesOrderUseCase approveSalesOrderUseCase;
+	private final CancelSalesOrderUseCase cancelSalesOrderUseCase;
 
 	@PostMapping("/{id}/approve")
 	public ResponseEntity<SalesOrderResponse> approve(@PathVariable UUID id,
 			@Valid @RequestBody ApproveSalesOrderRequest request) {
 		SalesOrderView order = approveSalesOrderUseCase.execute(request.toCommand(id));
 		return ResponseEntity.ok(SalesOrderResponse.from(order));
+	}
+
+	@PostMapping("/{id}/cancel")
+	public ResponseEntity<Void> cancel(@PathVariable UUID id, @RequestBody CancelSalesOrderRequest request) {
+		cancelSalesOrderUseCase.execute(request.toCommand(id));
+		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(SalesOrderNotFoundException.class)

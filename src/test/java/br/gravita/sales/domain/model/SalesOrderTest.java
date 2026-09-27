@@ -85,6 +85,58 @@ class SalesOrderTest {
 				.hasMessageContaining("Only DRAFT orders can be approved");
 	}
 
+	@Test
+	void cancellingADraftOrderStoresTheReasonAndDoesNotRequireAnActiveStockReservation() {
+		SalesOrder order = draftOrder();
+
+		SalesOrder cancelled = order.cancel("Customer requested cancellation");
+
+		assertThat(cancelled.getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
+		assertThat(cancelled.getCancelReason()).isEqualTo("Customer requested cancellation");
+		assertThat(order.hasActiveStockReservation()).isFalse();
+	}
+
+	@Test
+	void approvedAndInSeparationOrdersHaveAnActiveStockReservation() {
+		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
+		SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
+
+		assertThat(approved.hasActiveStockReservation()).isTrue();
+		assertThat(inSeparation.hasActiveStockReservation()).isTrue();
+
+		SalesOrder cancelled = approved.cancel("Out of stock");
+		assertThat(cancelled.getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
+	}
+
+	@Test
+	void rejectsCancellingAnInvoicedOrderPointingToTheReturnFlow() {
+		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.INVOICED, null, null);
+
+		assertThatThrownBy(() -> invoiced.cancel("Changed my mind"))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("return flow");
+	}
+
+	@Test
+	void rejectsCancellingAnAlreadyCancelledOrder() {
+		SalesOrder cancelled = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.CANCELLED, null, null, "Already cancelled");
+
+		assertThatThrownBy(() -> cancelled.cancel("Cancel again")).isInstanceOf(BusinessRuleException.class);
+	}
+
+	private static SalesOrder draftOrder() {
+		return SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
+	}
+
 	private static SalesOrderItem item(BigDecimal quantity, BigDecimal unitPrice, BigDecimal discount) {
 		return new SalesOrderItem(UUID.randomUUID(), quantity, unitPrice, discount);
 	}

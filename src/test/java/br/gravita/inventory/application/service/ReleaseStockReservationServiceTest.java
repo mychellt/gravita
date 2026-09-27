@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceReposito
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
 import br.gravita.core.usercases.inventory.ReleaseStockReservationService;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,6 +107,44 @@ class ReleaseStockReservationServiceTest {
 
 		assertThatThrownBy(() -> service.execute(new ReleaseStockReservationCommand(reservationId.value())))
 				.isInstanceOf(ResourceNotFoundException.class);
+
+		verify(stockBalanceRepositoryPort, never()).save(any());
+		verify(stockReservationRepositoryPort, never()).save(any());
+	}
+
+	@Test
+	void releasingByOrderRefReleasesEveryActiveReservationForThatOrder() {
+		UUID otherProductId = UUID.randomUUID();
+		StockReservation firstReservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
+				new BigDecimal("30"), StockReservationStatus.ACTIVE);
+		StockReservation secondReservation = StockReservation.of(StockReservationId.of(UUID.randomUUID()), orderRef,
+				otherProductId, warehouseId, new BigDecimal("5"), StockReservationStatus.ACTIVE);
+		when(stockReservationRepositoryPort.findActiveByOrderRef(orderRef))
+				.thenReturn(List.of(firstReservation, secondReservation));
+
+		StockBalance firstBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+				new BigDecimal("100"), new BigDecimal("40"), BigDecimal.ZERO, new BigDecimal("5.00"));
+		StockBalance secondBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), otherProductId,
+				warehouseId, new BigDecimal("20"), new BigDecimal("5"), BigDecimal.ZERO, new BigDecimal("2.00"));
+		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
+				.thenReturn(Optional.of(firstBalance));
+		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(otherProductId, warehouseId))
+				.thenReturn(Optional.of(secondBalance));
+
+		service.execute(ReleaseStockReservationCommand.byOrderRef(orderRef));
+
+		verify(stockBalanceRepositoryPort, times(2)).save(any());
+		ArgumentCaptor<StockReservation> savedReservations = ArgumentCaptor.forClass(StockReservation.class);
+		verify(stockReservationRepositoryPort, times(2)).save(savedReservations.capture());
+		assertThat(savedReservations.getAllValues())
+				.allMatch(reservation -> reservation.getStatus() == StockReservationStatus.RELEASED);
+	}
+
+	@Test
+	void releasingByOrderRefWithNoActiveReservationsDoesNothing() {
+		when(stockReservationRepositoryPort.findActiveByOrderRef(orderRef)).thenReturn(List.of());
+
+		service.execute(ReleaseStockReservationCommand.byOrderRef(orderRef));
 
 		verify(stockBalanceRepositoryPort, never()).save(any());
 		verify(stockReservationRepositoryPort, never()).save(any());

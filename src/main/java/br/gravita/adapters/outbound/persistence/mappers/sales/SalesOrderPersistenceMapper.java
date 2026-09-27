@@ -24,7 +24,8 @@ public interface SalesOrderPersistenceMapper {
 				toItems(entity.getItems()),
 				entity.getStatus(),
 				entity.getApprovedBy(),
-				entity.getAlcadaId());
+				entity.getAlcadaId(),
+				entity.getCancelReason());
 	}
 
 	default SalesOrderJpaEntity toEntity(final SalesOrder domain) {
@@ -36,6 +37,7 @@ public interface SalesOrderPersistenceMapper {
 				.approvedBy(domain.getApprovedBy())
 				.alcadaId(domain.getAlcadaId())
 				.items(toItemEmbeddables(domain.getItems()))
+				.cancelReason(domain.getCancelReason())
 				.build();
 	}
 
