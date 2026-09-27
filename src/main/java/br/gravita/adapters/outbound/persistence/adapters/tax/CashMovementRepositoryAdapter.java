@@ -4,7 +4,9 @@ import br.gravita.adapters.outbound.persistence.mappers.tax.CashMovementPersiste
 import br.gravita.adapters.outbound.persistence.repositories.tax.CashMovementJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.tax.CashMovement;
+import br.gravita.core.domain.tax.PosSessionId;
 import br.gravita.core.ports.outbound.persistence.tax.CashMovementRepositoryPort;
+import java.util.List;
 
 @PersistenceAdapter
 class CashMovementRepositoryAdapter implements CashMovementRepositoryPort {
@@ -20,5 +22,10 @@ class CashMovementRepositoryAdapter implements CashMovementRepositoryPort {
 	@Override
 	public CashMovement save(CashMovement cashMovement) {
 		return mapper.toDomain(jpaRepository.save(mapper.toEntity(cashMovement)));
+	}
+
+	@Override
+	public List<CashMovement> findBySessionId(PosSessionId sessionId) {
+		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::toDomain).toList();
 	}
 }
