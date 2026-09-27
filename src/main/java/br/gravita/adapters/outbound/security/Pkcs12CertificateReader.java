@@ -13,11 +13,6 @@ import java.time.Instant;
 import java.util.Enumeration;
 import java.util.Optional;
 
-/**
- * Opens the uploaded PKCS12 ({@code .pfx}) keystore with the JDK's own provider to obtain the
- * signing certificate's expiry date, mirroring how {@code CredentialCipher}/{@code
- * PasswordHasher} keep low-level JDK crypto APIs at the adapter boundary rather than in core.
- */
 @Component
 public class Pkcs12CertificateReader implements CertificateReaderPort {
 

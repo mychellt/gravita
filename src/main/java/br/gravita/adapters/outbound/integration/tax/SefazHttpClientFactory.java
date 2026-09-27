@@ -12,13 +12,6 @@ import javax.net.ssl.SSLContext;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-/**
- * Builds a {@link RestClient} authenticated with a company's A1 certificate
- * as its mutual-TLS client credential - the "certificate-based" part of
- * UC-M3-04's SEFAZ-UF client adapter. Kept separate from
- * {@link SefazUfSubmissionAdapter} so the certificate/TLS plumbing can be
- * exercised in isolation without a live SEFAZ endpoint.
- */
 class SefazHttpClientFactory {
 
 	RestClient build(byte[] pfxPayload, String password, String baseUrl, Duration timeout) {

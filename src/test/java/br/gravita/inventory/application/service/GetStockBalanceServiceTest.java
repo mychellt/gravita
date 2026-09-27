@@ -98,7 +98,6 @@ class GetStockBalanceServiceTest {
 		assertThat(view.reserved()).isEqualByComparingTo("10");
 		assertThat(view.inTransit()).isEqualByComparingTo("5");
 		assertThat(view.available()).isEqualByComparingTo("90");
-		// weighted by on-hand: (30*8.00 + 70*12.00) / 100 = 10.80
 		assertThat(view.averageCost()).isEqualByComparingTo("10.80");
 	}
 

@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deploy Angular build output to S3 static website hosting.
-# Required env vars:
-#   AWS_REGION
-#   S3_BUCKET
-
 : "${AWS_REGION:?AWS_REGION is required}"
 : "${S3_BUCKET:?S3_BUCKET is required}"
 
@@ -19,14 +14,12 @@ if [[ ! -d "${BUILD_DIR}" ]]; then
   exit 1
 fi
 
-# Upload immutable assets with long cache (exclude all HTML — uploaded separately).
 aws s3 sync "${BUILD_DIR}/" "s3://${S3_BUCKET}/" \
   --region "${AWS_REGION}" \
   --delete \
   --exclude "*.html" \
   --cache-control "public,max-age=31536000,immutable"
 
-# Upload HTML files with no-cache for safe rollouts.
 while IFS= read -r -d '' html; do
   key="${html#${BUILD_DIR}/}"
   aws s3 cp "${html}" "s3://${S3_BUCKET}/${key}" \

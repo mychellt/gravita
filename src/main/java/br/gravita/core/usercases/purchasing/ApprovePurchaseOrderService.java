@@ -9,11 +9,6 @@ import br.gravita.core.ports.inbound.purchasing.ApprovePurchaseOrderUseCase;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
 import br.gravita.core.ports.outbound.purchasing.NotifyApprovalWorkflowPort;
 
-/**
- * UC-M6-05. Records the approver's decision against an order pending approval: approving
- * clears {@code approvalRequired} so UC-M6-06 (Receive) can start, rejecting cancels the
- * order outright.
- */
 @UseCase
 public class ApprovePurchaseOrderService implements ApprovePurchaseOrderUseCase {
 

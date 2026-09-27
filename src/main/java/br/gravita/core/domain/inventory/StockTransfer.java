@@ -7,12 +7,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Tracks a two-step transfer's pending state (UC-M5-05) between the
- * {@code initiate} and {@code confirm} steps of {@code TransferStockUseCase}.
- * Its {@code id} is shared with the initiating {@code StockMovement}'s id, so
- * {@code ConfirmTransferCommand.transferMovementId} can look it up directly.
- */
 @Getter
 public final class StockTransfer {
 
@@ -45,7 +39,6 @@ public final class StockTransfer {
 				StockTransferStatus.PENDING);
 	}
 
-	/** Confirms the pending transfer (UC-M5-05, AC3); rejects a repeat confirmation. */
 	public StockTransfer confirm() {
 		if (status != StockTransferStatus.PENDING) {
 			throw new BusinessRuleException("Transfer " + id.value() + " has already been confirmed");

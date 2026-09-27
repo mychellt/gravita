@@ -11,11 +11,6 @@ import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 
 import java.util.Optional;
 
-/**
- * A company never holds two active certificates (UC-M1-02): {@link #save} reuses the existing
- * row's id for that {@code companyId} - which the unique {@code company_id} column also
- * enforces at the database level - instead of inserting a second certificate.
- */
 @PersistenceAdapter
 class CertificateStorageAdapter implements CertificateStoragePort {
 

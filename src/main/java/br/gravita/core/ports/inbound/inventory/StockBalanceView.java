@@ -8,18 +8,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-/**
- * Projection of {@link StockBalance} returned by {@link GetStockBalanceUseCase}.
- * {@code warehouseId} is {@code null} when the view aggregates every warehouse
- * for the product (UC-M5-01, AC2).
- */
 public record StockBalanceView(UUID productId, UUID warehouseId, BigDecimal onHand, BigDecimal reserved,
 		BigDecimal inTransit, BigDecimal available, BigDecimal averageCost) {
 
-	/**
-	 * A known product with no tracked stock movement yet: AC4 requires this
-	 * to read as zeroed balance, not not-found.
-	 */
 	public static StockBalanceView zero(UUID productId, UUID warehouseId) {
 		return new StockBalanceView(productId, warehouseId, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, BigDecimal.ZERO);
@@ -30,10 +21,6 @@ public record StockBalanceView(UUID productId, UUID warehouseId, BigDecimal onHa
 				balance.getInTransit(), balance.available(), balance.getAverageCost());
 	}
 
-	/**
-	 * Sums on-hand/reserved/in-transit across every warehouse row for the
-	 * product and weighs the average cost by each row's on-hand quantity.
-	 */
 	public static StockBalanceView aggregate(UUID productId, List<StockBalance> balances) {
 		if (balances.isEmpty()) {
 			return zero(productId, null);

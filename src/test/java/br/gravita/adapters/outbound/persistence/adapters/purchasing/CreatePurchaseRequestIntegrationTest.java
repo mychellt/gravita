@@ -21,12 +21,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * Drives CreatePurchaseRequestUseCase (GRA-56) against a real H2-backed
- * repository (@DataJpaTest), proving persistence round-trips the item list
- * and the status/origin invariants rather than just what the mocked
- * CreatePurchaseRequestServiceTest can prove.
- */
 @DataJpaTest
 @Import({PurchaseRequestRepositoryAdapter.class, PurchaseRequestPersistenceMapperImpl.class})
 class CreatePurchaseRequestIntegrationTest {

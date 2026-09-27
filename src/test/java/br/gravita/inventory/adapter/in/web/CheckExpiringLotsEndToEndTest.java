@@ -20,14 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-80: end-to-end verification of CheckExpiringLotsUseCase
- * (GET /api/inventory/alerts/expiring-lots) through the real HTTP stack - real
- * controller, real use case, real H2-backed {@link LotRepositoryPort}. {@link
- * NotifyExpiringLotPort} is mocked since its only adapter delivers over real e-mail
- * infra, out of scope for this HTTP-level test - the wiring itself is covered by
- * {@code CheckExpiringLotsServiceTest}.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

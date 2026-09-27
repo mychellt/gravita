@@ -50,8 +50,6 @@ public interface PhysicalCountPersistenceMapper {
 	}
 
 	private List<PhysicalCountLineEmbeddable> toLineEmbeddables(final List<PhysicalCountLine> lines) {
-		// Hibernate merges a detached entity's collections in place (clear + addAll), so
-		// this must stay mutable rather than an immutable Stream.toList().
 		return lines.stream()
 				.map(line -> PhysicalCountLineEmbeddable.builder()
 						.productId(line.productId())

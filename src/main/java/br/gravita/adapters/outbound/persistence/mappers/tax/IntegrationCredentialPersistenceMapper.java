@@ -13,9 +13,6 @@ public interface IntegrationCredentialPersistenceMapper {
     @Mapping(target = "encryptedCredentialPayload", source = "encryptedCredentialPayload")
     IntegrationCredentialJpaEntity toEntity(final IntegrationCredential domain, final String encryptedCredentialPayload);
 
-    // IntegrationCredential exposes no setter for credentialPayload (immutable
-    // outside its validating constructor), so disableBuilder leaves MapStruct
-    // with no write accessor to target - build it by hand instead.
     default IntegrationCredential toDomain(final IntegrationCredentialJpaEntity entity,
             final String decryptedCredentialPayload) {
         return IntegrationCredential.builder()

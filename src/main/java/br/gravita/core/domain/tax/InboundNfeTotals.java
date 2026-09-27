@@ -4,9 +4,6 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * Document-level totals parsed from a supplier's NFe XML ({@code total/ICMSTot}).
- */
 public record InboundNfeTotals(
 		BigDecimal productsValue,
 		BigDecimal freightValue,

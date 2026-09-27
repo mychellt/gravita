@@ -20,18 +20,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 
-/**
- * UC-M6-07. Parsing is fully delegated to M2's {@link ImportSupplierNfeXmlUseCase};
- * this service only reconciles the resulting {@link InboundNfe} against what
- * was ordered/physically received and moves the receipt to
- * {@code CONFERENCE_COMPLETED}.
- *
- * <p>The NF-e doesn't carry a parsed payment/duplicata schedule yet
- * ({@code NfeXmlParser} doesn't read the {@code cobr/dup} section), so the
- * installment terms attached to the receipt are a single installment for the
- * NF's total value due on its issue date - a simplification to revisit once
- * duplicata parsing is added to M2.
- */
 @UseCase
 public class ImportSupplierNfeAtReceivingService implements ImportSupplierNfeAtReceivingUseCase {
 

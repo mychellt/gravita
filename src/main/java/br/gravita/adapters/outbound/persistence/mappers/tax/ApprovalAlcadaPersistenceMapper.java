@@ -9,9 +9,6 @@ import org.mapstruct.NullValueCheckStrategy;
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ApprovalAlcadaPersistenceMapper {
 
-    // ApprovalAlcada exposes no setters (immutable outside its validating
-    // constructor/builder), so disableBuilder leaves MapStruct with no write
-    // accessor to target - build it by hand instead.
     default ApprovalAlcada map(final ApprovalAlcadaJpaEntity entity) {
         if (entity == null) {
             return null;

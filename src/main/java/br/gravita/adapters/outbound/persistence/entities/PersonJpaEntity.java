@@ -16,11 +16,6 @@ import org.hibernate.annotations.DiscriminatorFormula;
 
 import java.util.UUID;
 
-/**
- * Single table for individuals and companies — no discriminator column;
- * the subtype is derived from the document itself (11-digit CPF or absent
- * = individual, 14-digit CNPJ = company).
- */
 @Getter
 @Setter
 @Entity

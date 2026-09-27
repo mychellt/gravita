@@ -84,8 +84,6 @@ public interface SupplierPersistenceMapper {
     }
 
     private List<SupplierAddressEmbeddable> toAddressEmbeddables(final List<Address> addresses) {
-        // Hibernate merges a detached entity's collections in place (clear + addAll), so
-        // this must stay mutable rather than an immutable Stream.toList().
         return addresses.stream()
                 .map(address -> SupplierAddressEmbeddable.builder()
                         .street(address.street())

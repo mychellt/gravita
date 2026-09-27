@@ -23,9 +23,6 @@ import java.util.UUID;
 @Table(name = "customers")
 public class CustomerJpaEntity extends AbstractEntity<UUID> {
 
-	// id is always application-assigned (CustomerRegistrationAdapter); the
-	// repository adapter sets isNew from existsById before save so Spring
-	// Data picks persist() over merge() for a row that doesn't exist yet.
 	@Id
 	private UUID id;
 
@@ -57,8 +54,6 @@ public class CustomerJpaEntity extends AbstractEntity<UUID> {
 	@Enumerated(EnumType.STRING)
 	private CustomerStatus status;
 
-	// detects a concurrent write racing with an update (e.g. this update and
-	// UC-08's credit-status change) so one doesn't silently overwrite the other
 	@Version
 	@Column(nullable = false)
 	private Long version;

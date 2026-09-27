@@ -12,10 +12,6 @@ public interface NfceRepositoryPort {
 
 	Optional<NfceSale> findById(NfceSaleId id);
 
-	/**
-	 * The most recently created sale system-wide, used by UC-M3-07 (AC2) to
-	 * decide whether a given sale is eligible as "the last sale".
-	 */
 	Optional<NfceSale> findMostRecent();
 
 	List<NfceSale> findBySessionId(PosSessionId sessionId);

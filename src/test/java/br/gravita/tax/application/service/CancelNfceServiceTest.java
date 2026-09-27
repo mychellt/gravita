@@ -127,7 +127,6 @@ class CancelNfceServiceTest {
 		Instant threeDaysAgo = Instant.now().minus(java.time.Duration.ofDays(3));
 		NfceSale oldSale = authorizedSale(threeDaysAgo);
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(oldSale));
-		// A different, more recent sale is the actual "last sale".
 		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(authorizedSale(UUID.randomUUID(), Instant.now())));
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)

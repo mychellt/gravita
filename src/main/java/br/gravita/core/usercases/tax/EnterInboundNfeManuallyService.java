@@ -11,15 +11,6 @@ import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * UC-M2-09: {@code manualData} is self-contained (it carries its own
- * {@code accessKey}), so it's always sufficient on its own. A bare
- * {@code accessKey} with no {@code manualData} is the "just typed the key"
- * path - today there's no SEFAZ query integration to auto-resolve it
- * (unlike {@code SubmitToSefazPort}, which only submits/cancels), so that
- * path reports it can't be completed without manual data rather than
- * silently fabricating supplier/item/value data.
- */
 @UseCase
 public class EnterInboundNfeManuallyService implements EnterInboundNfeManuallyUseCase {
 

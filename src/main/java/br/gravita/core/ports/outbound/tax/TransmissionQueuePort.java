@@ -2,6 +2,7 @@ package br.gravita.core.ports.outbound.tax;
 
 import br.gravita.core.domain.tax.TransmissionQueueId;
 
+<<<<<<< HEAD
 /**
  * Shared transmission/contingency queue (doc §13's "fila de transmissão
  * única"), reused across M2/M3/M4: NFC-e sales that SEFAZ-UF couldn't
@@ -11,6 +12,8 @@ import br.gravita.core.domain.tax.TransmissionQueueId;
  * (NFe, UC-M2-03/GRA-103); neither consumer is built yet, so this port only
  * accepts entries for now.
  */
+=======
+>>>>>>> origin/master
 public interface TransmissionQueuePort {
 
 	void enqueue(TransmissionQueueId id);

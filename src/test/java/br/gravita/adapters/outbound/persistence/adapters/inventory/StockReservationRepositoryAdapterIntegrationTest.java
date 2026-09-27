@@ -15,10 +15,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * GRA-76: proves a reservation round-trips through the real H2-backed
- * repository and stays traceable back to its orderRef (AC3).
- */
 @DataJpaTest
 @Import({StockReservationRepositoryAdapter.class, StockReservationPersistenceMapperImpl.class})
 class StockReservationRepositoryAdapterIntegrationTest {

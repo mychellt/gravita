@@ -42,12 +42,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * Drives ReturnToSupplierUseCase (GRA-64) against a real H2-backed repository
- * (@DataJpaTest), proving the return - including its item collection and
- * total/partial flag - round-trips through persistence correctly, rather than
- * just what the mocked ReturnToSupplierServiceTest can prove.
- */
 @DataJpaTest
 @ExtendWith(MockitoExtension.class)
 @Import({PurchaseOrderRepositoryAdapter.class, PurchaseOrderPersistenceMapperImpl.class,

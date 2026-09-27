@@ -9,12 +9,6 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-/**
- * User aggregate root (doc §11.1): credentials, an assigned profile and the 2FA flag. Password
- * hashing (doc §11.4, bcrypt) is a persistence-adapter concern, not a domain one - {@code
- * rawPassword} here is plaintext from the domain's point of view, mirroring how {@code
- * IntegrationCredential} treats its own secret payload.
- */
 @Getter
 @Builder
 @AllArgsConstructor
@@ -44,11 +38,6 @@ public class User {
 				.build();
 	}
 
-	/**
-	 * Applies only the non-null fields (doc §11.1/§11.2): {@code profile} switching to
-	 * Administrator forces {@code twoFactorEnabled}, mirroring {@link #register}; switching away
-	 * does not turn it back off, since 2FA may have been enabled independently of the profile.
-	 */
 	public void update(String name, String email, ProfileReference profile, UserStatus status) {
 		if (name != null) {
 			if (name.isBlank()) {

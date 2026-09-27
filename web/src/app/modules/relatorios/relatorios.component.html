@@ -2,7 +2,6 @@
   <button class="btn btn-ghost"><i class="ti ti-download"></i> Exportar</button>
 </app-page-header>
 
-<!-- Report cards -->
 <div class="report-cards-grid">
   @for (card of reportCards; track card.title) {
     <div class="report-card" (click)="generate(card.title)">
@@ -15,10 +14,8 @@
   }
 </div>
 
-<!-- Charts row -->
 <div class="charts-row">
 
-  <!-- ABC Chart -->
   <div class="card">
     <div class="card-head">
       <span class="card-title">Curva ABC — Top 10 Produtos</span>
@@ -41,7 +38,6 @@
     </div>
   </div>
 
-  <!-- DRE -->
   <div class="card">
     <div class="card-head">
       <span class="card-title">DRE Gerencial — Maio 2026</span>

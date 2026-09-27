@@ -7,13 +7,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.UUID;
 
-/**
- * A company's A1 certificate (UC-M1-02). The {@code pfxPayload}/{@code password} fields are
- * plaintext from the domain's point of view - encrypting them at rest (doc §11.4) is a
- * persistence-adapter concern, the same split used by {@code IntegrationCredential}. Expiry is
- * exposed via {@link #isExpired(Instant)} so fiscal-issuance use cases (M2/M3/M4) can enforce
- * the "no expired/absent certificate" invariant at issuance time.
- */
 @Getter
 public final class DigitalCertificate {
 

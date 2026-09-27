@@ -20,12 +20,6 @@ import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * UC-M2-06 (Inutilização). The range being voided must belong to an
- * already-configured series (M1-UC04) for the company - voiding numbers
- * against a series that was never set up would leave an audit record with
- * nothing to reconcile against.
- */
 @UseCase
 public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUseCase {
 
@@ -45,7 +39,6 @@ public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUs
 
 	@Override
 	public VoidedNumberRange execute(VoidNumberRangeCommand command) {
-		// AC1: mandatory justification, checked before anything else.
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("justification is required to void a document number range");
 		}
@@ -66,7 +59,6 @@ public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUs
 			throw new BusinessRuleException("endNumber must not be less than startNumber");
 		}
 
-		// SEFAZ must accept the void before the immutable local record is created.
 		SefazSubmissionResult result = submitToSefazPort.voidNumberRange(new SefazVoidNumberRangeRequest(
 				command.companyId(), company.getSefazEnvironment(), command.series(), command.startNumber(),
 				command.endNumber(), command.justification()));

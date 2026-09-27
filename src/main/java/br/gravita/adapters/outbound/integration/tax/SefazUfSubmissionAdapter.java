@@ -21,13 +21,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-/**
- * Real-time SEFAZ-UF client (UC-M3-04): resolves the issuing company's A1
- * certificate (M1-UC02) for mutual-TLS client authentication and posts to
- * the environment's endpoint (M1-UC03's environment switch). Short timeouts
- * (doc §4.2's &lt;3s budget) mean an unreachable/slow SEFAZ surfaces as
- * {@link SefazUnavailableException} quickly rather than hanging the cashier.
- */
 @Component
 public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 

@@ -44,8 +44,6 @@ public interface PurchaseReturnPersistenceMapper {
 				.toList();
 	}
 
-	// Hibernate merges a detached entity's collections in place (clear + addAll), so
-	// these must stay mutable rather than an immutable Stream.toList().
 	private List<PurchaseReturnItemEmbeddable> toItemEmbeddables(final List<PurchaseReturnItem> items) {
 		return items.stream()
 				.map(item -> PurchaseReturnItemEmbeddable.builder()

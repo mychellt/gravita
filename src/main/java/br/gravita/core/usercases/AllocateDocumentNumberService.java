@@ -9,14 +9,6 @@ import br.gravita.core.ports.inbound.masterdata.AllocateDocumentNumberUseCase;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
-/**
- * UC-15: reserves the next number in a company's document series for `tax`
- * (M2/M3/M4) right before a fiscal document is queued for transmission.
- * Concurrent callers race on the row's optimistic-lock version instead of a
- * table-wide lock (doc §13: never block the caller waiting on a response), so
- * a losing attempt is retried here against a fresh read rather than surfaced
- * to the caller as a conflict.
- */
 @UseCase
 public class AllocateDocumentNumberService implements AllocateDocumentNumberUseCase {
 

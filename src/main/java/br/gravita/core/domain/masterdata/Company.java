@@ -6,11 +6,6 @@ import lombok.Getter;
 
 import java.util.regex.Pattern;
 
-/**
- * Company (or branch of an existing one) aggregate root: fiscal and contact
- * data, per UC-M1-01. Multi-company is supported natively via
- * {@code parentCompanyId} — no schema change is needed to activate it.
- */
 @Getter
 public final class Company {
 

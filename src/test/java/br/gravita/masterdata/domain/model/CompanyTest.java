@@ -124,7 +124,6 @@ class CompanyTest {
 		return new Builder();
 	}
 
-	/** Small local builder to keep each test focused on a single overridden field. */
 	private static final class Builder {
 		private CompanyId id = CompanyId.of(UUID.randomUUID());
 		private Document cnpj = VALID_CNPJ;

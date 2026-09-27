@@ -15,7 +15,6 @@ import java.util.List;
 @SuperBuilder
 public class PaymentTermDomain extends AbstractDomain {
 	private String name;
-	/** Days after the base date for each installment; size is the (free) number of installments. */
 	private List<Integer> installmentIntervalsDays;
 
 	public int getNumberOfInstallments() {

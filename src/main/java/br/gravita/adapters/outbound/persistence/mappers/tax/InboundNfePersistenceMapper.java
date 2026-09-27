@@ -89,8 +89,6 @@ public interface InboundNfePersistenceMapper {
 	}
 
 	private List<InboundNfeItemEmbeddable> toItemEmbeddables(final List<InboundNfeItem> items) {
-		// Hibernate merges a detached entity's collections in place (clear + addAll), so
-		// this must stay mutable rather than an immutable Stream.toList().
 		return items.stream()
 				.map(item -> InboundNfeItemEmbeddable.builder()
 						.supplierProductCode(item.supplierProductCode())
@@ -119,8 +117,6 @@ public interface InboundNfePersistenceMapper {
 	}
 
 	private List<InboundNfeConferenceItemEmbeddable> toConferenceEmbeddables(final List<InboundNfeConferenceItem> conferenceResult) {
-		// Same rationale as toItemEmbeddables: must stay mutable for Hibernate's
-		// clear + addAll collection merge on a detached entity.
 		return conferenceResult.stream()
 				.map(item -> InboundNfeConferenceItemEmbeddable.builder()
 						.itemRef(item.itemRef())

@@ -48,9 +48,6 @@ public interface CashClosingReportPersistenceMapper {
 				.build();
 	}
 
-	// Hibernate merges a detached entity's collections in place (clear + putAll),
-	// so this must stay mutable rather than an immutable Map.copyOf(), mirroring
-	// NfceSalePersistenceMapper's item/payment embeddable lists.
 	private Map<PaymentMethodType, BigDecimal> toMutableMap(final Map<PaymentMethodType, BigDecimal> source) {
 		Map<PaymentMethodType, BigDecimal> map = new EnumMap<>(PaymentMethodType.class);
 		if (source != null) {

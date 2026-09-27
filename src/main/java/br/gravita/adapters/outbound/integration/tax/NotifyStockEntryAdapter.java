@@ -7,17 +7,6 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-/**
- * Bridges tax (M2) into inventory's (M5) real {@link RegisterStockEntryUseCase},
- * the same way purchasing's own {@code RegisterStockEntryAdapter} does for
- * M6, but kept as a separate adapter/port pair (see {@link NotifyStockEntryPort}).
- *
- * <p>Like purchasing's bridge, {@code InboundNfe} doesn't carry a destination
- * warehouse or an authenticated actor - neither concept exists in the NFe
- * inbound flow yet - so this adapter targets a single placeholder warehouse
- * and attributes the movement to a system actor until multi-warehouse
- * receiving and per-request actor propagation are modeled.
- */
 @Component
 class NotifyStockEntryAdapter implements NotifyStockEntryPort {
 

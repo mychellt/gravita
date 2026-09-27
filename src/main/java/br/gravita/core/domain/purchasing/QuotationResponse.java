@@ -6,12 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * One supplier's reply to a {@link Quotation} (UC-M6-03): their price per
- * item and delivery deadline. A quotation holds at most one response per
- * supplier - re-submission replaces the prior one, see
- * {@link Quotation#registerResponse}.
- */
 public record QuotationResponse(SupplierId supplierId, List<QuotationItemPrice> itemPrices, LocalDate deadline) {
 
 	public QuotationResponse {

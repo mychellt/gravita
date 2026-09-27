@@ -24,12 +24,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * UC-M6-09. Reverses, per returned item, the stock entry and payable that
- * UC-M6-08 generated on confirm, then issues the return NF-e through M2 in
- * the same flow (see {@link IssuePurchaseReturnNfePort}'s javadoc for why that
- * last step is behind a purchasing-owned stub until M2 ships).
- */
 @UseCase
 public class ReturnToSupplierService implements ReturnToSupplierUseCase {
 
@@ -65,8 +59,6 @@ public class ReturnToSupplierService implements ReturnToSupplierUseCase {
 				.toList();
 		List<PurchaseReturn> previousReturns = purchaseReturnRepositoryPort.findByReceiptId(receipt.getId());
 
-		// Guards "confirmed receipt only" and "cannot exceed originally received
-		// qty" (net of prior returns) before any side effect is triggered.
 		PurchaseReturn purchaseReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
 				items, previousReturns);
 

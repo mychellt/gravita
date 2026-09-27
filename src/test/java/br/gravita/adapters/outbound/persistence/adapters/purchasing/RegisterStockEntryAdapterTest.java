@@ -13,12 +13,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * GRA-82: proves the adapter bridges M6's {@code RegisterStockEntryPort}
- * command into M5's real {@code RegisterStockEntryUseCase} - replacing the
- * no-op stub from GRA-63 - rather than mocking the port away as the existing
- * {@code ConfirmPurchaseReceiptService} tests do.
- */
 @ExtendWith(MockitoExtension.class)
 class RegisterStockEntryAdapterTest {
 

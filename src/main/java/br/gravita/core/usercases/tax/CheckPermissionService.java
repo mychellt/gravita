@@ -13,12 +13,6 @@ import br.gravita.core.usercases.system.CheckPermissionUseCase;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Both {@code UserRepositoryPort#findById} and {@code ProfileRepositoryPort#findById} hit the
- * database on every call (no cache layer), so a permission edit made by AssignProfileUseCase or
- * SaveCustomProfileUseCase - standard and custom profiles are both persisted through the same
- * {@link ProfileRepositoryPort} - is visible on the very next check.
- */
 @UseCase
 public class CheckPermissionService implements CheckPermissionUseCase {
 

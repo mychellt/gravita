@@ -47,13 +47,6 @@ public class CreatePurchaseOrderService implements CreatePurchaseOrderUseCase {
         return saved.getId();
     }
 
-    /**
-     * When {@code quotationId} is set, unit prices always come from the chosen
-     * supplier's {@link QuotationResponse} rather than the command's items -
-     * the client only ever picks a supplier, it doesn't get to assert prices.
-     * With no quotation (direct request), the command's items are the only
-     * source of prices.
-     */
     private List<PurchaseOrderItem> resolveItems(CreatePurchaseOrderCommand command) {
         if (command.quotationId() == null) {
             return command.items();

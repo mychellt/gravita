@@ -1,12 +1,9 @@
-/* ─ app.js — Landing page interactions ─ */
 
-/* ── Navbar scroll shadow ───────────────────────────────────── */
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 8);
 });
 
-/* ── Mobile menu ─────────────────────────────────────────────── */
 const mobileToggle = document.getElementById('mobile-toggle');
 const mobileNav    = document.getElementById('mobile-nav');
 mobileToggle.addEventListener('click', () => {
@@ -18,7 +15,6 @@ mobileToggle.addEventListener('click', () => {
     : '<i class="ti ti-menu-2"></i>';
 });
 
-// Close mobile nav on link click
 mobileNav.querySelectorAll('a').forEach(link => {
   link.addEventListener('click', () => {
     mobileNav.classList.remove('open');
@@ -27,7 +23,6 @@ mobileNav.querySelectorAll('a').forEach(link => {
   });
 });
 
-/* ── Annual / Monthly pricing toggle ────────────────────────── */
 const PRICES = {
   monthly: { bronze: '297', silver: '597', gold: '1.197' },
   annual:  { bronze: '247', silver: '497', gold:   '997' },
@@ -47,7 +42,6 @@ function toggleAnnual() {
   document.getElementById('price-silver').textContent = set.silver;
   document.getElementById('price-gold').textContent   = set.gold;
 
-  // Propagate billing cycle to registration CTAs
   const billing = isAnnual ? 'annual' : 'monthly';
   ['bronze', 'silver', 'gold'].forEach(plan => {
     const cta = document.getElementById('cta-' + plan);
@@ -55,16 +49,12 @@ function toggleAnnual() {
   });
 }
 
-/* ── FAQ accordion ───────────────────────────────────────────── */
 function toggleFaq(el) {
   const isOpen = el.classList.contains('open');
-  // close all
   document.querySelectorAll('.faq-item.open').forEach(item => item.classList.remove('open'));
-  // open clicked unless it was already open
   if (!isOpen) el.classList.add('open');
 }
 
-/* ── Smooth active nav link highlight on scroll ─────────────── */
 const sections = document.querySelectorAll('section[id]');
 const navLinks  = document.querySelectorAll('.nav-links a, .mobile-nav a');
 

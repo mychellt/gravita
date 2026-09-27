@@ -43,11 +43,6 @@ public class StartPhysicalCountService implements StartPhysicalCountUseCase {
 		return physicalCountRepositoryPort.save(physicalCount);
 	}
 
-	/**
-	 * TOTAL snapshots every tracked balance in the warehouse (AC2);
-	 * PARTIAL_BY_GROUP narrows that down to the products in the given
-	 * classification group (AC1).
-	 */
 	private List<PhysicalCountLine> snapshotLines(StartPhysicalCountCommand command) {
 		List<StockBalance> balances = stockBalanceRepositoryPort.findByWarehouseId(command.warehouseId());
 

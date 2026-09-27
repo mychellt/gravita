@@ -29,7 +29,7 @@ class TaxRuleTableRepositoryAdapterTest {
 	@Test
 	void findsOnlyTheRulesMatchingEveryDimensionOfTheQuery() {
 		jpaRepository.save(matchingRule());
-		jpaRepository.save(ruleFor("85171231", "SP", "RJ")); // different destination state
+		jpaRepository.save(ruleFor("85171231", "SP", "RJ"));
 
 		List<TaxRateRule> rates = repositoryAdapter
 				.findApplicableRates(new TaxRateQuery("85171231", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV"));

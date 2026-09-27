@@ -6,11 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/**
- * Projection of a {@link Lot} returned by {@link CheckExpiringLotsUseCase}
- * (UC-M5-10, AC1). {@code remainingQuantity} mirrors the lot's current
- * quantity at query time.
- */
 public record ExpiringLotView(UUID productId, UUID warehouseId, String lotCode, LocalDate expiryDate,
 		BigDecimal remainingQuantity) {
 

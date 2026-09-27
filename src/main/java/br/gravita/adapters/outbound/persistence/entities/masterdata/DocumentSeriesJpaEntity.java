@@ -35,8 +35,6 @@ public class DocumentSeriesJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "next_number")
 	private Long nextNumber;
 
-	// detects a concurrent UC-15 allocation racing with this write, so one
-	// doesn't silently overwrite the other and hand out a duplicate number
 	@Version
 	@Column(nullable = false)
 	private Long version;

@@ -23,13 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * UC-M6-08. One stock entry is registered per received item, accounts-payable
- * are generated from the receipt's own installment terms (already resolved by
- * UC-M6-06/UC-M6-07 - see {@link PurchaseReceipt}), and the order is
- * recomputed to {@code CLOSED}/{@code PARTIALLY_RECEIVED} based on every one
- * of its confirmed receipts, not just this one.
- */
 @UseCase
 public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseCase {
 
@@ -54,8 +47,6 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 		PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(receipt.getOrderId().value()));
 
-		// Guards "already confirmed" and "conference not completed" before any side
-		// effect is triggered, so a retried request never double-generates them.
 		PurchaseReceipt confirmed = receipt.confirm();
 
 		for (PurchaseReceiptItem item : confirmed.getReceivedItems()) {

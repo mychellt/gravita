@@ -7,13 +7,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * {@code priceTableId} is not part of the use-case ticket's literal field
- * list, but AC2's max-discount cap has to be checked against *some* price
- * table, and UC-02's {@code ProductSearchResult} does not (yet) carry one.
- * Callers that resolved a price table while building the cart pass its id
- * here; when omitted, discounts are accepted uncapped.
- */
 public record RegisterNfceSaleCommand(UUID sessionId, List<SaleItemCommand> items, BigDecimal totalDiscount,
 		List<PaymentCommand> payments, String customerCpf, UUID priceTableId) {
 

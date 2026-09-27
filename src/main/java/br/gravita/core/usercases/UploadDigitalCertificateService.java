@@ -12,11 +12,6 @@ import br.gravita.core.ports.outbound.security.CertificateReaderPort;
 
 import java.time.Instant;
 
-/**
- * Uploads or replaces a company's A1 certificate (UC-M1-02). Encryption of the {@code .pfx}
- * payload happens in {@code CertificateStoragePort}'s adapter, not here - this service only
- * validates the certificate type, extracts its expiry date, and persists it.
- */
 @UseCase
 public class UploadDigitalCertificateService implements UploadDigitalCertificateUseCase {
 

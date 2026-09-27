@@ -10,10 +10,5 @@ public interface PurchaseReceiptRepositoryPort {
 	PurchaseReceipt save(PurchaseReceipt purchaseReceipt);
 	Optional<PurchaseReceipt> findById(PurchaseReceiptId id);
 
-	/**
-	 * UC-M6-08 needs every receipt already confirmed against an order (plus the
-	 * one it is currently confirming) to decide whether the order's items are
-	 * now fully covered.
-	 */
 	List<PurchaseReceipt> findByOrderId(PurchaseOrderId orderId);
 }

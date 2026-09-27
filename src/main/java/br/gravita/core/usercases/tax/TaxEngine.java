@@ -6,13 +6,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
-/**
- * Computes ICMS (normal and ST), IPI, PIS, COFINS and FCP for one item from
- * whatever {@link TaxRateRule} rows were resolved for it. The rows already
- * encode NCM/UF/regime/operation — this class never branches on regime or
- * operation type, so a new combination is handled entirely by rate-table
- * data (doc §13).
- */
 public final class TaxEngine {
 
 	private static final int MONEY_SCALE = 2;

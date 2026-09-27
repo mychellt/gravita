@@ -9,13 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * The endpoint/credentials every adapter implementation (SEFAZ client, Receita Federal
- * client, bank clients, WhatsApp Business API client, e-commerce webhooks, accounting
- * export) reads at call time. The {@code credentialPayload} held here is plaintext from the
- * domain's point of view - encrypting it at rest (doc §11.4) is a persistence-adapter
- * concern, not a domain one.
- */
 @Getter
 @Builder
 @AllArgsConstructor

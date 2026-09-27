@@ -8,10 +8,6 @@ import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * One row per {@code product x warehouse}, per M5 module spec. Lot/serial
- * dimensions aren't modeled yet (UC-M5-01 only reads this projection).
- */
 @Getter
 public final class StockBalance {
 
@@ -39,20 +35,10 @@ public final class StockBalance {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved, inTransit, averageCost);
 	}
 
-	/**
-	 * Derived per the {@code StockBalance} invariant (module spec §"Domain
-	 * model"): {@code onHand - reserved}.
-	 */
 	public BigDecimal available() {
 		return onHand.subtract(reserved);
 	}
 
-	/**
-	 * Reserves {@code quantity} against this balance (UC-M5-06): moves it
-	 * from {@code available} into {@code reserved} without touching
-	 * {@code onHand}. Rejects the reservation when not enough is available,
-	 * per the {@code StockBalance} invariant (module spec §"Domain model").
-	 */
 	public StockBalance reserve(BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Reservation quantity must be positive");
@@ -64,11 +50,6 @@ public final class StockBalance {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved.add(quantity), inTransit, averageCost);
 	}
 
-	/**
-	 * Releases a previously reserved {@code quantity} (UC-M5-07): moves it back
-	 * from {@code reserved} into {@code available} without touching
-	 * {@code onHand}.
-	 */
 	public StockBalance release(BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Release quantity must be positive");
@@ -77,11 +58,6 @@ public final class StockBalance {
 				averageCost);
 	}
 
-	/**
-	 * Applies a stock entry: increases {@code onHand} and recalculates
-	 * {@code averageCost} (CMV) as a weighted average of the existing balance
-	 * and the new entry (UC-M5-02, AC1).
-	 */
 	public StockBalance receiveEntry(BigDecimal quantity, BigDecimal unitCost) {
 		BigDecimal newOnHand = onHand.add(quantity);
 		BigDecimal totalCost = onHand.multiply(averageCost).add(quantity.multiply(unitCost));
@@ -89,11 +65,6 @@ public final class StockBalance {
 		return new StockBalance(id, productId, warehouseId, newOnHand, reserved, inTransit, newAverageCost);
 	}
 
-	/**
-	 * Applies a plain stock exit (UC-M5-03): decreases {@code onHand} only.
-	 * Availability against the negative-stock setting is enforced by the
-	 * caller, which decides whether to allow going negative.
-	 */
 	public StockBalance exit(BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Exit quantity must be positive");
@@ -102,12 +73,6 @@ public final class StockBalance {
 				averageCost);
 	}
 
-	/**
-	 * Fulfills an exit against an existing {@link StockReservation} (UC-M5-03,
-	 * AC4): decreases {@code onHand} and {@code reserved} together, so
-	 * {@code available} is unaffected - the quantity was already carved out of
-	 * it when the reservation was created.
-	 */
 	public StockBalance consumeReserved(BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Exit quantity must be positive");
@@ -116,10 +81,6 @@ public final class StockBalance {
 				inTransit, averageCost);
 	}
 
-	/**
-	 * Applies a manual correction (UC-M5-04, AC2): {@code onHand} reflects
-	 * {@code delta} exactly, positive or negative.
-	 */
 	public StockBalance applyAdjustment(BigDecimal delta) {
 		if (delta == null || delta.signum() == 0) {
 			throw new BusinessRuleException("Adjustment quantityDelta must not be zero");
@@ -127,12 +88,6 @@ public final class StockBalance {
 		return new StockBalance(id, productId, warehouseId, onHand.add(delta), reserved, inTransit, averageCost);
 	}
 
-	/**
-	 * Initiates a transfer's outbound leg (UC-M5-05, AC1): moves {@code quantity}
-	 * out of {@code onHand} into {@code inTransit} without touching
-	 * {@code reserved}, so {@code available} ({@code onHand - reserved}) drops
-	 * immediately while the destination hasn't received anything yet (AC2).
-	 */
 	public StockBalance decreaseOnHandAndIncreaseInTransit(BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Transfer quantity must be positive");
@@ -145,19 +100,11 @@ public final class StockBalance {
 				inTransit.add(quantity), averageCost);
 	}
 
-	/**
-	 * Clears the pending leg on the source balance once the transfer is
-	 * confirmed at the destination (UC-M5-05).
-	 */
 	public StockBalance releaseInTransit(BigDecimal quantity) {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved, inTransit.subtract(quantity),
 				averageCost);
 	}
 
-	/**
-	 * Receives a confirmed transfer's inbound leg (UC-M5-05): increases
-	 * {@code onHand} at the destination.
-	 */
 	public StockBalance increaseOnHand(BigDecimal quantity) {
 		return new StockBalance(id, productId, warehouseId, onHand.add(quantity), reserved, inTransit, averageCost);
 	}

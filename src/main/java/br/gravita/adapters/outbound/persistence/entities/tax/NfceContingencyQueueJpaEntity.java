@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+<<<<<<< HEAD
 /**
  * Backs {@link br.gravita.core.ports.outbound.tax.TransmissionQueuePort}, now
  * shared across M2 (NFe, UC-M2-01 AC7) and M3 (NFC-e contingency, AC2)
@@ -20,6 +21,8 @@ import lombok.experimental.SuperBuilder;
  * (NFC-e) and {@code TransmitNfeUseCase} (NFe, GRA-103) will consume and
  * clear rows from this table; neither is built yet.
  */
+=======
+>>>>>>> origin/master
 @Getter
 @Setter
 @Entity

@@ -6,7 +6,6 @@ import lombok.Getter;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Tracked individually rather than by quantity, per module spec (UC-M5-02, AC4). */
 @Getter
 public final class SerialUnit {
 
@@ -29,7 +28,6 @@ public final class SerialUnit {
 		return new SerialUnit(id, productId, warehouseId, serialNumber, SerialUnitStatus.IN_STOCK);
 	}
 
-	/** Allocates this unit to an exit (UC-M5-03, AC1); rejects units already issued. */
 	public SerialUnit issue() {
 		if (status != SerialUnitStatus.IN_STOCK) {
 			throw new BusinessRuleException("Serial unit " + serialNumber + " is not in stock: " + status);

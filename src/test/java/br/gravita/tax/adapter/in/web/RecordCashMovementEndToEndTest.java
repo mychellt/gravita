@@ -30,10 +30,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-93: end-to-end verification of RecordCashMovementUseCase
- * (POST /api/pdv/cash-movements) through the real HTTP stack.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

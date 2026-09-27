@@ -20,11 +20,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Fixture-based unit tests for the tax engine, exercised without any
- * repository adapter — matches GRA-32's note to build and test the engine
- * against fixture rate data in parallel with M1.
- */
 class TaxEngineTest {
 
 	private final TaxEngine engine = new TaxEngine();
@@ -68,8 +63,6 @@ class TaxEngineTest {
 
 	@Test
 	void shouldComputeIcmsStAsInternalRateOverMvaBaseMinusIcmsProprio() {
-		// gross 1000.00; ICMS 12% = 120.00; ST base = 1000 * 1.40 = 1400.00;
-		// gross ST = 1400 * 18% = 252.00; ICMS-ST = 252.00 - 120.00 = 132.00
 		ItemTaxInput input = item(List.of(
 				rule(TaxType.ICMS, "12"),
 				rule(TaxType.ICMS_ST, "18", "0", "40")));
@@ -83,7 +76,6 @@ class TaxEngineTest {
 
 	@Test
 	void shouldApplyBaseReductionBeforeComputingRate() {
-		// gross 1000.00, 20% base reduction -> effective base 800.00, 12% -> 96.00
 		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12", "20", "0")));
 
 		ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
@@ -126,9 +118,6 @@ class TaxEngineTest {
 
 	@Test
 	void shouldProduceTheSameResultRegardlessOfWhichRegimeSelectedTheRows() {
-		// The engine takes no TaxRegime input at all: whichever rows the
-		// rate-table query resolved for a regime are the only thing it sees,
-		// so there is no regime-conditional code path to test around.
 		ItemTaxInput simplesLikeInput = item(List.of(rule(TaxType.ICMS, "4")));
 		ItemTaxInput lucroRealLikeInput = new ItemTaxInput(0, "PROD-1", new BigDecimal("10"), new BigDecimal("100.00"),
 				List.of(rule(TaxType.ICMS, "4")));

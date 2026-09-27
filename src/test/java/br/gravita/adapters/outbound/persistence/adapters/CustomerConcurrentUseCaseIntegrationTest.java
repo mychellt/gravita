@@ -26,16 +26,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * GRA-48 acceptance criterion #3: a read-modify-write race between PATCH
- * /api/customers/{id} (UC-06) and a concurrent credit-status change (UC-08)
- * must fail with an optimistic-lock conflict instead of one silently
- * reverting the other's committed change. Drives the real
- * UpdateCustomerService and SetCustomerCreditStatusAdapter production
- * classes - not raw domain mutation - against a real H2-backed
- * CustomerRepositoryAdapter, so the version column is exercised exactly as
- * it would be by two racing use cases sharing the same customer row.
- */
 @DataJpaTest
 @Import({CustomerRepositoryAdapter.class, CustomerPersistenceMapperImpl.class})
 class CustomerConcurrentUseCaseIntegrationTest {
@@ -52,11 +42,9 @@ class CustomerConcurrentUseCaseIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		// UC-06's reader: snapshot taken before UC-08 commits its change.
 		CustomerRepositoryPort staleReadPort = staleSnapshotPortFor(id);
 		UpdateCustomerService updateCustomerService = new UpdateCustomerService(staleReadPort);
 
-		// UC-08 commits first against the real adapter, bumping the row's version.
 		SetCustomerCreditStatusAdapter creditStatusAdapter = new SetCustomerCreditStatusAdapter(repositoryAdapter);
 		CustomerDomain creditCommand = CustomerDomain.builder()
 				.id(id)
@@ -67,14 +55,12 @@ class CustomerConcurrentUseCaseIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		// UC-06's PATCH now tries to save against its now-stale snapshot.
 		UpdateCustomerCommand patchCommand = new UpdateCustomerCommand(
 				id, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
 
 		assertThatThrownBy(() -> updateCustomerService.execute(patchCommand))
 				.isInstanceOf(ObjectOptimisticLockingFailureException.class);
 
-		// UC-08's committed status/balance change must survive untouched.
 		CustomerDomain persisted = repositoryAdapter.get(id).orElseThrow();
 		assertThat(persisted.getStatus()).isEqualTo(CustomerStatus.BLOCKED);
 		assertThat(persisted.getCurrentBalance()).isEqualByComparingTo("500.00");
@@ -87,11 +73,9 @@ class CustomerConcurrentUseCaseIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		// UC-08's reader: snapshot taken before the PATCH commits its change.
 		CustomerRepositoryPort staleReadPort = staleSnapshotPortFor(id);
 		SetCustomerCreditStatusAdapter creditStatusAdapter = new SetCustomerCreditStatusAdapter(staleReadPort);
 
-		// PATCH commits first against the real adapter, bumping the row's version.
 		UpdateCustomerService updateCustomerService = new UpdateCustomerService(repositoryAdapter);
 		UpdateCustomerCommand patchCommand = new UpdateCustomerCommand(
 				id, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
@@ -108,7 +92,6 @@ class CustomerConcurrentUseCaseIntegrationTest {
 		assertThatThrownBy(() -> creditStatusAdapter.execute(new Context(creditCommand)))
 				.isInstanceOf(ObjectOptimisticLockingFailureException.class);
 
-		// PATCH's committed rename must survive untouched.
 		CustomerDomain persisted = repositoryAdapter.get(id).orElseThrow();
 		assertThat(persisted.getName()).isEqualTo("Maria S. Costa");
 		assertThat(persisted.getStatus()).isEqualTo(CustomerStatus.REGULAR);

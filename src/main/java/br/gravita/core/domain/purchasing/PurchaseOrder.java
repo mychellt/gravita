@@ -55,11 +55,6 @@ public final class PurchaseOrder {
         }
     }
 
-    /**
-     * UC-M6-05. Only orders flagged {@code approvalRequired} at creation time (per
-     * the resolved {@code approvalAlcada}) go through this gate; below-threshold
-     * orders are already receivable and never reach here.
-     */
     public PurchaseOrder approve(UUID approvedBy) {
         assertPendingApproval("approve");
         return new PurchaseOrder(id, requestId, quotationId, supplierId, items, false, status, approvedBy);
