@@ -1,10 +1,12 @@
 package br.gravita.adapters.outbound.persistence.mappers.tax;
 
+import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeConferenceItemEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeItemEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeJpaEntity;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.InboundNfe;
+import br.gravita.core.domain.tax.InboundNfeConferenceItem;
 import br.gravita.core.domain.tax.InboundNfeId;
 import br.gravita.core.domain.tax.InboundNfeItem;
 import br.gravita.core.domain.tax.InboundNfeTotals;
@@ -42,7 +44,8 @@ public interface InboundNfePersistenceMapper {
 						entity.getTotalValue()),
 				entity.getXmlStorageRef(),
 				entity.getStatus(),
-				entity.getImportedAt());
+				entity.getImportedAt(),
+				toConferenceResult(entity.getConferenceResult()));
 	}
 
 	default InboundNfeJpaEntity toEntity(final InboundNfe domain) {
@@ -70,6 +73,7 @@ public interface InboundNfePersistenceMapper {
 				.status(domain.getStatus())
 				.importedAt(domain.getImportedAt())
 				.items(toItemEmbeddables(domain.getItems()))
+				.conferenceResult(toConferenceEmbeddables(domain.getConferenceResult()))
 				.build();
 	}
 
@@ -101,6 +105,27 @@ public interface InboundNfePersistenceMapper {
 						.ipiValue(item.ipiValue())
 						.pisValue(item.pisValue())
 						.cofinsValue(item.cofinsValue())
+						.build())
+				.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	private List<InboundNfeConferenceItem> toConferenceResult(final List<InboundNfeConferenceItemEmbeddable> embeddables) {
+		if (embeddables == null) {
+			return List.of();
+		}
+		return embeddables.stream()
+				.map(e -> new InboundNfeConferenceItem(e.getItemRef(), e.getOrderedQty(), e.getReceivedQty()))
+				.toList();
+	}
+
+	private List<InboundNfeConferenceItemEmbeddable> toConferenceEmbeddables(final List<InboundNfeConferenceItem> conferenceResult) {
+		// Same rationale as toItemEmbeddables: must stay mutable for Hibernate's
+		// clear + addAll collection merge on a detached entity.
+		return conferenceResult.stream()
+				.map(item -> InboundNfeConferenceItemEmbeddable.builder()
+						.itemRef(item.itemRef())
+						.orderedQty(item.orderedQty())
+						.receivedQty(item.receivedQty())
 						.build())
 				.collect(Collectors.toCollection(ArrayList::new));
 	}

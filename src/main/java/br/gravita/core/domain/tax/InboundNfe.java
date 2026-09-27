@@ -35,10 +35,12 @@ public final class InboundNfe {
 	private final String xmlStorageRef;
 	private final InboundNfeStatus status;
 	private final Instant importedAt;
+	private final List<InboundNfeConferenceItem> conferenceResult;
 
 	private InboundNfe(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
 			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
-			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt) {
+			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
+			List<InboundNfeConferenceItem> conferenceResult) {
 		this.id = Objects.requireNonNull(id, "InboundNfeId is required");
 		this.companyId = Objects.requireNonNull(companyId, "companyId is required");
 		this.accessKey = requireAccessKey(accessKey);
@@ -52,6 +54,7 @@ public final class InboundNfe {
 		this.xmlStorageRef = requireText(xmlStorageRef, "xmlStorageRef");
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.importedAt = Objects.requireNonNull(importedAt, "importedAt is required");
+		this.conferenceResult = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
 	}
 
 	/**
@@ -62,7 +65,7 @@ public final class InboundNfe {
 			String number, Document supplierDocument, String supplierName, Instant issuedAt,
 			List<InboundNfeItem> items, InboundNfeTotals totals, String xmlStorageRef) {
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
-				items, totals, xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now());
+				items, totals, xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(), List.of());
 	}
 
 	/**
@@ -76,15 +79,54 @@ public final class InboundNfe {
 			String number, Document supplierDocument, String supplierName, Instant issuedAt,
 			List<InboundNfeItem> items, InboundNfeTotals totals) {
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
-				items, totals, MANUAL_ENTRY_XML_STORAGE_REF, InboundNfeStatus.PENDING_CONFERENCE, Instant.now());
+				items, totals, MANUAL_ENTRY_XML_STORAGE_REF, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(),
+				List.of());
 	}
 
-	/** Rehydrates an existing record from storage. */
+	/** Rehydrates an existing record from storage, with no conference result yet. */
 	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
 			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
 			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt) {
+		return of(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt, items, totals,
+				xmlStorageRef, status, importedAt, List.of());
+	}
+
+	/** Rehydrates an existing record from storage, including a confirmed record's conference result. */
+	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
+			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
+			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
+			List<InboundNfeConferenceItem> conferenceResult) {
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
-				items, totals, xmlStorageRef, status, importedAt);
+				items, totals, xmlStorageRef, status, importedAt, conferenceResult);
+	}
+
+	/**
+	 * UC-M2-10: confirms the three-way conference (ordered vs. physically
+	 * received vs. what the NF itself states) and moves this record into
+	 * {@link InboundNfeStatus#CONFIRMED}. {@code conferenceResult} must carry
+	 * exactly one entry per NFe item, lined up positionally with {@link #items}.
+	 * Unlike {@code PurchaseReceipt}, there's no intermediate "conference
+	 * completed" state to also guard (see {@link InboundNfeStatus}), so
+	 * confirming an already-confirmed record is rejected outright - mirroring
+	 * {@code PurchaseReceipt#confirm}'s "already confirmed" guard, so a retried
+	 * request never double-triggers stock/payables.
+	 */
+	public InboundNfe confirm(List<InboundNfeConferenceItem> conferenceResult) {
+		if (status == InboundNfeStatus.CONFIRMED) {
+			throw new BusinessRuleException("Inbound NFe already confirmed: " + id.value());
+		}
+		List<InboundNfeConferenceItem> result = requireConferenceResult(conferenceResult);
+		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
+				items, totals, xmlStorageRef, InboundNfeStatus.CONFIRMED, importedAt, result);
+	}
+
+	private List<InboundNfeConferenceItem> requireConferenceResult(List<InboundNfeConferenceItem> conferenceResult) {
+		List<InboundNfeConferenceItem> copy = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
+		if (copy.size() != items.size()) {
+			throw new BusinessRuleException("Conference result must have exactly one entry per NFe item (expected "
+					+ items.size() + ", got " + copy.size() + ")");
+		}
+		return copy;
 	}
 
 	private static String requireAccessKey(String accessKey) {
