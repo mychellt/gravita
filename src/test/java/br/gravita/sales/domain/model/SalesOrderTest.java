@@ -132,6 +132,36 @@ class SalesOrderTest {
 		assertThatThrownBy(() -> cancelled.cancel("Cancel again")).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@Test
+	void invoicingAnApprovedOrTheInSeparationOrderTransitionsItToInvoiced() {
+		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
+		SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
+
+		assertThat(approved.invoice().getStatus()).isEqualTo(SalesOrderStatus.INVOICED);
+		assertThat(inSeparation.invoice().getStatus()).isEqualTo(SalesOrderStatus.INVOICED);
+	}
+
+	@Test
+	void rejectsInvoicingADraftOrder() {
+		SalesOrder draft = draftOrder();
+
+		assertThatThrownBy(draft::invoice).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Only APPROVED or IN_SEPARATION orders can be invoiced");
+	}
+
+	@Test
+	void rejectsInvoicingAnAlreadyInvoicedOrder() {
+		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				SalesOrderStatus.INVOICED, null, null);
+
+		assertThatThrownBy(invoiced::invoice).isInstanceOf(BusinessRuleException.class);
+	}
+
 	private static SalesOrder draftOrder() {
 		return SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
