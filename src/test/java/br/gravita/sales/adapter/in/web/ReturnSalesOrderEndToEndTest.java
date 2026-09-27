@@ -87,7 +87,8 @@ class ReturnSalesOrderEndToEndTest {
 	void returningAnOrderThatIsNotInvoicedIsRejectedWithBadRequest() throws Exception {
 		UUID productId = seedProduct();
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(new SalesOrderItem(productId, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
+				UUID.randomUUID(), UUID.randomUUID(),
+				List.of(new SalesOrderItem(productId, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
 		salesOrderRepositoryPort.save(order);
 
@@ -108,7 +109,8 @@ class ReturnSalesOrderEndToEndTest {
 	private SalesOrder persistInvoicedOrder(UUID productId, BigDecimal quantity, BigDecimal unitPrice,
 			FiscalDocumentRef fiscalDocumentRef) {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(new SalesOrderItem(productId, quantity, unitPrice, BigDecimal.ZERO)),
+				UUID.randomUUID(), UUID.randomUUID(),
+				List.of(new SalesOrderItem(productId, quantity, unitPrice, BigDecimal.ZERO)),
 				SalesOrderStatus.INVOICED, UUID.randomUUID(), null);
 		SalesOrder saved = salesOrderRepositoryPort.save(order);
 		SalesInvoice invoice = SalesInvoice.issue(SalesInvoiceId.of(UUID.randomUUID()), saved.getId(),

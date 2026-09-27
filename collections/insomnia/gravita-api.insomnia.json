@@ -1842,6 +1842,24 @@
         "mimeType": "application/json",
         "text": "{\n  \"customerId\": \"{{ _.customerId }}\",\n  \"validUntil\": \"2026-12-31\",\n  \"items\": [\n    {\n      \"productOrServiceId\": \"{{ _.productId }}\",\n      \"quantity\": 2,\n      \"unitPrice\": 149.9,\n      \"discount\": 10.0\n    }\n  ]\n}"
       }
+    },
+    {
+      "_id": "req_37_01_c257b88f5f6fc7d73cf579d8",
+      "_type": "request",
+      "parentId": "fld_37_659630ac41adb40629355d1a",
+      "name": "Send Quote",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales/quotes/{{ _.quoteId }}/send",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"channel\": \"WHATSAPP\"\n}"
+      }
     }
   ]
 }

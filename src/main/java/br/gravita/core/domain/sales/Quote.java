@@ -37,6 +37,20 @@ public final class Quote {
 		return new Quote(id, customerId, salespersonId, items, validUntil, status);
 	}
 
+	/**
+	 * UC-M7-02: delivers the quote, moving it to {@code SENT}. Rejected up
+	 * front - before the caller does any channel-specific delivery work - once
+	 * {@code validUntil} has passed; the salesperson must create a new quote
+	 * instead.
+	 */
+	public Quote send(LocalDate today) {
+		if (today.isAfter(validUntil)) {
+			throw new BusinessRuleException(
+					"Quote " + id.value() + " has expired (validUntil: " + validUntil + ")");
+		}
+		return new Quote(id, customerId, salespersonId, items, validUntil, QuoteStatus.SENT);
+	}
+
 	public BigDecimal totalValue() {
 		return items.stream().map(QuoteItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}

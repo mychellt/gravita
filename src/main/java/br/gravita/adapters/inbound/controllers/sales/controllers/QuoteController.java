@@ -3,6 +3,7 @@ package br.gravita.adapters.inbound.controllers.sales.controllers;
 import br.gravita.adapters.inbound.controllers.sales.dtos.CreateQuoteRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.QuoteResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.SalesOrderResponse;
+import br.gravita.adapters.inbound.controllers.sales.dtos.SendQuoteRequest;
 import br.gravita.core.domain.sales.QuoteNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.ConvertQuoteToOrderCommand;
@@ -10,6 +11,7 @@ import br.gravita.core.ports.inbound.sales.ConvertQuoteToOrderUseCase;
 import br.gravita.core.ports.inbound.sales.CreateQuoteUseCase;
 import br.gravita.core.ports.inbound.sales.QuoteView;
 import br.gravita.core.ports.inbound.sales.SalesOrderView;
+import br.gravita.core.ports.inbound.sales.SendQuoteUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -31,6 +34,7 @@ import java.util.UUID;
 public class QuoteController {
 
 	private final CreateQuoteUseCase createQuoteUseCase;
+	private final SendQuoteUseCase sendQuoteUseCase;
 	private final ConvertQuoteToOrderUseCase convertQuoteToOrderUseCase;
 
 	@PostMapping
@@ -38,6 +42,12 @@ public class QuoteController {
 		QuoteView quote = createQuoteUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/sales/quotes/" + quote.id()))
 				.body(QuoteResponse.from(quote));
+	}
+
+	@PostMapping("/{id}/send")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void send(@PathVariable UUID id, @Valid @RequestBody SendQuoteRequest request) {
+		sendQuoteUseCase.execute(request.toCommand(id));
 	}
 
 	@PostMapping("/{id}/convert")

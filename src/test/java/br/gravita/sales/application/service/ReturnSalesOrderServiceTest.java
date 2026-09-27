@@ -241,6 +241,7 @@ class ReturnSalesOrderServiceTest {
 
 	private SalesOrder orderWithStatus(SalesOrderStatus status, BigDecimal quantity, String unitPrice) {
 		return SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+				UUID.randomUUID(),
 				List.of(new SalesOrderItem(productId, quantity, new BigDecimal(unitPrice), BigDecimal.ZERO)), status,
 				UUID.randomUUID(), null);
 	}
