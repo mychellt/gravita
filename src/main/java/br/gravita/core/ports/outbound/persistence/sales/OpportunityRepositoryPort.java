@@ -3,6 +3,7 @@ package br.gravita.core.ports.outbound.persistence.sales;
 import br.gravita.core.domain.sales.Opportunity;
 import br.gravita.core.domain.sales.OpportunityId;
 import br.gravita.core.domain.sales.OpportunityStage;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,4 +15,6 @@ public interface OpportunityRepositoryPort {
 	List<Opportunity> findAll();
 
 	List<Opportunity> findByStage(OpportunityStage stage);
+
+	List<Opportunity> findByIds(Collection<OpportunityId> ids);
 }

@@ -8,8 +8,10 @@ import br.gravita.core.domain.sales.Opportunity;
 import br.gravita.core.domain.sales.OpportunityId;
 import br.gravita.core.domain.sales.OpportunityStage;
 import br.gravita.core.ports.outbound.persistence.sales.OpportunityRepositoryPort;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class OpportunityRepositoryAdapter implements OpportunityRepositoryPort {
@@ -43,5 +45,11 @@ class OpportunityRepositoryAdapter implements OpportunityRepositoryPort {
 	@Override
 	public List<Opportunity> findByStage(OpportunityStage stage) {
 		return jpaRepository.findByStage(stage).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<Opportunity> findByIds(Collection<OpportunityId> ids) {
+		List<UUID> uuids = ids.stream().map(OpportunityId::value).toList();
+		return jpaRepository.findAllById(uuids).stream().map(mapper::toDomain).toList();
 	}
 }
