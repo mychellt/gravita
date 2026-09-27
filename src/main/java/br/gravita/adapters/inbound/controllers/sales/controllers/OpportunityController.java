@@ -2,6 +2,8 @@ package br.gravita.adapters.inbound.controllers.sales.controllers;
 
 import br.gravita.adapters.inbound.controllers.sales.dtos.ChangeOpportunityStageRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.CreateOpportunityRequest;
+import br.gravita.adapters.inbound.controllers.sales.dtos.InteractionResponse;
+import br.gravita.adapters.inbound.controllers.sales.dtos.LogInteractionRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.OpportunityResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.UpdateOpportunityRequest;
 import br.gravita.core.domain.sales.OpportunityId;
@@ -10,8 +12,10 @@ import br.gravita.core.domain.sales.OpportunityStage;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.GetOpportunityQuery;
 import br.gravita.core.ports.inbound.sales.GetOpportunityUseCase;
+import br.gravita.core.ports.inbound.sales.InteractionView;
 import br.gravita.core.ports.inbound.sales.ListOpportunitiesQuery;
 import br.gravita.core.ports.inbound.sales.ListOpportunitiesUseCase;
+import br.gravita.core.ports.inbound.sales.LogInteractionUseCase;
 import br.gravita.core.ports.inbound.sales.ManageOpportunityUseCase;
 import br.gravita.core.ports.inbound.sales.OpportunityView;
 import jakarta.validation.Valid;
@@ -40,6 +44,7 @@ public class OpportunityController {
 	private final ManageOpportunityUseCase manageOpportunityUseCase;
 	private final GetOpportunityUseCase getOpportunityUseCase;
 	private final ListOpportunitiesUseCase listOpportunitiesUseCase;
+	private final LogInteractionUseCase logInteractionUseCase;
 
 	@PostMapping
 	public ResponseEntity<OpportunityResponse> create(@Valid @RequestBody CreateOpportunityRequest request) {
@@ -75,6 +80,14 @@ public class OpportunityController {
 			@Valid @RequestBody ChangeOpportunityStageRequest request) {
 		OpportunityView updated = manageOpportunityUseCase.changeStage(request.toCommand(id));
 		return ResponseEntity.ok(OpportunityResponse.from(updated));
+	}
+
+	@PostMapping("/{id}/interactions")
+	public ResponseEntity<InteractionResponse> logInteraction(@PathVariable UUID id,
+			@Valid @RequestBody LogInteractionRequest request) {
+		InteractionView created = logInteractionUseCase.execute(request.toCommand(id));
+		return ResponseEntity.created(URI.create("/api/crm/opportunities/" + id + "/interactions/" + created.id()))
+				.body(InteractionResponse.from(created));
 	}
 
 	@ExceptionHandler(OpportunityNotFoundException.class)
