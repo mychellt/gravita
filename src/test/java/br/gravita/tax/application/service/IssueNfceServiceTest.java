@@ -132,7 +132,7 @@ class IssueNfceServiceTest {
 		assertThat(result.status()).isEqualTo(NfceSaleStatus.AUTHORIZED);
 		assertThat(result.protocol()).isEqualTo("protocol-123");
 		assertThat(result.accessKey()).hasSize(44);
-		verify(transmissionQueuePort, never()).enqueue(any());
+		verify(transmissionQueuePort, never()).enqueue(any(NfceSaleId.class));
 
 		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());

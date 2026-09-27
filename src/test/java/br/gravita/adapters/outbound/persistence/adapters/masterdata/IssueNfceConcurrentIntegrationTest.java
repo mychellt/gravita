@@ -100,7 +100,14 @@ class IssueNfceConcurrentIntegrationTest {
 							br.gravita.core.ports.outbound.tax.SefazCancellationRequest request) {
 						throw new UnsupportedOperationException("not exercised by this test");
 					}
-				}, saleId -> {
+				}, new br.gravita.core.ports.outbound.tax.TransmissionQueuePort() {
+					@Override
+					public void enqueue(NfceSaleId nfceSaleId) {
+					}
+
+					@Override
+					public void enqueue(br.gravita.core.domain.tax.NfeDocumentId nfeDocumentId) {
+					}
 				});
 	}
 
