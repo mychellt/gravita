@@ -6,6 +6,7 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.VoidedNumberRange;
 import br.gravita.core.ports.outbound.persistence.tax.VoidedNumberRangeRepositoryPort;
+import java.time.Instant;
 import java.util.List;
 
 @PersistenceAdapter
@@ -28,5 +29,12 @@ class VoidedNumberRangeRepositoryAdapter implements VoidedNumberRangeRepositoryP
 	@Override
 	public List<VoidedNumberRange> findByCompanyId(CompanyId companyId) {
 		return jpaRepository.findByCompanyId(companyId.value()).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<VoidedNumberRange> findByCompanyIdAndSeriesAndVoidedAtBetween(CompanyId companyId, String series,
+			Instant voidedFrom, Instant voidedTo) {
+		return jpaRepository.findByCompanyIdAndSeriesAndVoidedAtBetween(companyId.value(), series, voidedFrom, voidedTo)
+				.stream().map(mapper::toDomain).toList();
 	}
 }

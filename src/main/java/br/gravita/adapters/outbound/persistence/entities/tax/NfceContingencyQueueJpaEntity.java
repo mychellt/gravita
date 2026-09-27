@@ -13,16 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-<<<<<<< HEAD
-/**
- * Backs {@link br.gravita.core.ports.outbound.tax.TransmissionQueuePort}, now
- * shared across M2 (NFe, UC-M2-01 AC7) and M3 (NFC-e contingency, AC2)
- * despite the table's NFC-e-origin name. {@code SyncContingencySalesUseCase}
- * (NFC-e) and {@code TransmitNfeUseCase} (NFe, GRA-103) will consume and
- * clear rows from this table; neither is built yet.
- */
-=======
->>>>>>> origin/master
 @Getter
 @Setter
 @Entity
@@ -40,4 +30,10 @@ public class NfceContingencyQueueJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "queued_at", nullable = false)
 	private Instant queuedAt;
+
+	@Column(name = "attempts", nullable = false)
+	private int attempts;
+
+	@Column(name = "next_retry_at", nullable = false)
+	private Instant nextRetryAt;
 }

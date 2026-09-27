@@ -39,13 +39,18 @@ public final class NfeDocument {
 	private final Long documentNumber;
 	private final String accessKey;
 	private final String sefazProtocol;
+	private final boolean contingencyMode;
+	private final String rejectionReason;
+	private final String xmlStorageRef;
+	private final String danfeStorageRef;
 
 	private NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
 			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
 			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
-			String sefazProtocol) {
+			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
+			String danfeStorageRef) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.issuerCompanyId = Objects.requireNonNull(issuerCompanyId, "issuerCompanyId is required");
 		this.originSalesOrderId = originSalesOrderId;
@@ -66,6 +71,10 @@ public final class NfeDocument {
 		this.documentNumber = documentNumber;
 		this.accessKey = accessKey;
 		this.sefazProtocol = sefazProtocol;
+		this.contingencyMode = contingencyMode;
+		this.rejectionReason = rejectionReason;
+		this.xmlStorageRef = xmlStorageRef;
+		this.danfeStorageRef = danfeStorageRef;
 	}
 
 	/**
@@ -78,7 +87,7 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals, Instant createdAt) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
-				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null);
+				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null);
 	}
 
 	/**
@@ -90,10 +99,12 @@ public final class NfeDocument {
 			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
-			String sefazProtocol) {
+			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
+			String danfeStorageRef) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
-				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol);
+				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
+				xmlStorageRef, danfeStorageRef);
 	}
 
 	/**
@@ -108,7 +119,80 @@ public final class NfeDocument {
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.QUEUED, createdAt, requireText(documentSeries, "documentSeries"),
 				Objects.requireNonNull(documentNumber, "documentNumber is required"),
-				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol);
+				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol, false, null, null, null);
+	}
+
+	/**
+	 * UC-M2-03 (AC1/AC2): marks the document as transmitted to SEFAZ - signing
+	 * happens automatically inside {@code SubmitToSefazPort}'s adapter, not
+	 * here. Only a {@code QUEUED} document can be sent; a document already
+	 * {@code SENT} (a retry after a timeout) is re-submitted without
+	 * transitioning again, so {@code TransmitNfeUseCase} calls this only once
+	 * per document.
+	 */
+	public NfeDocument send() {
+		requireQueued();
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
+				NfeDocumentStatus.SENT, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
+				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef);
+	}
+
+	/**
+	 * UC-M2-03 (AC3): flips into SVC-AN/SVC-RS contingency after SEFAZ-UF has
+	 * repeatedly timed out (doc §13). The access key itself is unchanged - per
+	 * {@link NfeAccessKeyGenerator}'s note, contingency is a transmission-time
+	 * routing decision, not a re-numbering event.
+	 */
+	public NfeDocument switchToContingency() {
+		requireSent();
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
+				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, true, rejectionReason,
+				xmlStorageRef, danfeStorageRef);
+	}
+
+	/**
+	 * UC-M2-03 (AC1/AC4/AC6): SEFAZ authorized the document. Carries the
+	 * storage references for the XML/DANFE that were rendered and persisted
+	 * as part of the same transmission attempt.
+	 */
+	public NfeDocument authorize(String sefazProtocol) {
+		requireSent();
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
+				NfeDocumentStatus.AUTHORIZED, createdAt, documentSeries, documentNumber, accessKey,
+				requireText(sefazProtocol, "sefazProtocol"), contingencyMode, null, xmlStorageRef, danfeStorageRef);
+	}
+
+	/**
+	 * UC-M2-03 (AC6): attaches the storage references for the XML/DANFE
+	 * rendered from this now-{@code AUTHORIZED} document - a separate step
+	 * from {@link #authorize}, since the XML/DANFE can only be rendered (and
+	 * therefore stored) once the protocol they embed is known.
+	 */
+	public NfeDocument withStorageRefs(String xmlStorageRef, String danfeStorageRef) {
+		if (status != NfeDocumentStatus.AUTHORIZED) {
+			throw new BusinessRuleException(
+					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + status + ")");
+		}
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
+				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
+				requireText(xmlStorageRef, "xmlStorageRef"), requireText(danfeStorageRef, "danfeStorageRef"));
+	}
+
+	/**
+	 * UC-M2-03: SEFAZ rejected the document outright (not a timeout) - the
+	 * reason is surfaced so the issuer can correct and re-issue under a new
+	 * document number, per the use case description.
+	 */
+	public NfeDocument reject(String rejectionReason) {
+		requireSent();
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
+				NfeDocumentStatus.REJECTED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
+				contingencyMode, requireText(rejectionReason, "rejectionReason"), xmlStorageRef, danfeStorageRef);
 	}
 
 	public BigDecimal getItemsSubtotal() {
@@ -122,6 +206,18 @@ public final class NfeDocument {
 	private void requireDraft() {
 		if (status != NfeDocumentStatus.DRAFT) {
 			throw new BusinessRuleException("NfeDocument " + id.value() + " is not DRAFT (current status: " + status + ")");
+		}
+	}
+
+	private void requireQueued() {
+		if (status != NfeDocumentStatus.QUEUED) {
+			throw new BusinessRuleException("NfeDocument " + id.value() + " is not QUEUED (current status: " + status + ")");
+		}
+	}
+
+	private void requireSent() {
+		if (status != NfeDocumentStatus.SENT) {
+			throw new BusinessRuleException("NfeDocument " + id.value() + " is not SENT (current status: " + status + ")");
 		}
 	}
 

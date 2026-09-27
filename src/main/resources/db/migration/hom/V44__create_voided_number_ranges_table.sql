@@ -14,3 +14,4 @@ CREATE TABLE voided_number_ranges (
 );
 
 CREATE INDEX idx_voided_number_ranges_company_id ON voided_number_ranges (company_id);
+CREATE INDEX idx_voided_number_ranges_company_series_voided_at ON voided_number_ranges (company_id, series, voided_at);

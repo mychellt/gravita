@@ -28,28 +28,38 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 	private final SefazHttpClientFactory httpClientFactory;
 	private final String homologationBaseUrl;
 	private final String productionBaseUrl;
+	private final String contingencyBaseUrl;
 	private final Duration timeout;
 
 	@Autowired
 	public SefazUfSubmissionAdapter(CertificateStoragePort certificateStoragePort,
 			@Value("${gravita.sefaz.base-url.homologation:https://homologacao.nfce.sefaz.example}") String homologationBaseUrl,
 			@Value("${gravita.sefaz.base-url.production:https://nfce.sefaz.example}") String productionBaseUrl,
+			@Value("${gravita.sefaz.base-url.contingency:https://svc.nfe.sefaz.example}") String contingencyBaseUrl,
 			@Value("${gravita.sefaz.timeout-ms:2500}") long timeoutMs) {
-		this(certificateStoragePort, new SefazHttpClientFactory(), homologationBaseUrl, productionBaseUrl, timeoutMs);
+		this(certificateStoragePort, new SefazHttpClientFactory(), homologationBaseUrl, productionBaseUrl,
+				contingencyBaseUrl, timeoutMs);
 	}
 
 	SefazUfSubmissionAdapter(CertificateStoragePort certificateStoragePort, SefazHttpClientFactory httpClientFactory,
-			String homologationBaseUrl, String productionBaseUrl, long timeoutMs) {
+			String homologationBaseUrl, String productionBaseUrl, String contingencyBaseUrl, long timeoutMs) {
 		this.certificateStoragePort = certificateStoragePort;
 		this.httpClientFactory = httpClientFactory;
 		this.homologationBaseUrl = homologationBaseUrl;
 		this.productionBaseUrl = productionBaseUrl;
+		this.contingencyBaseUrl = contingencyBaseUrl;
 		this.timeout = Duration.ofMillis(timeoutMs);
 	}
 
 	@Override
 	public SefazSubmissionResult submit(SefazSubmissionRequest request) {
-		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
+		// UC-M2-03 (AC3): a request flagged as contingency is routed to the
+		// SVC-AN/SVC-RS endpoint instead of the issuer's SEFAZ-UF, modelled here
+		// as a single configured fallback endpoint rather than a two-tier
+		// AN/RS split - the module has no per-UF SVC routing table to pick
+		// between them yet.
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment(),
+				request.contingency());
 
 		SefazAuthorizationRequestPayload payload = new SefazAuthorizationRequestPayload(request.accessKey(),
 				request.saleTotal(), request.taxResult().totals().grandTotal());
@@ -59,7 +69,7 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 
 	@Override
 	public SefazSubmissionResult cancel(SefazCancellationRequest request) {
-		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment(), false);
 
 		SefazCancellationRequestPayload payload = new SefazCancellationRequestPayload(request.accessKey(),
 				request.protocol(), request.reason());
@@ -69,7 +79,7 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 
 	@Override
 	public SefazSubmissionResult voidNumberRange(SefazVoidNumberRangeRequest request) {
-		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment(), false);
 
 		SefazVoidNumberRangeRequestPayload payload = new SefazVoidNumberRangeRequestPayload(request.series(),
 				request.startNumber(), request.endNumber(), request.justification());
@@ -90,7 +100,8 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 				"SEFAZ manifestação transmission is not wired yet - see UC-M2-07 follow-up");
 	}
 
-	private RestClient resolveAuthenticatedClient(CompanyId companyId, SefazEnvironment environment) {
+	private RestClient resolveAuthenticatedClient(CompanyId companyId, SefazEnvironment environment,
+			boolean contingency) {
 		DigitalCertificate certificate = certificateStoragePort.findByCompanyId(companyId)
 				.orElseThrow(() -> new BusinessRuleException(
 						"No digital certificate registered for company " + companyId.value()));
@@ -98,7 +109,8 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 			throw new BusinessRuleException("Digital certificate for company " + companyId.value() + " has expired");
 		}
 
-		String baseUrl = environment == SefazEnvironment.PRODUCTION ? productionBaseUrl : homologationBaseUrl;
+		String baseUrl = contingency ? contingencyBaseUrl
+				: environment == SefazEnvironment.PRODUCTION ? productionBaseUrl : homologationBaseUrl;
 		return httpClientFactory.build(certificate.getPfxPayload(), certificate.getPassword(), baseUrl, timeout);
 	}
 

@@ -119,6 +119,18 @@ public class NfeJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "sefaz_protocol")
 	private String sefazProtocol;
 
+	@Column(name = "contingency_mode", nullable = false)
+	private boolean contingencyMode;
+
+	@Column(name = "rejection_reason")
+	private String rejectionReason;
+
+	@Column(name = "xml_storage_ref")
+	private String xmlStorageRef;
+
+	@Column(name = "danfe_storage_ref")
+	private String danfeStorageRef;
+
 	@ElementCollection
 	@CollectionTable(name = "nfe_items", joinColumns = @JoinColumn(name = "nfe_document_id"))
 	private List<NfeItemEmbeddable> items;

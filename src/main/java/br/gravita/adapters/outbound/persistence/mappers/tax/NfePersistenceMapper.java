@@ -49,7 +49,11 @@ public interface NfePersistenceMapper {
 				entity.getDocumentSeries(),
 				entity.getDocumentNumber(),
 				entity.getAccessKey(),
-				entity.getSefazProtocol());
+				entity.getSefazProtocol(),
+				entity.isContingencyMode(),
+				entity.getRejectionReason(),
+				entity.getXmlStorageRef(),
+				entity.getDanfeStorageRef());
 	}
 
 	default NfeJpaEntity toEntity(final NfeDocument domain) {
@@ -84,6 +88,10 @@ public interface NfePersistenceMapper {
 				.documentNumber(domain.getDocumentNumber())
 				.accessKey(domain.getAccessKey())
 				.sefazProtocol(domain.getSefazProtocol())
+				.contingencyMode(domain.isContingencyMode())
+				.rejectionReason(domain.getRejectionReason())
+				.xmlStorageRef(domain.getXmlStorageRef())
+				.danfeStorageRef(domain.getDanfeStorageRef())
 				.items(toItemEmbeddables(domain.getItems()))
 				.taxLines(toTaxLineEmbeddables(domain.getItems()))
 				.build();

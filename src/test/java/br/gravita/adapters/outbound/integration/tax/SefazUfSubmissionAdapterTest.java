@@ -86,6 +86,30 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	void ac3_routesToTheContingencyEndpointWhenTheRequestIsFlaggedForContingency() throws Exception {
+		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+		server.createContext("/nfce/autorizacao", exchange -> {
+			byte[] body = "{\"protocol\":\"svc-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
+			exchange.getResponseHeaders().add("Content-Type", "application/json");
+			exchange.sendResponseHeaders(200, body.length);
+			try (OutputStream out = exchange.getResponseBody()) {
+				out.write(body);
+			}
+		});
+		server.start();
+		String contingencyUrl = "http://localhost:" + server.getAddress().getPort();
+		// The UF endpoints are unreachable - only the contingency (SVC-AN/SVC-RS)
+		// endpoint can possibly answer, proving the request was routed there.
+		SefazUfSubmissionAdapter adapter = new SefazUfSubmissionAdapter(certificateStoragePort,
+				new SefazHttpClientFactory(), "http://localhost:1", "http://localhost:1", contingencyUrl, 1000L);
+		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
+
+		SefazSubmissionResult result = adapter.submit(submissionRequest(true));
+
+		assertThat(result.protocol()).isEqualTo("svc-protocol-1");
+	}
+
+	@Test
 	void aMissingCertificateIsABusinessRuleViolationNotAContingencyPath() {
 		SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.empty());
@@ -127,14 +151,18 @@ class SefazUfSubmissionAdapterTest {
 
 	private SefazUfSubmissionAdapter adapterFor(String homologationBaseUrl, String productionBaseUrl) {
 		return new SefazUfSubmissionAdapter(certificateStoragePort, new SefazHttpClientFactory(), homologationBaseUrl,
-				productionBaseUrl, 1000L);
+				productionBaseUrl, "http://localhost:1", 1000L);
 	}
 
 	private SefazSubmissionRequest submissionRequest() {
+		return submissionRequest(false);
+	}
+
+	private SefazSubmissionRequest submissionRequest(boolean contingency) {
 		TaxCalculationResult taxResult = new TaxCalculationResult(List.of(),
 				new TaxCalculationTotals(new EnumMap<>(TaxType.class), BigDecimal.ZERO));
 		return new SefazSubmissionRequest(CompanyId.of(UUID.randomUUID()), SefazEnvironment.HOMOLOGATION,
-				"3".repeat(44), new BigDecimal("10.00"), taxResult);
+				"3".repeat(44), new BigDecimal("10.00"), taxResult, contingency);
 	}
 
 	private DigitalCertificate validCertificate() throws Exception {
