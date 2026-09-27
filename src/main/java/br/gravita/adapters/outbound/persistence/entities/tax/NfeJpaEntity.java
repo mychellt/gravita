@@ -138,4 +138,8 @@ public class NfeJpaEntity extends AbstractEntity<UUID> {
 	@ElementCollection
 	@CollectionTable(name = "nfe_item_tax_lines", joinColumns = @JoinColumn(name = "nfe_document_id"))
 	private List<NfeItemTaxLineEmbeddable> taxLines;
+
+	@ElementCollection
+	@CollectionTable(name = "nfe_correction_letters", joinColumns = @JoinColumn(name = "nfe_document_id"))
+	private List<NfeCorrectionLetterEmbeddable> correctionLetters;
 }

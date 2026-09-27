@@ -7,6 +7,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.tax.SefazUnavailableException;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.tax.SefazCancellationRequest;
+import br.gravita.core.ports.outbound.tax.SefazCorrectionRequest;
 import br.gravita.core.ports.outbound.tax.SefazManifestationRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
@@ -85,6 +86,16 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 				request.startNumber(), request.endNumber(), request.justification());
 
 		return post(client, "/nfe/inutilizacao", payload, "no inutilizacao protocol");
+	}
+
+	@Override
+	public SefazSubmissionResult correct(SefazCorrectionRequest request) {
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment(), false);
+
+		SefazCorrectionRequestPayload payload = new SefazCorrectionRequestPayload(request.accessKey(),
+				request.sequenceNumber(), request.text());
+
+		return post(client, "/nfe/cartacorrecao", payload, "no correction-letter protocol");
 	}
 
 	@Override

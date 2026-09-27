@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.mappers.tax;
 
+import br.gravita.adapters.outbound.persistence.entities.tax.NfeCorrectionLetterEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.tax.NfeItemEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.tax.NfeItemTaxLineEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.tax.NfeJpaEntity;
@@ -7,6 +8,7 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.shared.PersonRef;
 import br.gravita.core.domain.tax.Cfop;
+import br.gravita.core.domain.tax.CorrectionLetter;
 import br.gravita.core.domain.tax.ItemTaxBreakdown;
 import br.gravita.core.domain.tax.NaturezaOperacao;
 import br.gravita.core.domain.tax.NfeDocument;
@@ -53,7 +55,8 @@ public interface NfePersistenceMapper {
 				entity.isContingencyMode(),
 				entity.getRejectionReason(),
 				entity.getXmlStorageRef(),
-				entity.getDanfeStorageRef());
+				entity.getDanfeStorageRef(),
+				toCorrectionLetters(entity.getCorrectionLetters()));
 	}
 
 	default NfeJpaEntity toEntity(final NfeDocument domain) {
@@ -94,6 +97,7 @@ public interface NfePersistenceMapper {
 				.danfeStorageRef(domain.getDanfeStorageRef())
 				.items(toItemEmbeddables(domain.getItems()))
 				.taxLines(toTaxLineEmbeddables(domain.getItems()))
+				.correctionLetters(toCorrectionLetterEmbeddables(domain.getCorrectionLetters()))
 				.build();
 	}
 
@@ -173,6 +177,31 @@ public interface NfePersistenceMapper {
 						.overrideJustification(line.overrideJustification())
 						.build());
 			}
+		}
+		return result;
+	}
+
+	private List<CorrectionLetter> toCorrectionLetters(List<NfeCorrectionLetterEmbeddable> correctionLetters) {
+		if (correctionLetters == null) {
+			return List.of();
+		}
+		return correctionLetters.stream()
+				.sorted(Comparator.comparing(NfeCorrectionLetterEmbeddable::getSequenceNumber))
+				.map(letter -> new CorrectionLetter(letter.getSequenceNumber(), letter.getText(), letter.getProtocol(),
+						letter.getIssuedAt()))
+				.toList();
+	}
+
+	// Same mutability note as toItemEmbeddables above.
+	private List<NfeCorrectionLetterEmbeddable> toCorrectionLetterEmbeddables(List<CorrectionLetter> correctionLetters) {
+		List<NfeCorrectionLetterEmbeddable> result = new ArrayList<>();
+		for (CorrectionLetter letter : correctionLetters) {
+			result.add(NfeCorrectionLetterEmbeddable.builder()
+					.sequenceNumber(letter.sequenceNumber())
+					.text(letter.text())
+					.protocol(letter.protocol())
+					.issuedAt(letter.issuedAt())
+					.build());
 		}
 		return result;
 	}
