@@ -48,6 +48,9 @@ public final class NfeDocument {
 	private final String xmlStorageRef;
 	private final String danfeStorageRef;
 	private final List<CorrectionLetter> correctionLetters;
+	private final Instant authorizedAt;
+	private final String cancellationJustification;
+	private final Instant cancelledAt;
 
 	private NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
 			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
@@ -55,7 +58,8 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
 			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef, List<CorrectionLetter> correctionLetters) {
+			String danfeStorageRef, List<CorrectionLetter> correctionLetters, Instant authorizedAt,
+			String cancellationJustification, Instant cancelledAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.issuerCompanyId = Objects.requireNonNull(issuerCompanyId, "issuerCompanyId is required");
 		this.originSalesOrderId = originSalesOrderId;
@@ -81,6 +85,9 @@ public final class NfeDocument {
 		this.xmlStorageRef = xmlStorageRef;
 		this.danfeStorageRef = danfeStorageRef;
 		this.correctionLetters = correctionLetters == null ? List.of() : List.copyOf(correctionLetters);
+		this.authorizedAt = authorizedAt;
+		this.cancellationJustification = cancellationJustification;
+		this.cancelledAt = cancelledAt;
 	}
 
 	/**
@@ -93,7 +100,8 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals, Instant createdAt) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
-				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null, List.of());
+				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null, List.of(), null,
+				null, null);
 	}
 
 	/**
@@ -106,11 +114,13 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
 			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef, List<CorrectionLetter> correctionLetters) {
+			String danfeStorageRef, List<CorrectionLetter> correctionLetters, Instant authorizedAt,
+			String cancellationJustification, Instant cancelledAt) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
-				xmlStorageRef, danfeStorageRef, correctionLetters);
+				xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt, cancellationJustification,
+				cancelledAt);
 	}
 
 	/**
@@ -126,7 +136,7 @@ public final class NfeDocument {
 				NfeDocumentStatus.QUEUED, createdAt, requireText(documentSeries, "documentSeries"),
 				Objects.requireNonNull(documentNumber, "documentNumber is required"),
 				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol, false, null, null, null,
-				correctionLetters);
+				correctionLetters, authorizedAt, cancellationJustification, cancelledAt);
 	}
 
 	/**
@@ -142,7 +152,8 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.SENT, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
-				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters);
+				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt,
+				cancellationJustification, cancelledAt);
 	}
 
 	/**
@@ -156,13 +167,17 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, true, rejectionReason,
-				xmlStorageRef, danfeStorageRef, correctionLetters);
+				xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt, cancellationJustification,
+				cancelledAt);
 	}
 
 	/**
 	 * UC-M2-03 (AC1/AC4/AC6): SEFAZ authorized the document. Carries the
 	 * storage references for the XML/DANFE that were rendered and persisted
-	 * as part of the same transmission attempt.
+	 * as part of the same transmission attempt. Stamps {@code authorizedAt}
+	 * with the moment of authorization - not {@code createdAt} (drafted,
+	 * possibly much earlier) - since UC-M2-04's legal cancellation window is
+	 * counted from authorization.
 	 */
 	public NfeDocument authorize(String sefazProtocol) {
 		requireSent();
@@ -170,7 +185,7 @@ public final class NfeDocument {
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.AUTHORIZED, createdAt, documentSeries, documentNumber, accessKey,
 				requireText(sefazProtocol, "sefazProtocol"), contingencyMode, null, xmlStorageRef, danfeStorageRef,
-				correctionLetters);
+				correctionLetters, Instant.now(), null, null);
 	}
 
 	/**
@@ -188,7 +203,7 @@ public final class NfeDocument {
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
 				requireText(xmlStorageRef, "xmlStorageRef"), requireText(danfeStorageRef, "danfeStorageRef"),
-				correctionLetters);
+				correctionLetters, authorizedAt, cancellationJustification, cancelledAt);
 	}
 
 	/**
@@ -202,7 +217,7 @@ public final class NfeDocument {
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.REJECTED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
 				contingencyMode, requireText(rejectionReason, "rejectionReason"), xmlStorageRef, danfeStorageRef,
-				correctionLetters);
+				correctionLetters, authorizedAt, cancellationJustification, cancelledAt);
 	}
 
 	/**
@@ -225,7 +240,24 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
-				xmlStorageRef, danfeStorageRef, updated);
+				xmlStorageRef, danfeStorageRef, updated, authorizedAt, cancellationJustification, cancelledAt);
+	}
+
+	/**
+	 * UC-M2-04: cancels an {@code AUTHORIZED} document, keeping its record
+	 * intact (no physical deletion). The legal cancellation window (24h, or a
+	 * longer state-specific limit, counted from {@link #authorizedAt}) is
+	 * enforced by {@code CancelNfeUseCase}, not here - same division of
+	 * responsibility as {@code NfceSale#cancel}, which leaves its own
+	 * deadline check to {@code CancelNfceUseCase}.
+	 */
+	public NfeDocument cancel(String justification, Instant cancelledAt) {
+		requireAuthorized();
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
+				NfeDocumentStatus.CANCELLED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
+				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt,
+				requireText(justification, "justification"), Objects.requireNonNull(cancelledAt, "cancelledAt is required"));
 	}
 
 	public BigDecimal getItemsSubtotal() {

@@ -148,6 +148,6 @@ class ResendNfeEmailServiceTest {
 		return NfeDocument.of(documentId, CompanyId.of(UUID.randomUUID()), null, NaturezaOperacao.VENDA,
 				new Cfop("5102"), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
 				null, null, totals, status, Instant.now(), "001", 42L, "3".repeat(44), sefazProtocol, false, null,
-				xmlRef, danfeRef, List.of());
+				xmlRef, danfeRef, List.of(), null, null, null);
 	}
 }

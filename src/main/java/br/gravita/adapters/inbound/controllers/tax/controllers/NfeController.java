@@ -1,5 +1,7 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.CancelNfeRequest;
+import br.gravita.adapters.inbound.controllers.tax.dtos.CancelNfeResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.CorrectionLetterResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueCorrectionLetterRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueNfeRequest;
@@ -12,6 +14,8 @@ import br.gravita.core.domain.tax.CorrectionLetter;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.domain.tax.NfeDocumentStatus;
+import br.gravita.core.ports.inbound.tax.CancelNfeCommand;
+import br.gravita.core.ports.inbound.tax.CancelNfeUseCase;
 import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterCommand;
 import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterUseCase;
 import br.gravita.core.ports.inbound.tax.IssueNfeUseCase;
@@ -48,6 +52,7 @@ public class NfeController {
 	private final IssueNfeUseCase issueNfeUseCase;
 	private final ResendNfeEmailUseCase resendNfeEmailUseCase;
 	private final IssueCorrectionLetterUseCase issueCorrectionLetterUseCase;
+	private final CancelNfeUseCase cancelNfeUseCase;
 	private final NfeRepositoryPort nfeRepositoryPort;
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final XmlObjectStoragePort xmlObjectStoragePort;
@@ -94,6 +99,12 @@ public class NfeController {
 		CorrectionLetter correctionLetter = issueCorrectionLetterUseCase
 				.execute(new IssueCorrectionLetterCommand(id, request.text()));
 		return CorrectionLetterResponse.from(correctionLetter);
+	}
+
+	@PostMapping("/{id}/cancel")
+	public CancelNfeResponse cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfeRequest request) {
+		NfeDocument document = cancelNfeUseCase.execute(new CancelNfeCommand(id, request.justification()));
+		return CancelNfeResponse.from(document);
 	}
 
 	private NfeDocument authorizedDocument(UUID id) {

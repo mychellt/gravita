@@ -152,6 +152,6 @@ class PdfBoxDanfeAdapterTest {
 		return NfeDocument.of(NfeDocumentId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), null,
 				NaturezaOperacao.VENDA, new Cfop("5102"), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, null, null, null, totals, NfeDocumentStatus.SENT, Instant.now(), "001", 42L,
-				"3".repeat(44), "PROTOCOL-1", false, null, null, null, List.of());
+				"3".repeat(44), "PROTOCOL-1", false, null, null, null, List.of(), null, null, null);
 	}
 }

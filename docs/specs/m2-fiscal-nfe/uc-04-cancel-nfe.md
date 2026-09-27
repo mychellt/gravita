@@ -37,10 +37,10 @@ public interface CancelNfeUseCase {
 
 ## Acceptance criteria
 
-- [ ] Rejects cancellation of a document not in `AUTHORIZED` status.
-- [ ] Rejects cancellation once the legal deadline (24h or the applicable state limit) has passed.
-- [ ] `justification` is mandatory and persisted with the cancellation record.
-- [ ] The cancelled document's data remains queryable — cancellation never physically deletes the record.
+- [x] Rejects cancellation of a document not in `AUTHORIZED` status.
+- [x] Rejects cancellation once the legal deadline (24h or the applicable state limit) has passed.
+- [x] `justification` is mandatory and persisted with the cancellation record.
+- [x] The cancelled document's data remains queryable — cancellation never physically deletes the record.
 
 ## Dependencies
 

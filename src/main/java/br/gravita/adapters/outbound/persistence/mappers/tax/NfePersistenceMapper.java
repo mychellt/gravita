@@ -56,7 +56,10 @@ public interface NfePersistenceMapper {
 				entity.getRejectionReason(),
 				entity.getXmlStorageRef(),
 				entity.getDanfeStorageRef(),
-				toCorrectionLetters(entity.getCorrectionLetters()));
+				toCorrectionLetters(entity.getCorrectionLetters()),
+				entity.getAuthorizedAt(),
+				entity.getCancellationJustification(),
+				entity.getCancelledAt());
 	}
 
 	default NfeJpaEntity toEntity(final NfeDocument domain) {
@@ -95,6 +98,9 @@ public interface NfePersistenceMapper {
 				.rejectionReason(domain.getRejectionReason())
 				.xmlStorageRef(domain.getXmlStorageRef())
 				.danfeStorageRef(domain.getDanfeStorageRef())
+				.authorizedAt(domain.getAuthorizedAt())
+				.cancellationJustification(domain.getCancellationJustification())
+				.cancelledAt(domain.getCancelledAt())
 				.items(toItemEmbeddables(domain.getItems()))
 				.taxLines(toTaxLineEmbeddables(domain.getItems()))
 				.correctionLetters(toCorrectionLetterEmbeddables(domain.getCorrectionLetters()))
