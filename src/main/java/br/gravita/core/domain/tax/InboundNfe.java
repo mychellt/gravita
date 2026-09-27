@@ -20,6 +20,7 @@ import lombok.Getter;
 public final class InboundNfe {
 
 	private static final Pattern ACCESS_KEY_PATTERN = Pattern.compile("\\d{44}");
+	private static final String MANUAL_ENTRY_XML_STORAGE_REF = "MANUAL_ENTRY";
 
 	private final InboundNfeId id;
 	private final CompanyId companyId;
@@ -62,6 +63,20 @@ public final class InboundNfe {
 			List<InboundNfeItem> items, InboundNfeTotals totals, String xmlStorageRef) {
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
 				items, totals, xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now());
+	}
+
+	/**
+	 * UC-M2-09: creates an {@code InboundNfe} from hand-typed data for a
+	 * supplier that didn't provide an XML - same shape/state as
+	 * {@link #importedFromXml}, so UC-M2-10's conference doesn't need to
+	 * branch by entry method. {@code xmlStorageRef} is a fixed sentinel since
+	 * there's no XML file backing this record.
+	 */
+	public static InboundNfe enteredManually(InboundNfeId id, CompanyId companyId, String accessKey, String series,
+			String number, Document supplierDocument, String supplierName, Instant issuedAt,
+			List<InboundNfeItem> items, InboundNfeTotals totals) {
+		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
+				items, totals, MANUAL_ENTRY_XML_STORAGE_REF, InboundNfeStatus.PENDING_CONFERENCE, Instant.now());
 	}
 
 	/** Rehydrates an existing record from storage. */

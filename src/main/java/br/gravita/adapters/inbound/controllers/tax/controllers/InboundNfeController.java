@@ -1,8 +1,10 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.EnterInboundNfeManuallyRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ImportSupplierNfeXmlResponse;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlCommand;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -25,9 +28,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class InboundNfeController {
 
 	private final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase;
+	private final EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase;
 
-	public InboundNfeController(ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase) {
+	public InboundNfeController(ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
+			EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase) {
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
+		this.enterInboundNfeManuallyUseCase = enterInboundNfeManuallyUseCase;
 	}
 
 	@PostMapping(value = "/import-xml", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -35,6 +41,13 @@ public class InboundNfeController {
 			@RequestPart("xmlFile") MultipartFile xmlFile) {
 		var inboundNfe = importSupplierNfeXmlUseCase
 				.execute(new ImportSupplierNfeXmlCommand(CompanyId.of(companyId), readBytes(xmlFile)));
+		return ResponseEntity.status(HttpStatus.CREATED).body(ImportSupplierNfeXmlResponse.from(inboundNfe));
+	}
+
+	@PostMapping
+	public ResponseEntity<ImportSupplierNfeXmlResponse> enterManually(
+			@RequestBody EnterInboundNfeManuallyRequest request) {
+		var inboundNfe = enterInboundNfeManuallyUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(ImportSupplierNfeXmlResponse.from(inboundNfe));
 	}
 
