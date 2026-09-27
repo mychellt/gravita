@@ -50,6 +50,41 @@ class SalesOrderTest {
 		assertThat(order.totalValue()).isEqualByComparingTo("19.50");
 	}
 
+	@Test
+	void discountPercentIsTheTotalDiscountOverTheTotalSubtotal() {
+		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+				List.of(item(BigDecimal.ONE, new BigDecimal("100.00"), new BigDecimal("25.00"))));
+
+		assertThat(order.discountPercent()).isEqualByComparingTo("25.0000");
+	}
+
+	@Test
+	void approvingADraftOrderTransitionsItToApprovedAndRecordsTheApprovalDetails() {
+		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
+		UUID approvedBy = UUID.randomUUID();
+		UUID alcadaId = UUID.randomUUID();
+
+		SalesOrder approved = order.approve(approvedBy, alcadaId);
+
+		assertThat(approved.getStatus()).isEqualTo(SalesOrderStatus.APPROVED);
+		assertThat(approved.getApprovedBy()).isEqualTo(approvedBy);
+		assertThat(approved.getAlcadaId()).isEqualTo(alcadaId);
+	}
+
+	@Test
+	void rejectsApprovingAnOrderThatIsNotDraft() {
+		SalesOrder approvedOrder = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO))).approve(UUID.randomUUID(), null);
+
+		assertThatThrownBy(() -> approvedOrder.approve(UUID.randomUUID(), null))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Only DRAFT orders can be approved");
+	}
+
 	private static SalesOrderItem item(BigDecimal quantity, BigDecimal unitPrice, BigDecimal discount) {
 		return new SalesOrderItem(UUID.randomUUID(), quantity, unitPrice, discount);
 	}

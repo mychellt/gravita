@@ -22,7 +22,9 @@ public interface SalesOrderPersistenceMapper {
 				QuoteId.of(entity.getOriginQuoteId()),
 				entity.getCustomerId(),
 				toItems(entity.getItems()),
-				entity.getStatus());
+				entity.getStatus(),
+				entity.getApprovedBy(),
+				entity.getAlcadaId());
 	}
 
 	default SalesOrderJpaEntity toEntity(final SalesOrder domain) {
@@ -31,6 +33,8 @@ public interface SalesOrderPersistenceMapper {
 				.originQuoteId(domain.getOriginQuoteId() == null ? null : domain.getOriginQuoteId().value())
 				.customerId(domain.getCustomerId())
 				.status(domain.getStatus())
+				.approvedBy(domain.getApprovedBy())
+				.alcadaId(domain.getAlcadaId())
 				.items(toItemEmbeddables(domain.getItems()))
 				.build();
 	}
