@@ -9,13 +9,6 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import lombok.Getter;
 
-/**
- * A purchase-side NFe (UC-M2-08/09/10 - docs/specs/m2-fiscal-nfe.md domain
- * model): imported/entered from a supplier, referenced by {@code accessKey}
- * (UC-M2-07's manifestation works by access key alone) and left
- * {@link InboundNfeStatus#PENDING_CONFERENCE} until UC-M2-10 reconciles it
- * against what was ordered/received and confirms it into stock/payables.
- */
 @Getter
 public final class InboundNfe {
 
@@ -57,10 +50,6 @@ public final class InboundNfe {
 		this.conferenceResult = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
 	}
 
-	/**
-	 * UC-M2-08: creates an {@code InboundNfe} freshly parsed from a supplier's
-	 * XML, ready for conference - never confirmed into stock/payables yet.
-	 */
 	public static InboundNfe importedFromXml(InboundNfeId id, CompanyId companyId, String accessKey, String series,
 			String number, Document supplierDocument, String supplierName, Instant issuedAt,
 			List<InboundNfeItem> items, InboundNfeTotals totals, String xmlStorageRef) {
@@ -68,13 +57,6 @@ public final class InboundNfe {
 				items, totals, xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(), List.of());
 	}
 
-	/**
-	 * UC-M2-09: creates an {@code InboundNfe} from hand-typed data for a
-	 * supplier that didn't provide an XML - same shape/state as
-	 * {@link #importedFromXml}, so UC-M2-10's conference doesn't need to
-	 * branch by entry method. {@code xmlStorageRef} is a fixed sentinel since
-	 * there's no XML file backing this record.
-	 */
 	public static InboundNfe enteredManually(InboundNfeId id, CompanyId companyId, String accessKey, String series,
 			String number, Document supplierDocument, String supplierName, Instant issuedAt,
 			List<InboundNfeItem> items, InboundNfeTotals totals) {
@@ -83,7 +65,6 @@ public final class InboundNfe {
 				List.of());
 	}
 
-	/** Rehydrates an existing record from storage, with no conference result yet. */
 	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
 			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
 			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt) {
@@ -91,7 +72,6 @@ public final class InboundNfe {
 				xmlStorageRef, status, importedAt, List.of());
 	}
 
-	/** Rehydrates an existing record from storage, including a confirmed record's conference result. */
 	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
 			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
 			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
@@ -100,17 +80,6 @@ public final class InboundNfe {
 				items, totals, xmlStorageRef, status, importedAt, conferenceResult);
 	}
 
-	/**
-	 * UC-M2-10: confirms the three-way conference (ordered vs. physically
-	 * received vs. what the NF itself states) and moves this record into
-	 * {@link InboundNfeStatus#CONFIRMED}. {@code conferenceResult} must carry
-	 * exactly one entry per NFe item, lined up positionally with {@link #items}.
-	 * Unlike {@code PurchaseReceipt}, there's no intermediate "conference
-	 * completed" state to also guard (see {@link InboundNfeStatus}), so
-	 * confirming an already-confirmed record is rejected outright - mirroring
-	 * {@code PurchaseReceipt#confirm}'s "already confirmed" guard, so a retried
-	 * request never double-triggers stock/payables.
-	 */
 	public InboundNfe confirm(List<InboundNfeConferenceItem> conferenceResult) {
 		if (status == InboundNfeStatus.CONFIRMED) {
 			throw new BusinessRuleException("Inbound NFe already confirmed: " + id.value());

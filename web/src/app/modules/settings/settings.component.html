@@ -2,7 +2,6 @@
 </app-page-header>
 
 <div class="settings-layout">
-  <!-- Menu -->
   <div class="settings-menu card">
     @for (m of menus; track m.key) {
       <div class="settings-menu-item" [class.active]="activeMenu() === m.key" (click)="activeMenu.set(m.key)">
@@ -11,7 +10,6 @@
     }
   </div>
 
-  <!-- Panel -->
   <div class="settings-panel card">
 
     @if (activeMenu() === 'empresa') {

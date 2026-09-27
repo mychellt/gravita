@@ -12,12 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
 
-/**
- * UC-M2-08: the XML is stored via {@link XmlObjectStoragePort} before the
- * {@code InboundNfe} row is written, so the persisted record's
- * {@code xmlStorageRef} always points at content that already exists -
- * never a dangling reference.
- */
 @UseCase
 public class ImportSupplierNfeXmlService implements ImportSupplierNfeXmlUseCase {
 

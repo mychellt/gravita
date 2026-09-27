@@ -20,14 +20,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-65: independent QA verification of GRA-56's CreatePurchaseRequestUseCase
- * (POST /api/purchasing/requests), written fresh against the real HTTP stack
- * rather than reusing the dev-authored CreatePurchaseRequestEndToEndTest. Covers
- * every scenario in the GRA-65 reproducible test plan, including reading the
- * persisted row back through PurchaseRequestRepositoryPort to confirm status is
- * always OPEN (item 7 of the plan - no GET endpoint exists yet).
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

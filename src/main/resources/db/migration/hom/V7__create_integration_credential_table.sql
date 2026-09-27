@@ -11,7 +11,5 @@ CREATE TABLE integration_credential (
     modified_at                  TIMESTAMP NOT NULL
 );
 
--- One credential per (integration, environment); environment is only meaningful for SEFAZ
--- today, so NULL is normalized to a sentinel here to still enforce one row per integration.
 CREATE UNIQUE INDEX idx_integration_credential_unique
     ON integration_credential (integration_name, COALESCE(environment, 'NONE'));

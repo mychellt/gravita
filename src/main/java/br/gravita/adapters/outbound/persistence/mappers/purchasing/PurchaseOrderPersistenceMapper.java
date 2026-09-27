@@ -52,8 +52,6 @@ public interface PurchaseOrderPersistenceMapper {
 	}
 
 	private List<PurchaseOrderItemEmbeddable> toItemEmbeddables(final List<PurchaseOrderItem> items) {
-		// Hibernate merges a detached entity's collections in place (clear + addAll), so
-		// this must stay mutable rather than an immutable Stream.toList().
 		return items.stream()
 				.map(item -> PurchaseOrderItemEmbeddable.builder()
 						.productId(item.productId())

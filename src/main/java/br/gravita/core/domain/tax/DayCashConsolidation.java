@@ -7,12 +7,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Consolidates several registers' {@link CashClosingReport}s into a single
- * day closing (UC-M3-06, AC5). The full cross-module "caixa interno" day
- * closing (finance §9.3) is out of scope until M8 exists; this is the
- * domain-level aggregation that feature will eventually call.
- */
 public record DayCashConsolidation(List<PosSessionId> sessionIds, BigDecimal totalOpeningAmount,
 		Map<PaymentMethodType, BigDecimal> totalAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
 		BigDecimal totalSuprimentoAmount, BigDecimal totalExpectedCashAmount, int totalSaleCount) {

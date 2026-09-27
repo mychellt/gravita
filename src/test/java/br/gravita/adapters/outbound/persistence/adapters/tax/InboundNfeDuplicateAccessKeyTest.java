@@ -20,13 +20,6 @@ import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * GRA-84: {@code access_key} is unique at the DB level (V26 migration /
- * {@code InboundNfeJpaEntity#accessKey}). {@link InboundNfeRepositoryAdapter}
- * must translate the resulting {@code DataIntegrityViolationException} into
- * a {@link DuplicateResourceException} so the controller layer returns a
- * clean 409 instead of an unhandled 500 with a leaked stack trace.
- */
 @DataJpaTest
 @Import({InboundNfeRepositoryAdapter.class, InboundNfePersistenceMapperImpl.class})
 class InboundNfeDuplicateAccessKeyTest {

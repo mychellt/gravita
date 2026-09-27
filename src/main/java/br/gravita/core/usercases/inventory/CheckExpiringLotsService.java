@@ -11,10 +11,6 @@ import br.gravita.core.ports.outbound.persistence.inventory.LotRepositoryPort;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * UC-M5-10. Read-only: never blocks a sale itself, blocking expired-lot
- * allocation is UC-M5-03's responsibility.
- */
 @UseCase
 public class CheckExpiringLotsService implements CheckExpiringLotsUseCase {
 

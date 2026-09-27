@@ -9,17 +9,6 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * PosSession aggregate (UC-M3-01). Ties one operator to one physical
- * register for the duration of a cashier shift; every later PDV action
- * (UC-02, 03, 05, 06) requires the session it references to still be OPEN.
- * The one-open-session-per-register invariant is enforced by the use case
- * via a repository lookup before {@link #open} is called, not here, since
- * a single aggregate instance has no visibility into sibling sessions.
- * {@code companyId} is the issuing company for every sale made under this
- * session (GRA-96) - {@link NfceSale} resolves it transitively via
- * {@link #sessionId} rather than duplicating it on every sale.
- */
 @Getter
 public final class PosSession {
 
@@ -44,29 +33,17 @@ public final class PosSession {
 		this.closedAt = closedAt;
 	}
 
-	/**
-	 * Opens a new session; per AC2 it always starts {@code OPEN} with no
-	 * {@code closedAt}.
-	 */
 	public static PosSession open(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
 			BigDecimal openingChangeAmount, Instant openedAt) {
 		return new PosSession(id, registerId, operatorId, companyId, openingChangeAmount, PosSessionStatus.OPEN,
 				openedAt, null);
 	}
 
-	/**
-	 * Reconstructs a session from persistence, at any status in its lifecycle.
-	 */
 	public static PosSession of(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
 			BigDecimal openingChangeAmount, PosSessionStatus status, Instant openedAt, Instant closedAt) {
 		return new PosSession(id, registerId, operatorId, companyId, openingChangeAmount, status, openedAt, closedAt);
 	}
 
-	/**
-	 * Ends the cashier's shift (UC-M3-06, AC4); only an {@code OPEN} session can
-	 * close, since this is a one-way transition and no further PDV action may
-	 * target the session afterwards.
-	 */
 	public PosSession close(Instant closedAt) {
 		if (status != PosSessionStatus.OPEN) {
 			throw new BusinessRuleException("PosSession " + id.value() + " is not open (current status: " + status + ")");

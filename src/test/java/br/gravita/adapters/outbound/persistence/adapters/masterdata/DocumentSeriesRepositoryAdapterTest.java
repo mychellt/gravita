@@ -83,8 +83,6 @@ class DocumentSeriesRepositoryAdapterTest {
 	void reconfiguringAndSavingAgainImmediatelyReflectsOnNextRead() {
 		CompanyId companyId = persistCompany();
 		DocumentSeries configured = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFSE).reconfigure("001", 10L);
-		// the version assigned on insert only lives on the object save() returns,
-		// so the second save must chain off that instead of the pre-save reference
 		DocumentSeries saved = repositoryAdapter.save(configured);
 
 		DocumentSeries reconfigured = saved.reconfigure("001", 20L);

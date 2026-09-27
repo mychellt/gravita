@@ -35,9 +35,6 @@ public class UpdateCustomerService implements UpdateCustomerUseCase {
 
 		existing.validateForRegistration();
 
-		// existing.getVersion() is still the value read above, so a concurrent
-		// UC-08/UC-13 commit in between bumps the row's version and this save
-		// fails with a lock exception instead of silently overwriting it.
 		customerRepositoryPort.save(existing);
 	}
 

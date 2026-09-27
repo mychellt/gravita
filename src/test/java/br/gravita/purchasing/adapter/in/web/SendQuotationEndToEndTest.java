@@ -16,11 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-57: end-to-end verification of SendQuotationUseCase
- * (POST /api/purchasing/requests/{id}/quotations) through the real HTTP
- * stack - real controller, real use case, real H2-backed repositories.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

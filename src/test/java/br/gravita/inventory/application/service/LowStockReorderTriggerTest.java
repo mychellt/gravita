@@ -18,11 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * GRA-88: unit coverage for the M5-11 automatic-trigger orchestrator between
- * {@code SuggestReorderUseCase} and M6's {@code CreatePurchaseRequestUseCase}
- * (bridged through {@link CreatePurchaseRequestPort}).
- */
 @ExtendWith(MockitoExtension.class)
 class LowStockReorderTriggerTest {
 

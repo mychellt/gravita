@@ -7,13 +7,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
-/**
- * CashMovement aggregate (UC-M3-05). Records an out-of-band sangria
- * (withdrawal) or suprimento (deposit) against an open {@link PosSession};
- * the use case is responsible for checking that the referenced session is
- * still OPEN before this is created, since a single aggregate instance has
- * no visibility into the session's current status.
- */
 @Getter
 public final class CashMovement {
 

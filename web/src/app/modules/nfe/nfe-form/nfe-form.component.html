@@ -4,7 +4,6 @@
   <button class="btn btn-primary" (click)="emit()"><i class="ti ti-send"></i> Emitir NF-e</button>
 </app-page-header>
 
-<!-- Steps bar -->
 <div class="steps-bar">
   @for (s of steps; track s.n; let last = $last) {
     <div class="step-item"
@@ -26,10 +25,8 @@
 </div>
 
 <div class="nfe-layout">
-  <!-- Left: Form -->
   <div class="nfe-form-area">
 
-    <!-- Destinatário -->
     <div class="form-section">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-building"></span>
@@ -96,7 +93,6 @@
       </div>
     </div>
 
-    <!-- Itens -->
     <div class="form-section">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-list"></span>
@@ -150,7 +146,6 @@
       </div>
     </div>
 
-    <!-- Transporte -->
     <div class="form-section">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-truck"></span>
@@ -180,7 +175,6 @@
 
   </div>
 
-  <!-- Right sidebar -->
   <div class="nfe-sidebar">
     <div class="card" style="margin-bottom:12px">
       <div class="card-head"><span class="card-title">Natureza da operação</span></div>

@@ -1,6 +1,5 @@
 <div class="pdv-wrap">
 
-  <!-- LEFT: Products -->
   <div class="pdv-left">
     <div class="pdv-search-bar">
       <i class="ti ti-barcode search-icon"></i>
@@ -32,7 +31,6 @@
     </div>
   </div>
 
-  <!-- RIGHT: Cart -->
   <div class="pdv-right">
     <div class="cart-head">
       <span class="cart-head-title">
@@ -93,7 +91,6 @@
 
 </div>
 
-<!-- Payment Modal -->
 @if (showPayModal()) {
   <div class="pay-overlay" (click)="showPayModal.set(false)">
     <div class="pay-modal" (click)="$event.stopPropagation()">

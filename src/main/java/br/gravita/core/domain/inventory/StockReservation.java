@@ -7,11 +7,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Quantity held against a {@link StockBalance} for a confirmed sales order
- * (UC-M5-06). Traceable back to {@code orderRef}; later either consumed by a
- * stock exit (UC-M5-03) or released on cancellation (UC-M5-07).
- */
 @Getter
 public final class StockReservation {
 
@@ -42,7 +37,6 @@ public final class StockReservation {
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.ACTIVE);
 	}
 
-	/** Fulfills this reservation via a stock exit (UC-M5-03, AC4). */
 	public StockReservation consume() {
 		if (status != StockReservationStatus.ACTIVE) {
 			throw new BusinessRuleException("Reservation " + id.value() + " is not active: " + status);
@@ -50,11 +44,6 @@ public final class StockReservation {
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.CONSUMED);
 	}
 
-	/**
-	 * Releases this reservation on order cancellation (UC-M5-07, AC3): only an
-	 * {@code ACTIVE} reservation can be released, so an already-released or
-	 * already-fulfilled reservation is rejected rather than silently ignored.
-	 */
 	public StockReservation release() {
 		if (status != StockReservationStatus.ACTIVE) {
 			throw new BusinessRuleException("Reservation " + id.value() + " is not active: " + status);

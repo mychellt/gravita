@@ -50,8 +50,6 @@ public interface QuotationPersistenceMapper {
 	}
 
 	private List<QuotationItemEmbeddable> toItemEmbeddables(final List<QuotationItem> items) {
-		// Hibernate merges a detached entity's collections in place (clear + addAll), so
-		// this must stay mutable rather than an immutable Stream.toList().
 		return items.stream()
 				.map(item -> QuotationItemEmbeddable.builder()
 						.productId(item.productId())

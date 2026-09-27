@@ -21,21 +21,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * GRA-49: independent QA verification of GRA-38's ConfigureApprovalAlcadaUseCase
- * (PUT /api/system/alcadas/{module}). ConfigureApprovalAlcadaServiceTest mocks
- * both ports, so it can't prove real behaviour. This drives the real
- * ConfigureApprovalAlcadaService against real H2-backed repositories
- * (@DataJpaTest) for both the alcada table and the profile lookup, covering
- * what the mocked test cannot: exactly-one-config-per-module is enforced by
- * an update-in-place (not a second row), and that a persisted profile is
- * accepted regardless of its name (no allowlist beyond "does it exist").
- *
- * A full @SpringBootTest/HTTP-level equivalent could not be used because the
- * application context currently fails to start (TotpVerificationAdapter has
- * ambiguous constructors, tracked separately as GRA-54), so this exercises
- * the real use case + repositories + database directly instead.
- */
 @DataJpaTest
 @Import({ApprovalAlcadaRepositoryAdapter.class, ApprovalAlcadaPersistenceMapperImpl.class,
 		ProfileLookupRepositoryAdapter.class})

@@ -15,11 +15,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * Drives GetStockBalanceUseCase's outbound port (GRA-71) against a real
- * H2-backed repository, proving the per-warehouse lookup and the
- * per-product query used to aggregate across warehouses.
- */
 @DataJpaTest
 @Import({StockBalanceRepositoryAdapter.class, StockBalancePersistenceMapperImpl.class})
 class StockBalanceRepositoryAdapterIntegrationTest {

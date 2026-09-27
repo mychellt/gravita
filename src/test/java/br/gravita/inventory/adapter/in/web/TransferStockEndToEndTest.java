@@ -18,11 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-75: end-to-end verification of TransferStockUseCase
- * (POST /api/inventory/transfers, POST /api/inventory/transfers/{id}/confirm)
- * through the real HTTP stack.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

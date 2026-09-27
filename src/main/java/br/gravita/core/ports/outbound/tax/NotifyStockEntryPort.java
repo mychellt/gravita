@@ -4,13 +4,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * UC-M2-10's own outbound port into {@code inventory} - named for the calling
- * module (tax), the same convention as purchasing's own {@code RegisterStockEntryPort}.
- * Kept independent from it on purpose: M2's NFe-driven confirmation and M6's
- * PO-driven one (GRA-63, {@code ConfirmPurchaseReceiptUseCase}) are separate
- * flows that must not share a port or depend on each other.
- */
 public interface NotifyStockEntryPort {
 	void notifyEntry(NotifyStockEntryCommand command);
 

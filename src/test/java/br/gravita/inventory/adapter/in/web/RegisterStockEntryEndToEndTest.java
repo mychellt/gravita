@@ -19,11 +19,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-72: end-to-end verification of RegisterStockEntryUseCase
- * (POST /api/inventory/movements/entry) through the real HTTP stack - real
- * controller, real use case, real H2-backed repositories.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

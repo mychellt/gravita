@@ -14,11 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-56: end-to-end verification of CreatePurchaseRequestUseCase
- * (POST /api/purchasing/requests) through the real HTTP stack - real
- * controller, real use case, real H2-backed repository.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

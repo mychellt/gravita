@@ -9,16 +9,6 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 
-/**
- * PurchaseReturn aggregate (Devolução). Created by UC-M6-09 against a
- * {@link PurchaseReceiptStatus#CONFIRMED} {@link PurchaseReceipt}; the
- * returned quantities are validated against what that receipt actually
- * received - net of any prior returns already recorded against it, so a
- * sequence of partial returns can never together exceed the original
- * received quantity. {@code total} reflects whether, counting this return
- * together with every prior one, every received item has now been returned
- * in full (docs/specs/m6-compras/uc-09-return-to-supplier.md).
- */
 @Getter
 public final class PurchaseReturn {
 
@@ -37,12 +27,6 @@ public final class PurchaseReturn {
 		this.returnNfeRef = returnNfeRef;
 	}
 
-	/**
-	 * Validates {@code items} against {@code receipt} (must be confirmed;
-	 * per-item quantity, added to whatever {@code previousReturns} already took,
-	 * cannot exceed the receipt's {@code receivedQty}) and derives the
-	 * {@code total}/partial flag before creating the return.
-	 */
 	public static PurchaseReturn forReceipt(PurchaseReturnId id, PurchaseReceipt receipt,
 			List<PurchaseReturnItem> items, List<PurchaseReturn> previousReturns) {
 		if (receipt.getStatus() != PurchaseReceiptStatus.CONFIRMED) {

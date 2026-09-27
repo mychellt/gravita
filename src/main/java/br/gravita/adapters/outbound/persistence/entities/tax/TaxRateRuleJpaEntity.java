@@ -17,11 +17,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-/**
- * One row of the {@code NCM x UF x Regime x Operacao} rate table backing
- * {@link br.gravita.core.ports.outbound.persistence.tax.TaxRuleTableRepositoryPort}
- * (GRA-32's previously-unwired production adapter).
- */
 @Getter
 @Setter
 @Entity

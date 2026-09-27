@@ -1,10 +1,5 @@
 package br.gravita.core.domain.system;
 
-/**
- * The seven external integrations the platform manages credentials for (doc §11.3).
- * This is a closed set on purpose: {@link #fromCode(String)} rejects anything else so an
- * unknown {@code integrationName} can never be persisted.
- */
 public enum IntegrationName {
 
 	SEFAZ("sefaz"),

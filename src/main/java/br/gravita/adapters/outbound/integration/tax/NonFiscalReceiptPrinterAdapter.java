@@ -9,12 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-/**
- * No non-fiscal printer hardware is wired up yet, so this renders the Z
- * report as plain text and logs it - a stand-in for the "printed or saved as
- * PDF" output the module spec calls for (AC3), mirroring
- * {@code NotifyLowStockAdapter}'s stub-pending-hardware pattern.
- */
 @Component
 class NonFiscalReceiptPrinterAdapter implements PrintNonFiscalReceiptPort {
 

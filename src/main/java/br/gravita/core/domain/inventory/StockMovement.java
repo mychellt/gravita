@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Append-only per module spec (§"Domain model") - {@code StockMovementRepositoryPort}
- * intentionally exposes no update/delete method (UC-M5-02, AC2).
- */
 @Getter
 public final class StockMovement {
 
@@ -45,10 +41,6 @@ public final class StockMovement {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	/**
-	 * {@code justification} is only ever non-null for {@code ADJUSTMENT}
-	 * movements (UC-M5-04, AC4); every other movement type passes {@code null}.
-	 */
 	public static StockMovement of(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
 			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
 			String originReference, String justification, UUID user, Instant timestamp) {

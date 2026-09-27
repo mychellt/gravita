@@ -13,11 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-/**
- * Backs {@link br.gravita.core.ports.outbound.tax.TransmissionQueuePort}
- * (AC2). {@code SyncContingencySalesUseCase} (UC-08, not built yet) will
- * consume and clear rows from this table.
- */
 @Getter
 @Setter
 @Entity

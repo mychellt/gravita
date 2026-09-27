@@ -26,14 +26,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-64: end-to-end verification of ReturnToSupplierUseCase
- * (POST /api/purchasing/receipts/{id}/return) through the real HTTP stack -
- * real controller, real use case, real H2-backed repositories. M2's
- * IssueNfeUseCase doesn't exist yet (GRA-8), so the return NF-e ref is
- * expected to be whatever the stub {@code IssuePurchaseReturnNfePort} adapter
- * returns (currently {@code null}), not an actual access key.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

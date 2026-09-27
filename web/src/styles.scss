@@ -1,10 +1,5 @@
-/* ============================================================
-   ERP MVP — Global Styles & Design System
-   Angular 17 · SCSS
-   ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
 
-/* ── Design Tokens ──────────────────────────────────────────── */
 :root {
   --brand:        #1A1F2E;
   --brand2:       #2D3550;
@@ -36,19 +31,16 @@
   --topbar-h:    56px;
 }
 
-/* ── Reset ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
 a { text-decoration: none; color: inherit; }
 button { font-family: var(--font); }
 
-/* ── Scrollbars ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 0 14px; height: 34px;
@@ -74,7 +66,6 @@ button { font-family: var(--font); }
 .btn-icon:hover { background: var(--surface2); }
 .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
 
-/* ── Cards ──────────────────────────────────────────────────── */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r12); overflow: hidden; }
 .card-head {
   padding: 14px 16px; border-bottom: 1px solid var(--border);
@@ -88,7 +79,6 @@ button { font-family: var(--font); }
 }
 .card-action:hover { text-decoration: underline; }
 
-/* ── KPI Cards ───────────────────────────────────────────────── */
 .kpi {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r12); padding: 14px 16px;
@@ -111,7 +101,6 @@ button { font-family: var(--font); }
 .kpi-icon.red    { background: #FEF2F2; color: #DC2626; }
 .kpi-icon.purple { background: #EDE9FE; color: #7C3AED; }
 
-/* ── Badges ──────────────────────────────────────────────────── */
 .badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 8px; border-radius: 20px;
@@ -125,12 +114,10 @@ button { font-family: var(--font); }
 .badge.proc     { background: #EFF6FF; color: #1E40AF; }
 .badge.inativo  { background: #F3F4F6; color: #6B7280; }
 
-/* ── Env badge ───────────────────────────────────────────────── */
 .env-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
 .env-badge.hom  { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
 .env-badge.prod { background: #ECFDF5; color: #065F46; border: 1px solid #6EE7B7; }
 
-/* ── Tables ───────────────────────────────────────────────────── */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
   font-size: 11px; font-weight: 600; color: var(--text3);
@@ -153,7 +140,6 @@ button { font-family: var(--font); }
 .action-btn.danger  { color: var(--danger); }
 .action-btn.success { color: var(--success); }
 
-/* ── Forms ────────────────────────────────────────────────────── */
 .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r12); margin-bottom: 12px; overflow: hidden; }
 .form-section-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--surface2); }
 .form-section-icon { font-size: 15px; color: var(--accent); }
@@ -177,18 +163,15 @@ button { font-family: var(--font); }
 .form-select { appearance: none; cursor: pointer; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%239CA3AF' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
 .form-textarea { height: auto; padding: 8px 10px; resize: vertical; }
 
-/* ── Tabs ─────────────────────────────────────────────────────── */
 .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
 .tab { padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; white-space: nowrap; }
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ── Page header ──────────────────────────────────────────────── */
 .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; gap: 16px; }
 .page-title  { font-size: 18px; font-weight: 700; }
 .page-sub    { font-size: 13px; color: var(--text3); margin-top: 2px; }
 
-/* ── Steps bar ────────────────────────────────────────────────── */
 .steps-bar { display: flex; align-items: center; margin-bottom: 16px; }
 .step-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--text3); }
 .step-item.done   { color: var(--success); }
@@ -199,13 +182,11 @@ button { font-family: var(--font); }
 .step-line { flex: 1; height: 1px; background: var(--border2); margin: 0 4px; max-width: 40px; }
 .step-line.done { background: var(--success); }
 
-/* ── Toggles ──────────────────────────────────────────────────── */
 .toggle { width: 36px; height: 20px; background: var(--border2); border-radius: 10px; position: relative; cursor: pointer; transition: background .2s; flex-shrink: 0; border: none; display: inline-block; }
 .toggle.on { background: var(--accent); }
 .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .toggle.on::after { transform: translateX(16px); }
 
-/* ── Progress bars ────────────────────────────────────────────── */
 .progress-bar  { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 .progress-fill { height: 100%; border-radius: 3px; transition: width .5s; }
 .progress-fill.green { background: var(--success); }
@@ -213,11 +194,9 @@ button { font-family: var(--font); }
 .progress-fill.red   { background: var(--danger); }
 .progress-fill.blue  { background: var(--accent); }
 
-/* ── Live dot ─────────────────────────────────────────────────── */
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2s ease infinite; display: inline-block; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 
-/* ── Utilities ────────────────────────────────────────────────── */
 .text-success { color: var(--success) !important; }
 .text-danger  { color: var(--danger)  !important; }
 .text-warn    { color: var(--warn)    !important; }

@@ -24,15 +24,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-60: end-to-end verification of ApprovePurchaseOrderUseCase
- * (POST /api/purchasing/orders/{id}/approve) through the real HTTP stack - real
- * controller, real use case, real H2-backed repositories. The order is seeded directly
- * through its repository port since it only needs to exist, not be created through its
- * own endpoint's full request/quotation flow. {@link NotifyApprovalWorkflowPort} is mocked
- * since its only adapter delivers over real SQS/e-mail infra, out of scope for this HTTP-level
- * test - the wiring itself is covered by {@code ApprovePurchaseOrderServiceTest}.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

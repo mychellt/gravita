@@ -32,14 +32,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-63: end-to-end verification of ConfirmPurchaseReceiptUseCase
- * (POST /api/purchasing/receipts/{id}/confirm) through the real HTTP stack -
- * real controller, real use case, real H2-backed repositories. The receipt is
- * seeded directly through its repository port (already past physical
- * conference) rather than through ReceivePurchaseOrderUseCase's endpoint,
- * since this test only cares about the confirm step.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
@@ -59,11 +51,6 @@ class ConfirmPurchaseReceiptEndToEndTest {
 
 	private final UUID productId = UUID.randomUUID();
 
-	/**
-	 * Confirming now calls M5's real RegisterStockEntryUseCase (GRA-82), which
-	 * requires the product to exist in masterdata - every test that confirms a
-	 * receipt for {@link #productId} needs it seeded first.
-	 */
 	@BeforeEach
 	void seedProduct() {
 		productRepositoryPort.save(ProductDomain.builder()
@@ -85,11 +72,6 @@ class ConfirmPurchaseReceiptEndToEndTest {
 				.andExpect(status().isNoContent());
 	}
 
-	/**
-	 * GRA-82: confirming now calls M5's real RegisterStockEntryUseCase (no
-	 * longer the GRA-63 no-op stub), so the receipt's product balance is
-	 * actually updated in inventory.
-	 */
 	@Test
 	void confirmingAReceiptRegistersARealStockEntryInInventory() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();

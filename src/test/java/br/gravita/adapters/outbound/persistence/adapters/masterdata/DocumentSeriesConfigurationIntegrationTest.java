@@ -22,24 +22,6 @@ import org.springframework.context.annotation.Import;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * GRA-51: independent QA verification of GRA-20's ConfigureDocumentSeriesUseCase
- * (PUT /api/companies/{id}/document-series/{type}). The controller-level tests
- * in CompanyControllerTest mock the use case, so they can't prove the real
- * business rules. This drives the actual RegisterCompanyService and
- * ConfigureDocumentSeriesService production classes against a real H2-backed
- * repository, covering what the mocked tests cannot: placeholder seeding on
- * registration, per-type counter independence, the forward-only nextNumber
- * rule once a series is live, and 404 for an unregistered company.
- *
- * NOTE: a full @SpringBootTest / HTTP-level equivalent of this test could not
- * be used because the application context currently fails to start -
- * TotpVerificationAdapter has two constructors and no @Autowired/no-arg
- * constructor, so Spring can't resolve which to use (see the QA verdict
- * comment on GRA-51 for the reproduction and stack trace). That is reported
- * separately as a blocker; this test exercises the real use case + repository
- * + database instead, which does not require the full context.
- */
 @DataJpaTest
 @Import({CompanyRepositoryAdapter.class, CompanyPersistenceMapperImpl.class,
 		DocumentSeriesRepositoryAdapter.class, DocumentSeriesPersistenceMapperImpl.class})

@@ -20,13 +20,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-58: end-to-end verification of RegisterQuotationResponseUseCase
- * (POST /api/purchasing/quotations/{id}/responses) through the real HTTP
- * stack - real controller, real use case, real H2-backed repository. Seeds
- * the Quotation directly through the repository port since
- * SendQuotationUseCase (GRA-57/M6-02) isn't built yet.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

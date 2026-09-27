@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-/** M5 (Estoque) does not exist yet, so there are no lot/serial records to open; replace with a real inventory query once M5 lands. */
 @Component
 class InventoryLotSerialRepositoryAdapter implements InventoryLotSerialRepositoryPort {
 

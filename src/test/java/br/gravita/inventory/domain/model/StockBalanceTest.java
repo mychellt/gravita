@@ -63,7 +63,6 @@ class StockBalanceTest {
 		StockBalance afterEntry = balance.receiveEntry(new BigDecimal("50"), new BigDecimal("14.00"));
 
 		assertThat(afterEntry.getOnHand()).isEqualByComparingTo("150");
-		// (100*12.50 + 50*14.00) / 150 = 13.00
 		assertThat(afterEntry.getAverageCost()).isEqualByComparingTo("13.00");
 	}
 

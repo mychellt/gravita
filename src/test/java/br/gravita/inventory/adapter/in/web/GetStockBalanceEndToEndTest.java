@@ -18,11 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-71: end-to-end verification of GetStockBalanceUseCase
- * (GET /api/inventory/products/{id}/balance) through the real HTTP stack -
- * real controller, real use case, real H2-backed repositories.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

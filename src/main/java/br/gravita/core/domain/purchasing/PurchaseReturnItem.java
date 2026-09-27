@@ -5,11 +5,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A {@code {product, quantity}} line on a {@link PurchaseReturn}
- * (docs/specs/m6-compras.md domain model). {@code productId} references
- * `masterdata`'s product by id, mirroring {@link PurchaseReceiptItem}.
- */
 public record PurchaseReturnItem(UUID productId, BigDecimal quantity) {
 
 	public PurchaseReturnItem {

@@ -7,11 +7,6 @@ import br.gravita.core.ports.inbound.masterdata.ConfigureDocumentSeriesCommand;
 import br.gravita.core.ports.inbound.masterdata.ConfigureDocumentSeriesUseCase;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 
-/**
- * A {@link DocumentSeries} row for every {@code (company, documentType)} pair
- * already exists as a placeholder created at company registration (UC-01),
- * so this only ever reconfigures an existing row - never creates one (UC-M1-04).
- */
 @UseCase
 public class ConfigureDocumentSeriesService implements ConfigureDocumentSeriesUseCase {
 

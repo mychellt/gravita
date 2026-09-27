@@ -8,10 +8,6 @@ import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
 
-/**
- * Timeouts are kept short so a Receita Federal / ViaCEP outage fails fast instead of
- * hanging the registration form (UC-M1-07 acceptance criteria: never block submission).
- */
 @Configuration
 public class LookupIntegrationConfiguration {
 

@@ -3,7 +3,6 @@
   <a routerLink="/nfe/nova" class="btn btn-primary"><i class="ti ti-plus"></i> Nova NF-e</a>
 </app-page-header>
 
-<!-- KPIs -->
 <div class="nfe-kpis">
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-file-check"></i></div>
@@ -31,7 +30,6 @@
   </div>
 </div>
 
-<!-- Tabs -->
 <div class="tabs">
   <div class="tab" [class.active]="activeTab()==='emitidas'"   (click)="activeTab.set('emitidas')">Emitidas</div>
   <div class="tab" [class.active]="activeTab()==='entradas'"   (click)="activeTab.set('entradas')">Entradas</div>

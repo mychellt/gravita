@@ -23,13 +23,6 @@ public class ApprovePhysicalCountService implements ApprovePhysicalCountUseCase 
 		this.adjustInventoryUseCase = adjustInventoryUseCase;
 	}
 
-	/**
-	 * Runs in a single transaction (AC4): {@link PhysicalCount#approve()} fails
-	 * fast if the count isn't {@code PENDING_APPROVAL}, and if any divergence
-	 * adjustment fails partway through, the transaction rolls back every
-	 * adjustment already posted in this call along with the count's own save,
-	 * leaving it untouched in {@code PENDING_APPROVAL}.
-	 */
 	@Override
 	@Transactional
 	public PhysicalCount execute(ApprovePhysicalCountCommand command) {

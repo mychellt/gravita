@@ -17,13 +17,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * UC-M6-06. Records the physical conference of a delivery against an order as
- * a {@code PENDING_CONFERENCE} {@link PurchaseReceipt}; {@code orderedQty} per
- * item is resolved from the order itself since the command only carries what
- * was physically received. Stock/payable side effects only happen later, once
- * {@code ConfirmPurchaseReceiptUseCase} (UC-M6-08) confirms the receipt.
- */
 @UseCase
 public class ReceivePurchaseOrderService implements ReceivePurchaseOrderUseCase {
 
@@ -41,8 +34,6 @@ public class ReceivePurchaseOrderService implements ReceivePurchaseOrderUseCase 
 		PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(command.orderId().value()));
 
-		// Guards "order must be OPEN/PARTIALLY_RECEIVED" and "not pending approval"
-		// before any receipt item is built.
 		order.assertReceivable();
 
 		List<PurchaseReceiptItem> items = command.receivedItems().stream()

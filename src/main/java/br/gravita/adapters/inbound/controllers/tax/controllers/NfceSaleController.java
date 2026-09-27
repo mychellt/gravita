@@ -20,11 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Per the module spec's adapter table, {@code POST /api/pdv/sales} orchestrates
- * both UC-M3-03 (register) and UC-M3-04 (issue, here) behind one call: the
- * cashier never sees the intermediate DRAFT state.
- */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/pdv/sales")

@@ -52,14 +52,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-92 AC1: end-to-end verification that a reachable SEFAZ-UF authorizes
- * the sale in real time through the real HTTP stack, via a local stand-in
- * server (no real SEFAZ access from a test). The complementary "unavailable"
- * path (AC2) is already exercised deterministically by
- * {@code RegisterNfceSaleEndToEndTest}, which relies on the adapter's default
- * (never-resolvable) SEFAZ base URL.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

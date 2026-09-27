@@ -7,12 +7,6 @@ import br.gravita.core.ports.outbound.purchasing.NotifyApprovalWorkflowPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Delivers UC-M6-05's approval-workflow notification over the existing e-mail channel
- * ({@link EmailNotificationPort}). Recipient resolution is config-driven (like {@code
- * aws.sqs.email-queue-url}) rather than looked up per-order, since no domain link from an
- * {@code ApprovalAlcada.approverProfileId} to a deliverable address exists yet.
- */
 @Component
 public class ApprovalWorkflowNotificationAdapter implements NotifyApprovalWorkflowPort {
 

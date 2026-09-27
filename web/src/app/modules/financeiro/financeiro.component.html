@@ -3,7 +3,6 @@
   <button class="btn btn-primary"><i class="ti ti-plus"></i> Lançar</button>
 </app-page-header>
 
-<!-- KPIs -->
 <div class="fin-kpis">
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-arrow-down-right"></i></div>
@@ -31,7 +30,6 @@
   </div>
 </div>
 
-<!-- Tabs -->
 <div class="tabs">
   <div class="tab" [class.active]="activeTab() === 'receber'"     (click)="activeTab.set('receber')">Contas a Receber</div>
   <div class="tab" [class.active]="activeTab() === 'pagar'"       (click)="activeTab.set('pagar')">Contas a Pagar</div>
@@ -39,7 +37,6 @@
   <div class="tab" [class.active]="activeTab() === 'conciliacao'" (click)="activeTab.set('conciliacao')">Conciliação</div>
 </div>
 
-<!-- Contas a receber -->
 @if (activeTab() === 'receber') {
   <div class="card">
     <div class="card-head">
@@ -83,7 +80,6 @@
   </div>
 }
 
-<!-- Contas a pagar -->
 @if (activeTab() === 'pagar') {
   <div class="card">
     <div class="card-head">
@@ -126,7 +122,6 @@
   </div>
 }
 
-<!-- Fluxo de caixa -->
 @if (activeTab() === 'fluxo') {
   <div class="card">
     <div class="card-head">

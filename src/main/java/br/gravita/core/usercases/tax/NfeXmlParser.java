@@ -19,18 +19,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-/**
- * Translates a supplier's NFe (Modelo 55) XML - the "nfeProc"/"NFe" schema
- * from the ERP MVP doc §3.3 - into the raw values {@code ImportSupplierNfeXmlService}
- * builds an {@link br.gravita.core.domain.tax.InboundNfe} from. Pure
- * translation, no I/O: doesn't need port/adapter indirection, and is
- * deterministic enough to unit-test directly against XML fixtures rather
- * than mocking a parser port.
- *
- * <p>XPath expressions use {@code local-name()} throughout so they match
- * regardless of the document's default namespace (suppliers commonly emit
- * either bare {@code <NFe>} or SEFAZ-wrapped {@code <nfeProc>}).
- */
 public class NfeXmlParser {
 
 	public ParsedSupplierNfe parse(byte[] xmlContent) {
@@ -69,8 +57,6 @@ public class NfeXmlParser {
 
 	private org.w3c.dom.Document parseDocument(byte[] xmlContent) throws Exception {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		// XXE hardening: this parses XML uploaded by an external party (supplier), so
-		// external entities/DTDs must never be resolved.
 		factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
 		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);

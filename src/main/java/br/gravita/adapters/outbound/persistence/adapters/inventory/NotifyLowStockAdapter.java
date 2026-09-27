@@ -8,14 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * M9 (dashboard) does not exist yet, so there is no widget to push low-stock
- * alerts to. This stub logs the suggestions and keeps
- * {@code SuggestReorderService} runnable end-to-end until M9 ships its own
- * {@link NotifyLowStockPort} adapter backed by a real dashboard feed - mirrors
- * {@code PostAdjustmentAccountingEntryAdapter}'s stub-pending-a-later-module
- * pattern (GRA-88).
- */
 @Component
 class NotifyLowStockAdapter implements NotifyLowStockPort {
 

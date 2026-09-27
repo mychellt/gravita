@@ -4,12 +4,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Extension point for the inventory context (M5), which owns stock balances.
- * Backed by an adapter that delegates to M5's real
- * {@code RegisterStockEntryUseCase} (GRA-82; previously a no-op stub from
- * GRA-63 before M5 shipped).
- */
 public interface RegisterStockEntryPort {
 	void registerEntry(RegisterStockEntryCommand command);
 

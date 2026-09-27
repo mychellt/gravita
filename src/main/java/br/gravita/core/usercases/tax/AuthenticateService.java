@@ -44,8 +44,6 @@ public class AuthenticateService implements AuthenticateUseCase {
 		}
 
 		User user = maybeUser.get();
-		// user.getRawPassword() actually holds the bcrypt hash once loaded from the
-		// repository - see UserPersistenceMapper#toDomain.
 		boolean credentialsValid = user.getStatus() == UserStatus.ACTIVE
 				&& passwordVerificationPort.matches(command.rawPassword(), user.getRawPassword());
 		if (!credentialsValid) {

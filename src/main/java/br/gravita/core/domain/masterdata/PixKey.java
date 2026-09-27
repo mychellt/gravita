@@ -4,11 +4,6 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
 import java.util.regex.Pattern;
 
-/**
- * A PIX key accepts four BACEN-defined formats: CPF, CNPJ, e-mail or a random
- * (UUID) key. CPF/CNPJ format validation is delegated to {@link Document} so
- * the check-digit algorithm isn't reimplemented here.
- */
 public record PixKey(String value, PixKeyType type) {
 
 	private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");

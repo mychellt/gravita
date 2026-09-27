@@ -60,7 +60,6 @@ class CashClosingReportTest {
 		assertThat(report.getTotalSangriaAmount()).isEqualByComparingTo("30.00");
 		assertThat(report.getTotalSuprimentoAmount()).isEqualByComparingTo("20.00");
 		assertThat(report.getSaleCount()).isEqualTo(5);
-		// expected cash = opening + CASH sales + suprimento - sangria
 		assertThat(report.getExpectedCashAmount()).isEqualByComparingTo("290.00");
 	}
 

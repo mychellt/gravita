@@ -8,7 +8,6 @@ import {
 @Injectable({ providedIn: 'root' })
 export class DataService {
 
-  // ── Produtos ─────────────────────────────────────────────
   readonly produtos = signal<Produto[]>([
     { id:'p1', codigo:'001', codigoBarras:'7891234560001', descricao:'Arroz Camil 5kg', tipo:'simples', ncm:'1006.30', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:22.90, custoMedio:14.50, margem:36.7, estoque:48, estoqueMinimo:50, estoqueMaximo:300, grupo:'Alimentos', marca:'Camil', status:'ativo' },
     { id:'p2', codigo:'002', codigoBarras:'7891234560002', descricao:'Feijão Carioca 1kg', tipo:'simples', ncm:'0713.33', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:7.49, custoMedio:4.80, margem:35.9, estoque:620, estoqueMinimo:100, estoqueMaximo:800, grupo:'Alimentos', marca:'Camil', status:'ativo' },
@@ -21,7 +20,6 @@ export class DataService {
     { id:'p9', codigo:'009', codigoBarras:'7891234560009', descricao:'Detergente 500ml', tipo:'simples', ncm:'3402.20', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:2.49, custoMedio:1.50, margem:39.8, estoque:55, estoqueMinimo:40, estoqueMaximo:300, grupo:'Limpeza', marca:'Ypê', status:'ativo' },
   ]);
 
-  // ── Clientes ─────────────────────────────────────────────
   readonly clientes = signal<Cliente[]>([
     { id:'c1', tipo:'pj', documento:'12.345.678/0001-90', nome:'Maria Distribuidora Ltda', ie:'123.456.789.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'01310-100', logradouro:'Av. Paulista', numero:'1000', bairro:'Bela Vista', municipio:'São Paulo', uf:'SP' }], email:'nf@mariadist.com.br', telefone:'(11) 3333-4444', whatsapp:'(11) 91234-5678', limiteCredito:120000, saldoDevedor:38400, status:'regular' },
     { id:'c2', tipo:'pj', documento:'98.765.432/0001-10', nome:'Atacadão SP Ltda', ie:'987.654.321.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'04578-000', logradouro:'Av. dos Bandeirantes', numero:'2000', bairro:'Vila Olímpia', municipio:'São Paulo', uf:'SP' }], email:'nfe@atacadao.com.br', telefone:'(11) 2222-3333', whatsapp:'(11) 98765-4321', limiteCredito:80000, saldoDevedor:22100, status:'regular' },
@@ -29,14 +27,12 @@ export class DataService {
     { id:'c4', tipo:'pj', documento:'45.678.901/0001-23', nome:'Supermercado Bom Preço', ie:'456.789.012.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'08040-000', logradouro:'Av. Aricanduva', numero:'500', bairro:'Aricanduva', municipio:'São Paulo', uf:'SP' }], email:'compras@bompreco.com.br', telefone:'(11) 4444-5555', limiteCredito:50000, saldoDevedor:12000, status:'regular' },
   ]);
 
-  // ── Fornecedores ─────────────────────────────────────────
   readonly fornecedores = signal<Fornecedor[]>([
     { id:'f1', tipo:'pj', documento:'11.222.333/0001-44', nome:'Distribuidora Alves', endereco:{ cep:'07000-000', logradouro:'Av. Comercial', numero:'100', bairro:'Centro', municipio:'Guarulhos', uf:'SP' }, email:'pedidos@alves.com.br', telefone:'(11) 1111-2222', prazoEntregaDias:3, chavePix:'11222333000144' },
     { id:'f2', tipo:'pj', documento:'22.333.444/0001-55', nome:'Frigorífico Central', endereco:{ cep:'09000-000', logradouro:'Rua Industrial', numero:'200', bairro:'Distrito Industrial', municipio:'Santo André', uf:'SP' }, email:'vendas@frigcentral.com.br', telefone:'(11) 5555-6666', prazoEntregaDias:1, chavePix:'22333444000155' },
     { id:'f3', tipo:'pj', documento:'33.444.555/0001-66', nome:'Grãos & Cia', endereco:{ cep:'14000-000', logradouro:'Estrada da Fazenda', numero:'Km3', bairro:'Rural', municipio:'Ribeirão Preto', uf:'SP' }, email:'comercial@graoecia.com.br', telefone:'(16) 3333-4444', prazoEntregaDias:5, chavePix:'33444555000166' },
   ]);
 
-  // ── NF-e ─────────────────────────────────────────────────
   readonly nfes = signal<Nfe[]>([
     { id:'nfe1', numero:234, serie:'001', natureza:'Venda de mercadoria adquirida ou recebida de terceiros', cfop:'5102', dataEmissao:new Date('2026-05-29T14:32:00'), clienteId:'c2', clienteNome:'Atacadão SP Ltda', clienteDoc:'98.765.432/0001-10', itens:[], valorProdutos:3713.10, valorFrete:106.90, valorDesconto:0, valorTotal:3820.00, baseIcms:3820.00, valorIcms:687.60, valorPis:24.83, valorCofins:114.60, status:'autorizada', chaveAcesso:'35260512345678000190550010000002341000012341', protocolo:'135200000001234' },
     { id:'nfe2', numero:233, serie:'001', natureza:'Venda de mercadoria adquirida ou recebida de terceiros', cfop:'5102', dataEmissao:new Date('2026-05-29T13:58:00'), clienteId:'c1', clienteNome:'Maria Distribuidora Ltda', clienteDoc:'12.345.678/0001-90', itens:[], valorProdutos:8150.00, valorFrete:0, valorDesconto:0, valorTotal:8150.00, baseIcms:8150.00, valorIcms:1467.00, valorPis:52.98, valorCofins:244.50, status:'autorizada', chaveAcesso:'35260512345678000190550010000002331000012331', protocolo:'135200000001233' },
@@ -45,14 +41,12 @@ export class DataService {
     { id:'nfe5', numero:230, serie:'001', natureza:'Venda de mercadoria adquirida ou recebida de terceiros', cfop:'5102', dataEmissao:new Date('2026-05-28T09:44:00'), clienteId:'c4', clienteNome:'Loja Central Eireli', clienteDoc:'56.789.012/0001-11', itens:[], valorProdutos:14600.00, valorFrete:0, valorDesconto:0, valorTotal:14600.00, baseIcms:0, valorIcms:0, valorPis:0, valorCofins:0, status:'cancelada' },
   ]);
 
-  // ── NFS-e ─────────────────────────────────────────────────
   readonly nfses = signal<Nfse[]>([
     { id:'nfse1', numero:'NFS-0041', rpsNumero:'RPS-0041', tomadorNome:'Tech Corp Ltda', tomadorDoc:'71.234.567/0001-89', municipio:'São Paulo', uf:'SP', padrao:'abrasf', codigoServico:'1.07', discriminacao:'Serviços de suporte e manutenção de sistemas', valorServico:12000, aliquotaIss:2.0, valorIss:240, retencoes:0, dataEmissao:new Date('2026-05-28'), status:'autorizada' },
     { id:'nfse2', numero:'NFS-0040', rpsNumero:'RPS-0040', tomadorNome:'João Ferreira ME', tomadorDoc:'34.567.890/0001-12', municipio:'Campinas', uf:'SP', padrao:'nacional', codigoServico:'7.01', discriminacao:'Serviços de engenharia civil', valorServico:8500, aliquotaIss:2.5, valorIss:212.50, retencoes:85, dataEmissao:new Date('2026-05-27'), status:'autorizada' },
     { id:'nfse3', numero:'NFS-0039', rpsNumero:'RPS-0039', tomadorNome:'Indústria Alfa SA', tomadorDoc:'23.456.789/0001-01', municipio:'Santos', uf:'SP', padrao:'abrasf', codigoServico:'14.01', discriminacao:'Serviços de lubrificação, limpeza e conservação de máquinas', valorServico:3200, aliquotaIss:2.0, valorIss:64, retencoes:0, dataEmissao:new Date('2026-05-29'), status:'em_envio' },
   ]);
 
-  // ── Movimentos estoque ───────────────────────────────────
   readonly movimentos = signal<MovimentoEstoque[]>([
     { id:'m1', dataHora:new Date('2026-05-29T14:32'), produtoId:'p1', produtoNome:'Arroz Camil 5kg', tipo:'saida', quantidade:-100, saldoApos:48, origem:'NF-e #000234', usuario:'Ricardo L.' },
     { id:'m2', dataHora:new Date('2026-05-29T10:15'), produtoId:'p2', produtoNome:'Feijão Carioca 1kg', tipo:'entrada', quantidade:500, saldoApos:620, origem:'Compra #089', usuario:'Ana P.' },
@@ -61,7 +55,6 @@ export class DataService {
     { id:'m5', dataHora:new Date('2026-05-27T14:00'), produtoId:'p8', produtoNome:'Sabão em Pó 1kg', tipo:'saida', quantidade:-18, saldoApos:28, origem:'PDV Caixa 02', usuario:'Operador' },
   ]);
 
-  // ── Pedidos de compra ─────────────────────────────────────
   readonly pedidosCompra = signal<PedidoCompra[]>([
     { id:'oc1', numero:'OC-0089', fornecedorId:'f1', fornecedorNome:'Distribuidora Alves', dataPedido:new Date('2026-05-29'), dataPrevisao:new Date('2026-06-01'), itens:[], valorTotal:18400, status:'aguarda_aprovacao' },
     { id:'oc2', numero:'OC-0088', fornecedorId:'f2', fornecedorNome:'Frigorífico Central', dataPedido:new Date('2026-05-28'), dataPrevisao:new Date('2026-05-30'), itens:[], valorTotal:9200, status:'em_transito' },
@@ -69,7 +62,6 @@ export class DataService {
     { id:'oc4', numero:'OC-0086', fornecedorId:'f1', fornecedorNome:'Laticínios Norte', dataPedido:new Date('2026-05-24'), dataPrevisao:undefined, itens:[], valorTotal:3400, status:'cancelado' },
   ]);
 
-  // ── Títulos financeiros ──────────────────────────────────
   readonly titulos = signal<Titulo[]>([
     { id:'t1', tipo:'receber', descricao:'NF-e #000234', parceiro:'Atacadão SP Ltda', vencimento:new Date('2026-05-29'), valor:3820, status:'aberto', formaPagamento:'Boleto', origem:'NF-e' },
     { id:'t2', tipo:'receber', descricao:'NF-e #000233', parceiro:'Maria Distribuidora Ltda', vencimento:new Date('2026-05-31'), valor:8150, status:'aberto', formaPagamento:'Boleto', origem:'NF-e' },
@@ -81,7 +73,6 @@ export class DataService {
     { id:'t8', tipo:'pagar', descricao:'Energia elétrica', parceiro:'EDP São Paulo', vencimento:new Date('2026-06-12'), valor:1240, status:'aberto', formaPagamento:'Boleto', origem:'Manual' },
   ]);
 
-  // ── Oportunidades CRM ─────────────────────────────────────
   readonly oportunidades = signal<Oportunidade[]>([
     { id:'op1', titulo:'Supermercado do Bairro', clienteNome:'Supermercado do Bairro', valor:15000, probabilidade:40, estagio:'prospeccao', responsavel:'Ana Paula' },
     { id:'op2', titulo:'Padaria São José', clienteNome:'Padaria São José', valor:4200, probabilidade:30, estagio:'prospeccao', responsavel:'Ricardo L.' },
@@ -95,7 +86,6 @@ export class DataService {
     { id:'op10', titulo:'Loja Central', clienteNome:'Loja Central Eireli', valor:7100, probabilidade:0, estagio:'perdido', responsavel:'Carlos M.' },
   ]);
 
-  // ── Computed helpers ─────────────────────────────────────
   readonly produtosCriticos = computed(() =>
     this.produtos().filter(p => p.estoque <= p.estoqueMinimo)
   );
@@ -114,7 +104,6 @@ export class DataService {
       .reduce((s, t) => s + t.valor, 0)
   );
 
-  // ── Mutations ─────────────────────────────────────────────
   addNfe(nfe: Nfe) { this.nfes.update(list => [nfe, ...list]); }
 
   updateNfeStatus(id: string, status: Nfe['status']) {

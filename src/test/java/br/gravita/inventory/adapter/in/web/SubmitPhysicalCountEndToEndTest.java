@@ -23,12 +23,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-87: end-to-end verification of SubmitPhysicalCountUseCase
- * (POST /api/inventory/counts/{id}/submit) through the real HTTP stack, and
- * that a fully-submitted count is then reachable by
- * POST /api/inventory/counts/{id}/approve.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

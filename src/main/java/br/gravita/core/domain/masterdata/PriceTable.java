@@ -9,16 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.Getter;
 
-/**
- * Price table aggregate (UC-M1-13). There is no cap on the number of tables
- * an instance may hold — that constraint simply isn't enforced here.
- * {@code validTo} is not a switch a user has to flip: {@link #isActive} is
- * computed from the current date on every read, so an expired table drops
- * out of price resolution the moment its window closes. Percent-based
- * formations ({@link #resolvePrice}) take the product's current cost/base
- * price as parameters rather than caching a computed value, so later
- * product-price changes propagate automatically at resolution time.
- */
 @Getter
 public final class PriceTable {
 
@@ -46,11 +36,6 @@ public final class PriceTable {
 		return new PriceTable(id, formation, validFrom, validTo, maxDiscountPercent, maxDiscountBehavior, entries);
 	}
 
-	/**
-	 * Whether this table should be considered by price resolution on
-	 * {@code referenceDate}. A table with a past {@code validTo} answers
-	 * {@code false} with no manual deactivation step involved.
-	 */
 	public boolean isActive(LocalDate referenceDate) {
 		Objects.requireNonNull(referenceDate, "referenceDate is required");
 		if (referenceDate.isBefore(validFrom)) {
@@ -59,11 +44,6 @@ public final class PriceTable {
 		return validTo == null || !referenceDate.isAfter(validTo);
 	}
 
-	/**
-	 * Resolves the sale price for {@code ref} using the product's *current*
-	 * cost/base price, passed in by the caller at resolution time rather than
-	 * read from this table — see the class javadoc.
-	 */
 	public BigDecimal resolvePrice(ProductOrClassRef ref, BigDecimal productAverageCost, BigDecimal productBasePrice) {
 		PriceTableEntry entry = findEntry(ref);
 		return switch (formation) {
@@ -73,13 +53,6 @@ public final class PriceTable {
 		};
 	}
 
-	/**
-	 * Checks a requested sales discount against {@link #maxDiscountPercent}.
-	 * A {@code BLOCK} table throws once the limit is exceeded; an
-	 * {@code ALERT} table returns {@link DiscountCheckResult#ALERT} so the
-	 * caller (sales) can surface a warning to the salesperson while still
-	 * allowing the line.
-	 */
 	public DiscountCheckResult evaluateDiscount(BigDecimal requestedDiscountPercent) {
 		Objects.requireNonNull(requestedDiscountPercent, "requestedDiscountPercent is required");
 		if (maxDiscountPercent == null || requestedDiscountPercent.compareTo(maxDiscountPercent) <= 0) {

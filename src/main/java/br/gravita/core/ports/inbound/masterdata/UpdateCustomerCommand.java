@@ -11,10 +11,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Partial update: any field left {@code null} keeps the customer's current
- * value instead of being cleared, so callers only submit what changed.
- */
 public record UpdateCustomerCommand(
 		UUID customerId,
 		Document document,

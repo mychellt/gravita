@@ -1,4 +1,3 @@
-// ── Enums ────────────────────────────────────────────────────
 export type NFeStatus = 'autorizada' | 'em_fila' | 'cancelada' | 'rascunho' | 'inutilizada';
 export type NFSeStatus = 'autorizada' | 'em_envio' | 'cancelada' | 'rascunho';
 export type PedidoStatus = 'rascunho' | 'aprovado' | 'em_separacao' | 'faturado' | 'cancelado';
@@ -8,7 +7,6 @@ export type FunilEstagio = 'prospeccao' | 'proposta' | 'negociacao' | 'fechado' 
 export type RegimeTributario = 'simples_nacional' | 'lucro_presumido' | 'lucro_real';
 export type MovimentoTipo = 'entrada' | 'saida' | 'ajuste' | 'transferencia';
 
-// ── Empresa ──────────────────────────────────────────────────
 export interface Empresa {
   id: string;
   cnpj: string;
@@ -22,7 +20,6 @@ export interface Empresa {
   logotipo?: string;
 }
 
-// ── Endereço ─────────────────────────────────────────────────
 export interface Endereco {
   cep: string;
   logradouro: string;
@@ -34,7 +31,6 @@ export interface Endereco {
   codigoIbge?: string;
 }
 
-// ── Cliente ──────────────────────────────────────────────────
 export interface Cliente {
   id: string;
   tipo: 'pf' | 'pj';
@@ -53,7 +49,6 @@ export interface Cliente {
   tabelaPrecoId?: string;
 }
 
-// ── Fornecedor ───────────────────────────────────────────────
 export interface Fornecedor {
   id: string;
   tipo: 'pf' | 'pj';
@@ -69,7 +64,6 @@ export interface Fornecedor {
   conta?: string;
 }
 
-// ── Produto ──────────────────────────────────────────────────
 export interface Produto {
   id: string;
   codigo: string;
@@ -92,7 +86,6 @@ export interface Produto {
   imagem?: string;
 }
 
-// ── NF-e ─────────────────────────────────────────────────────
 export interface ItemNfe {
   seq: number;
   produtoId: string;
@@ -136,7 +129,6 @@ export interface Nfe {
   xmlPath?: string;
 }
 
-// ── NFS-e ────────────────────────────────────────────────────
 export interface Nfse {
   id: string;
   numero: string;
@@ -156,7 +148,6 @@ export interface Nfse {
   status: NFSeStatus;
 }
 
-// ── Estoque ──────────────────────────────────────────────────
 export interface MovimentoEstoque {
   id: string;
   dataHora: Date;
@@ -171,7 +162,6 @@ export interface MovimentoEstoque {
   serie?: string;
 }
 
-// ── Compras ──────────────────────────────────────────────────
 export interface ItemPedidoCompra {
   produtoId: string;
   descricao: string;
@@ -193,7 +183,6 @@ export interface PedidoCompra {
   observacao?: string;
 }
 
-// ── Vendas / CRM ─────────────────────────────────────────────
 export interface Oportunidade {
   id: string;
   titulo: string;
@@ -217,7 +206,6 @@ export interface PedidoVenda {
   status: PedidoStatus;
 }
 
-// ── Financeiro ───────────────────────────────────────────────
 export interface Titulo {
   id: string;
   tipo: 'receber' | 'pagar';
@@ -233,7 +221,6 @@ export interface Titulo {
   centoCusto?: string;
 }
 
-// ── PDV ──────────────────────────────────────────────────────
 export interface ItemCarrinho {
   produto: Produto;
   quantidade: number;

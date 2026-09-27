@@ -12,11 +12,6 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/**
- * AES-256-GCM encryption for the digital certificate's {@code .pfx} payload and password at
- * rest (doc §11.4), mirroring {@code CredentialCipher}. Kept as its own key/bean rather than
- * reusing {@code CredentialCipher} so the two secrets can be rotated independently.
- */
 @Component
 public class CertificateCipher {
 

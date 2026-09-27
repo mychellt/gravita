@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-/** Bulk import is the only write path for this table (AC: updated exclusively via import, no per-row edit form). */
 @Component
 public class ImportInterstateIcmsRatesAdapter implements ImportInterstateIcmsRatesPort {
 

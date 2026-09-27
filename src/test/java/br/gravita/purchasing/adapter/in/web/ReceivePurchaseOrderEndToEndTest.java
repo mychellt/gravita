@@ -20,13 +20,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-61: end-to-end verification of ReceivePurchaseOrderUseCase
- * (POST /api/purchasing/orders/{id}/receipts) through the real HTTP stack -
- * real controller, real use case, real H2-backed repositories. The order is
- * seeded directly through its repository port since it only needs to exist,
- * not be created through its own endpoint's full request/approval flow.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

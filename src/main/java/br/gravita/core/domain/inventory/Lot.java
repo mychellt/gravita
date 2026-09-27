@@ -7,11 +7,6 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * One row per {@code product x warehouse x code}. Module spec: never
- * allocatable to a sale exit once {@code expiryDate} has passed - an
- * exit-side rule, out of scope for UC-M5-02.
- */
 @Getter
 public final class Lot {
 
@@ -36,17 +31,14 @@ public final class Lot {
 		return new Lot(id, productId, warehouseId, code, expiryDate, quantity);
 	}
 
-	/** Increments an existing lot's quantity on a repeat entry (UC-M5-02, AC3). */
 	public Lot receive(BigDecimal additionalQuantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, quantity.add(additionalQuantity));
 	}
 
-	/** Whether this lot can no longer be allocated to an exit (UC-M5-03, AC1). */
 	public boolean isExpired(LocalDate asOf) {
 		return expiryDate.isBefore(asOf);
 	}
 
-	/** Decrements this lot's quantity when it is allocated to an exit (UC-M5-03). */
 	public Lot issue(BigDecimal quantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, this.quantity.subtract(quantity));
 	}

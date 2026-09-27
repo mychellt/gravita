@@ -26,13 +26,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-62: end-to-end verification of ImportSupplierNfeAtReceivingUseCase
- * (POST /api/purchasing/orders/{id}/receipts/{receiptId}/import-nfe) through
- * the real HTTP stack. The order and its pending-conference receipt are
- * seeded directly through their repository ports, same convention as
- * {@link ReceivePurchaseOrderEndToEndTest}.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
