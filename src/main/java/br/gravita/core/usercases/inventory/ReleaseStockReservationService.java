@@ -9,6 +9,7 @@ import br.gravita.core.ports.inbound.inventory.ReleaseStockReservationCommand;
 import br.gravita.core.ports.inbound.inventory.ReleaseStockReservationUseCase;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
+import java.util.List;
 
 @UseCase
 public class ReleaseStockReservationService implements ReleaseStockReservationUseCase {
@@ -24,10 +25,21 @@ public class ReleaseStockReservationService implements ReleaseStockReservationUs
 
 	@Override
 	public void execute(ReleaseStockReservationCommand command) {
-		StockReservationId id = StockReservationId.of(command.reservationId());
-		StockReservation reservation = stockReservationRepositoryPort.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Stock reservation not found: " + id.value()));
+		for (StockReservation reservation : resolveReservations(command)) {
+			release(reservation);
+		}
+	}
 
+	private List<StockReservation> resolveReservations(ReleaseStockReservationCommand command) {
+		if (command.reservationId() != null) {
+			StockReservationId id = StockReservationId.of(command.reservationId());
+			return List.of(stockReservationRepositoryPort.findById(id)
+					.orElseThrow(() -> new ResourceNotFoundException("Stock reservation not found: " + id.value())));
+		}
+		return stockReservationRepositoryPort.findActiveByOrderRef(command.orderRef());
+	}
+
+	private void release(StockReservation reservation) {
 		StockReservation released = reservation.release();
 
 		StockBalance balance = stockBalanceRepositoryPort

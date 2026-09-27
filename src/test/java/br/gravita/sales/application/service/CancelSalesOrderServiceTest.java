@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -16,9 +15,8 @@ import br.gravita.core.domain.sales.SalesOrderNotFoundException;
 import br.gravita.core.domain.sales.SalesOrderStatus;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.CancelSalesOrderCommand;
-import br.gravita.core.ports.outbound.persistence.sales.ReleaseStockReservationPort;
-import br.gravita.core.ports.outbound.persistence.sales.ReleaseStockReservationPort.ReleaseStockReservationCommand;
 import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
+import br.gravita.core.ports.outbound.sales.ReleaseStockReservationPort;
 import br.gravita.core.usercases.sales.CancelSalesOrderService;
 import java.math.BigDecimal;
 import java.util.List;
@@ -56,24 +54,19 @@ class CancelSalesOrderServiceTest {
 		verify(salesOrderRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
 		assertThat(saved.getValue().getCancelReason()).isEqualTo("Customer requested cancellation");
-		verify(releaseStockReservationPort, never()).release(any());
+		verify(releaseStockReservationPort, never()).releaseByOrderRef(any());
 	}
 
 	@Test
-	void cancellingAnApprovedOrderReleasesEveryStockReservation() {
-		UUID reservationId1 = UUID.randomUUID();
-		UUID reservationId2 = UUID.randomUUID();
+	void cancellingAnApprovedOrderReleasesTheOrdersStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED,
-				List.of(reservationId1, reservationId2), null);
+				UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new CancelSalesOrderCommand(order.getId().value(), "Out of stock"));
 
-		verify(releaseStockReservationPort).release(new ReleaseStockReservationCommand(reservationId1));
-		verify(releaseStockReservationPort).release(new ReleaseStockReservationCommand(reservationId2));
-		verify(releaseStockReservationPort, times(2)).release(any());
+		verify(releaseStockReservationPort).releaseByOrderRef(order.getId().value());
 
 		ArgumentCaptor<SalesOrder> saved = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(saved.capture());
@@ -81,22 +74,21 @@ class CancelSalesOrderServiceTest {
 	}
 
 	@Test
-	void cancellingAnInSeparationOrderReleasesItsStockReservation() {
-		UUID reservationId = UUID.randomUUID();
+	void cancellingAnInSeparationOrderReleasesItsStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION, List.of(reservationId), null);
+				UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new CancelSalesOrderCommand(order.getId().value(), "Customer changed mind"));
 
-		verify(releaseStockReservationPort).release(new ReleaseStockReservationCommand(reservationId));
+		verify(releaseStockReservationPort).releaseByOrderRef(order.getId().value());
 	}
 
 	@Test
 	void rejectsCancellingAnInvoicedOrderWithoutReleasingStockOrSaving() {
 		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, List.of(UUID.randomUUID()), null);
+				UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(invoiced.getId())).thenReturn(Optional.of(invoiced));
 
 		assertThatThrownBy(() -> service.execute(
@@ -104,7 +96,7 @@ class CancelSalesOrderServiceTest {
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("return flow");
 
-		verify(releaseStockReservationPort, never()).release(any());
+		verify(releaseStockReservationPort, never()).releaseByOrderRef(any());
 		verify(salesOrderRepositoryPort, never()).save(any());
 	}
 
@@ -116,7 +108,7 @@ class CancelSalesOrderServiceTest {
 		assertThatThrownBy(() -> service.execute(new CancelSalesOrderCommand(orderId, "Any reason")))
 				.isInstanceOf(SalesOrderNotFoundException.class);
 
-		verify(releaseStockReservationPort, never()).release(any());
+		verify(releaseStockReservationPort, never()).releaseByOrderRef(any());
 		verify(salesOrderRepositoryPort, never()).save(any());
 	}
 

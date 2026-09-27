@@ -23,7 +23,8 @@ public interface SalesOrderPersistenceMapper {
 				entity.getCustomerId(),
 				toItems(entity.getItems()),
 				entity.getStatus(),
-				entity.getStockReservationIds(),
+				entity.getApprovedBy(),
+				entity.getAlcadaId(),
 				entity.getCancelReason());
 	}
 
@@ -33,9 +34,9 @@ public interface SalesOrderPersistenceMapper {
 				.originQuoteId(domain.getOriginQuoteId() == null ? null : domain.getOriginQuoteId().value())
 				.customerId(domain.getCustomerId())
 				.status(domain.getStatus())
+				.approvedBy(domain.getApprovedBy())
+				.alcadaId(domain.getAlcadaId())
 				.items(toItemEmbeddables(domain.getItems()))
-				.stockReservationIds(domain.getStockReservationIds() == null ? new ArrayList<>()
-						: new ArrayList<>(domain.getStockReservationIds()))
 				.cancelReason(domain.getCancelReason())
 				.build();
 	}

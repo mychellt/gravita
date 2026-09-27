@@ -3,9 +3,20 @@ package br.gravita.core.ports.inbound.inventory;
 import java.util.Objects;
 import java.util.UUID;
 
-public record ReleaseStockReservationCommand(UUID reservationId) {
+public record ReleaseStockReservationCommand(UUID reservationId, UUID orderRef) {
 
 	public ReleaseStockReservationCommand {
-		Objects.requireNonNull(reservationId, "reservationId is required");
+		if (reservationId == null && orderRef == null) {
+			throw new NullPointerException("either reservationId or orderRef is required");
+		}
+	}
+
+	public ReleaseStockReservationCommand(UUID reservationId) {
+		this(reservationId, null);
+	}
+
+	public static ReleaseStockReservationCommand byOrderRef(UUID orderRef) {
+		Objects.requireNonNull(orderRef, "orderRef is required");
+		return new ReleaseStockReservationCommand(null, orderRef);
 	}
 }

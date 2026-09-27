@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.UUID;
 
 public record SalesOrderView(UUID id, UUID originQuoteId, UUID customerId, SalesOrderStatus status,
-		List<SalesOrderItem> items, BigDecimal totalValue) {
+		List<SalesOrderItem> items, BigDecimal totalValue, UUID approvedBy, UUID alcadaId) {
 
 	public static SalesOrderView from(SalesOrder order) {
 		return new SalesOrderView(order.getId().value(), order.getOriginQuoteId().value(), order.getCustomerId(),
-				order.getStatus(), order.getItems(), order.totalValue());
+				order.getStatus(), order.getItems(), order.totalValue(), order.getApprovedBy(),
+				order.getAlcadaId());
 	}
 }

@@ -6,8 +6,11 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.StockRese
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.StockReservation;
 import br.gravita.core.domain.inventory.StockReservationId;
+import br.gravita.core.domain.inventory.StockReservationStatus;
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class StockReservationRepositoryAdapter implements StockReservationRepositoryPort {
@@ -31,5 +34,12 @@ class StockReservationRepositoryAdapter implements StockReservationRepositoryPor
 	@Override
 	public Optional<StockReservation> findById(StockReservationId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<StockReservation> findActiveByOrderRef(UUID orderRef) {
+		return jpaRepository.findByOrderRefAndStatus(orderRef, StockReservationStatus.ACTIVE).stream()
+				.map(mapper::toDomain)
+				.toList();
 	}
 }

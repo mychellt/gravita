@@ -42,15 +42,16 @@ public class SalesOrderJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false, length = 20)
 	private SalesOrderStatus status;
 
+	@Column(name = "approved_by")
+	private UUID approvedBy;
+
+	@Column(name = "alcada_id")
+	private UUID alcadaId;
+
 	@ElementCollection
 	@CollectionTable(name = "sales_order_items", joinColumns = @JoinColumn(name = "sales_order_id"))
 	@OrderColumn(name = "line_index")
 	private List<SalesOrderItemEmbeddable> items;
-
-	@ElementCollection
-	@CollectionTable(name = "sales_order_stock_reservations", joinColumns = @JoinColumn(name = "sales_order_id"))
-	@Column(name = "reservation_id")
-	private List<UUID> stockReservationIds;
 
 	@Column(name = "cancel_reason")
 	private String cancelReason;
