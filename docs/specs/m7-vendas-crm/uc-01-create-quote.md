@@ -36,12 +36,18 @@ public interface CreateQuoteUseCase {
 
 ## Acceptance criteria
 
-- [ ] Quote is persisted with status `DRAFT` and the given `validUntil`.
-- [ ] Items, unit prices and discounts are stored exactly as submitted (no re-pricing at creation time).
-- [ ] A quote with no items is rejected.
-- [ ] `validUntil` must be in the future at creation time.
+- [x] Quote is persisted with status `DRAFT` and the given `validUntil`.
+- [x] Items, unit prices and discounts are stored exactly as submitted (no re-pricing at creation time).
+- [x] A quote with no items is rejected.
+- [x] `validUntil` must be in the future at creation time.
 
 ## Dependencies
 
 - **Depends on:** None.
 - **Blocks:** [UC-02 Send Quote](uc-02-send-quote.md), [UC-03 Convert Quote to Order](uc-03-convert-quote-to-order.md).
+
+## Notes
+
+- Per-line `discount` is an absolute amount taken off the line subtotal (`quantity × unitPrice`), matching `SaleItem.itemDiscount` in `tax`; it defaults to zero, and it can never be negative or exceed the subtotal. The order-level `discountPercent` on `SalesOrder` is a separate concept.
+- `validUntil` is a calendar date, and "in the future" means strictly after today: a quote that expires on its creation day is rejected.
+- Amounts are stored as `NUMERIC(14, 4)`. The REST layer rejects values with more than four decimal places, so nothing is silently rounded on the way in.
