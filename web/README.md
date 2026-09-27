@@ -1,4 +1,4 @@
-# ERP MVP — Angular 17
+# Gravita — Angular 17
 
 Protótipo funcional completo do ERP para varejo brasileiro.
 
