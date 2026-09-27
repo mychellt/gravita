@@ -175,6 +175,6 @@ class IssueCorrectionLetterServiceTest {
 		return NfeDocument.of(documentId, companyId, null, NaturezaOperacao.VENDA, new Cfop("5102"), recipient,
 				List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, totals, status,
 				Instant.now(), documentSeries, documentNumber, accessKey, sefazProtocol, false, null, null, null,
-				correctionLetters);
+				correctionLetters, null, null, null);
 	}
 }

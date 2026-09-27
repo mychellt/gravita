@@ -131,6 +131,15 @@ public class NfeJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "danfe_storage_ref")
 	private String danfeStorageRef;
 
+	@Column(name = "authorized_at")
+	private Instant authorizedAt;
+
+	@Column(name = "cancellation_justification")
+	private String cancellationJustification;
+
+	@Column(name = "cancelled_at")
+	private Instant cancelledAt;
+
 	@ElementCollection
 	@CollectionTable(name = "nfe_items", joinColumns = @JoinColumn(name = "nfe_document_id"))
 	private List<NfeItemEmbeddable> items;

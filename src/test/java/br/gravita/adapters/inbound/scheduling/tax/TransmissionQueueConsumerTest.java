@@ -161,6 +161,6 @@ class TransmissionQueueConsumerTest {
 		return NfeDocument.of(documentId, CompanyId.of(UUID.randomUUID()), null, NaturezaOperacao.VENDA,
 				new Cfop("5102"), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
 				null, null, totals, NfeDocumentStatus.SENT, Instant.now(), "001", 42L, "3".repeat(44), null,
-				contingencyMode, null, null, null, List.of());
+				contingencyMode, null, null, null, List.of(), null, null, null);
 	}
 }

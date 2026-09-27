@@ -298,6 +298,7 @@ class TransmitNfeServiceTest {
 
 		return NfeDocument.of(documentId, companyId, null, NaturezaOperacao.VENDA, new Cfop("5102"), recipient,
 				List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, totals, status,
-				Instant.now(), "001", 42L, "3".repeat(44), null, contingencyMode, null, null, null, List.of());
+				Instant.now(), "001", 42L, "3".repeat(44), null, contingencyMode, null, null, null, List.of(), null, null,
+				null);
 	}
 }
