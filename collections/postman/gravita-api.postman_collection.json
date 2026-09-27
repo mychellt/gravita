@@ -1,0 +1,3173 @@
+{
+  "info": {
+    "_postman_id": "b7c4e2b1-4a2b-4f7e-9c1a-5e9f6e8d2a10",
+    "name": "Gravita API",
+    "description": "Full REST API surface for the Gravita ERP/tax backend, generated from every @RestController under br.gravita.adapters.inbound.controllers. Organized by module (auth, users, customers, products, master data, inventory, purchasing, tax/PDV, NF-e). Set the baseUrl collection variable and populate the resource id variables (customerId, productId, etc.) captured from earlier responses as you exercise each flow.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gravita.com.br\",\n  \"password\": \"S3nhaForte!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Two-Factor Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@gravita.com.br\",\n  \"password\": \"S3nhaForte!\",\n  \"totpCode\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.AuthController"
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Silva\",\n  \"email\": \"maria.silva@gravita.com.br\",\n  \"password\": \"S3nhaForte!\",\n  \"profileId\": \"{{profileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Maria Silva Santos\",\n  \"email\": \"maria.santos@gravita.com.br\",\n  \"profileId\": \"{{profileId}}\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.UserController"
+    },
+    {
+      "name": "Profiles",
+      "item": [
+        {
+          "name": "Assign Profile Permissions",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{profileId}}/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{profileId}}",
+                "permissions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Administrador\",\n  \"permissions\": [\n    {\n      \"module\": \"purchasing\",\n      \"screen\": \"purchase-orders\",\n      \"action\": \"VIEW\"\n    },\n    {\n      \"module\": \"purchasing\",\n      \"screen\": \"purchase-orders\",\n      \"action\": \"EDIT\"\n    },\n    {\n      \"module\": \"system\",\n      \"screen\": \"access-log\",\n      \"action\": \"VIEW\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Profile by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profiles/{{profileId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "{{profileId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.ProfileRestController"
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Register Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"COMPANY\",\n  \"document\": \"12345678000190\",\n  \"name\": \"Comercial Andrade Ltda\",\n  \"email\": \"contato@andrade.com.br\",\n  \"ieIndicator\": \"CONTRIBUINTE\",\n  \"finalConsumer\": false,\n  \"creditLimit\": 5000.0,\n  \"addresses\": [\n    {\n      \"type\": \"BILLING\",\n      \"street\": \"Rua das Flores\",\n      \"number\": \"123\",\n      \"complement\": \"Sala 4\",\n      \"neighborhood\": \"Centro\",\n      \"city\": \"São Paulo\",\n      \"state\": \"SP\",\n      \"zipCode\": \"01310100\",\n      \"isDefault\": true\n    }\n  ],\n  \"contacts\": [\n    {\n      \"type\": \"EMAIL\",\n      \"value\": \"contato@andrade.com.br\"\n    },\n    {\n      \"type\": \"PHONE\",\n      \"value\": \"11987654321\"\n    }\n  ],\n  \"priceTables\": [\n    {\n      \"priceTableId\": \"{{priceTableId}}\",\n      \"priority\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Comercial Andrade Ltda ME\",\n  \"email\": \"financeiro@andrade.com.br\",\n  \"finalConsumer\": false,\n  \"creditLimit\": 7500.0,\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Customer by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.CustomerRestController"
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Register Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"internalCode\": \"PROD-0001\",\n  \"barcodes\": [\n    \"7891234567895\"\n  ],\n  \"type\": \"SIMPLE\",\n  \"ncm\": \"61091000\",\n  \"cest\": \"0100100\",\n  \"origin\": 0,\n  \"defaultCfopByOperation\": {\n    \"SALE_IN_STATE\": \"5102\",\n    \"SALE_OUT_STATE\": \"6102\"\n  },\n  \"cstCsosnByState\": {\n    \"SP\": \"060\"\n  },\n  \"taxProfile\": {\n    \"icmsRate\": 18.0,\n    \"ipiRate\": 0,\n    \"pisRate\": 1.65,\n    \"cofinsRate\": 7.6,\n    \"icmsStRate\": 0,\n    \"fcpRate\": 0\n  },\n  \"averageCost\": 25.5,\n  \"basePrice\": 49.9,\n  \"stock\": {\n    \"minimum\": 10,\n    \"maximum\": 200,\n    \"reorderPoint\": 30\n  },\n  \"purchaseUnit\": \"UN\",\n  \"saleUnit\": \"UN\",\n  \"conversionFactor\": 1,\n  \"lotControl\": false,\n  \"serialControl\": false,\n  \"classification\": {\n    \"group\": \"Vestuário\",\n    \"subgroup\": \"Camisetas\",\n    \"brand\": \"Gravita\",\n    \"section\": \"Masculino\"\n  },\n  \"images\": [\n    \"https://cdn.gravita.com.br/products/prod-0001-1.jpg\"\n  ],\n  \"kitComponents\": [],\n  \"variants\": [\n    {\n      \"color\": \"Azul\",\n      \"size\": \"M\",\n      \"barcode\": \"7891234567901\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basePrice\": 54.9,\n  \"stock\": {\n    \"minimum\": 15,\n    \"maximum\": 250,\n    \"reorderPoint\": 40\n  },\n  \"status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.ProductRestController"
+    },
+    {
+      "name": "Lookup",
+      "item": [
+        {
+          "name": "Lookup Person by CNPJ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lookup/cnpj/{{cnpj}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lookup",
+                "cnpj",
+                "{{cnpj}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lookup Address by CEP",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/lookup/cep/{{cep}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "lookup",
+                "cep",
+                "{{cep}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.LookupRestController"
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bronze\",\n  \"tier\": \"BRONZE\",\n  \"priceMonthly\": 297,\n  \"priceAnnual\": 247,\n  \"features\": [\n    \"1 CNPJ · 1 filial\",\n    \"NF-e e NFC-e ilimitadas\",\n    \"PDV — 1 caixa\",\n    \"Estoque e Compras\",\n    \"3 usuários incluídos\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Plan by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                "{{planId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                "{{planId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bronze\",\n  \"tier\": \"BRONZE\",\n  \"priceMonthly\": 327,\n  \"priceAnnual\": 267,\n  \"features\": [\n    \"1 CNPJ · 1 filial\",\n    \"NF-e e NFC-e ilimitadas\",\n    \"PDV — 1 caixa\",\n    \"Estoque e Compras\",\n    \"5 usuários incluídos\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans/{{planId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "plans",
+                "{{planId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.PlanRestController"
+    },
+    {
+      "name": "Auxiliary / Chart of Accounts",
+      "item": [
+        {
+          "name": "Create Chart of Accounts Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/chart-of-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "chart-of-accounts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"1.1.01\",\n  \"name\": \"Caixa\",\n  \"accountType\": \"ASSET\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Chart of Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/chart-of-accounts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "chart-of-accounts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Chart of Accounts by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/chart-of-accounts/{{chartOfAccountsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "chart-of-accounts",
+                "{{chartOfAccountsId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Chart of Accounts Entry",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/chart-of-accounts/{{chartOfAccountsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "chart-of-accounts",
+                "{{chartOfAccountsId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"1.1.01\",\n  \"name\": \"Caixa Geral\",\n  \"accountType\": \"ASSET\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Chart of Accounts Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/chart-of-accounts/{{chartOfAccountsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "chart-of-accounts",
+                "{{chartOfAccountsId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.ChartOfAccountsRestController"
+    },
+    {
+      "name": "Auxiliary / Cost Centers",
+      "item": [
+        {
+          "name": "Create Cost Center",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/cost-centers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "cost-centers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CC-001\",\n  \"name\": \"Administrativo\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Cost Centers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/cost-centers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "cost-centers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Cost Center by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/cost-centers/{{costCenterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "cost-centers",
+                "{{costCenterId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cost Center",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/cost-centers/{{costCenterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "cost-centers",
+                "{{costCenterId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"CC-001\",\n  \"name\": \"Administrativo e Financeiro\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Cost Center",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/cost-centers/{{costCenterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "cost-centers",
+                "{{costCenterId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.CostCenterRestController"
+    },
+    {
+      "name": "Auxiliary / IBGE Municipalities",
+      "item": [
+        {
+          "name": "List IBGE Municipalities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/ibge-municipalities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "ibge-municipalities"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Import IBGE Municipalities",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/ibge-municipalities/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "ibge-municipalities",
+                "import"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"municipalities\": [\n    {\n      \"ibgeCode\": \"3550308\",\n      \"name\": \"São Paulo\",\n      \"stateCode\": \"SP\"\n    },\n    {\n      \"ibgeCode\": \"3304557\",\n      \"name\": \"Rio de Janeiro\",\n      \"stateCode\": \"RJ\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.IbgeMunicipalityRestController"
+    },
+    {
+      "name": "Auxiliary / Interstate ICMS Rates",
+      "item": [
+        {
+          "name": "List Interstate ICMS Rates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/interstate-icms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "interstate-icms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Import Interstate ICMS Rates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/interstate-icms/import",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "interstate-icms",
+                "import"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rates\": [\n    {\n      \"originState\": \"SP\",\n      \"destinationState\": \"RJ\",\n      \"ratePercent\": 12\n    },\n    {\n      \"originState\": \"SP\",\n      \"destinationState\": \"MG\",\n      \"ratePercent\": 12\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.InterstateIcmsRateRestController"
+    },
+    {
+      "name": "Auxiliary / Payment Methods",
+      "item": [
+        {
+          "name": "Create Payment Method",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-methods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-methods"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cartão de Crédito\",\n  \"type\": \"CREDIT_CARD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Payment Methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-methods",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-methods"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Payment Method by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-methods/{{paymentMethodId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-methods",
+                "{{paymentMethodId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Method",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-methods/{{paymentMethodId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-methods",
+                "{{paymentMethodId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cartão de Crédito Visa/Master\",\n  \"type\": \"CREDIT_CARD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Payment Method",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-methods/{{paymentMethodId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-methods",
+                "{{paymentMethodId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.PaymentMethodRestController"
+    },
+    {
+      "name": "Auxiliary / Payment Terms",
+      "item": [
+        {
+          "name": "Create Payment Term",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-terms"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"30/60/90 dias\",\n  \"installmentIntervalsDays\": [\n    30,\n    60,\n    90\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Payment Terms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-terms"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Payment Term by Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-terms/{{paymentTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-terms",
+                "{{paymentTermId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Payment Term",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-terms/{{paymentTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-terms",
+                "{{paymentTermId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"30/60/90/120 dias\",\n  \"installmentIntervalsDays\": [\n    30,\n    60,\n    90,\n    120\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Payment Term",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auxiliary/payment-terms/{{paymentTermId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auxiliary",
+                "payment-terms",
+                "{{paymentTermId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.PaymentTermRestController"
+    },
+    {
+      "name": "System / Access Log",
+      "item": [
+        {
+          "name": "Search Access Log",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/system/access-log?userId={{userId}}&dateFrom=2026-01-01T00:00:00Z&dateTo=2026-12-31T23:59:59Z&ip=&device=&page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "system",
+                "access-log"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "dateFrom",
+                  "value": "2026-01-01T00:00:00Z",
+                  "disabled": true
+                },
+                {
+                  "key": "dateTo",
+                  "value": "2026-12-31T23:59:59Z",
+                  "disabled": true
+                },
+                {
+                  "key": "ip",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "device",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.AccessLogController"
+    },
+    {
+      "name": "System / Approval Alcadas",
+      "item": [
+        {
+          "name": "Configure Approval Alcada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/system/alcadas/{{module}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "system",
+                "alcadas",
+                "{{module}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"thresholdValue\": 5000.0,\n  \"thresholdDiscountPercent\": 10,\n  \"approverProfileId\": \"{{profileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.ApprovalAlcadaController"
+    },
+    {
+      "name": "System / Integration Credentials",
+      "item": [
+        {
+          "name": "Configure Integration Credentials",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/system/integrations/{{integrationName}}/credentials",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "system",
+                "integrations",
+                "{{integrationName}}",
+                "credentials"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"PRODUCTION\",\n  \"endpoint\": \"https://api.sefaz.gov.br\",\n  \"credentialPayload\": \"base64-encoded-credential-payload\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.IntegrationCredentialController"
+    },
+    {
+      "name": "Master Data / Companies",
+      "item": [
+        {
+          "name": "Register Company",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"12345678000190\",\n  \"ie\": \"110042490114\",\n  \"im\": \"123456\",\n  \"cnae\": \"4781400\",\n  \"taxRegime\": \"SIMPLES_NACIONAL\",\n  \"simplesOptante\": true,\n  \"address\": \"Av. Paulista, 1000\",\n  \"state\": \"SP\",\n  \"issuingEmail\": \"fiscal@gravita.com.br\",\n  \"phone\": \"1130304050\",\n  \"logoUrl\": \"https://cdn.gravita.com.br/companies/logo.png\",\n  \"parentCompanyId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies/{{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "{{companyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cnpj\": \"12345678000190\",\n  \"ie\": \"110042490114\",\n  \"im\": \"123456\",\n  \"cnae\": \"4781400\",\n  \"taxRegime\": \"SIMPLES_NACIONAL\",\n  \"simplesOptante\": true,\n  \"address\": \"Av. Paulista, 1500\",\n  \"state\": \"SP\",\n  \"issuingEmail\": \"fiscal@gravita.com.br\",\n  \"phone\": \"1130304050\",\n  \"logoUrl\": \"https://cdn.gravita.com.br/companies/logo.png\",\n  \"parentCompanyId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Switch SEFAZ Environment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies/{{companyId}}/sefaz-environment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "{{companyId}}",
+                "sefaz-environment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"environment\": \"PRODUCTION\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Configure Document Series",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies/{{companyId}}/document-series/{{documentType}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "{{companyId}}",
+                "document-series",
+                "{{documentType}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"series\": \"1\",\n  \"nextNumber\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Digital Certificate",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/companies/{{companyId}}/certificate?password=certificate-password&type=A1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "companies",
+                "{{companyId}}",
+                "certificate"
+              ],
+              "query": [
+                {
+                  "key": "password",
+                  "value": "certificate-password"
+                },
+                {
+                  "key": "type",
+                  "value": "A1"
+                }
+              ]
+            },
+            "description": "multipart/form-data upload of the .pfx digital certificate file.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "pfxFile",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.CompanyController"
+    },
+    {
+      "name": "Master Data / Price Tables",
+      "item": [
+        {
+          "name": "Create Price Table",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/price-tables",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "price-tables"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formation\": \"MARKUP\",\n  \"validFrom\": \"2026-01-01\",\n  \"validTo\": \"2026-12-31\",\n  \"maxDiscountPercent\": 15,\n  \"maxDiscountBehavior\": \"BLOCK\",\n  \"entries\": [\n    {\n      \"refType\": \"PRODUCT\",\n      \"referenceId\": \"{{productId}}\",\n      \"value\": 49.9\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Price Table",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/price-tables/{{priceTableId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "price-tables",
+                "{{priceTableId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formation\": \"MARKUP\",\n  \"validFrom\": \"2026-01-01\",\n  \"validTo\": \"2026-12-31\",\n  \"maxDiscountPercent\": 20,\n  \"maxDiscountBehavior\": \"BLOCK\",\n  \"entries\": [\n    {\n      \"refType\": \"PRODUCT\",\n      \"referenceId\": \"{{productId}}\",\n      \"value\": 54.9\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.PriceTableController"
+    },
+    {
+      "name": "Master Data / Suppliers",
+      "item": [
+        {
+          "name": "Register Supplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personType\": \"COMPANY\",\n  \"document\": \"98765432000110\",\n  \"name\": \"Distribuidora Nacional Ltda\",\n  \"addresses\": [\n    {\n      \"street\": \"Rua Industrial\",\n      \"number\": \"500\",\n      \"complement\": \"\",\n      \"neighborhood\": \"Distrito Industrial\",\n      \"city\": \"Campinas\",\n      \"state\": \"SP\",\n      \"zipCode\": \"13040000\"\n    }\n  ],\n  \"contacts\": [\n    {\n      \"type\": \"EMAIL\",\n      \"value\": \"vendas@distribuidoranacional.com.br\"\n    }\n  ],\n  \"bankAccount\": {\n    \"bankCode\": \"341\",\n    \"agency\": \"1234\",\n    \"accountNumber\": \"56789-0\"\n  },\n  \"pixKey\": \"98765432000110\",\n  \"averageLeadTimeDays\": 7,\n  \"defaultPurchaseCfop\": \"1102\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Supplier",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/suppliers/{{supplierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "suppliers",
+                "{{supplierId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Distribuidora Nacional Ltda ME\",\n  \"averageLeadTimeDays\": 10,\n  \"defaultPurchaseCfop\": \"1102\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.SupplierController"
+    },
+    {
+      "name": "Inventory / Alerts",
+      "item": [
+        {
+          "name": "Check Expiring Lots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/alerts/expiring-lots?withinDays=30&warehouseId={{warehouseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "alerts",
+                "expiring-lots"
+              ],
+              "query": [
+                {
+                  "key": "withinDays",
+                  "value": "30"
+                },
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Suggest Reorder (Low Stock)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/alerts/low-stock?warehouseId={{warehouseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "alerts",
+                "low-stock"
+              ],
+              "query": [
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.ExpiringLotsController, LowStockAlertController"
+    },
+    {
+      "name": "Inventory / Physical Counts",
+      "item": [
+        {
+          "name": "Start Physical Count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/counts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "counts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scope\": \"FULL\",\n  \"productGroupId\": null,\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Physical Count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/counts/{{physicalCountId}}/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "counts",
+                "{{physicalCountId}}",
+                "submit"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"countedLines\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"countedQuantity\": 48\n    }\n  ],\n  \"submittedBy\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Physical Count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/counts/{{physicalCountId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "counts",
+                "{{physicalCountId}}",
+                "approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedBy\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.PhysicalCountController"
+    },
+    {
+      "name": "Inventory / Adjustments",
+      "item": [
+        {
+          "name": "Adjust Inventory",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/adjustments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "adjustments"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"quantityDelta\": -5,\n  \"justification\": \"Ajuste após contagem física\",\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockAdjustmentController"
+    },
+    {
+      "name": "Inventory / Balance",
+      "item": [
+        {
+          "name": "Get Stock Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/products/{{productId}}/balance?warehouseId={{warehouseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "products",
+                "{{productId}}",
+                "balance"
+              ],
+              "query": [
+                {
+                  "key": "warehouseId",
+                  "value": "{{warehouseId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockBalanceController"
+    },
+    {
+      "name": "Inventory / Movements",
+      "item": [
+        {
+          "name": "Register Stock Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/movements/entry",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "movements",
+                "entry"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"quantity\": 100,\n  \"unitCost\": 25.5,\n  \"lot\": {\n    \"code\": \"LOTE-2026-001\",\n    \"expiryDate\": \"2027-01-01\"\n  },\n  \"serials\": [],\n  \"originReference\": \"NF-e 12345\",\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Stock Exit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/movements/exit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "movements",
+                "exit"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"quantity\": 10,\n  \"lot\": {\n    \"code\": \"LOTE-2026-001\"\n  },\n  \"serials\": [],\n  \"reservationId\": null,\n  \"allowNegativeStock\": false,\n  \"originReference\": \"Venda PDV 000123\",\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockMovementController"
+    },
+    {
+      "name": "Inventory / Reservations",
+      "item": [
+        {
+          "name": "Reserve Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "reservations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderRef\": \"{{purchaseOrderId}}\",\n  \"productId\": \"{{productId}}\",\n  \"warehouseId\": \"{{warehouseId}}\",\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Release Stock Reservation",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/reservations/{{reservationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "reservations",
+                "{{reservationId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockReservationController"
+    },
+    {
+      "name": "Inventory / Transfers",
+      "item": [
+        {
+          "name": "Initiate Stock Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "transfers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"sourceWarehouseId\": \"{{warehouseId}}\",\n  \"destinationWarehouseId\": \"{{warehouseId}}\",\n  \"quantity\": 20,\n  \"lotCode\": null,\n  \"serials\": [],\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Stock Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/transfers/{{transferMovementId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "transfers",
+                "{{transferMovementId}}",
+                "confirm"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockTransferController"
+    },
+    {
+      "name": "Purchasing / Orders",
+      "item": [
+        {
+          "name": "Create Purchase Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"{{purchaseRequestId}}\",\n  \"quotationId\": \"{{quotationId}}\",\n  \"supplierId\": \"{{supplierId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 100,\n      \"unitPrice\": 22.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Receive Purchase Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/orders/{{purchaseOrderId}}/receipts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "orders",
+                "{{purchaseOrderId}}",
+                "receipts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receivedItems\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"receivedQty\": 100\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Purchase Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/orders/{{purchaseOrderId}}/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "orders",
+                "{{purchaseOrderId}}",
+                "approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approvedBy\": \"{{userId}}\",\n  \"decision\": \"APPROVED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Import Supplier NF-e at Receiving",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/orders/{{purchaseOrderId}}/receipts/{{purchaseReceiptId}}/import-nfe?companyId={{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "orders",
+                "{{purchaseOrderId}}",
+                "receipts",
+                "{{purchaseReceiptId}}",
+                "import-nfe"
+              ],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            },
+            "description": "multipart/form-data upload of the supplier NF-e XML file.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "xmlFile",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseOrderController"
+    },
+    {
+      "name": "Purchasing / Receipts",
+      "item": [
+        {
+          "name": "Confirm Purchase Receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/receipts/{{purchaseReceiptId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "receipts",
+                "{{purchaseReceiptId}}",
+                "confirm"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Return to Supplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/receipts/{{purchaseReceiptId}}/return",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "receipts",
+                "{{purchaseReceiptId}}",
+                "return"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseReceiptController"
+    },
+    {
+      "name": "Purchasing / Requests",
+      "item": [
+        {
+          "name": "Create Purchase Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "requests"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origin\": \"MANUAL\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 100\n    }\n  ],\n  \"requestedBy\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Quotation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/requests/{{purchaseRequestId}}/quotations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "requests",
+                "{{purchaseRequestId}}",
+                "quotations"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"suppliers\": [\n    \"{{supplierId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseRequestController"
+    },
+    {
+      "name": "Purchasing / Quotations",
+      "item": [
+        {
+          "name": "Register Quotation Response",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/purchasing/quotations/{{quotationId}}/responses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "purchasing",
+                "quotations",
+                "{{quotationId}}",
+                "responses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplierId\": \"{{supplierId}}\",\n  \"itemPrices\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"unitPrice\": 21.5\n    }\n  ],\n  \"deadline\": \"2026-11-30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.QuotationController"
+    },
+    {
+      "name": "PDV / Cash Movements",
+      "item": [
+        {
+          "name": "Record Cash Movement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/cash-movements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "cash-movements"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{posSessionId}}\",\n  \"type\": \"REINFORCEMENT\",\n  \"amount\": 100.0,\n  \"justification\": \"Reforço de troco\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.CashMovementController"
+    },
+    {
+      "name": "Tax / Inbound NF-e",
+      "item": [
+        {
+          "name": "Import Supplier NF-e XML",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/inbound/import-xml?companyId={{companyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "inbound",
+                "import-xml"
+              ],
+              "query": [
+                {
+                  "key": "companyId",
+                  "value": "{{companyId}}"
+                }
+              ]
+            },
+            "description": "multipart/form-data upload of the supplier NF-e XML file.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "xmlFile",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Enter Inbound NF-e Manually",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/inbound",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "inbound"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"accessKey\": \"35260112345678000190550010000000011000000015\",\n  \"manualData\": {\n    \"accessKey\": \"35260112345678000190550010000000011000000015\",\n    \"series\": \"1\",\n    \"number\": \"11\",\n    \"supplierCnpj\": \"98765432000110\",\n    \"supplierName\": \"Distribuidora Nacional Ltda\",\n    \"issuedAt\": \"2026-09-20T10:00:00Z\",\n    \"items\": [\n      {\n        \"supplierProductCode\": \"SUP-001\",\n        \"description\": \"Camiseta Básica\",\n        \"ncm\": \"61091000\",\n        \"cfop\": \"1102\",\n        \"unit\": \"UN\",\n        \"quantity\": 100,\n        \"unitValue\": 22.0,\n        \"totalValue\": 2200.0,\n        \"icmsValue\": 396.0,\n        \"ipiValue\": 0,\n        \"pisValue\": 36.3,\n        \"cofinsValue\": 167.2\n      }\n    ],\n    \"totals\": {\n      \"productsValue\": 2200.0,\n      \"freightValue\": 0,\n      \"insuranceValue\": 0,\n      \"discountValue\": 0,\n      \"otherExpensesValue\": 0,\n      \"icmsValue\": 396.0,\n      \"ipiValue\": 0,\n      \"pisValue\": 36.3,\n      \"cofinsValue\": 167.2,\n      \"totalValue\": 2200.0\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Inbound NF-e Receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/inbound/{{inboundNfeId}}/confirm-receipt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "inbound",
+                "{{inboundNfeId}}",
+                "confirm-receipt"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conferenceResult\": [\n    {\n      \"itemRef\": \"{{productId}}\",\n      \"orderedQty\": 100,\n      \"receivedQty\": 100\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Manifest Inbound NF-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/inbound/manifestation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "inbound",
+                "manifestation"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessKey\": \"35260112345678000190550010000000011000000015\",\n  \"type\": \"CIENCIA_DA_OPERACAO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.InboundNfeController"
+    },
+    {
+      "name": "PDV / NFC-e Sales",
+      "item": [
+        {
+          "name": "Register NFC-e Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/sales",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "sales"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{posSessionId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 2,\n      \"unitPrice\": 49.9,\n      \"itemDiscount\": 0\n    }\n  ],\n  \"totalDiscount\": 0,\n  \"payments\": [\n    {\n      \"method\": \"CREDIT_CARD\",\n      \"amount\": 99.8\n    }\n  ],\n  \"customerCpf\": \"12345678909\",\n  \"priceTableId\": \"{{priceTableId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel NFC-e Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/sales/{{nfceSaleId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "sales",
+                "{{nfceSaleId}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supervisorCredential\": \"supervisor-pin\",\n  \"reason\": \"Cliente desistiu da compra\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.NfceSaleController"
+    },
+    {
+      "name": "Tax / NF-e",
+      "item": [
+        {
+          "name": "Issue NF-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"issuerCompanyId\": \"{{companyId}}\",\n  \"originSalesOrderId\": null,\n  \"naturezaOperacao\": \"VENDA\",\n  \"recipient\": {\n    \"personId\": \"{{customerId}}\",\n    \"document\": \"12345678000190\",\n    \"personType\": \"COMPANY\",\n    \"name\": \"Comercial Andrade Ltda\",\n    \"stateRegistration\": \"110042490114\",\n    \"state\": \"SP\"\n  },\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"description\": \"Camiseta Básica\",\n      \"quantity\": 2,\n      \"unitPrice\": 49.9,\n      \"discount\": 0\n    }\n  ],\n  \"priceTableId\": \"{{priceTableId}}\",\n  \"discountOverrideJustification\": null,\n  \"taxOverrides\": [],\n  \"freight\": 0,\n  \"insurance\": 0,\n  \"otherExpenses\": 0,\n  \"transport\": {\n    \"modality\": \"SENDER_FREIGHT\",\n    \"carrier\": \"Transportadora Rápida Ltda\",\n    \"volume\": 1,\n    \"grossWeight\": 0.5,\n    \"netWeight\": 0.4,\n    \"rntrc\": \"12345678\"\n  },\n  \"referencedAccessKey\": null,\n  \"additionalInfo\": \"Venda referente ao pedido 1024\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get DANFE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/{{nfeId}}/danfe?orientation=PORTRAIT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "{{nfeId}}",
+                "danfe"
+              ],
+              "query": [
+                {
+                  "key": "orientation",
+                  "value": "PORTRAIT"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get NF-e XML",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/{{nfeId}}/xml",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "{{nfeId}}",
+                "xml"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resend NF-e Email",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/{{nfeId}}/resend-email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "{{nfeId}}",
+                "resend-email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Issue Correction Letter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/{{nfeId}}/correction-letters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "{{nfeId}}",
+                "correction-letters"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Correção do endereço de entrega do destinatário.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel NF-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/{{nfeId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "{{nfeId}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"justification\": \"Erro no preenchimento do documento fiscal.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.NfeController"
+    },
+    {
+      "name": "PDV / Sessions",
+      "item": [
+        {
+          "name": "Open POS Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "sessions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registerId\": \"{{warehouseId}}\",\n  \"operatorId\": \"{{userId}}\",\n  \"companyId\": \"{{companyId}}\",\n  \"openingChangeAmount\": 200.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Close POS Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/sessions/{{posSessionId}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "sessions",
+                "{{posSessionId}}",
+                "close"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"closingCountedAmounts\": [\n    {\n      \"method\": \"CASH\",\n      \"amount\": 350.0\n    },\n    {\n      \"method\": \"CREDIT_CARD\",\n      \"amount\": 620.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Z-Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/sessions/{{posSessionId}}/z-report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "sessions",
+                "{{posSessionId}}",
+                "z-report"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.PosSessionController"
+    },
+    {
+      "name": "PDV / Product Search",
+      "item": [
+        {
+          "name": "Search Product for Sale",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/pdv/products/search?q=camiseta&customerId={{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pdv",
+                "products",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "camiseta"
+                },
+                {
+                  "key": "customerId",
+                  "value": "{{customerId}}",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.ProductSearchController"
+    },
+    {
+      "name": "Tax / Void Number Range",
+      "item": [
+        {
+          "name": "Void Document Number Range",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/nfe/void-range",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "nfe",
+                "void-range"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": \"{{companyId}}\",\n  \"series\": \"1\",\n  \"startNumber\": 100,\n  \"endNumber\": 105,\n  \"justification\": \"Numeração pulada por falha no sistema emissor.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.VoidNumberRangeController"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "planId",
+      "value": ""
+    },
+    {
+      "key": "profileId",
+      "value": ""
+    },
+    {
+      "key": "chartOfAccountsId",
+      "value": ""
+    },
+    {
+      "key": "costCenterId",
+      "value": ""
+    },
+    {
+      "key": "paymentMethodId",
+      "value": ""
+    },
+    {
+      "key": "paymentTermId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "module",
+      "value": "purchasing"
+    },
+    {
+      "key": "integrationName",
+      "value": "sefaz"
+    },
+    {
+      "key": "companyId",
+      "value": ""
+    },
+    {
+      "key": "documentType",
+      "value": "NFE"
+    },
+    {
+      "key": "priceTableId",
+      "value": ""
+    },
+    {
+      "key": "supplierId",
+      "value": ""
+    },
+    {
+      "key": "physicalCountId",
+      "value": ""
+    },
+    {
+      "key": "reservationId",
+      "value": ""
+    },
+    {
+      "key": "transferMovementId",
+      "value": ""
+    },
+    {
+      "key": "warehouseId",
+      "value": ""
+    },
+    {
+      "key": "purchaseOrderId",
+      "value": ""
+    },
+    {
+      "key": "purchaseReceiptId",
+      "value": ""
+    },
+    {
+      "key": "purchaseRequestId",
+      "value": ""
+    },
+    {
+      "key": "quotationId",
+      "value": ""
+    },
+    {
+      "key": "cnpj",
+      "value": "12345678000190"
+    },
+    {
+      "key": "cep",
+      "value": "01310100"
+    },
+    {
+      "key": "posSessionId",
+      "value": ""
+    },
+    {
+      "key": "nfceSaleId",
+      "value": ""
+    },
+    {
+      "key": "nfeId",
+      "value": ""
+    },
+    {
+      "key": "inboundNfeId",
+      "value": ""
+    }
+  ]
+}

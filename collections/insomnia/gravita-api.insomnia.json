@@ -1,0 +1,1822 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-27T00:00:00.000Z",
+  "__export_source": "gravita-collections",
+  "resources": [
+    {
+      "_id": "wrk_gravita_api",
+      "_type": "workspace",
+      "name": "Gravita API",
+      "description": "Full REST API surface for the Gravita ERP/tax backend, generated from every @RestController under br.gravita.adapters.inbound.controllers. Organized by module (auth, users, customers, products, master data, inventory, purchasing, tax/PDV, NF-e).",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_gravita_api_base",
+      "_type": "environment",
+      "parentId": "wrk_gravita_api",
+      "name": "Base Environment",
+      "data": {
+        "baseUrl": "http://localhost:8080",
+        "authToken": "",
+        "customerId": "",
+        "productId": "",
+        "planId": "",
+        "profileId": "",
+        "chartOfAccountsId": "",
+        "costCenterId": "",
+        "paymentMethodId": "",
+        "paymentTermId": "",
+        "userId": "",
+        "module": "purchasing",
+        "integrationName": "sefaz",
+        "companyId": "",
+        "documentType": "NFE",
+        "priceTableId": "",
+        "supplierId": "",
+        "physicalCountId": "",
+        "reservationId": "",
+        "transferMovementId": "",
+        "warehouseId": "",
+        "purchaseOrderId": "",
+        "purchaseReceiptId": "",
+        "purchaseRequestId": "",
+        "quotationId": "",
+        "cnpj": "12345678000190",
+        "cep": "01310100",
+        "posSessionId": "",
+        "nfceSaleId": "",
+        "nfeId": "",
+        "inboundNfeId": ""
+      }
+    },
+    {
+      "_id": "fld_00_35d0f5fbca4b84a0ac399297",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auth",
+      "description": "br.gravita.adapters.inbound.controllers.tax.AuthController"
+    },
+    {
+      "_id": "req_00_00_fef8be748d875a2ea13dbda0",
+      "_type": "request",
+      "parentId": "fld_00_35d0f5fbca4b84a0ac399297",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auth/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@gravita.com.br\",\n  \"password\": \"S3nhaForte!\"\n}"
+      }
+    },
+    {
+      "_id": "req_00_01_f0038fd386f1ebf5e3dead96",
+      "_type": "request",
+      "parentId": "fld_00_35d0f5fbca4b84a0ac399297",
+      "name": "Verify Two-Factor Code",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auth/2fa/verify",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@gravita.com.br\",\n  \"password\": \"S3nhaForte!\",\n  \"totpCode\": \"123456\"\n}"
+      }
+    },
+    {
+      "_id": "fld_01_57f2b181d0a5e79a147ea1cd",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Users",
+      "description": "br.gravita.adapters.inbound.controllers.tax.UserController"
+    },
+    {
+      "_id": "req_01_00_36fbb6539ba69cbd4848d61d",
+      "_type": "request",
+      "parentId": "fld_01_57f2b181d0a5e79a147ea1cd",
+      "name": "Register User",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/users",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Maria Silva\",\n  \"email\": \"maria.silva@gravita.com.br\",\n  \"password\": \"S3nhaForte!\",\n  \"profileId\": \"{{ _.profileId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_01_01_24b589869b406211cec6ff48",
+      "_type": "request",
+      "parentId": "fld_01_57f2b181d0a5e79a147ea1cd",
+      "name": "Update User",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/users/{{ _.userId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Maria Silva Santos\",\n  \"email\": \"maria.santos@gravita.com.br\",\n  \"profileId\": \"{{ _.profileId }}\",\n  \"status\": \"ACTIVE\"\n}"
+      }
+    },
+    {
+      "_id": "fld_02_0c2a93009914a1572e318fcd",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Profiles",
+      "description": "br.gravita.adapters.inbound.controllers.ProfileRestController"
+    },
+    {
+      "_id": "req_02_00_fa568f749fc194a8b04c8e57",
+      "_type": "request",
+      "parentId": "fld_02_0c2a93009914a1572e318fcd",
+      "name": "Assign Profile Permissions",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/profiles/{{ _.profileId }}/permissions",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Administrador\",\n  \"permissions\": [\n    {\n      \"module\": \"purchasing\",\n      \"screen\": \"purchase-orders\",\n      \"action\": \"VIEW\"\n    },\n    {\n      \"module\": \"purchasing\",\n      \"screen\": \"purchase-orders\",\n      \"action\": \"EDIT\"\n    },\n    {\n      \"module\": \"system\",\n      \"screen\": \"access-log\",\n      \"action\": \"VIEW\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_02_01_7ff17fb695a5919bab55461b",
+      "_type": "request",
+      "parentId": "fld_02_0c2a93009914a1572e318fcd",
+      "name": "Find Profile by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/profiles/{{ _.profileId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_03_035eae60290f92e678316a97",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Customers",
+      "description": "br.gravita.adapters.inbound.controllers.CustomerRestController"
+    },
+    {
+      "_id": "req_03_00_24c7a320c4fe2f80af074456",
+      "_type": "request",
+      "parentId": "fld_03_035eae60290f92e678316a97",
+      "name": "Register Customer",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/customers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"type\": \"COMPANY\",\n  \"document\": \"12345678000190\",\n  \"name\": \"Comercial Andrade Ltda\",\n  \"email\": \"contato@andrade.com.br\",\n  \"ieIndicator\": \"CONTRIBUINTE\",\n  \"finalConsumer\": false,\n  \"creditLimit\": 5000.0,\n  \"addresses\": [\n    {\n      \"type\": \"BILLING\",\n      \"street\": \"Rua das Flores\",\n      \"number\": \"123\",\n      \"complement\": \"Sala 4\",\n      \"neighborhood\": \"Centro\",\n      \"city\": \"São Paulo\",\n      \"state\": \"SP\",\n      \"zipCode\": \"01310100\",\n      \"isDefault\": true\n    }\n  ],\n  \"contacts\": [\n    {\n      \"type\": \"EMAIL\",\n      \"value\": \"contato@andrade.com.br\"\n    },\n    {\n      \"type\": \"PHONE\",\n      \"value\": \"11987654321\"\n    }\n  ],\n  \"priceTables\": [\n    {\n      \"priceTableId\": \"{{ _.priceTableId }}\",\n      \"priority\": 1\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_03_01_3cb8af193ccbd5d6aec700e8",
+      "_type": "request",
+      "parentId": "fld_03_035eae60290f92e678316a97",
+      "name": "Update Customer",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/customers/{{ _.customerId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Comercial Andrade Ltda ME\",\n  \"email\": \"financeiro@andrade.com.br\",\n  \"finalConsumer\": false,\n  \"creditLimit\": 7500.0,\n  \"status\": \"ACTIVE\"\n}"
+      }
+    },
+    {
+      "_id": "req_03_02_553c3a0986bb4eef693492d6",
+      "_type": "request",
+      "parentId": "fld_03_035eae60290f92e678316a97",
+      "name": "Find Customer by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/customers/{{ _.customerId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_04_fe0a091fdbfb3e9c31b7a1bd",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Products",
+      "description": "br.gravita.adapters.inbound.controllers.ProductRestController"
+    },
+    {
+      "_id": "req_04_00_e721da96c2f44a71ebfde3ce",
+      "_type": "request",
+      "parentId": "fld_04_fe0a091fdbfb3e9c31b7a1bd",
+      "name": "Register Product",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/products",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"internalCode\": \"PROD-0001\",\n  \"barcodes\": [\n    \"7891234567895\"\n  ],\n  \"type\": \"SIMPLE\",\n  \"ncm\": \"61091000\",\n  \"cest\": \"0100100\",\n  \"origin\": 0,\n  \"defaultCfopByOperation\": {\n    \"SALE_IN_STATE\": \"5102\",\n    \"SALE_OUT_STATE\": \"6102\"\n  },\n  \"cstCsosnByState\": {\n    \"SP\": \"060\"\n  },\n  \"taxProfile\": {\n    \"icmsRate\": 18.0,\n    \"ipiRate\": 0,\n    \"pisRate\": 1.65,\n    \"cofinsRate\": 7.6,\n    \"icmsStRate\": 0,\n    \"fcpRate\": 0\n  },\n  \"averageCost\": 25.5,\n  \"basePrice\": 49.9,\n  \"stock\": {\n    \"minimum\": 10,\n    \"maximum\": 200,\n    \"reorderPoint\": 30\n  },\n  \"purchaseUnit\": \"UN\",\n  \"saleUnit\": \"UN\",\n  \"conversionFactor\": 1,\n  \"lotControl\": false,\n  \"serialControl\": false,\n  \"classification\": {\n    \"group\": \"Vestuário\",\n    \"subgroup\": \"Camisetas\",\n    \"brand\": \"Gravita\",\n    \"section\": \"Masculino\"\n  },\n  \"images\": [\n    \"https://cdn.gravita.com.br/products/prod-0001-1.jpg\"\n  ],\n  \"kitComponents\": [],\n  \"variants\": [\n    {\n      \"color\": \"Azul\",\n      \"size\": \"M\",\n      \"barcode\": \"7891234567901\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_04_01_b265f3d074cd034e3b807829",
+      "_type": "request",
+      "parentId": "fld_04_fe0a091fdbfb3e9c31b7a1bd",
+      "name": "Update Product",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/products/{{ _.productId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"basePrice\": 54.9,\n  \"stock\": {\n    \"minimum\": 15,\n    \"maximum\": 250,\n    \"reorderPoint\": 40\n  },\n  \"status\": \"ACTIVE\"\n}"
+      }
+    },
+    {
+      "_id": "fld_05_7015ab4fc4ea24735dbe8842",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Lookup",
+      "description": "br.gravita.adapters.inbound.controllers.LookupRestController"
+    },
+    {
+      "_id": "req_05_00_7c71b73a231f4e0684e5cd59",
+      "_type": "request",
+      "parentId": "fld_05_7015ab4fc4ea24735dbe8842",
+      "name": "Lookup Person by CNPJ",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/lookup/cnpj/{{ _.cnpj }}",
+      "headers": []
+    },
+    {
+      "_id": "req_05_01_08954295d9b60722b03686b7",
+      "_type": "request",
+      "parentId": "fld_05_7015ab4fc4ea24735dbe8842",
+      "name": "Lookup Address by CEP",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/lookup/cep/{{ _.cep }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Plans",
+      "description": "br.gravita.adapters.inbound.controllers.PlanRestController"
+    },
+    {
+      "_id": "req_06_00_c5ecab34248ee4e36c28cc15",
+      "_type": "request",
+      "parentId": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "name": "Create Plan",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/plans",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Bronze\",\n  \"tier\": \"BRONZE\",\n  \"priceMonthly\": 297,\n  \"priceAnnual\": 247,\n  \"features\": [\n    \"1 CNPJ · 1 filial\",\n    \"NF-e e NFC-e ilimitadas\",\n    \"PDV — 1 caixa\",\n    \"Estoque e Compras\",\n    \"3 usuários incluídos\"\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_06_01_746e50ac1c5d0247b7cb6c2c",
+      "_type": "request",
+      "parentId": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "name": "List Plans",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/plans",
+      "headers": []
+    },
+    {
+      "_id": "req_06_02_c2e9e57f910c151c976e2f82",
+      "_type": "request",
+      "parentId": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "name": "Find Plan by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/plans/{{ _.planId }}",
+      "headers": []
+    },
+    {
+      "_id": "req_06_03_71f135182fd156daa7cea778",
+      "_type": "request",
+      "parentId": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "name": "Update Plan",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/plans/{{ _.planId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Bronze\",\n  \"tier\": \"BRONZE\",\n  \"priceMonthly\": 327,\n  \"priceAnnual\": 267,\n  \"features\": [\n    \"1 CNPJ · 1 filial\",\n    \"NF-e e NFC-e ilimitadas\",\n    \"PDV — 1 caixa\",\n    \"Estoque e Compras\",\n    \"5 usuários incluídos\"\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_06_04_eee8a576161fc65ab181c34c",
+      "_type": "request",
+      "parentId": "fld_06_cf2e5f26fef855ce77a1ba3a",
+      "name": "Delete Plan",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/plans/{{ _.planId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_07_6f5cef6e62416942c57791e7",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / Chart of Accounts",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.ChartOfAccountsRestController"
+    },
+    {
+      "_id": "req_07_00_2a295ce5e946e5027e8f974c",
+      "_type": "request",
+      "parentId": "fld_07_6f5cef6e62416942c57791e7",
+      "name": "Create Chart of Accounts Entry",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/chart-of-accounts",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"1.1.01\",\n  \"name\": \"Caixa\",\n  \"accountType\": \"ASSET\",\n  \"parentId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_07_01_bb2f435b691d6456a9cd26b6",
+      "_type": "request",
+      "parentId": "fld_07_6f5cef6e62416942c57791e7",
+      "name": "List Chart of Accounts",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/chart-of-accounts",
+      "headers": []
+    },
+    {
+      "_id": "req_07_02_288c555d082788f400168678",
+      "_type": "request",
+      "parentId": "fld_07_6f5cef6e62416942c57791e7",
+      "name": "Find Chart of Accounts by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/chart-of-accounts/{{ _.chartOfAccountsId }}",
+      "headers": []
+    },
+    {
+      "_id": "req_07_03_efe8535a6680d04a0441bbfd",
+      "_type": "request",
+      "parentId": "fld_07_6f5cef6e62416942c57791e7",
+      "name": "Update Chart of Accounts Entry",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/auxiliary/chart-of-accounts/{{ _.chartOfAccountsId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"1.1.01\",\n  \"name\": \"Caixa Geral\",\n  \"accountType\": \"ASSET\",\n  \"parentId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_07_04_927dc2d5589e0984d3fdac93",
+      "_type": "request",
+      "parentId": "fld_07_6f5cef6e62416942c57791e7",
+      "name": "Delete Chart of Accounts Entry",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/auxiliary/chart-of-accounts/{{ _.chartOfAccountsId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_08_54521cf216282f71fc9cedfa",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / Cost Centers",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.CostCenterRestController"
+    },
+    {
+      "_id": "req_08_00_084c50fa382138bd2c372bc1",
+      "_type": "request",
+      "parentId": "fld_08_54521cf216282f71fc9cedfa",
+      "name": "Create Cost Center",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/cost-centers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"CC-001\",\n  \"name\": \"Administrativo\",\n  \"parentId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_08_01_709b494375c338d5bad55b67",
+      "_type": "request",
+      "parentId": "fld_08_54521cf216282f71fc9cedfa",
+      "name": "List Cost Centers",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/cost-centers",
+      "headers": []
+    },
+    {
+      "_id": "req_08_02_fd5ea21ba54f5eb1e00b7b49",
+      "_type": "request",
+      "parentId": "fld_08_54521cf216282f71fc9cedfa",
+      "name": "Find Cost Center by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/cost-centers/{{ _.costCenterId }}",
+      "headers": []
+    },
+    {
+      "_id": "req_08_03_6055d766e4f61d8352225797",
+      "_type": "request",
+      "parentId": "fld_08_54521cf216282f71fc9cedfa",
+      "name": "Update Cost Center",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/auxiliary/cost-centers/{{ _.costCenterId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"CC-001\",\n  \"name\": \"Administrativo e Financeiro\",\n  \"parentId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_08_04_e6be16d3284a9ed188f00ea8",
+      "_type": "request",
+      "parentId": "fld_08_54521cf216282f71fc9cedfa",
+      "name": "Delete Cost Center",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/auxiliary/cost-centers/{{ _.costCenterId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_09_972b79f54cf0db5d0af43375",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / IBGE Municipalities",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.IbgeMunicipalityRestController"
+    },
+    {
+      "_id": "req_09_00_3ce3c347b332dca65eca1170",
+      "_type": "request",
+      "parentId": "fld_09_972b79f54cf0db5d0af43375",
+      "name": "List IBGE Municipalities",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/ibge-municipalities",
+      "headers": []
+    },
+    {
+      "_id": "req_09_01_c1a4f164b1c265be02fe7b52",
+      "_type": "request",
+      "parentId": "fld_09_972b79f54cf0db5d0af43375",
+      "name": "Import IBGE Municipalities",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/ibge-municipalities/import",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"municipalities\": [\n    {\n      \"ibgeCode\": \"3550308\",\n      \"name\": \"São Paulo\",\n      \"stateCode\": \"SP\"\n    },\n    {\n      \"ibgeCode\": \"3304557\",\n      \"name\": \"Rio de Janeiro\",\n      \"stateCode\": \"RJ\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_10_75164ef108e3e0be56e11b43",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / Interstate ICMS Rates",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.InterstateIcmsRateRestController"
+    },
+    {
+      "_id": "req_10_00_135adfd0dad0ee8be1e6255b",
+      "_type": "request",
+      "parentId": "fld_10_75164ef108e3e0be56e11b43",
+      "name": "List Interstate ICMS Rates",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/interstate-icms",
+      "headers": []
+    },
+    {
+      "_id": "req_10_01_ce9ec43199f43d9296ccd264",
+      "_type": "request",
+      "parentId": "fld_10_75164ef108e3e0be56e11b43",
+      "name": "Import Interstate ICMS Rates",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/interstate-icms/import",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rates\": [\n    {\n      \"originState\": \"SP\",\n      \"destinationState\": \"RJ\",\n      \"ratePercent\": 12\n    },\n    {\n      \"originState\": \"SP\",\n      \"destinationState\": \"MG\",\n      \"ratePercent\": 12\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_11_4eb1e6d9c2731c4248577afe",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / Payment Methods",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.PaymentMethodRestController"
+    },
+    {
+      "_id": "req_11_00_27dbcec27b181aa5fbcbc453",
+      "_type": "request",
+      "parentId": "fld_11_4eb1e6d9c2731c4248577afe",
+      "name": "Create Payment Method",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-methods",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Cartão de Crédito\",\n  \"type\": \"CREDIT_CARD\"\n}"
+      }
+    },
+    {
+      "_id": "req_11_01_a22bd6b55b1e3d807380653d",
+      "_type": "request",
+      "parentId": "fld_11_4eb1e6d9c2731c4248577afe",
+      "name": "List Payment Methods",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-methods",
+      "headers": []
+    },
+    {
+      "_id": "req_11_02_7b216046d061e1f042bc5acf",
+      "_type": "request",
+      "parentId": "fld_11_4eb1e6d9c2731c4248577afe",
+      "name": "Find Payment Method by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-methods/{{ _.paymentMethodId }}",
+      "headers": []
+    },
+    {
+      "_id": "req_11_03_3d432e01ee0bcebe66ae8631",
+      "_type": "request",
+      "parentId": "fld_11_4eb1e6d9c2731c4248577afe",
+      "name": "Update Payment Method",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-methods/{{ _.paymentMethodId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Cartão de Crédito Visa/Master\",\n  \"type\": \"CREDIT_CARD\"\n}"
+      }
+    },
+    {
+      "_id": "req_11_04_a57ba4935d65289f2cf4ae96",
+      "_type": "request",
+      "parentId": "fld_11_4eb1e6d9c2731c4248577afe",
+      "name": "Delete Payment Method",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-methods/{{ _.paymentMethodId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_12_a8a42d266405d7d331f3838c",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Auxiliary / Payment Terms",
+      "description": "br.gravita.adapters.inbound.controllers.auxiliary.PaymentTermRestController"
+    },
+    {
+      "_id": "req_12_00_191f0de7344caaf02cc85138",
+      "_type": "request",
+      "parentId": "fld_12_a8a42d266405d7d331f3838c",
+      "name": "Create Payment Term",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-terms",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"30/60/90 dias\",\n  \"installmentIntervalsDays\": [\n    30,\n    60,\n    90\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_12_01_119d943e29dc219d8ae4ccbd",
+      "_type": "request",
+      "parentId": "fld_12_a8a42d266405d7d331f3838c",
+      "name": "List Payment Terms",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-terms",
+      "headers": []
+    },
+    {
+      "_id": "req_12_02_9ef98373e89540410e66de52",
+      "_type": "request",
+      "parentId": "fld_12_a8a42d266405d7d331f3838c",
+      "name": "Find Payment Term by Id",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-terms/{{ _.paymentTermId }}",
+      "headers": []
+    },
+    {
+      "_id": "req_12_03_e19dda2a0d878655907e95ac",
+      "_type": "request",
+      "parentId": "fld_12_a8a42d266405d7d331f3838c",
+      "name": "Update Payment Term",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-terms/{{ _.paymentTermId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"30/60/90/120 dias\",\n  \"installmentIntervalsDays\": [\n    30,\n    60,\n    90,\n    120\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_12_04_eedb715323ebecc6984521ac",
+      "_type": "request",
+      "parentId": "fld_12_a8a42d266405d7d331f3838c",
+      "name": "Delete Payment Term",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/auxiliary/payment-terms/{{ _.paymentTermId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_13_5860091424001b0e72a9ac65",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "System / Access Log",
+      "description": "br.gravita.adapters.inbound.controllers.tax.AccessLogController"
+    },
+    {
+      "_id": "req_13_00_fa62db898b4da335514786b8",
+      "_type": "request",
+      "parentId": "fld_13_5860091424001b0e72a9ac65",
+      "name": "Search Access Log",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/system/access-log",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "userId",
+          "value": "{{ _.userId }}",
+          "disabled": true
+        },
+        {
+          "name": "dateFrom",
+          "value": "2026-01-01T00:00:00Z",
+          "disabled": true
+        },
+        {
+          "name": "dateTo",
+          "value": "2026-12-31T23:59:59Z",
+          "disabled": true
+        },
+        {
+          "name": "ip",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "device",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "page",
+          "value": "0"
+        },
+        {
+          "name": "size",
+          "value": "20"
+        }
+      ]
+    },
+    {
+      "_id": "fld_14_a3acdfd1e062e7211b97e564",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "System / Approval Alcadas",
+      "description": "br.gravita.adapters.inbound.controllers.tax.ApprovalAlcadaController"
+    },
+    {
+      "_id": "req_14_00_bb880f908246ef0c0c313287",
+      "_type": "request",
+      "parentId": "fld_14_a3acdfd1e062e7211b97e564",
+      "name": "Configure Approval Alcada",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/system/alcadas/{{ _.module }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"thresholdValue\": 5000.0,\n  \"thresholdDiscountPercent\": 10,\n  \"approverProfileId\": \"{{ _.profileId }}\"\n}"
+      }
+    },
+    {
+      "_id": "fld_15_0faecf6caf02a0371f7c02e7",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "System / Integration Credentials",
+      "description": "br.gravita.adapters.inbound.controllers.tax.IntegrationCredentialController"
+    },
+    {
+      "_id": "req_15_00_634102288b91fbe3a84b78ce",
+      "_type": "request",
+      "parentId": "fld_15_0faecf6caf02a0371f7c02e7",
+      "name": "Configure Integration Credentials",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/system/integrations/{{ _.integrationName }}/credentials",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"environment\": \"PRODUCTION\",\n  \"endpoint\": \"https://api.sefaz.gov.br\",\n  \"credentialPayload\": \"base64-encoded-credential-payload\"\n}"
+      }
+    },
+    {
+      "_id": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Master Data / Companies",
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.CompanyController"
+    },
+    {
+      "_id": "req_16_00_7b78f32016f259216cb62fec",
+      "_type": "request",
+      "parentId": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "name": "Register Company",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/companies",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cnpj\": \"12345678000190\",\n  \"ie\": \"110042490114\",\n  \"im\": \"123456\",\n  \"cnae\": \"4781400\",\n  \"taxRegime\": \"SIMPLES_NACIONAL\",\n  \"simplesOptante\": true,\n  \"address\": \"Av. Paulista, 1000\",\n  \"state\": \"SP\",\n  \"issuingEmail\": \"fiscal@gravita.com.br\",\n  \"phone\": \"1130304050\",\n  \"logoUrl\": \"https://cdn.gravita.com.br/companies/logo.png\",\n  \"parentCompanyId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_16_01_0a387a7e3da946d1f3f32845",
+      "_type": "request",
+      "parentId": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "name": "Update Company",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/companies/{{ _.companyId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"cnpj\": \"12345678000190\",\n  \"ie\": \"110042490114\",\n  \"im\": \"123456\",\n  \"cnae\": \"4781400\",\n  \"taxRegime\": \"SIMPLES_NACIONAL\",\n  \"simplesOptante\": true,\n  \"address\": \"Av. Paulista, 1500\",\n  \"state\": \"SP\",\n  \"issuingEmail\": \"fiscal@gravita.com.br\",\n  \"phone\": \"1130304050\",\n  \"logoUrl\": \"https://cdn.gravita.com.br/companies/logo.png\",\n  \"parentCompanyId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_16_02_4193e0b28dd73f05d1560e24",
+      "_type": "request",
+      "parentId": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "name": "Switch SEFAZ Environment",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/companies/{{ _.companyId }}/sefaz-environment",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"environment\": \"PRODUCTION\"\n}"
+      }
+    },
+    {
+      "_id": "req_16_03_ea9e41f2a2a6dd08d245c13f",
+      "_type": "request",
+      "parentId": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "name": "Configure Document Series",
+      "method": "PUT",
+      "url": "{{ _.baseUrl }}/api/companies/{{ _.companyId }}/document-series/{{ _.documentType }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"series\": \"1\",\n  \"nextNumber\": 1\n}"
+      }
+    },
+    {
+      "_id": "req_16_04_6216a77a217190100b0c5361",
+      "_type": "request",
+      "parentId": "fld_16_4bcfb7c7cc3d4ab2cd3259b6",
+      "name": "Upload Digital Certificate",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/companies/{{ _.companyId }}/certificate",
+      "headers": [],
+      "description": "multipart/form-data upload of the .pfx digital certificate file.",
+      "parameters": [
+        {
+          "name": "password",
+          "value": "certificate-password"
+        },
+        {
+          "name": "type",
+          "value": "A1"
+        }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "pfxFile",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      }
+    },
+    {
+      "_id": "fld_17_dbde154e5e93928dd02b4751",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Master Data / Price Tables",
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.PriceTableController"
+    },
+    {
+      "_id": "req_17_00_59a3765d3a14017953411381",
+      "_type": "request",
+      "parentId": "fld_17_dbde154e5e93928dd02b4751",
+      "name": "Create Price Table",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/price-tables",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"formation\": \"MARKUP\",\n  \"validFrom\": \"2026-01-01\",\n  \"validTo\": \"2026-12-31\",\n  \"maxDiscountPercent\": 15,\n  \"maxDiscountBehavior\": \"BLOCK\",\n  \"entries\": [\n    {\n      \"refType\": \"PRODUCT\",\n      \"referenceId\": \"{{ _.productId }}\",\n      \"value\": 49.9\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_17_01_edca86817bc1975073653e9d",
+      "_type": "request",
+      "parentId": "fld_17_dbde154e5e93928dd02b4751",
+      "name": "Update Price Table",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/price-tables/{{ _.priceTableId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"formation\": \"MARKUP\",\n  \"validFrom\": \"2026-01-01\",\n  \"validTo\": \"2026-12-31\",\n  \"maxDiscountPercent\": 20,\n  \"maxDiscountBehavior\": \"BLOCK\",\n  \"entries\": [\n    {\n      \"refType\": \"PRODUCT\",\n      \"referenceId\": \"{{ _.productId }}\",\n      \"value\": 54.9\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_18_5efb03c6fbf4d7e69da11e16",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Master Data / Suppliers",
+      "description": "br.gravita.adapters.inbound.controllers.masterdata.controllers.SupplierController"
+    },
+    {
+      "_id": "req_18_00_178ce27b12f7ff2f4ac96790",
+      "_type": "request",
+      "parentId": "fld_18_5efb03c6fbf4d7e69da11e16",
+      "name": "Register Supplier",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/suppliers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"personType\": \"COMPANY\",\n  \"document\": \"98765432000110\",\n  \"name\": \"Distribuidora Nacional Ltda\",\n  \"addresses\": [\n    {\n      \"street\": \"Rua Industrial\",\n      \"number\": \"500\",\n      \"complement\": \"\",\n      \"neighborhood\": \"Distrito Industrial\",\n      \"city\": \"Campinas\",\n      \"state\": \"SP\",\n      \"zipCode\": \"13040000\"\n    }\n  ],\n  \"contacts\": [\n    {\n      \"type\": \"EMAIL\",\n      \"value\": \"vendas@distribuidoranacional.com.br\"\n    }\n  ],\n  \"bankAccount\": {\n    \"bankCode\": \"341\",\n    \"agency\": \"1234\",\n    \"accountNumber\": \"56789-0\"\n  },\n  \"pixKey\": \"98765432000110\",\n  \"averageLeadTimeDays\": 7,\n  \"defaultPurchaseCfop\": \"1102\"\n}"
+      }
+    },
+    {
+      "_id": "req_18_01_58ab73c824a219fe515fef90",
+      "_type": "request",
+      "parentId": "fld_18_5efb03c6fbf4d7e69da11e16",
+      "name": "Update Supplier",
+      "method": "PATCH",
+      "url": "{{ _.baseUrl }}/api/suppliers/{{ _.supplierId }}",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Distribuidora Nacional Ltda ME\",\n  \"averageLeadTimeDays\": 10,\n  \"defaultPurchaseCfop\": \"1102\"\n}"
+      }
+    },
+    {
+      "_id": "fld_19_58dbc59216c17d0710ad9e77",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Alerts",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.ExpiringLotsController, LowStockAlertController"
+    },
+    {
+      "_id": "req_19_00_2d795d550ef82c68f3751034",
+      "_type": "request",
+      "parentId": "fld_19_58dbc59216c17d0710ad9e77",
+      "name": "Check Expiring Lots",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inventory/alerts/expiring-lots",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "withinDays",
+          "value": "30"
+        },
+        {
+          "name": "warehouseId",
+          "value": "{{ _.warehouseId }}",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "_id": "req_19_01_27ea345217e997f4d643b66c",
+      "_type": "request",
+      "parentId": "fld_19_58dbc59216c17d0710ad9e77",
+      "name": "Suggest Reorder (Low Stock)",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inventory/alerts/low-stock",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "warehouseId",
+          "value": "{{ _.warehouseId }}",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "_id": "fld_20_e0e756b7b6bbdf3426be55b5",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Physical Counts",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.PhysicalCountController"
+    },
+    {
+      "_id": "req_20_00_221d74a36c4ed7c0645452d7",
+      "_type": "request",
+      "parentId": "fld_20_e0e756b7b6bbdf3426be55b5",
+      "name": "Start Physical Count",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/counts",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"scope\": \"FULL\",\n  \"productGroupId\": null,\n  \"warehouseId\": \"{{ _.warehouseId }}\",\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_20_01_befa97965e2a035f70d24dc6",
+      "_type": "request",
+      "parentId": "fld_20_e0e756b7b6bbdf3426be55b5",
+      "name": "Submit Physical Count",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/counts/{{ _.physicalCountId }}/submit",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"countedLines\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"countedQuantity\": 48\n    }\n  ],\n  \"submittedBy\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_20_02_eeb91f5425a16a7286775563",
+      "_type": "request",
+      "parentId": "fld_20_e0e756b7b6bbdf3426be55b5",
+      "name": "Approve Physical Count",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/counts/{{ _.physicalCountId }}/approve",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"approvedBy\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "fld_21_02f198737136bb8b3776b870",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Adjustments",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockAdjustmentController"
+    },
+    {
+      "_id": "req_21_00_682d95c5af2d6cdd32e3b58a",
+      "_type": "request",
+      "parentId": "fld_21_02f198737136bb8b3776b870",
+      "name": "Adjust Inventory",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/adjustments",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ _.productId }}\",\n  \"warehouseId\": \"{{ _.warehouseId }}\",\n  \"quantityDelta\": -5,\n  \"justification\": \"Ajuste após contagem física\",\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "fld_22_9d841ffe4fc2aec083987353",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Balance",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockBalanceController"
+    },
+    {
+      "_id": "req_22_00_2f76b771d5e4ae737fe313ec",
+      "_type": "request",
+      "parentId": "fld_22_9d841ffe4fc2aec083987353",
+      "name": "Get Stock Balance",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/inventory/products/{{ _.productId }}/balance",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "warehouseId",
+          "value": "{{ _.warehouseId }}",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "_id": "fld_23_d82e4b19f6d1e86fb56f3ba8",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Movements",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockMovementController"
+    },
+    {
+      "_id": "req_23_00_3065f79f4073e2d97cf0ad97",
+      "_type": "request",
+      "parentId": "fld_23_d82e4b19f6d1e86fb56f3ba8",
+      "name": "Register Stock Entry",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/movements/entry",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ _.productId }}\",\n  \"warehouseId\": \"{{ _.warehouseId }}\",\n  \"quantity\": 100,\n  \"unitCost\": 25.5,\n  \"lot\": {\n    \"code\": \"LOTE-2026-001\",\n    \"expiryDate\": \"2027-01-01\"\n  },\n  \"serials\": [],\n  \"originReference\": \"NF-e 12345\",\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_23_01_ff179cd332fa60b80b26a168",
+      "_type": "request",
+      "parentId": "fld_23_d82e4b19f6d1e86fb56f3ba8",
+      "name": "Register Stock Exit",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/movements/exit",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ _.productId }}\",\n  \"warehouseId\": \"{{ _.warehouseId }}\",\n  \"quantity\": 10,\n  \"lot\": {\n    \"code\": \"LOTE-2026-001\"\n  },\n  \"serials\": [],\n  \"reservationId\": null,\n  \"allowNegativeStock\": false,\n  \"originReference\": \"Venda PDV 000123\",\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "fld_24_af3b693d11eed24a1d1ec575",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Reservations",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockReservationController"
+    },
+    {
+      "_id": "req_24_00_ca7e0133a4490c77e35c6cc7",
+      "_type": "request",
+      "parentId": "fld_24_af3b693d11eed24a1d1ec575",
+      "name": "Reserve Stock",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/reservations",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"orderRef\": \"{{ _.purchaseOrderId }}\",\n  \"productId\": \"{{ _.productId }}\",\n  \"warehouseId\": \"{{ _.warehouseId }}\",\n  \"quantity\": 5\n}"
+      }
+    },
+    {
+      "_id": "req_24_01_8cd78c1ffed2b286dec7d96e",
+      "_type": "request",
+      "parentId": "fld_24_af3b693d11eed24a1d1ec575",
+      "name": "Release Stock Reservation",
+      "method": "DELETE",
+      "url": "{{ _.baseUrl }}/api/inventory/reservations/{{ _.reservationId }}",
+      "headers": []
+    },
+    {
+      "_id": "fld_25_027e056352e9567237bdf02f",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Inventory / Transfers",
+      "description": "br.gravita.adapters.inbound.controllers.inventory.controllers.StockTransferController"
+    },
+    {
+      "_id": "req_25_00_28ec73aa795c23b77d036af3",
+      "_type": "request",
+      "parentId": "fld_25_027e056352e9567237bdf02f",
+      "name": "Initiate Stock Transfer",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/transfers",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"productId\": \"{{ _.productId }}\",\n  \"sourceWarehouseId\": \"{{ _.warehouseId }}\",\n  \"destinationWarehouseId\": \"{{ _.warehouseId }}\",\n  \"quantity\": 20,\n  \"lotCode\": null,\n  \"serials\": [],\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_25_01_3c97ba879a58f7fcce282379",
+      "_type": "request",
+      "parentId": "fld_25_027e056352e9567237bdf02f",
+      "name": "Confirm Stock Transfer",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/inventory/transfers/{{ _.transferMovementId }}/confirm",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"user\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "fld_26_425c60da4b3020cca119503a",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Purchasing / Orders",
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseOrderController"
+    },
+    {
+      "_id": "req_26_00_215593c4fd8ad23ec1ea76a8",
+      "_type": "request",
+      "parentId": "fld_26_425c60da4b3020cca119503a",
+      "name": "Create Purchase Order",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/orders",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"requestId\": \"{{ _.purchaseRequestId }}\",\n  \"quotationId\": \"{{ _.quotationId }}\",\n  \"supplierId\": \"{{ _.supplierId }}\",\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 100,\n      \"unitPrice\": 22.0\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_26_01_f8f4886b811e812a0b3d3b45",
+      "_type": "request",
+      "parentId": "fld_26_425c60da4b3020cca119503a",
+      "name": "Receive Purchase Order",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/orders/{{ _.purchaseOrderId }}/receipts",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"receivedItems\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"receivedQty\": 100\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_26_02_6f00d76c8273e131130d9c82",
+      "_type": "request",
+      "parentId": "fld_26_425c60da4b3020cca119503a",
+      "name": "Approve Purchase Order",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/orders/{{ _.purchaseOrderId }}/approve",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"approvedBy\": \"{{ _.userId }}\",\n  \"decision\": \"APPROVED\"\n}"
+      }
+    },
+    {
+      "_id": "req_26_03_e2b5924002be0c630010f79b",
+      "_type": "request",
+      "parentId": "fld_26_425c60da4b3020cca119503a",
+      "name": "Import Supplier NF-e at Receiving",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/orders/{{ _.purchaseOrderId }}/receipts/{{ _.purchaseReceiptId }}/import-nfe",
+      "headers": [],
+      "description": "multipart/form-data upload of the supplier NF-e XML file.",
+      "parameters": [
+        {
+          "name": "companyId",
+          "value": "{{ _.companyId }}"
+        }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "xmlFile",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      }
+    },
+    {
+      "_id": "fld_27_15b5b18f98417c6b4e870bb5",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Purchasing / Receipts",
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseReceiptController"
+    },
+    {
+      "_id": "req_27_00_1256d8a738504a3f0862ec78",
+      "_type": "request",
+      "parentId": "fld_27_15b5b18f98417c6b4e870bb5",
+      "name": "Confirm Purchase Receipt",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/receipts/{{ _.purchaseReceiptId }}/confirm",
+      "headers": []
+    },
+    {
+      "_id": "req_27_01_68ae9c2afa20e6a4bfd7fd9a",
+      "_type": "request",
+      "parentId": "fld_27_15b5b18f98417c6b4e870bb5",
+      "name": "Return to Supplier",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/receipts/{{ _.purchaseReceiptId }}/return",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 5\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_28_b87caf96967e9e060583f876",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Purchasing / Requests",
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.PurchaseRequestController"
+    },
+    {
+      "_id": "req_28_00_027aec0f730769fbc86f3ac7",
+      "_type": "request",
+      "parentId": "fld_28_b87caf96967e9e060583f876",
+      "name": "Create Purchase Request",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/requests",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"origin\": \"MANUAL\",\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 100\n    }\n  ],\n  \"requestedBy\": \"{{ _.userId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_28_01_02836aa7fa41f5a4360cf52d",
+      "_type": "request",
+      "parentId": "fld_28_b87caf96967e9e060583f876",
+      "name": "Send Quotation",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/requests/{{ _.purchaseRequestId }}/quotations",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"suppliers\": [\n    \"{{ _.supplierId }}\"\n  ]\n}"
+      }
+    },
+    {
+      "_id": "fld_29_09b1098be5273cc5e6bb31d5",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Purchasing / Quotations",
+      "description": "br.gravita.adapters.inbound.controllers.purchasing.controllers.QuotationController"
+    },
+    {
+      "_id": "req_29_00_246f541b4582590e39fe25f0",
+      "_type": "request",
+      "parentId": "fld_29_09b1098be5273cc5e6bb31d5",
+      "name": "Register Quotation Response",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/purchasing/quotations/{{ _.quotationId }}/responses",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"supplierId\": \"{{ _.supplierId }}\",\n  \"itemPrices\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"unitPrice\": 21.5\n    }\n  ],\n  \"deadline\": \"2026-11-30\"\n}"
+      }
+    },
+    {
+      "_id": "fld_30_9f7fe6ba3a2a21bf34676b26",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "PDV / Cash Movements",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.CashMovementController"
+    },
+    {
+      "_id": "req_30_00_877b16c660bb97a27fbefc30",
+      "_type": "request",
+      "parentId": "fld_30_9f7fe6ba3a2a21bf34676b26",
+      "name": "Record Cash Movement",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/pdv/cash-movements",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"sessionId\": \"{{ _.posSessionId }}\",\n  \"type\": \"REINFORCEMENT\",\n  \"amount\": 100.0,\n  \"justification\": \"Reforço de troco\"\n}"
+      }
+    },
+    {
+      "_id": "fld_31_56654951771a33e15796c753",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Tax / Inbound NF-e",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.InboundNfeController"
+    },
+    {
+      "_id": "req_31_00_421cd360bd3ffd49e7ed4e5b",
+      "_type": "request",
+      "parentId": "fld_31_56654951771a33e15796c753",
+      "name": "Import Supplier NF-e XML",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/inbound/import-xml",
+      "headers": [],
+      "description": "multipart/form-data upload of the supplier NF-e XML file.",
+      "parameters": [
+        {
+          "name": "companyId",
+          "value": "{{ _.companyId }}"
+        }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "xmlFile",
+            "type": "file",
+            "fileName": ""
+          }
+        ]
+      }
+    },
+    {
+      "_id": "req_31_01_c8091a8515ee2e0449167226",
+      "_type": "request",
+      "parentId": "fld_31_56654951771a33e15796c753",
+      "name": "Enter Inbound NF-e Manually",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/inbound",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"companyId\": \"{{ _.companyId }}\",\n  \"accessKey\": \"35260112345678000190550010000000011000000015\",\n  \"manualData\": {\n    \"accessKey\": \"35260112345678000190550010000000011000000015\",\n    \"series\": \"1\",\n    \"number\": \"11\",\n    \"supplierCnpj\": \"98765432000110\",\n    \"supplierName\": \"Distribuidora Nacional Ltda\",\n    \"issuedAt\": \"2026-09-20T10:00:00Z\",\n    \"items\": [\n      {\n        \"supplierProductCode\": \"SUP-001\",\n        \"description\": \"Camiseta Básica\",\n        \"ncm\": \"61091000\",\n        \"cfop\": \"1102\",\n        \"unit\": \"UN\",\n        \"quantity\": 100,\n        \"unitValue\": 22.0,\n        \"totalValue\": 2200.0,\n        \"icmsValue\": 396.0,\n        \"ipiValue\": 0,\n        \"pisValue\": 36.3,\n        \"cofinsValue\": 167.2\n      }\n    ],\n    \"totals\": {\n      \"productsValue\": 2200.0,\n      \"freightValue\": 0,\n      \"insuranceValue\": 0,\n      \"discountValue\": 0,\n      \"otherExpensesValue\": 0,\n      \"icmsValue\": 396.0,\n      \"ipiValue\": 0,\n      \"pisValue\": 36.3,\n      \"cofinsValue\": 167.2,\n      \"totalValue\": 2200.0\n    }\n  }\n}"
+      }
+    },
+    {
+      "_id": "req_31_02_4d54d0d1550ccdfa08088e86",
+      "_type": "request",
+      "parentId": "fld_31_56654951771a33e15796c753",
+      "name": "Confirm Inbound NF-e Receipt",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/inbound/{{ _.inboundNfeId }}/confirm-receipt",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"conferenceResult\": [\n    {\n      \"itemRef\": \"{{ _.productId }}\",\n      \"orderedQty\": 100,\n      \"receivedQty\": 100\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_31_03_cd7efe01db1f9c4e818046e0",
+      "_type": "request",
+      "parentId": "fld_31_56654951771a33e15796c753",
+      "name": "Manifest Inbound NF-e",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/inbound/manifestation",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"accessKey\": \"35260112345678000190550010000000011000000015\",\n  \"type\": \"CIENCIA_DA_OPERACAO\"\n}"
+      }
+    },
+    {
+      "_id": "fld_32_a02215ac5a30a50f934b12da",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "PDV / NFC-e Sales",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.NfceSaleController"
+    },
+    {
+      "_id": "req_32_00_cc427af30940d91d1fe319bf",
+      "_type": "request",
+      "parentId": "fld_32_a02215ac5a30a50f934b12da",
+      "name": "Register NFC-e Sale",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/pdv/sales",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"sessionId\": \"{{ _.posSessionId }}\",\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"quantity\": 2,\n      \"unitPrice\": 49.9,\n      \"itemDiscount\": 0\n    }\n  ],\n  \"totalDiscount\": 0,\n  \"payments\": [\n    {\n      \"method\": \"CREDIT_CARD\",\n      \"amount\": 99.8\n    }\n  ],\n  \"customerCpf\": \"12345678909\",\n  \"priceTableId\": \"{{ _.priceTableId }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_32_01_353ae9c211af44be39454aeb",
+      "_type": "request",
+      "parentId": "fld_32_a02215ac5a30a50f934b12da",
+      "name": "Cancel NFC-e Sale",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/pdv/sales/{{ _.nfceSaleId }}/cancel",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"supervisorCredential\": \"supervisor-pin\",\n  \"reason\": \"Cliente desistiu da compra\"\n}"
+      }
+    },
+    {
+      "_id": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Tax / NF-e",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.NfeController"
+    },
+    {
+      "_id": "req_33_00_45241d73a97134e04f7728b2",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Issue NF-e",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"issuerCompanyId\": \"{{ _.companyId }}\",\n  \"originSalesOrderId\": null,\n  \"naturezaOperacao\": \"VENDA\",\n  \"recipient\": {\n    \"personId\": \"{{ _.customerId }}\",\n    \"document\": \"12345678000190\",\n    \"personType\": \"COMPANY\",\n    \"name\": \"Comercial Andrade Ltda\",\n    \"stateRegistration\": \"110042490114\",\n    \"state\": \"SP\"\n  },\n  \"items\": [\n    {\n      \"productId\": \"{{ _.productId }}\",\n      \"description\": \"Camiseta Básica\",\n      \"quantity\": 2,\n      \"unitPrice\": 49.9,\n      \"discount\": 0\n    }\n  ],\n  \"priceTableId\": \"{{ _.priceTableId }}\",\n  \"discountOverrideJustification\": null,\n  \"taxOverrides\": [],\n  \"freight\": 0,\n  \"insurance\": 0,\n  \"otherExpenses\": 0,\n  \"transport\": {\n    \"modality\": \"SENDER_FREIGHT\",\n    \"carrier\": \"Transportadora Rápida Ltda\",\n    \"volume\": 1,\n    \"grossWeight\": 0.5,\n    \"netWeight\": 0.4,\n    \"rntrc\": \"12345678\"\n  },\n  \"referencedAccessKey\": null,\n  \"additionalInfo\": \"Venda referente ao pedido 1024\"\n}"
+      }
+    },
+    {
+      "_id": "req_33_01_84a1ebc9ef887c05959f1937",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Get DANFE",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/nfe/{{ _.nfeId }}/danfe",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "orientation",
+          "value": "PORTRAIT"
+        }
+      ]
+    },
+    {
+      "_id": "req_33_02_dd7e7169c50687172f5df02e",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Get NF-e XML",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/nfe/{{ _.nfeId }}/xml",
+      "headers": []
+    },
+    {
+      "_id": "req_33_03_d2bde6b7a9c90dc1e923551f",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Resend NF-e Email",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/{{ _.nfeId }}/resend-email",
+      "headers": []
+    },
+    {
+      "_id": "req_33_04_8d46d903347febbdcdd995c3",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Issue Correction Letter",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/{{ _.nfeId }}/correction-letters",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"Correção do endereço de entrega do destinatário.\"\n}"
+      }
+    },
+    {
+      "_id": "req_33_05_148f03875569e8f413153bb2",
+      "_type": "request",
+      "parentId": "fld_33_df5ea2dfb7ad012857d39b6e",
+      "name": "Cancel NF-e",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/{{ _.nfeId }}/cancel",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"justification\": \"Erro no preenchimento do documento fiscal.\"\n}"
+      }
+    },
+    {
+      "_id": "fld_34_af6852cefe3d8668425b7b4a",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "PDV / Sessions",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.PosSessionController"
+    },
+    {
+      "_id": "req_34_00_7f767acd1a4505239a5822aa",
+      "_type": "request",
+      "parentId": "fld_34_af6852cefe3d8668425b7b4a",
+      "name": "Open POS Session",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/pdv/sessions",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"registerId\": \"{{ _.warehouseId }}\",\n  \"operatorId\": \"{{ _.userId }}\",\n  \"companyId\": \"{{ _.companyId }}\",\n  \"openingChangeAmount\": 200.0\n}"
+      }
+    },
+    {
+      "_id": "req_34_01_a4ba2cef3c69bd3710562264",
+      "_type": "request",
+      "parentId": "fld_34_af6852cefe3d8668425b7b4a",
+      "name": "Close POS Session",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/pdv/sessions/{{ _.posSessionId }}/close",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"closingCountedAmounts\": [\n    {\n      \"method\": \"CASH\",\n      \"amount\": 350.0\n    },\n    {\n      \"method\": \"CREDIT_CARD\",\n      \"amount\": 620.0\n    }\n  ]\n}"
+      }
+    },
+    {
+      "_id": "req_34_02_2edaea339152234cc9165eb4",
+      "_type": "request",
+      "parentId": "fld_34_af6852cefe3d8668425b7b4a",
+      "name": "Get Z-Report",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/pdv/sessions/{{ _.posSessionId }}/z-report",
+      "headers": []
+    },
+    {
+      "_id": "fld_35_60dd51630847ea6d619dfd54",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "PDV / Product Search",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.ProductSearchController"
+    },
+    {
+      "_id": "req_35_00_f0ebaa2cd16817052412f3d5",
+      "_type": "request",
+      "parentId": "fld_35_60dd51630847ea6d619dfd54",
+      "name": "Search Product for Sale",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/pdv/products/search",
+      "headers": [],
+      "parameters": [
+        {
+          "name": "q",
+          "value": "camiseta"
+        },
+        {
+          "name": "customerId",
+          "value": "{{ _.customerId }}",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "_id": "fld_36_cb86d143c78ab9029d0cfda0",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Tax / Void Number Range",
+      "description": "br.gravita.adapters.inbound.controllers.tax.controllers.VoidNumberRangeController"
+    },
+    {
+      "_id": "req_36_00_f1c4dfbbf3620154e4dbbfe9",
+      "_type": "request",
+      "parentId": "fld_36_cb86d143c78ab9029d0cfda0",
+      "name": "Void Document Number Range",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/nfe/void-range",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"companyId\": \"{{ _.companyId }}\",\n  \"series\": \"1\",\n  \"startNumber\": 100,\n  \"endNumber\": 105,\n  \"justification\": \"Numeração pulada por falha no sistema emissor.\"\n}"
+      }
+    }
+  ]
+}
