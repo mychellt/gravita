@@ -1817,6 +1817,31 @@
         "mimeType": "application/json",
         "text": "{\n  \"companyId\": \"{{ _.companyId }}\",\n  \"series\": \"1\",\n  \"startNumber\": 100,\n  \"endNumber\": 105,\n  \"justification\": \"Numeração pulada por falha no sistema emissor.\"\n}"
       }
+    },
+    {
+      "_id": "fld_37_659630ac41adb40629355d1a",
+      "_type": "request_group",
+      "parentId": "wrk_gravita_api",
+      "name": "Sales / Quotes",
+      "description": "br.gravita.adapters.inbound.controllers.sales.controllers.QuoteController"
+    },
+    {
+      "_id": "req_37_00_b146a77e4f5fb6c62bf468c7",
+      "_type": "request",
+      "parentId": "fld_37_659630ac41adb40629355d1a",
+      "name": "Create Quote",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/sales/quotes",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"customerId\": \"{{ _.customerId }}\",\n  \"validUntil\": \"2026-12-31\",\n  \"items\": [\n    {\n      \"productOrServiceId\": \"{{ _.productId }}\",\n      \"quantity\": 2,\n      \"unitPrice\": 149.9,\n      \"discount\": 10.0\n    }\n  ]\n}"
+      }
     }
   ]
 }
