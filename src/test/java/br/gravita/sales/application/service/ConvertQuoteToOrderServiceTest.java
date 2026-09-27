@@ -50,8 +50,8 @@ class ConvertQuoteToOrderServiceTest {
 		List<QuoteItem> items = List.of(
 				new QuoteItem(UUID.randomUUID(), new BigDecimal("2"), new BigDecimal("19.90"), new BigDecimal("3.80")),
 				new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("150.00"), BigDecimal.ZERO));
-		Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId, items, LocalDate.now().plusDays(5),
-				LocalDate.now());
+		Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId, UUID.randomUUID(), items,
+				LocalDate.now().plusDays(5), LocalDate.now());
 		when(quoteRepositoryPort.findById(quote.getId())).thenReturn(Optional.of(quote));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -91,7 +91,7 @@ class ConvertQuoteToOrderServiceTest {
 
 	@Test
 	void rejectsConvertingAnAlreadyConvertedQuoteWithoutPersistingAnOrder() {
-		Quote convertedQuote = Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+		Quote convertedQuote = Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),
 				LocalDate.now().plusDays(5), LocalDate.now()).convert(LocalDate.now());
 		when(quoteRepositoryPort.findById(convertedQuote.getId())).thenReturn(Optional.of(convertedQuote));
@@ -105,7 +105,7 @@ class ConvertQuoteToOrderServiceTest {
 
 	@Test
 	void rejectsConvertingAnExpiredQuoteWithoutPersistingAnOrder() {
-		Quote expiredQuote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+		Quote expiredQuote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),
 				LocalDate.now().minusDays(1), QuoteStatus.SENT);
 		when(quoteRepositoryPort.findById(expiredQuote.getId())).thenReturn(Optional.of(expiredQuote));

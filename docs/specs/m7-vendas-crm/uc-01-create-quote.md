@@ -20,7 +20,7 @@ public interface CreateQuoteUseCase {
 }
 ```
 
-`CreateQuoteCommand`: `customerId`, `items: [{productOrServiceId, quantity, unitPrice, discount}]`, `validUntil`. Returns the created `Quote` (id, status `DRAFT`, echoed items and validity).
+`CreateQuoteCommand`: `customerId`, `salespersonId`, `items: [{productOrServiceId, quantity, unitPrice, discount}]`, `validUntil`. Returns the created `Quote` (id, status `DRAFT`, echoed items and validity).
 
 ## Outbound ports required
 
@@ -49,5 +49,6 @@ public interface CreateQuoteUseCase {
 ## Notes
 
 - Per-line `discount` is an absolute amount taken off the line subtotal (`quantity × unitPrice`), matching `SaleItem.itemDiscount` in `tax`; it defaults to zero, and it can never be negative or exceed the subtotal. The order-level `discountPercent` on `SalesOrder` is a separate concept.
+- `CreateQuoteCommand` also carries `salespersonId` (required), recording who the quote — and, later, the order it converts to — belongs to. Added by [UC-08 Calculate Commission](uc-08-calculate-commission.md), which needed a salesperson to attribute commissions to; see its Notes.
 - `validUntil` is a calendar date, and "in the future" means strictly after today: a quote that expires on its creation day is rejected.
 - Amounts are stored as `NUMERIC(14, 4)`. The REST layer rejects values with more than four decimal places, so nothing is silently rounded on the way in.

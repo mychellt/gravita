@@ -8,11 +8,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record QuoteResponse(UUID id, UUID customerId, QuoteStatus status, List<ItemResponse> items,
-		LocalDate validUntil, BigDecimal totalValue) {
+public record QuoteResponse(UUID id, UUID customerId, UUID salespersonId, QuoteStatus status,
+		List<ItemResponse> items, LocalDate validUntil, BigDecimal totalValue) {
 
 	public static QuoteResponse from(QuoteView view) {
-		return new QuoteResponse(view.id(), view.customerId(), view.status(),
+		return new QuoteResponse(view.id(), view.customerId(), view.salespersonId(), view.status(),
 				view.items().stream().map(ItemResponse::from).toList(), view.validUntil(), view.totalValue());
 	}
 

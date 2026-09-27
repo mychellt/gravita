@@ -23,9 +23,10 @@ Index of standalone, per-use-case implementation tickets for [M7 — Vendas & CR
 
 ## Patched gaps
 
-Four gaps surfaced when this module was first split into tickets, now resolved:
+Gaps surfaced when this module was first split into tickets, now resolved:
 
 - **07** (return) had no port to revert stock/financial state — resolved by reusing M5's existing customer-return stock-entry path (`RegisterStockEntryPort`) and a new M8 use case, `AdjustReceivableForReturnUseCase` ([m8-financeiro/uc-21](../m8-financeiro/uc-21-adjust-receivable-for-return.md)).
 - **08** (commission) was missing `CommissionRepositoryPort` — added to the module's outbound-ports table.
+- **08** (commission), implemented: neither `Quote`/`SalesOrder` recorded a salesperson nor did any `CommissionRate` entity/port exist, despite being needed to compute a commission at all. Resolved by adding a required `salespersonId` to `Quote` and `SalesOrder` (touching **01** and **03**), an `invoicedAt` date on `SalesOrder` for period filtering, and a new read-only `CommissionRate`/`CommissionRateRepositoryPort` — see uc-08's Notes.
 - **12** (follow-up rules) had no CRUD for `FollowUpRule` — added as **16**, which must ship before 12 can evaluate anything.
 - **15** (funnel conversion) needed stage-transition history for "average cycle time," which didn't exist — added a `StageTransition` entity to the domain model, appended by **09** on every stage change.

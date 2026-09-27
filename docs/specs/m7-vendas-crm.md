@@ -32,10 +32,11 @@ The sales cycle goes from quote to invoicing without reopening the customer regi
 
 ## Domain model
 
-- **Quote (Orçamento)** (aggregate root) — `customer`, `items: [{product|service, quantity, unitPrice, discount}]`, `validUntil`, `status: {DRAFT, SENT, EXPIRED, CONVERTED}`.
-- **SalesOrder (Pedido de venda)** (aggregate root) — `originQuote` (optional), `customer`, `items`, `discountPercent`, `status: {DRAFT, APPROVED, IN_SEPARATION, INVOICED, CANCELLED}`, `approval{alcada, approvedBy}`. Invariant: stock is reserved exactly on the `DRAFT → APPROVED` transition and released on `→ CANCELLED`; invoicing is only possible from `APPROVED`/`IN_SEPARATION`.
+- **Quote (Orçamento)** (aggregate root) — `customer`, `salesperson`, `items: [{product|service, quantity, unitPrice, discount}]`, `validUntil`, `status: {DRAFT, SENT, EXPIRED, CONVERTED}`. `salesperson` was added by UC-08 (see its Notes) — nothing before it needed to know who sold an order.
+- **SalesOrder (Pedido de venda)** (aggregate root) — `originQuote` (optional), `customer`, `salesperson`, `items`, `discountPercent`, `status: {DRAFT, APPROVED, IN_SEPARATION, INVOICED, CANCELLED}`, `approval{alcada, approvedBy}`, `invoicedAt`. Invariant: stock is reserved exactly on the `DRAFT → APPROVED` transition and released on `→ CANCELLED`; invoicing is only possible from `APPROVED`/`IN_SEPARATION`, and records `invoicedAt`. `salesperson`/`invoicedAt` were added by UC-08, which needs both to attribute and period-filter commissions.
 - **SalesInvoice** — the link from a `SalesOrder` to the fiscal document actually issued (`NfeDocument`, `NfceSale` or `NfseDocument` in `tax`), chosen per item type (product → NFe/NFCe, service → NFSe).
 - **Commission** — `salesperson`, `product`, `order`, `rate`, `amount: Money`, aggregated monthly.
+- **CommissionRate** — `salesperson`, `product`, `rate`, configured per pair; read by UC-08. Added by UC-08 (see its Notes) — no entity backed "the configured rate" the module spec's Notes on `Commission` already assumed.
 - **SalesReturn (Devolução)** — `originalOrder`, `items`, `returnNfeRef`, reverts both `inventory` and `finance` positions.
 - **Opportunity (Oportunidade)** (aggregate root, CRM) — `customer`, `stage: {PROSPECTING, PROPOSAL, NEGOTIATION, CLOSED, LOST}`, `estimatedValue: Money`, `probability`, `expectedCloseDate`, `owner`.
 - **StageTransition** (immutable, append-only) — `opportunity`, `fromStage`, `toStage`, `timestamp`. Appended by `ManageOpportunityUseCase` on every stage change; the only source of "average cycle time" for `GetFunnelConversionUseCase`, since `Opportunity.stage` itself only holds the current value.
@@ -73,6 +74,7 @@ Each use case below has a standalone implementation ticket under [`m7-vendas-crm
 |---|---|
 | `QuoteRepositoryPort`, `SalesOrderRepositoryPort`, `OpportunityRepositoryPort`, `InteractionRepositoryPort`, `FollowUpTaskRepositoryPort`, `SalespersonTargetRepositoryPort` | Persistence. |
 | `CommissionRepositoryPort` | Persistence for `Commission` — backs `CommissionJpaEntity`, already listed under Adapters. |
+| `CommissionRateRepositoryPort` | Read-only access to the configured `CommissionRate` for a salesperson/product pair; backs `CommissionRateJpaEntity`. Added by UC-08 — see its Notes. |
 | `StageTransitionRepositoryPort` | Append-only persistence for `StageTransition`; written by `ManageOpportunityUseCase`, read by `GetFunnelConversionUseCase`. |
 | `FollowUpRuleRepositoryPort` | Persistence for `FollowUpRule` definitions. |
 | `ReserveStockPort` / `ReleaseStockReservationPort` (into `inventory`) | Order approval/cancellation side effects. |
@@ -106,7 +108,7 @@ Each use case below has a standalone implementation ticket under [`m7-vendas-crm
 
 ### Outbound (`adapter.out.persistence`)
 
-`QuoteJpaEntity`, `SalesOrderJpaEntity`, `CommissionJpaEntity`, `OpportunityJpaEntity`, `StageTransitionJpaEntity`, `InteractionJpaEntity`, `FollowUpTaskJpaEntity`, `FollowUpRuleJpaEntity`, `SalespersonTargetJpaEntity`.
+`QuoteJpaEntity`, `SalesOrderJpaEntity`, `CommissionJpaEntity`, `CommissionRateJpaEntity`, `OpportunityJpaEntity`, `StageTransitionJpaEntity`, `InteractionJpaEntity`, `FollowUpTaskJpaEntity`, `FollowUpRuleJpaEntity`, `SalespersonTargetJpaEntity`.
 
 ## Cross-module dependencies
 
@@ -119,5 +121,5 @@ Each use case below has a standalone implementation ticket under [`m7-vendas-crm
 
 ## Notes
 
-- "Comissão calculada por vendedor e por produto" doesn't specify the rate source; modeled here as configured per salesperson/product pair, owned by `sales` rather than `masterdata`, since it's sales-policy rather than product-catalog data.
-- Four gaps surfaced by the initial use-case split were patched in: a `RevertStockPort`/financial-reversal path for returns (resolved as `RegisterStockEntryPort` — reuses M5/M6's existing customer-return entry path — plus a new `AdjustReceivableForReturnPort` into a new M8 use case, `AdjustReceivableForReturnUseCase`); a missing `CommissionRepositoryPort`; a missing CRUD use case for `FollowUpRule` (added as `ManageFollowUpRuleUseCase`, uc-16); and a missing `StageTransition` log needed for "average cycle time" (added to the domain model, backed by `StageTransitionRepositoryPort`).
+- "Comissão calculada por vendedor e por produto" doesn't specify the rate source; modeled here as configured per salesperson/product pair, owned by `sales` rather than `masterdata`, since it's sales-policy rather than product-catalog data. Implementing UC-08 found that no entity/port actually backed this — see its Notes and the `CommissionRate` addition above.
+- Gaps surfaced by the initial use-case split were patched in: a `RevertStockPort`/financial-reversal path for returns (resolved as `RegisterStockEntryPort` — reuses M5/M6's existing customer-return entry path — plus a new `AdjustReceivableForReturnPort` into a new M8 use case, `AdjustReceivableForReturnUseCase`); a missing `CommissionRepositoryPort`; a missing CRUD use case for `FollowUpRule` (added as `ManageFollowUpRuleUseCase`, uc-16); and a missing `StageTransition` log needed for "average cycle time" (added to the domain model, backed by `StageTransitionRepositoryPort`). Implementing UC-08 later surfaced two more, patched directly into UC-01/UC-03 and the domain model: no `salesperson` on `Quote`/`SalesOrder`, and no `CommissionRate` entity/port for "the configured rate" — see uc-08's Notes.

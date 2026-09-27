@@ -124,13 +124,14 @@ class ApproveSalesOrderEndToEndTest {
 	private SalesOrder persistDraftOrder(UUID productId, BigDecimal quantity, BigDecimal unitPrice,
 			BigDecimal discount) {
 		UUID customerId = UUID.randomUUID();
-		Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId,
+		UUID salespersonId = UUID.randomUUID();
+		Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId, salespersonId,
 				List.of(new QuoteItem(productId, quantity, unitPrice, discount)), LocalDate.now().plusDays(5),
 				LocalDate.now());
 		quoteRepositoryPort.save(quote);
 
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), quote.getId(), customerId,
-				List.of(new SalesOrderItem(productId, quantity, unitPrice, discount)));
+				salespersonId, List.of(new SalesOrderItem(productId, quantity, unitPrice, discount)));
 		return salesOrderRepositoryPort.save(order);
 	}
 

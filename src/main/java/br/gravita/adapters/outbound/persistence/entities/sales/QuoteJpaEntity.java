@@ -36,6 +36,9 @@ public class QuoteJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "customer_id", nullable = false)
 	private UUID customerId;
 
+	@Column(name = "salesperson_id", nullable = false)
+	private UUID salespersonId;
+
 	@Column(name = "valid_until", nullable = false)
 	private LocalDate validUntil;
 

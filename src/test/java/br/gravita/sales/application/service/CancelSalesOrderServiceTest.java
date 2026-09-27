@@ -44,7 +44,7 @@ class CancelSalesOrderServiceTest {
 	@Test
 	void cancelsADraftOrderWithoutReleasingAnyStockReservation() {
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
-				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), List.of(item()));
+				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), List.of(item()));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -60,7 +60,8 @@ class CancelSalesOrderServiceTest {
 	@Test
 	void cancellingAnApprovedOrderReleasesTheOrdersStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
+				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED, UUID.randomUUID(),
+				null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -76,7 +77,8 @@ class CancelSalesOrderServiceTest {
 	@Test
 	void cancellingAnInSeparationOrderReleasesItsStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
+				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION,
+				UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -88,7 +90,8 @@ class CancelSalesOrderServiceTest {
 	@Test
 	void rejectsCancellingAnInvoicedOrderWithoutReleasingStockOrSaving() {
 		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, UUID.randomUUID(), null);
+				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, UUID.randomUUID(),
+				null);
 		when(salesOrderRepositoryPort.findById(invoiced.getId())).thenReturn(Optional.of(invoiced));
 
 		assertThatThrownBy(() -> service.execute(

@@ -21,11 +21,13 @@ public interface SalesOrderPersistenceMapper {
 				SalesOrderId.of(entity.getId()),
 				QuoteId.of(entity.getOriginQuoteId()),
 				entity.getCustomerId(),
+				entity.getSalespersonId(),
 				toItems(entity.getItems()),
 				entity.getStatus(),
 				entity.getApprovedBy(),
 				entity.getAlcadaId(),
-				entity.getCancelReason());
+				entity.getCancelReason(),
+				entity.getInvoicedAt());
 	}
 
 	default SalesOrderJpaEntity toEntity(final SalesOrder domain) {
@@ -33,11 +35,13 @@ public interface SalesOrderPersistenceMapper {
 				.id(domain.getId() == null ? null : domain.getId().value())
 				.originQuoteId(domain.getOriginQuoteId() == null ? null : domain.getOriginQuoteId().value())
 				.customerId(domain.getCustomerId())
+				.salespersonId(domain.getSalespersonId())
 				.status(domain.getStatus())
 				.approvedBy(domain.getApprovedBy())
 				.alcadaId(domain.getAlcadaId())
 				.items(toItemEmbeddables(domain.getItems()))
 				.cancelReason(domain.getCancelReason())
+				.invoicedAt(domain.getInvoicedAt())
 				.build();
 	}
 

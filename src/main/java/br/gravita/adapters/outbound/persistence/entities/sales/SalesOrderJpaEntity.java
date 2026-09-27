@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,9 @@ public class SalesOrderJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "customer_id", nullable = false)
 	private UUID customerId;
 
+	@Column(name = "salesperson_id", nullable = false)
+	private UUID salespersonId;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private SalesOrderStatus status;
@@ -55,4 +59,7 @@ public class SalesOrderJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "cancel_reason")
 	private String cancelReason;
+
+	@Column(name = "invoiced_at")
+	private LocalDate invoicedAt;
 }

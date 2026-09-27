@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -17,33 +18,45 @@ public final class SalesOrder {
 	private final SalesOrderId id;
 	private final QuoteId originQuoteId;
 	private final UUID customerId;
+	private final UUID salespersonId;
 	private final List<SalesOrderItem> items;
 	private final SalesOrderStatus status;
 	private final UUID approvedBy;
 	private final UUID alcadaId;
 	private final String cancelReason;
+	private final LocalDate invoicedAt;
 
 	public static SalesOrder createFromQuote(SalesOrderId id, QuoteId originQuoteId, UUID customerId,
-			List<SalesOrderItem> items) {
+			UUID salespersonId, List<SalesOrderItem> items) {
 		Objects.requireNonNull(originQuoteId, "originQuoteId is required");
 		Objects.requireNonNull(customerId, "customerId is required");
-		return new SalesOrder(id, originQuoteId, customerId, requireNonEmptyItems(items), SalesOrderStatus.DRAFT,
-				null, null, null);
+		Objects.requireNonNull(salespersonId, "salespersonId is required");
+		return new SalesOrder(id, originQuoteId, customerId, salespersonId, requireNonEmptyItems(items),
+				SalesOrderStatus.DRAFT, null, null, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, List<SalesOrderItem> items,
-			SalesOrderStatus status) {
-		return of(id, originQuoteId, customerId, items, status, null, null, null);
+	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
+			List<SalesOrderItem> items, SalesOrderStatus status) {
+		return of(id, originQuoteId, customerId, salespersonId, items, status, null, null, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, List<SalesOrderItem> items,
-			SalesOrderStatus status, UUID approvedBy, UUID alcadaId) {
-		return of(id, originQuoteId, customerId, items, status, approvedBy, alcadaId, null);
+	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
+			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId) {
+		return of(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, List<SalesOrderItem> items,
-			SalesOrderStatus status, UUID approvedBy, UUID alcadaId, String cancelReason) {
-		return new SalesOrder(id, originQuoteId, customerId, items, status, approvedBy, alcadaId, cancelReason);
+	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
+			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId,
+			String cancelReason) {
+		return of(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId, cancelReason,
+				null);
+	}
+
+	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
+			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId, String cancelReason,
+			LocalDate invoicedAt) {
+		return new SalesOrder(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId,
+				cancelReason, invoicedAt);
 	}
 
 	public SalesOrder approve(UUID approvedBy, UUID alcadaId) {
@@ -51,16 +64,16 @@ public final class SalesOrder {
 		if (status != SalesOrderStatus.DRAFT) {
 			throw new BusinessRuleException("Only DRAFT orders can be approved, was " + status);
 		}
-		return new SalesOrder(id, originQuoteId, customerId, items, SalesOrderStatus.APPROVED, approvedBy, alcadaId,
-				cancelReason);
+		return new SalesOrder(id, originQuoteId, customerId, salespersonId, items, SalesOrderStatus.APPROVED,
+				approvedBy, alcadaId, cancelReason, invoicedAt);
 	}
 
 	public SalesOrder invoice() {
 		if (status != SalesOrderStatus.APPROVED && status != SalesOrderStatus.IN_SEPARATION) {
 			throw new BusinessRuleException("Only APPROVED or IN_SEPARATION orders can be invoiced, was " + status);
 		}
-		return new SalesOrder(id, originQuoteId, customerId, items, SalesOrderStatus.INVOICED, approvedBy, alcadaId,
-				cancelReason);
+		return new SalesOrder(id, originQuoteId, customerId, salespersonId, items, SalesOrderStatus.INVOICED,
+				approvedBy, alcadaId, cancelReason, LocalDate.now());
 	}
 
 	public boolean hasActiveStockReservation() {
@@ -75,8 +88,8 @@ public final class SalesOrder {
 		if (status == SalesOrderStatus.CANCELLED) {
 			throw new BusinessRuleException("Order " + id.value() + " is already cancelled");
 		}
-		return new SalesOrder(id, originQuoteId, customerId, items, SalesOrderStatus.CANCELLED, approvedBy, alcadaId,
-				reason);
+		return new SalesOrder(id, originQuoteId, customerId, salespersonId, items, SalesOrderStatus.CANCELLED,
+				approvedBy, alcadaId, reason, invoicedAt);
 	}
 
 	public BigDecimal totalValue() {

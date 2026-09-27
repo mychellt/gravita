@@ -6,8 +6,12 @@ import br.gravita.adapters.outbound.persistence.repositories.sales.SalesOrderJpa
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.SalesOrder;
 import br.gravita.core.domain.sales.SalesOrderId;
+import br.gravita.core.domain.sales.SalesOrderStatus;
 import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class SalesOrderRepositoryAdapter implements SalesOrderRepositoryPort {
@@ -31,5 +35,18 @@ class SalesOrderRepositoryAdapter implements SalesOrderRepositoryPort {
 	@Override
 	public Optional<SalesOrder> findById(SalesOrderId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<SalesOrder> findInvoicedByPeriod(LocalDate periodStart, LocalDate periodEnd) {
+		return jpaRepository.findByStatusAndInvoicedAtBetween(SalesOrderStatus.INVOICED, periodStart, periodEnd)
+				.stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<SalesOrder> findInvoicedByPeriodAndSalesperson(LocalDate periodStart, LocalDate periodEnd,
+			UUID salespersonId) {
+		return jpaRepository.findByStatusAndInvoicedAtBetweenAndSalespersonId(SalesOrderStatus.INVOICED, periodStart,
+				periodEnd, salespersonId).stream().map(mapper::toDomain).toList();
 	}
 }

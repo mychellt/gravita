@@ -20,8 +20,8 @@ public class CreateQuoteService implements CreateQuoteUseCase {
 
 	@Override
 	public QuoteView execute(CreateQuoteCommand command) {
-		var quote = Quote.create(QuoteId.of(UUID.randomUUID()), command.customerId(), command.items(),
-				command.validUntil(), LocalDate.now());
+		var quote = Quote.create(QuoteId.of(UUID.randomUUID()), command.customerId(), command.salespersonId(),
+				command.items(), command.validUntil(), LocalDate.now());
 		return QuoteView.from(quoteRepositoryPort.save(quote));
 	}
 }

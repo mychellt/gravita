@@ -45,7 +45,9 @@ class CreateQuoteServiceTest {
 				new QuoteItem(UUID.randomUUID(), new BigDecimal("2"), new BigDecimal("19.90"), new BigDecimal("3.80")),
 				new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("150.00"), BigDecimal.ZERO));
 
-		QuoteView view = service.execute(new CreateQuoteCommand(customerId, items, validUntil));
+		UUID salespersonId = UUID.randomUUID();
+
+		QuoteView view = service.execute(new CreateQuoteCommand(customerId, salespersonId, items, validUntil));
 
 		ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
 		verify(quoteRepositoryPort).save(saved.capture());
@@ -66,7 +68,7 @@ class CreateQuoteServiceTest {
 	@Test
 	void rejectsAQuoteWithNoItemsWithoutPersistingIt() {
 		assertThatThrownBy(() -> service.execute(
-				new CreateQuoteCommand(UUID.randomUUID(), List.of(), LocalDate.now().plusDays(1))))
+				new CreateQuoteCommand(UUID.randomUUID(), UUID.randomUUID(), List.of(), LocalDate.now().plusDays(1))))
 				.isInstanceOf(BusinessRuleException.class);
 
 		verify(quoteRepositoryPort, never()).save(any());
@@ -76,7 +78,8 @@ class CreateQuoteServiceTest {
 	void rejectsAValidityDateThatIsNotInTheFutureWithoutPersistingIt() {
 		List<QuoteItem> items = List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null));
 
-		assertThatThrownBy(() -> service.execute(new CreateQuoteCommand(UUID.randomUUID(), items, LocalDate.now())))
+		assertThatThrownBy(() -> service.execute(
+				new CreateQuoteCommand(UUID.randomUUID(), UUID.randomUUID(), items, LocalDate.now())))
 				.isInstanceOf(BusinessRuleException.class);
 
 		verify(quoteRepositoryPort, never()).save(any());

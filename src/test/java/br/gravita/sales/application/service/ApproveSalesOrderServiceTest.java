@@ -193,7 +193,7 @@ class ApproveSalesOrderServiceTest {
 
 	private static SalesOrder draftOrder(List<SalesOrderItem> items) {
 		return SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), items);
+				UUID.randomUUID(), UUID.randomUUID(), items);
 	}
 
 	private static SalesOrderItem item(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
