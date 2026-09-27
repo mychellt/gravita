@@ -6,6 +6,7 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.OpportunityId;
 import br.gravita.core.domain.sales.StageTransition;
 import br.gravita.core.ports.outbound.persistence.sales.StageTransitionRepositoryPort;
+import java.time.Instant;
 import java.util.List;
 
 @PersistenceAdapter
@@ -28,5 +29,12 @@ class StageTransitionRepositoryAdapter implements StageTransitionRepositoryPort 
 	@Override
 	public List<StageTransition> findByOpportunityId(OpportunityId opportunityId) {
 		return jpaRepository.findByOpportunityId(opportunityId.value()).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<StageTransition> findByPeriod(Instant periodStart, Instant periodEnd) {
+		return jpaRepository.findByTimestampGreaterThanEqualAndTimestampLessThan(periodStart, periodEnd).stream()
+				.map(mapper::toDomain)
+				.toList();
 	}
 }
