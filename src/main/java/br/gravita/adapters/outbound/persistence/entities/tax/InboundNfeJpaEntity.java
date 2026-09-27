@@ -97,4 +97,8 @@ public class InboundNfeJpaEntity extends AbstractEntity<UUID> {
 	@ElementCollection
 	@CollectionTable(name = "inbound_nfe_items", joinColumns = @JoinColumn(name = "inbound_nfe_id"))
 	private List<InboundNfeItemEmbeddable> items;
+
+	@ElementCollection
+	@CollectionTable(name = "inbound_nfe_conference_items", joinColumns = @JoinColumn(name = "inbound_nfe_id"))
+	private List<InboundNfeConferenceItemEmbeddable> conferenceResult;
 }

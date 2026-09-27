@@ -1,9 +1,12 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.ConfirmInboundNfeReceiptRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.EnterInboundNfeManuallyRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ImportSupplierNfeXmlResponse;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.tax.InboundNfeNotFoundException;
+import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptUseCase;
 import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlCommand;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,11 +33,14 @@ public class InboundNfeController {
 
 	private final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase;
 	private final EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase;
+	private final ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase;
 
 	public InboundNfeController(ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
-			EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase) {
+			EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase,
+			ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase) {
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
 		this.enterInboundNfeManuallyUseCase = enterInboundNfeManuallyUseCase;
+		this.confirmInboundNfeReceiptUseCase = confirmInboundNfeReceiptUseCase;
 	}
 
 	@PostMapping(value = "/import-xml", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,6 +58,13 @@ public class InboundNfeController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(ImportSupplierNfeXmlResponse.from(inboundNfe));
 	}
 
+	@PostMapping("/{id}/confirm-receipt")
+	public ResponseEntity<ImportSupplierNfeXmlResponse> confirmReceipt(@PathVariable UUID id,
+			@RequestBody ConfirmInboundNfeReceiptRequest request) {
+		var inboundNfe = confirmInboundNfeReceiptUseCase.execute(request.toCommand(id));
+		return ResponseEntity.ok(ImportSupplierNfeXmlResponse.from(inboundNfe));
+	}
+
 	private byte[] readBytes(MultipartFile file) {
 		try {
 			return file.getBytes();
@@ -62,5 +76,11 @@ public class InboundNfeController {
 	@ExceptionHandler(BusinessRuleException.class)
 	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
+	}
+
+	@ExceptionHandler(InboundNfeNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleInboundNfeNotFoundException(
+			InboundNfeNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 }

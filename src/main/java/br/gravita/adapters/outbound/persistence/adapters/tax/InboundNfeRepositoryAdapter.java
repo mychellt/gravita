@@ -6,7 +6,9 @@ import br.gravita.adapters.outbound.persistence.repositories.tax.InboundNfeJpaRe
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.tax.InboundNfe;
+import br.gravita.core.domain.tax.InboundNfeId;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
+import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @PersistenceAdapter
@@ -34,6 +36,11 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 			}
 			throw e;
 		}
+	}
+
+	@Override
+	public Optional<InboundNfe> findById(InboundNfeId id) {
+		return jpaRepository.findById(id.value()).map(mapper::toDomain);
 	}
 
 	private boolean violatesAccessKeyUniqueness(DataIntegrityViolationException e) {
