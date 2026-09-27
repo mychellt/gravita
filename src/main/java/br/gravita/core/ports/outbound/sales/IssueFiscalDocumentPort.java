@@ -19,6 +19,13 @@ public interface IssueFiscalDocumentPort {
 
 	FiscalDocumentRef issueForServices(IssueFiscalDocumentCommand command);
 
+	/**
+	 * Issues a return NFe (UC-M7-07), referencing the access key of the
+	 * {@code originalDocument} previously issued by {@link #issueForProducts}
+	 * for the same order.
+	 */
+	FiscalDocumentRef issueForReturn(IssueReturnFiscalDocumentCommand command);
+
 	record IssueFiscalDocumentCommand(UUID orderId, UUID customerId, List<Item> items) {
 
 		public IssueFiscalDocumentCommand {
@@ -32,6 +39,20 @@ public interface IssueFiscalDocumentPort {
 
 		public record Item(UUID productOrServiceId, String description, BigDecimal quantity, BigDecimal unitPrice,
 				BigDecimal discount) {
+		}
+	}
+
+	record IssueReturnFiscalDocumentCommand(UUID orderId, UUID customerId, FiscalDocumentRef originalDocument,
+			List<IssueFiscalDocumentCommand.Item> items) {
+
+		public IssueReturnFiscalDocumentCommand {
+			Objects.requireNonNull(orderId, "orderId is required");
+			Objects.requireNonNull(customerId, "customerId is required");
+			Objects.requireNonNull(originalDocument, "originalDocument is required");
+			if (items == null || items.isEmpty()) {
+				throw new IllegalArgumentException("items must not be empty");
+			}
+			items = List.copyOf(items);
 		}
 	}
 }

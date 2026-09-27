@@ -6,6 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.sales.SalesInvoiceJ
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.SalesInvoice;
 import br.gravita.core.domain.sales.SalesInvoiceId;
+import br.gravita.core.domain.sales.SalesOrderId;
 import br.gravita.core.ports.outbound.persistence.sales.SalesInvoiceRepositoryPort;
 import java.util.Optional;
 
@@ -31,5 +32,10 @@ class SalesInvoiceRepositoryAdapter implements SalesInvoiceRepositoryPort {
 	@Override
 	public Optional<SalesInvoice> findById(SalesInvoiceId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public Optional<SalesInvoice> findByOrderId(SalesOrderId orderId) {
+		return jpaRepository.findBySalesOrderId(orderId.value()).map(mapper::toDomain);
 	}
 }

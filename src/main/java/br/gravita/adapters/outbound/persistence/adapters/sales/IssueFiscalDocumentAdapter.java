@@ -10,11 +10,13 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NaturezaOperacao;
 import br.gravita.core.domain.tax.NfeDocument;
+import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.ports.inbound.tax.IssueNfeCommand;
 import br.gravita.core.ports.inbound.tax.IssueNfeCommand.ItemCommand;
 import br.gravita.core.ports.inbound.tax.IssueNfeCommand.RecipientCommand;
 import br.gravita.core.ports.inbound.tax.IssueNfeUseCase;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
 import br.gravita.core.ports.outbound.sales.IssueFiscalDocumentPort;
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,10 +35,13 @@ class IssueFiscalDocumentAdapter implements IssueFiscalDocumentPort {
 
 	private final IssueNfeUseCase issueNfeUseCase;
 	private final CustomerRepositoryPort customerRepositoryPort;
+	private final NfeRepositoryPort nfeRepositoryPort;
 
-	IssueFiscalDocumentAdapter(IssueNfeUseCase issueNfeUseCase, CustomerRepositoryPort customerRepositoryPort) {
+	IssueFiscalDocumentAdapter(IssueNfeUseCase issueNfeUseCase, CustomerRepositoryPort customerRepositoryPort,
+			NfeRepositoryPort nfeRepositoryPort) {
 		this.issueNfeUseCase = issueNfeUseCase;
 		this.customerRepositoryPort = customerRepositoryPort;
+		this.nfeRepositoryPort = nfeRepositoryPort;
 	}
 
 	@Override
@@ -59,6 +64,29 @@ class IssueFiscalDocumentAdapter implements IssueFiscalDocumentPort {
 	public FiscalDocumentRef issueForServices(IssueFiscalDocumentCommand command) {
 		throw new BusinessRuleException(
 				"NFSe issuance is not yet available: M4 (Fiscal NFSe) has not been implemented");
+	}
+
+	@Override
+	public FiscalDocumentRef issueForReturn(IssueReturnFiscalDocumentCommand command) {
+		if (command.originalDocument().type() != FiscalDocumentType.NFE) {
+			throw new BusinessRuleException("Return NFe issuance is only supported for orders invoiced through NFe");
+		}
+		NfeDocument original = nfeRepositoryPort.findById(NfeDocumentId.of(command.originalDocument().documentId()))
+				.orElseThrow(() -> new ResourceNotFoundException(
+						"Original fiscal document not found: " + command.originalDocument().documentId()));
+
+		RecipientCommand recipient = buildRecipient(command.customerId());
+		List<ItemCommand> items = command.items().stream()
+				.map(item -> new ItemCommand(item.productOrServiceId(), item.description(), item.quantity(),
+						item.unitPrice(), item.discount()))
+				.toList();
+
+		IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
+				NaturezaOperacao.DEVOLUCAO, recipient, items, null, null, List.of(), BigDecimal.ZERO, BigDecimal.ZERO,
+				BigDecimal.ZERO, null, original.getAccessKey(), null);
+
+		NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
+		return new FiscalDocumentRef(FiscalDocumentType.NFE, issued.getId().value());
 	}
 
 	private RecipientCommand buildRecipient(UUID customerId) {
