@@ -1,0 +1,26 @@
+package br.gravita.adapters.inbound.controllers.sales.dtos;
+
+import br.gravita.core.domain.sales.SalesOrderItem;
+import br.gravita.core.domain.sales.SalesOrderStatus;
+import br.gravita.core.ports.inbound.sales.SalesOrderView;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+public record SalesOrderResponse(UUID id, UUID originQuoteId, UUID customerId, SalesOrderStatus status,
+		List<ItemResponse> items, BigDecimal totalValue) {
+
+	public static SalesOrderResponse from(SalesOrderView view) {
+		return new SalesOrderResponse(view.id(), view.originQuoteId(), view.customerId(), view.status(),
+				view.items().stream().map(ItemResponse::from).toList(), view.totalValue());
+	}
+
+	public record ItemResponse(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
+			BigDecimal discount, BigDecimal lineTotal) {
+
+		static ItemResponse from(SalesOrderItem item) {
+			return new ItemResponse(item.productOrServiceId(), item.quantity(), item.unitPrice(), item.discount(),
+					item.lineTotal());
+		}
+	}
+}

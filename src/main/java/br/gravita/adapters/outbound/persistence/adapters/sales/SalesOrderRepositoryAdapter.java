@@ -1,0 +1,35 @@
+package br.gravita.adapters.outbound.persistence.adapters.sales;
+
+import br.gravita.adapters.outbound.persistence.entities.sales.SalesOrderJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.sales.SalesOrderPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.sales.SalesOrderJpaRepository;
+import br.gravita.core.annotations.PersistenceAdapter;
+import br.gravita.core.domain.sales.SalesOrder;
+import br.gravita.core.domain.sales.SalesOrderId;
+import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
+import java.util.Optional;
+
+@PersistenceAdapter
+class SalesOrderRepositoryAdapter implements SalesOrderRepositoryPort {
+
+	private final SalesOrderJpaRepository jpaRepository;
+	private final SalesOrderPersistenceMapper mapper;
+
+	SalesOrderRepositoryAdapter(SalesOrderJpaRepository jpaRepository, SalesOrderPersistenceMapper mapper) {
+		this.jpaRepository = jpaRepository;
+		this.mapper = mapper;
+	}
+
+	@Override
+	public SalesOrder save(SalesOrder order) {
+		SalesOrderJpaEntity entity = mapper.toEntity(order);
+		entity.setNew(!jpaRepository.existsById(entity.getId()));
+		SalesOrderJpaEntity saved = jpaRepository.save(entity);
+		return mapper.toDomain(saved);
+	}
+
+	@Override
+	public Optional<SalesOrder> findById(SalesOrderId id) {
+		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+}
