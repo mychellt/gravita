@@ -22,7 +22,7 @@ export class TitleService {
 
   constructor(router: Router) {
     router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe((e: any) => {
-      this.title.set(ROUTE_TITLES[e.urlAfterRedirects] ?? 'ERP MVP');
+      this.title.set(ROUTE_TITLES[e.urlAfterRedirects] ?? 'Gravita');
     });
   }
 }
