@@ -1,14 +1,19 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.CorrectionLetterResponse;
+import br.gravita.adapters.inbound.controllers.tax.dtos.IssueCorrectionLetterRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueNfeRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueNfeResponse;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.tax.CorrectionLetter;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.domain.tax.NfeDocumentStatus;
+import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterCommand;
+import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterUseCase;
 import br.gravita.core.ports.inbound.tax.IssueNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ResendNfeEmailCommand;
 import br.gravita.core.ports.inbound.tax.ResendNfeEmailUseCase;
@@ -42,6 +47,7 @@ public class NfeController {
 
 	private final IssueNfeUseCase issueNfeUseCase;
 	private final ResendNfeEmailUseCase resendNfeEmailUseCase;
+	private final IssueCorrectionLetterUseCase issueCorrectionLetterUseCase;
 	private final NfeRepositoryPort nfeRepositoryPort;
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final XmlObjectStoragePort xmlObjectStoragePort;
@@ -79,6 +85,15 @@ public class NfeController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void resendEmail(@PathVariable UUID id) {
 		resendNfeEmailUseCase.execute(new ResendNfeEmailCommand(id));
+	}
+
+	@PostMapping("/{id}/correction-letters")
+	@ResponseStatus(HttpStatus.CREATED)
+	public CorrectionLetterResponse issueCorrectionLetter(@PathVariable UUID id,
+			@Valid @RequestBody IssueCorrectionLetterRequest request) {
+		CorrectionLetter correctionLetter = issueCorrectionLetterUseCase
+				.execute(new IssueCorrectionLetterCommand(id, request.text()));
+		return CorrectionLetterResponse.from(correctionLetter);
 	}
 
 	private NfeDocument authorizedDocument(UUID id) {

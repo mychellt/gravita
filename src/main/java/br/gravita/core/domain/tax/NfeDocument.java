@@ -4,6 +4,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -18,6 +19,9 @@ import lombok.Getter;
  */
 @Getter
 public final class NfeDocument {
+
+	/** UC-M2-05 (§3.2): "limit of 20 events." */
+	public static final int MAX_CORRECTION_LETTERS = 20;
 
 	private final NfeDocumentId id;
 	private final CompanyId issuerCompanyId;
@@ -43,6 +47,7 @@ public final class NfeDocument {
 	private final String rejectionReason;
 	private final String xmlStorageRef;
 	private final String danfeStorageRef;
+	private final List<CorrectionLetter> correctionLetters;
 
 	private NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
 			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
@@ -50,7 +55,7 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
 			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef) {
+			String danfeStorageRef, List<CorrectionLetter> correctionLetters) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.issuerCompanyId = Objects.requireNonNull(issuerCompanyId, "issuerCompanyId is required");
 		this.originSalesOrderId = originSalesOrderId;
@@ -75,6 +80,7 @@ public final class NfeDocument {
 		this.rejectionReason = rejectionReason;
 		this.xmlStorageRef = xmlStorageRef;
 		this.danfeStorageRef = danfeStorageRef;
+		this.correctionLetters = correctionLetters == null ? List.of() : List.copyOf(correctionLetters);
 	}
 
 	/**
@@ -87,7 +93,7 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals, Instant createdAt) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
-				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null);
+				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null, List.of());
 	}
 
 	/**
@@ -100,11 +106,11 @@ public final class NfeDocument {
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
 			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
 			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef) {
+			String danfeStorageRef, List<CorrectionLetter> correctionLetters) {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
-				xmlStorageRef, danfeStorageRef);
+				xmlStorageRef, danfeStorageRef, correctionLetters);
 	}
 
 	/**
@@ -119,7 +125,8 @@ public final class NfeDocument {
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.QUEUED, createdAt, requireText(documentSeries, "documentSeries"),
 				Objects.requireNonNull(documentNumber, "documentNumber is required"),
-				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol, false, null, null, null);
+				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol, false, null, null, null,
+				correctionLetters);
 	}
 
 	/**
@@ -135,7 +142,7 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.SENT, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
-				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef);
+				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters);
 	}
 
 	/**
@@ -149,7 +156,7 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, true, rejectionReason,
-				xmlStorageRef, danfeStorageRef);
+				xmlStorageRef, danfeStorageRef, correctionLetters);
 	}
 
 	/**
@@ -162,7 +169,8 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.AUTHORIZED, createdAt, documentSeries, documentNumber, accessKey,
-				requireText(sefazProtocol, "sefazProtocol"), contingencyMode, null, xmlStorageRef, danfeStorageRef);
+				requireText(sefazProtocol, "sefazProtocol"), contingencyMode, null, xmlStorageRef, danfeStorageRef,
+				correctionLetters);
 	}
 
 	/**
@@ -179,7 +187,8 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
-				requireText(xmlStorageRef, "xmlStorageRef"), requireText(danfeStorageRef, "danfeStorageRef"));
+				requireText(xmlStorageRef, "xmlStorageRef"), requireText(danfeStorageRef, "danfeStorageRef"),
+				correctionLetters);
 	}
 
 	/**
@@ -192,7 +201,31 @@ public final class NfeDocument {
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
 				NfeDocumentStatus.REJECTED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
-				contingencyMode, requireText(rejectionReason, "rejectionReason"), xmlStorageRef, danfeStorageRef);
+				contingencyMode, requireText(rejectionReason, "rejectionReason"), xmlStorageRef, danfeStorageRef,
+				correctionLetters);
+	}
+
+	/**
+	 * UC-M2-05: registers a CC-e event correcting non-tax data on this
+	 * {@code AUTHORIZED} document. AC: rejects documents that aren't
+	 * {@code AUTHORIZED} and once {@link #MAX_CORRECTION_LETTERS} events
+	 * already exist; the new event's sequence number is derived from how many
+	 * already exist, and its SEFAZ protocol is supplied by the caller (the
+	 * use case submits to SEFAZ before calling this method).
+	 */
+	public NfeDocument issueCorrectionLetter(String text, String protocol, Instant issuedAt) {
+		requireAuthorized();
+		if (correctionLetters.size() >= MAX_CORRECTION_LETTERS) {
+			throw new BusinessRuleException("NfeDocument " + id.value() + " already has the maximum of "
+					+ MAX_CORRECTION_LETTERS + " correction letters");
+		}
+		CorrectionLetter letter = new CorrectionLetter(correctionLetters.size() + 1, text, protocol, issuedAt);
+		List<CorrectionLetter> updated = new ArrayList<>(correctionLetters);
+		updated.add(letter);
+		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
+				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
+				xmlStorageRef, danfeStorageRef, updated);
 	}
 
 	public BigDecimal getItemsSubtotal() {
@@ -218,6 +251,13 @@ public final class NfeDocument {
 	private void requireSent() {
 		if (status != NfeDocumentStatus.SENT) {
 			throw new BusinessRuleException("NfeDocument " + id.value() + " is not SENT (current status: " + status + ")");
+		}
+	}
+
+	private void requireAuthorized() {
+		if (status != NfeDocumentStatus.AUTHORIZED) {
+			throw new BusinessRuleException(
+					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + status + ")");
 		}
 	}
 

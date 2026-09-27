@@ -11,6 +11,16 @@ public interface SubmitToSefazPort {
 	SefazSubmissionResult voidNumberRange(SefazVoidNumberRangeRequest request);
 
 	/**
+	 * UC-M2-05: registers a CC-e (Carta de Correção Eletrônica) event. This is
+	 * a distinct SEFAZ event type from {@link #submit} - same as
+	 * {@link #cancel}/{@link #voidNumberRange}, it gets its own request shape
+	 * and method rather than overloading {@code submit}, since a correction
+	 * event carries none of the sale-total/tax-result data an authorization
+	 * request needs.
+	 */
+	SefazSubmissionResult correct(SefazCorrectionRequest request);
+
+	/**
 	 * UC-M2-07: transmits the recipient's manifestation (confirmed / unknown /
 	 * operation-not-performed) on an inbound NFe issued against this company by
 	 * a third party. Unlike {@link #submit}/{@link #cancel}/

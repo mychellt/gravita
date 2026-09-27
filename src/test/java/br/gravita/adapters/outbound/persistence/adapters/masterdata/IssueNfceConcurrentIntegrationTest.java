@@ -100,11 +100,35 @@ class IssueNfceConcurrentIntegrationTest {
 					}
 
 					@Override
+					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult correct(
+							br.gravita.core.ports.outbound.tax.SefazCorrectionRequest request) {
+						throw new UnsupportedOperationException("not exercised by this test");
+					}
+
+					@Override
 					public br.gravita.core.ports.outbound.tax.SefazSubmissionResult manifest(
 							br.gravita.core.ports.outbound.tax.SefazManifestationRequest request) {
 						throw new UnsupportedOperationException("not exercised by this test");
 					}
-				}, saleId -> {
+				}, new br.gravita.core.ports.outbound.tax.TransmissionQueuePort() {
+					@Override
+					public void enqueue(br.gravita.core.domain.tax.TransmissionQueueId id) {
+					}
+
+					@Override
+					public List<br.gravita.core.domain.tax.TransmissionQueueEntry> findDue(Instant asOf) {
+						throw new UnsupportedOperationException("not exercised by this test");
+					}
+
+					@Override
+					public void reschedule(UUID documentId, int attempts, Instant nextRetryAt) {
+						throw new UnsupportedOperationException("not exercised by this test");
+					}
+
+					@Override
+					public void remove(UUID documentId) {
+						throw new UnsupportedOperationException("not exercised by this test");
+					}
 				});
 	}
 
