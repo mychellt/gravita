@@ -138,7 +138,7 @@ class QuoteTest {
 
 	@Test
 	void convertingOnTheLastValidDayIsAllowed() {
-		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY, QuoteStatus.DRAFT);
 
 		Quote converted = quote.convert(TODAY);
@@ -158,7 +158,7 @@ class QuoteTest {
 
 	@Test
 	void rejectsConvertingAnExpiredQuote() {
-		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
+		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.minusDays(1),
 				QuoteStatus.DRAFT);
 
@@ -172,6 +172,7 @@ class QuoteTest {
 	}
 
 	private static Quote create(List<QuoteItem> items, LocalDate validUntil) {
-		return Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), items, validUntil, TODAY);
+		return Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), items, validUntil,
+				TODAY);
 	}
 }

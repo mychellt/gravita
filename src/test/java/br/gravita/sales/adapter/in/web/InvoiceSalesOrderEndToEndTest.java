@@ -114,8 +114,9 @@ class InvoiceSalesOrderEndToEndTest {
 	private SalesOrder persistOrder(SalesOrderStatus status, UUID productId, BigDecimal quantity,
 			BigDecimal unitPrice) {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
-				UUID.randomUUID(), List.of(new SalesOrderItem(productId, quantity, unitPrice, BigDecimal.ZERO)),
-				status, status == SalesOrderStatus.DRAFT ? null : UUID.randomUUID(), null);
+				UUID.randomUUID(), UUID.randomUUID(),
+				List.of(new SalesOrderItem(productId, quantity, unitPrice, BigDecimal.ZERO)), status,
+				status == SalesOrderStatus.DRAFT ? null : UUID.randomUUID(), null);
 		return salesOrderRepositoryPort.save(order);
 	}
 

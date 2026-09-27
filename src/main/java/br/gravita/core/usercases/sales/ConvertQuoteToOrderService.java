@@ -34,7 +34,7 @@ public class ConvertQuoteToOrderService implements ConvertQuoteToOrderUseCase {
 
 		List<SalesOrderItem> items = quote.getItems().stream().map(SalesOrderItem::fromQuoteItem).toList();
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), quote.getId(),
-				quote.getCustomerId(), items);
+				quote.getCustomerId(), quote.getSalespersonId(), items);
 
 		SalesOrder saved = salesOrderRepositoryPort.save(order);
 		quoteRepositoryPort.save(convertedQuote);

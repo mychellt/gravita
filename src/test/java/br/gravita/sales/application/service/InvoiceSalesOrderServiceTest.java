@@ -179,7 +179,7 @@ class InvoiceSalesOrderServiceTest {
 
 	private static SalesOrder orderWithStatus(SalesOrderStatus status, List<SalesOrderItem> items) {
 		return SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
-				items, status, status == SalesOrderStatus.DRAFT ? null : UUID.randomUUID(), null);
+				UUID.randomUUID(), items, status, status == SalesOrderStatus.DRAFT ? null : UUID.randomUUID(), null);
 	}
 
 	private static SalesOrderItem item(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,

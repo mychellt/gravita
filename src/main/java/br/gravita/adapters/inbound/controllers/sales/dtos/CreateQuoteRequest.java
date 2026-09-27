@@ -15,11 +15,13 @@ import java.util.UUID;
 
 public record CreateQuoteRequest(
 		@NotNull UUID customerId,
+		@NotNull UUID salespersonId,
 		@NotEmpty List<@Valid ItemRequest> items,
 		@NotNull LocalDate validUntil) {
 
 	public CreateQuoteCommand toCommand() {
-		return new CreateQuoteCommand(customerId, items.stream().map(ItemRequest::toDomain).toList(), validUntil);
+		return new CreateQuoteCommand(customerId, salespersonId, items.stream().map(ItemRequest::toDomain).toList(),
+				validUntil);
 	}
 
 	public record ItemRequest(
