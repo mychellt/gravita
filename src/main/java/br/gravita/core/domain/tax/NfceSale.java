@@ -118,6 +118,21 @@ public final class NfceSale {
 				Objects.requireNonNull(accessKey, "accessKey is required"), null, true);
 	}
 
+	/**
+	 * UC-M3-07: only an {@code AUTHORIZED} sale can be cancelled - a
+	 * {@code DRAFT} sale was never transmitted, and {@code PENDING_SYNC}/
+	 * {@code CANCELLED}/{@code VOIDED} sales are outside this flow's reach.
+	 */
+	public NfceSale cancel() {
+		if (status != NfceSaleStatus.AUTHORIZED) {
+			throw new BusinessRuleException(
+					"NfceSale " + id.value() + " is not AUTHORIZED (current status: " + status + ")");
+		}
+		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
+				NfceSaleStatus.CANCELLED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
+				contingencyMode);
+	}
+
 	private void requireDraft() {
 		if (status != NfceSaleStatus.DRAFT) {
 			throw new BusinessRuleException("NfceSale " + id.value() + " is not DRAFT (current status: " + status + ")");

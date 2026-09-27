@@ -9,11 +9,18 @@ import br.gravita.adapters.outbound.persistence.entities.tax.CashMovementJpaEnti
 import br.gravita.adapters.outbound.persistence.entities.tax.PosSessionJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.CashMovementJpaRepository;
 import br.gravita.adapters.outbound.persistence.repositories.tax.PosSessionJpaRepository;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.CashMovementType;
 import br.gravita.core.domain.tax.PosSessionStatus;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,7 +49,20 @@ class RecordCashMovementEndToEndTest {
 	private CashMovementJpaRepository cashMovementJpaRepository;
 
 	@Autowired
+	private CompanyRepositoryPort companyRepositoryPort;
+
+	@Autowired
 	private ObjectMapper objectMapper;
+
+	private CompanyId companyId;
+
+	@BeforeEach
+	void seedCompany() {
+		companyId = CompanyId.of(UUID.randomUUID());
+		companyRepositoryPort.save(Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654",
+				"6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
+				"nfce@example.com", "11999999999", null, null));
+	}
 
 	@Test
 	void ac1and3and4_recordingASangriaAgainstAnOpenSessionPersistsItImmediatelyWithATimestampAndLink()
@@ -119,6 +139,7 @@ class RecordCashMovementEndToEndTest {
 				.id(sessionId)
 				.registerId(UUID.randomUUID())
 				.operatorId(UUID.randomUUID())
+				.companyId(companyId.value())
 				.openingChangeAmount(new BigDecimal("100.00"))
 				.status(PosSessionStatus.OPEN)
 				.openedAt(Instant.now())
@@ -132,6 +153,7 @@ class RecordCashMovementEndToEndTest {
 				.id(sessionId)
 				.registerId(UUID.randomUUID())
 				.operatorId(UUID.randomUUID())
+				.companyId(companyId.value())
 				.openingChangeAmount(new BigDecimal("100.00"))
 				.status(PosSessionStatus.CLOSED)
 				.openedAt(Instant.now())

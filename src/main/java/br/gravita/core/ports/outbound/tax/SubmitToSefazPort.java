@@ -16,4 +16,12 @@ public interface SubmitToSefazPort {
 	 * useful reaction is the same: queue for contingency.
 	 */
 	SefazSubmissionResult submit(SefazSubmissionRequest request);
+
+	/**
+	 * UC-M3-07 (AC4): transmits a cancellation event for an already-authorized
+	 * document.
+	 *
+	 * @throws SefazUnavailableException when SEFAZ-UF can't be reached.
+	 */
+	SefazSubmissionResult cancel(SefazCancellationRequest request);
 }

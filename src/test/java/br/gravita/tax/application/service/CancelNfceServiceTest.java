@@ -1,0 +1,208 @@
+package br.gravita.tax.application.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import br.gravita.core.domain.PaymentMethodType;
+import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.exceptions.UnauthorizedException;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
+import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.tax.NfceSale;
+import br.gravita.core.domain.tax.NfceSaleId;
+import br.gravita.core.domain.tax.NfceSaleStatus;
+import br.gravita.core.domain.tax.Payment;
+import br.gravita.core.domain.tax.PosSession;
+import br.gravita.core.domain.tax.PosSessionId;
+import br.gravita.core.domain.tax.SaleItem;
+import br.gravita.core.ports.inbound.tax.CancelNfceCommand;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.PosSessionRepositoryPort;
+import br.gravita.core.ports.outbound.tax.SefazCancellationRequest;
+import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
+import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
+import br.gravita.core.ports.outbound.tax.SupervisorAuthorizationPort;
+import br.gravita.core.usercases.tax.CancelNfceService;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class CancelNfceServiceTest {
+
+	@Mock
+	private NfceRepositoryPort nfceRepositoryPort;
+
+	@Mock
+	private PosSessionRepositoryPort posSessionRepositoryPort;
+
+	@Mock
+	private CompanyRepositoryPort companyRepositoryPort;
+
+	@Mock
+	private SupervisorAuthorizationPort supervisorAuthorizationPort;
+
+	@Mock
+	private SubmitToSefazPort submitToSefazPort;
+
+	private CancelNfceService service;
+
+	private UUID saleId;
+	private PosSessionId sessionId;
+	private CompanyId companyId;
+
+	@BeforeEach
+	void setUp() {
+		service = new CancelNfceService(nfceRepositoryPort, posSessionRepositoryPort, companyRepositoryPort,
+				supervisorAuthorizationPort, submitToSefazPort);
+
+		saleId = UUID.randomUUID();
+		sessionId = PosSessionId.of(UUID.randomUUID());
+		companyId = CompanyId.of(UUID.randomUUID());
+
+		lenient().when(supervisorAuthorizationPort.authorize("super-secret")).thenReturn(true);
+		lenient().when(posSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(posSession()));
+		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
+		lenient().when(submitToSefazPort.cancel(any())).thenReturn(new SefazSubmissionResult("cancel-protocol-1"));
+		lenient().when(nfceRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+	}
+
+	private NfceSale authorizedSale(Instant createdAt) {
+		return authorizedSale(saleId, createdAt);
+	}
+
+	private NfceSale authorizedSale(UUID id, Instant createdAt) {
+		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		NfceSale draft = NfceSale.register(NfceSaleId.of(id), sessionId, List.of(item), null,
+				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, createdAt);
+		return draft.authorize("001", 10L, "3".repeat(44), "issue-protocol-1");
+	}
+
+	private PosSession posSession() {
+		return PosSession.open(sessionId, UUID.randomUUID(), UUID.randomUUID(), companyId, BigDecimal.ZERO,
+				Instant.now());
+	}
+
+	private Company company() {
+		return Company.of(companyId, Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500",
+				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
+				"nfce@example.com", "11999999999", null, null);
+	}
+
+	private CancelNfceCommand command() {
+		return new CancelNfceCommand(saleId, "super-secret", "customer changed their mind");
+	}
+
+	@Test
+	void ac1_invalidSupervisorCredentialIsRejected() {
+		when(supervisorAuthorizationPort.authorize("wrong-password")).thenReturn(false);
+
+		assertThatThrownBy(() -> service.execute(new CancelNfceCommand(saleId, "wrong-password", null)))
+				.isInstanceOf(UnauthorizedException.class);
+
+		verify(nfceRepositoryPort, never()).findById(any());
+		verify(submitToSefazPort, never()).cancel(any());
+	}
+
+	@Test
+	void ac2_aSaleThatIsNeitherTheLastSaleNorFromTodayIsRejected() {
+		Instant threeDaysAgo = Instant.now().minus(java.time.Duration.ofDays(3));
+		NfceSale oldSale = authorizedSale(threeDaysAgo);
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(oldSale));
+		// A different, more recent sale is the actual "last sale".
+		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(authorizedSale(UUID.randomUUID(), Instant.now())));
+
+		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("not eligible for cancellation");
+
+		verify(submitToSefazPort, never()).cancel(any());
+		verify(nfceRepositoryPort, never()).save(any());
+	}
+
+	@Test
+	void ac2_theLastSaleIsEligibleEvenIfNotFromToday() {
+		Instant tenMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(10));
+		NfceSale sale = authorizedSale(tenMinutesAgo);
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
+		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
+
+		service.execute(command());
+
+		verify(submitToSefazPort).cancel(any());
+	}
+
+	@Test
+	void ac3_aSaleThatIsPastTheThirtyMinuteWindowIsRejected() {
+		Instant fortyFiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(45));
+		NfceSale sale = authorizedSale(fortyFiveMinutesAgo);
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
+		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
+
+		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Cancellation window has expired");
+
+		verify(submitToSefazPort, never()).cancel(any());
+		verify(nfceRepositoryPort, never()).save(any());
+	}
+
+	@Test
+	void ac4_successfulCancellationTransmitsToSefazAndUpdatesTheSaleStatus() {
+		Instant fiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(5));
+		NfceSale sale = authorizedSale(fiveMinutesAgo);
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
+		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
+
+		service.execute(command());
+
+		ArgumentCaptor<SefazCancellationRequest> requestCaptor = ArgumentCaptor.forClass(SefazCancellationRequest.class);
+		verify(submitToSefazPort).cancel(requestCaptor.capture());
+		assertThat(requestCaptor.getValue().accessKey()).isEqualTo(sale.getAccessKey());
+		assertThat(requestCaptor.getValue().protocol()).isEqualTo(sale.getSefazProtocol());
+		assertThat(requestCaptor.getValue().reason()).isEqualTo("customer changed their mind");
+
+		ArgumentCaptor<NfceSale> saveCaptor = ArgumentCaptor.forClass(NfceSale.class);
+		verify(nfceRepositoryPort).save(saveCaptor.capture());
+		assertThat(saveCaptor.getValue().getStatus()).isEqualTo(NfceSaleStatus.CANCELLED);
+	}
+
+	@Test
+	void aNonAuthorizedSaleCannotBeCancelled() {
+		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		NfceSale draftSale = NfceSale.register(NfceSaleId.of(saleId), PosSessionId.of(UUID.randomUUID()),
+				List.of(item), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null,
+				Instant.now());
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(draftSale));
+
+		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("not AUTHORIZED");
+
+		verify(submitToSefazPort, never()).cancel(any());
+	}
+
+	@Test
+	void aNonExistentSaleIsRejected() {
+		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(ResourceNotFoundException.class);
+
+		verify(submitToSefazPort, never()).cancel(any());
+	}
+}

@@ -1,10 +1,12 @@
 package br.gravita.adapters.outbound.integration.tax;
 
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DigitalCertificate;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.tax.SefazUnavailableException;
 import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
+import br.gravita.core.ports.outbound.tax.SefazCancellationRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionRequest;
 import br.gravita.core.ports.outbound.tax.SefazSubmissionResult;
 import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
@@ -52,30 +54,46 @@ public class SefazUfSubmissionAdapter implements SubmitToSefazPort {
 
 	@Override
 	public SefazSubmissionResult submit(SefazSubmissionRequest request) {
-		DigitalCertificate certificate = certificateStoragePort.findByCompanyId(request.companyId())
-				.orElseThrow(() -> new BusinessRuleException(
-						"No digital certificate registered for company " + request.companyId().value()));
-		if (certificate.isExpired(Instant.now())) {
-			throw new BusinessRuleException(
-					"Digital certificate for company " + request.companyId().value() + " has expired");
-		}
-
-		String baseUrl = request.environment() == SefazEnvironment.PRODUCTION ? productionBaseUrl : homologationBaseUrl;
-		RestClient client = httpClientFactory.build(certificate.getPfxPayload(), certificate.getPassword(), baseUrl,
-				timeout);
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
 
 		SefazAuthorizationRequestPayload payload = new SefazAuthorizationRequestPayload(request.accessKey(),
 				request.saleTotal(), request.taxResult().totals().grandTotal());
 
+		return post(client, "/nfce/autorizacao", payload, "no authorization protocol");
+	}
+
+	@Override
+	public SefazSubmissionResult cancel(SefazCancellationRequest request) {
+		RestClient client = resolveAuthenticatedClient(request.companyId(), request.environment());
+
+		SefazCancellationRequestPayload payload = new SefazCancellationRequestPayload(request.accessKey(),
+				request.protocol(), request.reason());
+
+		return post(client, "/nfce/cancelamento", payload, "no cancellation protocol");
+	}
+
+	private RestClient resolveAuthenticatedClient(CompanyId companyId, SefazEnvironment environment) {
+		DigitalCertificate certificate = certificateStoragePort.findByCompanyId(companyId)
+				.orElseThrow(() -> new BusinessRuleException(
+						"No digital certificate registered for company " + companyId.value()));
+		if (certificate.isExpired(Instant.now())) {
+			throw new BusinessRuleException("Digital certificate for company " + companyId.value() + " has expired");
+		}
+
+		String baseUrl = environment == SefazEnvironment.PRODUCTION ? productionBaseUrl : homologationBaseUrl;
+		return httpClientFactory.build(certificate.getPfxPayload(), certificate.getPassword(), baseUrl, timeout);
+	}
+
+	private SefazSubmissionResult post(RestClient client, String uri, Object payload, String missingProtocolMessage) {
 		try {
 			SefazAuthorizationResponsePayload response = client.post()
-					.uri("/nfce/autorizacao")
+					.uri(uri)
 					.contentType(MediaType.APPLICATION_JSON)
 					.body(payload)
 					.retrieve()
 					.body(SefazAuthorizationResponsePayload.class);
 			if (response == null || response.protocol() == null || response.protocol().isBlank()) {
-				throw new SefazUnavailableException("SEFAZ-UF returned no authorization protocol", null);
+				throw new SefazUnavailableException("SEFAZ-UF returned " + missingProtocolMessage, null);
 			}
 			return new SefazSubmissionResult(response.protocol());
 		} catch (RestClientException e) {

@@ -1,16 +1,20 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.CancelNfceRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.RegisterNfceSaleRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.RegisterNfceSaleResponse;
 import br.gravita.core.domain.tax.NfceSaleId;
+import br.gravita.core.ports.inbound.tax.CancelNfceUseCase;
 import br.gravita.core.ports.inbound.tax.IssueNfceCommand;
 import br.gravita.core.ports.inbound.tax.IssueNfceUseCase;
 import br.gravita.core.ports.inbound.tax.NfceIssuanceResult;
 import br.gravita.core.ports.inbound.tax.RegisterNfceSaleUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,6 +32,7 @@ public class NfceSaleController {
 
 	private final RegisterNfceSaleUseCase registerNfceSaleUseCase;
 	private final IssueNfceUseCase issueNfceUseCase;
+	private final CancelNfceUseCase cancelNfceUseCase;
 
 	@PostMapping
 	public ResponseEntity<RegisterNfceSaleResponse> register(@Valid @RequestBody RegisterNfceSaleRequest request) {
@@ -35,5 +40,11 @@ public class NfceSaleController {
 		NfceIssuanceResult issuance = issueNfceUseCase.execute(new IssueNfceCommand(id.value()));
 		return ResponseEntity.created(URI.create("/api/pdv/sales/" + id.value()))
 				.body(RegisterNfceSaleResponse.from(id, issuance));
+	}
+
+	@PostMapping("/{id}/cancel")
+	public ResponseEntity<Void> cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfceRequest request) {
+		cancelNfceUseCase.execute(request.toCommand(id));
+		return ResponseEntity.noContent().build();
 	}
 }
