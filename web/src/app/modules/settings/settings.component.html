@@ -61,7 +61,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-label">Autenticação 2FA</div>
-          <div class="setting-desc">TOTP obrigatório para perfil Administrador</div>
+          <div class="setting-desc">{{ compliance().exigir2faAdmin ? 'TOTP obrigatório para perfil Administrador (política da plataforma)' : 'TOTP opcional para todos os perfis' }}</div>
         </div>
         <button class="toggle" [class.on]="twoFa()" (click)="twoFa.set(!twoFa())"></button>
       </div>
@@ -82,7 +82,7 @@
       <div class="setting-row">
         <div>
           <div class="setting-label">Backup automático</div>
-          <div class="setting-desc">Diário às 02:00 · Retenção 90 dias mínimo</div>
+          <div class="setting-desc">Diário às {{ compliance().horarioBackup }} · Retenção mínima de {{ compliance().retencaoBackupDias }} dias</div>
         </div>
         <button class="toggle" [class.on]="backupAuto()" (click)="backupAuto.set(!backupAuto())"></button>
       </div>

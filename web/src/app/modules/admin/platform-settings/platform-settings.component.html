@@ -1,0 +1,609 @@
+<div class="admin-toolbar">
+  <app-page-header title="Configurações gerais" subtitle="Parâmetros comuns a todos os clientes da plataforma e ao site público">
+    <span class="save-status" [class.dirty]="dirty" role="status" aria-live="polite">
+      @if (saving()) {
+        <i class="ti ti-loader-2 spin"></i> Salvando…
+      } @else if (dirty) {
+        <span class="status-dot"></span> Alterações não salvas
+      } @else if (cfg.lastSaved()) {
+        <i class="ti ti-circle-check"></i> Salvo às {{ cfg.lastSaved()!.at | date:'HH:mm' }} por {{ cfg.lastSaved()!.by }}
+      } @else {
+        <i class="ti ti-circle-check"></i> Tudo salvo
+      }
+    </span>
+    <button type="button" class="btn btn-ghost" (click)="discard()" [disabled]="!dirty || saving()">
+      <i class="ti ti-arrow-back-up"></i> Descartar
+    </button>
+    <button type="button" class="btn btn-primary" (click)="save()" [disabled]="!dirty || saving()" title="Salvar (Ctrl+S)">
+      <i class="ti ti-device-floppy"></i> Salvar alterações
+    </button>
+  </app-page-header>
+</div>
+
+<div class="impact-note" role="note">
+  <i class="ti ti-info-circle"></i>
+  <span>Estas configurações valem para <strong>todos os clientes</strong>. Mudanças de preço valem para novas assinaturas e renovações; as assinaturas atuais mantêm o valor contratado até o fim do período.</span>
+</div>
+
+<div class="settings-layout">
+  <nav class="settings-menu card" aria-label="Seções de configuração">
+    @for (s of sections; track s.key) {
+      <a class="settings-menu-item"
+         [routerLink]="['/admin/configuracoes', s.key]"
+         [class.active]="secaoAtiva() === s.key"
+         [attr.aria-current]="secaoAtiva() === s.key ? 'page' : null">
+        <i class="ti {{ s.icon }}"></i>
+        <span class="menu-label">{{ s.label }}</span>
+        @if (sectionErrors(s.key)) {
+          <span class="menu-err" [attr.aria-label]="sectionErrors(s.key) + ' erro(s)'">{{ sectionErrors(s.key) }}</span>
+        } @else if (isSectionDirty(s.key)) {
+          <span class="menu-dirty" title="Alterado" aria-label="Alterado"></span>
+        }
+      </a>
+    }
+  </nav>
+
+  <section class="settings-panel card" [attr.aria-labelledby]="'sec-title'">
+    <div class="settings-panel-head">
+      <h3 class="settings-panel-title" id="sec-title">{{ section.title }}</h3>
+      <div class="settings-panel-sub">{{ section.desc }}</div>
+    </div>
+
+    <!-- ═══════════════ PLANOS ═══════════════ -->
+    @if (secaoAtiva() === 'planos') {
+      @if (err('planos.geral'); as m) {
+        <div class="alert danger" role="alert"><i class="ti ti-alert-triangle"></i>{{ m }}</div>
+      }
+
+      <div class="plan-tabs" role="tablist" aria-label="Planos">
+        @for (p of draft.plans; track p.id) {
+          <button type="button" role="tab" class="plan-tab"
+                  [class.active]="selectedPlanId() === p.id"
+                  [class.inactive]="!p.active"
+                  [attr.aria-selected]="selectedPlanId() === p.id"
+                  (click)="selectedPlanId.set(p.id)">
+            <span class="plan-tab-icon tier-{{ p.tier.toLowerCase() }}"><i class="ti {{ tierOf(p.tier).icon }}"></i></span>
+            <span class="plan-tab-body">
+              <span class="plan-tab-name">
+                {{ p.name || 'Sem nome' }}
+                @if (p.featured) { <span class="mini-badge accent">Destaque</span> }
+                @if (!p.active) { <span class="mini-badge">Inativo</span> }
+              </span>
+              <span class="plan-tab-price">R$ {{ fmtPrice(p.priceMonthly) }}/mês</span>
+            </span>
+            @if (planErrors(p)) {
+              <span class="menu-err">{{ planErrors(p) }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      @if (selectedPlan; as plan) {
+        <div class="plan-grid">
+          <div class="plan-editor">
+
+            <div class="block">
+              <div class="block-title">Identificação</div>
+              <div class="form-row cols-2">
+                <div class="form-field">
+                  <label class="form-label" for="plan-name">Nome do plano</label>
+                  <input id="plan-name" class="form-input" type="text" maxlength="40"
+                         [(ngModel)]="plan.name"
+                         [class.invalid]="err('planos.' + plan.id + '.name')"
+                         [attr.aria-invalid]="!!err('planos.' + plan.id + '.name')" />
+                  @if (err('planos.' + plan.id + '.name'); as m) { <div class="field-error">{{ m }}</div> }
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="plan-tier">Nível</label>
+                  <input id="plan-tier" class="form-input" type="text" [value]="tierOf(plan.tier).label" readonly />
+                  <div class="field-hint">Identificador fixo usado nas assinaturas.</div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label class="form-label" for="plan-desc">Descrição</label>
+                  <textarea id="plan-desc" class="form-textarea" rows="2" maxlength="160"
+                            [(ngModel)]="plan.description"
+                            [class.invalid]="err('planos.' + plan.id + '.description')"></textarea>
+                  <div class="field-foot">
+                    @if (err('planos.' + plan.id + '.description'); as m) { <div class="field-error">{{ m }}</div> }
+                    @else { <div class="field-hint">Frase curta exibida abaixo do preço.</div> }
+                    <span class="counter">{{ plan.description.length || 0 }}/160</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="block">
+              <div class="block-title">Preços</div>
+              <div class="form-row cols-2">
+                <div class="form-field">
+                  <label class="form-label" for="plan-pm">Mensal</label>
+                  <div class="input-group" [class.invalid]="err('planos.' + plan.id + '.priceMonthly')">
+                    <span class="addon">R$</span>
+                    <input id="plan-pm" class="form-input" type="number" min="0" step="0.01" inputmode="decimal"
+                           [(ngModel)]="plan.priceMonthly" />
+                    <span class="addon">/mês</span>
+                  </div>
+                  @if (err('planos.' + plan.id + '.priceMonthly'); as m) { <div class="field-error">{{ m }}</div> }
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="plan-pa">Anual <span class="label-note">(valor mensal equivalente)</span></label>
+                  <div class="input-group" [class.invalid]="err('planos.' + plan.id + '.priceAnnual')">
+                    <span class="addon">R$</span>
+                    <input id="plan-pa" class="form-input" type="number" min="0" step="0.01" inputmode="decimal"
+                           [(ngModel)]="plan.priceAnnual" />
+                    <span class="addon">/mês</span>
+                  </div>
+                  @if (err('planos.' + plan.id + '.priceAnnual'); as m) {
+                    <div class="field-error">{{ m }}</div>
+                  } @else {
+                    <div class="field-hint">
+                      {{ annualDiscountPct(plan) }}% de desconto · economia de {{ annualSavings(plan) | brl }}/ano
+                    </div>
+                  }
+                </div>
+              </div>
+              @if (plan.priceAnnual !== suggestedAnnual(plan)) {
+                <div class="suggest">
+                  <i class="ti ti-bulb"></i>
+                  <span>Com {{ draft.billing.mesesGratisAnual }} meses grátis no anual, o valor sugerido é <strong>R$ {{ fmtPrice(suggestedAnnual(plan)) }}</strong>.</span>
+                  <button type="button" class="action-btn" (click)="plan.priceAnnual = suggestedAnnual(plan)">Usar sugestão</button>
+                </div>
+              }
+            </div>
+
+            <div class="block">
+              <div class="block-title">Limites</div>
+              <div class="form-row cols-4 limits">
+                @for (l of limitFields; track l.key) {
+                  <div class="form-field">
+                    <label class="form-label" [for]="'lim-' + l.key">{{ l.label }}</label>
+                    <input [id]="'lim-' + l.key" class="form-input" type="number" min="1" step="1"
+                           [disabled]="plan.limits[l.key] === null"
+                           [placeholder]="plan.limits[l.key] === null ? '∞' : ''"
+                           [(ngModel)]="plan.limits[l.key]"
+                           [class.invalid]="err('planos.' + plan.id + '.limits.' + l.key)" />
+                    <label class="check">
+                      <input type="checkbox" [checked]="plan.limits[l.key] === null" (change)="toggleUnlimited(plan, l.key)" />
+                      Ilimitado
+                    </label>
+                    @if (err('planos.' + plan.id + '.limits.' + l.key); as m) { <div class="field-error">{{ m }}</div> }
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="block">
+              <div class="block-title">
+                Recursos
+                <span class="block-sub">Itens marcados como não incluídos aparecem esmaecidos na comparação de planos.</span>
+              </div>
+              <ul class="feature-editor">
+                @for (f of plan.features; track i; let i = $index, first = $first, last = $last) {
+                  <li class="feature-row">
+                    <button type="button" class="feat-toggle" [class.on]="f.included"
+                            role="switch" [attr.aria-checked]="f.included"
+                            [attr.aria-label]="f.included ? 'Incluído' : 'Não incluído'"
+                            [title]="f.included ? 'Incluído — clique para marcar como não incluído' : 'Não incluído — clique para incluir'"
+                            (click)="f.included = !f.included">
+                      <i class="ti" [class.ti-check]="f.included" [class.ti-minus]="!f.included"></i>
+                    </button>
+                    <input class="form-input" type="text" maxlength="80" placeholder="Descreva o recurso"
+                           [attr.aria-label]="'Recurso ' + (i + 1)"
+                           [(ngModel)]="f.label"
+                           [class.invalid]="err('planos.' + plan.id + '.features.' + i)" />
+                    <div class="row-actions">
+                      <button type="button" class="btn-icon sm" [disabled]="first" (click)="move(plan.features, i, -1)" aria-label="Mover para cima"><i class="ti ti-arrow-up"></i></button>
+                      <button type="button" class="btn-icon sm" [disabled]="last" (click)="move(plan.features, i, 1)" aria-label="Mover para baixo"><i class="ti ti-arrow-down"></i></button>
+                      <button type="button" class="btn-icon sm danger" (click)="removeFeature(plan, i)" aria-label="Remover recurso"><i class="ti ti-trash"></i></button>
+                    </div>
+                  </li>
+                }
+              </ul>
+              @if (err('planos.' + plan.id + '.features'); as m) { <div class="field-error">{{ m }}</div> }
+              <button type="button" class="btn btn-ghost btn-sm mt-8" (click)="addFeature(plan)"><i class="ti ti-plus"></i> Adicionar recurso</button>
+            </div>
+
+            <div class="block">
+              <div class="block-title">Visibilidade</div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label" id="lbl-active">Plano ativo</div>
+                  <div class="setting-desc">Planos inativos saem do site e não aceitam novas assinaturas. Clientes atuais mantêm o plano.</div>
+                </div>
+                <button type="button" class="toggle" role="switch" aria-labelledby="lbl-active"
+                        [class.on]="plan.active" [attr.aria-checked]="plan.active"
+                        (click)="plan.active = !plan.active"></button>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label" id="lbl-featured">Destacar como "Mais popular"</div>
+                  <div class="setting-desc">Apenas um plano pode ficar em destaque na página de preços.</div>
+                  @if (err('planos.' + plan.id + '.featured'); as m) { <div class="field-error">{{ m }}</div> }
+                </div>
+                <button type="button" class="toggle" role="switch" aria-labelledby="lbl-featured"
+                        [class.on]="plan.featured" [attr.aria-checked]="plan.featured"
+                        (click)="setFeatured(plan, !plan.featured)"></button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="plan-preview" aria-label="Pré-visualização">
+            <div class="preview-head">
+              <span class="preview-label"><i class="ti ti-eye"></i> Como aparece no site</span>
+              <div class="seg" role="group" aria-label="Período de cobrança">
+                <button type="button" [class.active]="!previewAnual()" (click)="previewAnual.set(false)">Mensal</button>
+                <button type="button" [class.active]="previewAnual()" (click)="previewAnual.set(true)">Anual</button>
+              </div>
+            </div>
+            <div class="pv-card" [class.featured]="plan.featured" [class.off]="!plan.active">
+              @if (plan.featured) { <div class="pv-ribbon">Mais popular</div> }
+              @if (!plan.active) { <div class="pv-off"><i class="ti ti-eye-off"></i> Oculto no site</div> }
+              <div class="pv-tier">
+                <span class="plan-tab-icon tier-{{ plan.tier.toLowerCase() }}"><i class="ti {{ tierOf(plan.tier).icon }}"></i></span>
+                <span class="pv-name">{{ plan.name || 'Sem nome' }}</span>
+              </div>
+              <div class="pv-price">
+                <span class="pv-cur">R$</span>
+                <span class="pv-amount">{{ fmtPrice(previewAnual() ? plan.priceAnnual : plan.priceMonthly) }}</span>
+                <span class="pv-per">/mês</span>
+              </div>
+              @if (previewAnual() && draft.billing.mesesGratisAnual > 0) {
+                <div class="pv-annual">Cobrança anual · {{ draft.billing.mesesGratisAnual }} {{ draft.billing.mesesGratisAnual === 1 ? 'mês grátis' : 'meses grátis' }}</div>
+              }
+              <p class="pv-desc">{{ plan.description }}</p>
+              <ul class="pv-features">
+                @for (l of limitFields; track l.key) {
+                  <li><i class="ti ti-check"></i>{{ limitText(plan, l.key) }}</li>
+                }
+                @for (f of plan.features; track $index) {
+                  @if (f.label) {
+                    <li [class.no]="!f.included"><i class="ti" [class.ti-check]="f.included" [class.ti-minus]="!f.included"></i>{{ f.label }}</li>
+                  }
+                }
+              </ul>
+              <div class="pv-cta" [class.primary]="plan.featured">Começar com {{ plan.name || '…' }}</div>
+              @if (draft.billing.trialDias > 0) {
+                <div class="pv-trial"><i class="ti ti-gift"></i> {{ draft.billing.trialDias }} dias grátis{{ draft.billing.trialExigeCartao ? '' : ' · sem cartão de crédito' }}</div>
+              }
+            </div>
+          </aside>
+        </div>
+      }
+    }
+
+    <!-- ═══════════════ ASSINATURA & COBRANÇA ═══════════════ -->
+    @if (secaoAtiva() === 'cobranca') {
+      <div class="block">
+        <div class="block-title">Período de teste</div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="trial-dias">Duração</label>
+            <div class="input-group" [class.invalid]="err('cobranca.trialDias')">
+              <input id="trial-dias" class="form-input" type="number" min="0" max="90" step="1" [(ngModel)]="draft.billing.trialDias" />
+              <span class="addon">dias</span>
+            </div>
+            @if (err('cobranca.trialDias'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Use 0 para desativar o teste grátis.</div> }
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="lbl-card">Exigir cartão de crédito no teste</div>
+            <div class="setting-desc">Quando desativado, o site exibe "sem cartão de crédito".</div>
+          </div>
+          <button type="button" class="toggle" role="switch" aria-labelledby="lbl-card"
+                  [class.on]="draft.billing.trialExigeCartao" [attr.aria-checked]="draft.billing.trialExigeCartao"
+                  (click)="draft.billing.trialExigeCartao = !draft.billing.trialExigeCartao"></button>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Contrato</div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="taxa">Taxa de implantação</label>
+            <div class="input-group" [class.invalid]="err('cobranca.taxaImplantacao')">
+              <span class="addon">R$</span>
+              <input id="taxa" class="form-input" type="number" min="0" step="0.01" [(ngModel)]="draft.billing.taxaImplantacao" />
+            </div>
+            @if (err('cobranca.taxaImplantacao'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">{{ draft.billing.taxaImplantacao ? 'Cobrada uma única vez na contratação.' : 'Exibido como "Sem taxa de implantação".' }}</div> }
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="fidelidade">Fidelidade mínima</label>
+            <div class="input-group" [class.invalid]="err('cobranca.fidelidadeMeses')">
+              <input id="fidelidade" class="form-input" type="number" min="0" max="36" step="1" [(ngModel)]="draft.billing.fidelidadeMeses" />
+              <span class="addon">meses</span>
+            </div>
+            @if (err('cobranca.fidelidadeMeses'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">{{ draft.billing.fidelidadeMeses ? 'Cancelamento antes do prazo pode gerar multa.' : 'Sem fidelidade — cancele quando quiser.' }}</div> }
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Plano anual</div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="meses-gratis">Meses grátis no anual</label>
+            <div class="input-group" [class.invalid]="err('cobranca.mesesGratisAnual')">
+              <input id="meses-gratis" class="form-input" type="number" min="0" max="11" step="1" [(ngModel)]="draft.billing.mesesGratisAnual" />
+              <span class="addon">meses</span>
+            </div>
+            @if (err('cobranca.mesesGratisAnual'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Base do selo exibido no site e dos preços anuais sugeridos.</div> }
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Plano</th><th class="td-right">Mensal</th><th class="td-right">Anual atual</th><th class="td-right">Sugerido</th></tr></thead>
+            <tbody>
+              @for (p of draft.plans; track p.id) {
+                <tr>
+                  <td class="td-name">{{ p.name }}</td>
+                  <td class="td-right">{{ p.priceMonthly | brl }}</td>
+                  <td class="td-right">{{ p.priceAnnual | brl }}</td>
+                  <td class="td-right" [class.text-accent]="p.priceAnnual !== suggestedAnnual(p)">{{ suggestedAnnual(p) | brl }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm mt-8" [disabled]="!annualOutOfSync" (click)="applySuggestedAnnual()">
+          <i class="ti ti-calculator"></i> Aplicar preços sugeridos
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════ SUPORTE & SLA ═══════════════ -->
+    @if (secaoAtiva() === 'suporte') {
+      <div class="block">
+        <div class="block-title">Atendimento por plano</div>
+        <div class="table-wrap">
+          <table class="data-table support-table">
+            <thead>
+              <tr>
+                <th>Plano</th><th class="td-c">E-mail</th><th class="td-c">Chat</th><th class="td-c">Telefone</th>
+                <th>SLA de resposta</th><th class="td-c">24/7</th><th class="td-c">Gerente dedicado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of draft.plans; track p.id) {
+                <tr>
+                  <td>
+                    <div class="td-name">{{ p.name }}</div>
+                    <div class="td-sub">{{ supportSummary(p) }}</div>
+                    @if (err('suporte.' + p.id + '.canais'); as m) { <div class="field-error">{{ m }}</div> }
+                  </td>
+                  <td class="td-c"><button type="button" class="toggle" role="switch" [attr.aria-label]="'E-mail — ' + p.name" [class.on]="p.support.email" [attr.aria-checked]="p.support.email" (click)="p.support.email = !p.support.email"></button></td>
+                  <td class="td-c"><button type="button" class="toggle" role="switch" [attr.aria-label]="'Chat — ' + p.name" [class.on]="p.support.chat" [attr.aria-checked]="p.support.chat" (click)="p.support.chat = !p.support.chat"></button></td>
+                  <td class="td-c"><button type="button" class="toggle" role="switch" [attr.aria-label]="'Telefone — ' + p.name" [class.on]="p.support.telefone" [attr.aria-checked]="p.support.telefone" (click)="p.support.telefone = !p.support.telefone"></button></td>
+                  <td>
+                    <div class="input-group narrow" [class.invalid]="err('suporte.' + p.id + '.slaHoras')">
+                      <input class="form-input" type="number" min="1" max="72" step="1" [attr.aria-label]="'SLA em horas — ' + p.name" [(ngModel)]="p.support.slaHoras" />
+                      <span class="addon">h</span>
+                    </div>
+                    @if (err('suporte.' + p.id + '.slaHoras'); as m) { <div class="field-error">{{ m }}</div> }
+                  </td>
+                  <td class="td-c"><button type="button" class="toggle" role="switch" [attr.aria-label]="'Atendimento 24/7 — ' + p.name" [class.on]="!p.support.horarioComercial" [attr.aria-checked]="!p.support.horarioComercial" (click)="p.support.horarioComercial = !p.support.horarioComercial"></button></td>
+                  <td class="td-c"><button type="button" class="toggle" role="switch" [attr.aria-label]="'Gerente dedicado — ' + p.name" [class.on]="p.support.gerenteDedicado" [attr.aria-checked]="p.support.gerenteDedicado" (click)="p.support.gerenteDedicado = !p.support.gerenteDedicado"></button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Disponibilidade</div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="uptime">Uptime garantido (SLA)</label>
+            <div class="input-group" [class.invalid]="err('suporte.uptimeSla')">
+              <input id="uptime" class="form-input" type="number" min="90" max="100" step="0.01" [(ngModel)]="draft.compliance.uptimeSla" />
+              <span class="addon">%</span>
+            </div>
+            @if (err('suporte.uptimeSla'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Compromisso contratual exibido nos planos e no site.</div> }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════════════ INTEGRAÇÕES ═══════════════ -->
+    @if (secaoAtiva() === 'integracoes') {
+      @for (c of categorias; track c.key) {
+        <div class="block">
+          <div class="block-title">{{ c.label }}</div>
+          <div class="integracoes-list">
+            @for (i of integracoesDe(c.key); track i.id) {
+              <div class="integ-item" [class.integ-off]="!i.ativa">
+                <div class="integ-icon"><i class="ti {{ i.icon }}"></i></div>
+                <div class="integ-info">
+                  <div class="integ-name" [id]="'integ-' + i.id">{{ i.nome }}</div>
+                  <div class="integ-desc">{{ i.ativa ? 'Disponível a partir do plano ' + tierOf(i.planoMinimo).label : 'Indisponível para todos os clientes' }}</div>
+                </div>
+                <select class="form-select plan-select" [(ngModel)]="i.planoMinimo" [disabled]="!i.ativa"
+                        [attr.aria-label]="'Plano mínimo — ' + i.nome">
+                  @for (t of tiers; track t.key) { <option [value]="t.key">A partir do {{ t.label }}</option> }
+                </select>
+                <button type="button" class="toggle" role="switch" [attr.aria-labelledby]="'integ-' + i.id"
+                        [class.on]="i.ativa" [attr.aria-checked]="i.ativa" (click)="i.ativa = !i.ativa"></button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ═══════════════ SEGURANÇA & CONFORMIDADE ═══════════════ -->
+    @if (secaoAtiva() === 'conformidade') {
+      <div class="block">
+        <div class="block-title">Retenção e backup</div>
+        <div class="form-row cols-3">
+          <div class="form-field">
+            <label class="form-label" for="ret-xml">Retenção de XMLs fiscais</label>
+            <div class="input-group" [class.invalid]="err('conformidade.retencaoXmlAnos')">
+              <input id="ret-xml" class="form-input" type="number" [min]="minimums.retencaoXmlAnos" step="1" [(ngModel)]="draft.compliance.retencaoXmlAnos" />
+              <span class="addon">anos</span>
+            </div>
+            @if (err('conformidade.retencaoXmlAnos'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Mínimo legal: {{ minimums.retencaoXmlAnos }} anos.</div> }
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="ret-bkp">Retenção de backups</label>
+            <div class="input-group" [class.invalid]="err('conformidade.retencaoBackupDias')">
+              <input id="ret-bkp" class="form-input" type="number" [min]="minimums.retencaoBackupDias" step="1" [(ngModel)]="draft.compliance.retencaoBackupDias" />
+              <span class="addon">dias</span>
+            </div>
+            @if (err('conformidade.retencaoBackupDias'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Mínimo: {{ minimums.retencaoBackupDias }} dias.</div> }
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="hr-bkp">Horário do backup diário</label>
+            <input id="hr-bkp" class="form-input" type="time" [(ngModel)]="draft.compliance.horarioBackup"
+                   [class.invalid]="err('conformidade.horarioBackup')" />
+            @if (err('conformidade.horarioBackup'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Horário de Brasília. Prefira janelas de baixo uso.</div> }
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">Acesso</div>
+        <div class="form-row cols-3">
+          <div class="form-field">
+            <label class="form-label" for="pw-min">Tamanho mínimo de senha</label>
+            <div class="input-group" [class.invalid]="err('conformidade.senhaMinCaracteres')">
+              <input id="pw-min" class="form-input" type="number" [min]="minimums.senhaMinCaracteres" max="64" step="1" [(ngModel)]="draft.compliance.senhaMinCaracteres" />
+              <span class="addon">caracteres</span>
+            </div>
+            @if (err('conformidade.senhaMinCaracteres'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Vale para cadastro e troca de senha.</div> }
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="lbl-2fa">Exigir 2FA para administradores</div>
+            <div class="setting-desc">TOTP obrigatório para usuários com perfil Administrador em todos os clientes.</div>
+          </div>
+          <button type="button" class="toggle" role="switch" aria-labelledby="lbl-2fa"
+                  [class.on]="draft.compliance.exigir2faAdmin" [attr.aria-checked]="draft.compliance.exigir2faAdmin"
+                  (click)="draft.compliance.exigir2faAdmin = !draft.compliance.exigir2faAdmin"></button>
+        </div>
+        @if (!draft.compliance.exigir2faAdmin) {
+          <div class="alert warn" role="alert"><i class="ti ti-alert-triangle"></i>Não recomendado: contas de administrador sem 2FA ficam expostas a roubo de credenciais.</div>
+        }
+      </div>
+    }
+
+    <!-- ═══════════════ INSTITUCIONAL ═══════════════ -->
+    @if (secaoAtiva() === 'institucional') {
+      <div class="block">
+        <div class="block-title">Identificação</div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="inst-razao">Razão social</label>
+            <input id="inst-razao" class="form-input" type="text" [(ngModel)]="draft.institucional.razaoSocial" [class.invalid]="err('institucional.razaoSocial')" />
+            @if (err('institucional.razaoSocial'); as m) { <div class="field-error">{{ m }}</div> }
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="inst-cnpj">CNPJ</label>
+            <input id="inst-cnpj" class="form-input mono" type="text" inputmode="numeric" placeholder="00.000.000/0000-00" maxlength="18"
+                   [(ngModel)]="draft.institucional.cnpj" [class.invalid]="err('institucional.cnpj')" />
+            @if (err('institucional.cnpj'); as m) { <div class="field-error">{{ m }}</div> }
+            @else if (!draft.institucional.cnpj) { <div class="field-hint text-warn">Não informado — o rodapé do site deve exibir o CNPJ da empresa.</div> }
+          </div>
+        </div>
+        <div class="form-row cols-2">
+          <div class="form-field">
+            <label class="form-label" for="inst-cidade">Cidade / UF</label>
+            <input id="inst-cidade" class="form-input" type="text" placeholder="São Paulo, SP" [(ngModel)]="draft.institucional.cidadeUf" [class.invalid]="err('institucional.cidadeUf')" />
+            @if (err('institucional.cidadeUf'); as m) { <div class="field-error">{{ m }}</div> }
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="inst-email">E-mail de contato</label>
+            <input id="inst-email" class="form-input" type="email" [(ngModel)]="draft.institucional.emailContato" [class.invalid]="err('institucional.emailContato')" />
+            @if (err('institucional.emailContato'); as m) { <div class="field-error">{{ m }}</div> }
+            @else { <div class="field-hint">Exibido no rodapé e no botão "Falar com vendas".</div> }
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">
+          Links do rodapé
+          <span class="block-sub">Deixe em branco para ocultar o link no site.</span>
+        </div>
+        <div class="form-row cols-2">
+          @for (l of footerLinks; track l.key) {
+            <div class="form-field">
+              <label class="form-label" [for]="'inst-' + l.key">{{ l.label }}</label>
+              <input [id]="'inst-' + l.key" class="form-input" type="url" placeholder="https://"
+                     [(ngModel)]="draft.institucional[l.key]"
+                     [class.invalid]="err('institucional.' + l.key)" />
+              @if (err('institucional.' + l.key); as m) { <div class="field-error">{{ m }}</div> }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ═══════════════ SITE PÚBLICO ═══════════════ -->
+    @if (secaoAtiva() === 'site') {
+      <div class="block">
+        <div class="block-title">
+          Números de destaque
+          <span class="block-sub">Exibidos logo abaixo do título da página inicial.</span>
+        </div>
+        <div class="stats-grid">
+          @for (s of draft.siteStats; track i; let i = $index) {
+            <div class="stat-card">
+              <input class="form-input stat-val" type="text" maxlength="12" placeholder="+2.400"
+                     [attr.aria-label]="'Valor do destaque ' + (i + 1)"
+                     [(ngModel)]="s.valor" [class.invalid]="err('site.stats.' + i + '.valor')" />
+              <input class="form-input" type="text" maxlength="40" placeholder="empresas ativas"
+                     [attr.aria-label]="'Legenda do destaque ' + (i + 1)"
+                     [(ngModel)]="s.legenda" [class.invalid]="err('site.stats.' + i + '.legenda')" />
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-title">
+          Perguntas frequentes
+          <span class="block-sub">{{ draft.faq.length }} {{ draft.faq.length === 1 ? 'pergunta' : 'perguntas' }} · exibidas na ordem abaixo.</span>
+        </div>
+        <ol class="faq-editor">
+          @for (f of draft.faq; track i; let i = $index, first = $first, last = $last) {
+            <li class="faq-card">
+              <div class="faq-num">{{ i + 1 }}</div>
+              <div class="faq-fields">
+                <input class="form-input" type="text" maxlength="120" placeholder="Pergunta"
+                       [attr.aria-label]="'Pergunta ' + (i + 1)"
+                       [(ngModel)]="f.pergunta" [class.invalid]="err('site.faq.' + i + '.pergunta')" />
+                @if (err('site.faq.' + i + '.pergunta'); as m) { <div class="field-error">{{ m }}</div> }
+                <textarea class="form-textarea" rows="3" maxlength="600" placeholder="Resposta"
+                          [attr.aria-label]="'Resposta ' + (i + 1)"
+                          [(ngModel)]="f.resposta" [class.invalid]="err('site.faq.' + i + '.resposta')"></textarea>
+                <div class="field-foot">
+                  @if (err('site.faq.' + i + '.resposta'); as m) { <div class="field-error">{{ m }}</div> } @else { <span></span> }
+                  <span class="counter">{{ f.resposta.length || 0 }}/600</span>
+                </div>
+              </div>
+              <div class="row-actions vertical">
+                <button type="button" class="btn-icon sm" [disabled]="first" (click)="move(draft.faq, i, -1)" aria-label="Mover para cima"><i class="ti ti-arrow-up"></i></button>
+                <button type="button" class="btn-icon sm" [disabled]="last" (click)="move(draft.faq, i, 1)" aria-label="Mover para baixo"><i class="ti ti-arrow-down"></i></button>
+                <button type="button" class="btn-icon sm danger" (click)="removeFaq(i)" aria-label="Remover pergunta"><i class="ti ti-trash"></i></button>
+              </div>
+            </li>
+          }
+        </ol>
+        <button type="button" class="btn btn-ghost btn-sm mt-8" (click)="addFaq()"><i class="ti ti-plus"></i> Adicionar pergunta</button>
+      </div>
+    }
+  </section>
+</div>

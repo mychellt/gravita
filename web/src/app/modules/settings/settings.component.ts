@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
+import { PlatformConfigService } from '../../core/services/platform-config.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 interface SettingsMenu { key: string; label: string; icon: string; }
@@ -13,7 +14,9 @@ interface SettingsMenu { key: string; label: string; icon: string; }
   templateUrl: './settings.component.html'
 })
 export class SettingsComponent {
-  constructor(private toast: ToastService) {}
+  constructor(private toast: ToastService, private platform: PlatformConfigService) {}
+
+  readonly compliance = computed(() => this.platform.config().compliance);
 
   activeMenu = signal('empresa');
 

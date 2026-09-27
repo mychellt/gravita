@@ -1,6 +1,20 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
+  {
+    path: 'admin',
+    loadComponent: () => import('./layout/admin-shell/admin-shell.component').then(m => m.AdminShellComponent),
+    children: [
+      { path: '', redirectTo: 'configuracoes/planos', pathMatch: 'full' },
+      { path: 'configuracoes', redirectTo: 'configuracoes/planos', pathMatch: 'full' },
+      {
+        path: 'configuracoes/:secao',
+        loadComponent: () => import('./modules/admin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent),
+        canDeactivate: [unsavedChangesGuard]
+      },
+    ]
+  },
   {
     path: '',
     loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),

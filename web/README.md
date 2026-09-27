@@ -44,11 +44,13 @@ src/
 │   │       └── title.service.ts   # Título dinâmico da topbar
 │   │
 │   ├── layout/
+│   │   ├── admin-shell/    # Layout da área administrativa (/admin)
 │   │   ├── shell/          # Layout pai (sidebar + topbar + router-outlet)
 │   │   ├── sidebar/        # Navegação lateral
 │   │   └── topbar/         # Barra superior
 │   │
 │   ├── modules/
+│   │   ├── admin/          # Área administrativa — configurações da plataforma
 │   │   ├── dashboard/      # M9 — Dashboard executivo
 │   │   ├── pdv/            # M3 — PDV / NFC-e com modal de pagamento
 │   │   ├── nfe/            # M2 — Listagem de NF-e
@@ -89,6 +91,7 @@ src/
 | M9     | Relatórios & BI  | `/relatorios`  | Curva ABC, DRE gerencial, cards de relatório |
 | M10    | Configurações    | `/settings`    | Empresa, usuários, integrações, toggles |
 | —      | Dashboard        | `/dashboard`   | KPIs, gráfico, atividade recente |
+| Admin  | Configurações gerais | `/admin/configuracoes/:secao` | Área administrativa da plataforma: planos e preços, assinatura/teste, suporte & SLA, catálogo de integrações, segurança, dados institucionais e conteúdo do site — comum a todos os clientes |
 
 ## Arquitetura
 
