@@ -55,6 +55,14 @@ public final class SalesOrder {
 				cancelReason);
 	}
 
+	public SalesOrder invoice() {
+		if (status != SalesOrderStatus.APPROVED && status != SalesOrderStatus.IN_SEPARATION) {
+			throw new BusinessRuleException("Only APPROVED or IN_SEPARATION orders can be invoiced, was " + status);
+		}
+		return new SalesOrder(id, originQuoteId, customerId, items, SalesOrderStatus.INVOICED, approvedBy, alcadaId,
+				cancelReason);
+	}
+
 	public boolean hasActiveStockReservation() {
 		return status == SalesOrderStatus.APPROVED || status == SalesOrderStatus.IN_SEPARATION;
 	}
