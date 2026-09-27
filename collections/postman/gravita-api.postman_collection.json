@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "b7c4e2b1-4a2b-4f7e-9c1a-5e9f6e8d2a10",
     "name": "Gravita API",
-    "description": "Full REST API surface for the Gravita ERP/tax backend, generated from every @RestController under br.gravita.adapters.inbound.controllers. Organized by module (auth, users, customers, products, master data, inventory, purchasing, tax/PDV, NF-e). Set the baseUrl collection variable and populate the resource id variables (customerId, productId, etc.) captured from earlier responses as you exercise each flow.",
+    "description": "Full REST API surface for the Gravita ERP/tax backend, generated from every @RestController under br.gravita.adapters.inbound.controllers. Organized by module (auth, users, customers, products, master data, inventory, purchasing, tax/PDV, NF-e, sales). Set the baseUrl collection variable and populate the resource id variables (customerId, productId, etc.) captured from earlier responses as you exercise each flow.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -3032,6 +3032,45 @@
         }
       ],
       "description": "br.gravita.adapters.inbound.controllers.tax.controllers.VoidNumberRangeController"
+    },
+    {
+      "name": "Sales / Quotes",
+      "item": [
+        {
+          "name": "Create Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/quotes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sales",
+                "quotes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"validUntil\": \"2026-12-31\",\n  \"items\": [\n    {\n      \"productOrServiceId\": \"{{productId}}\",\n      \"quantity\": 2,\n      \"unitPrice\": 149.9,\n      \"discount\": 10.0\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "br.gravita.adapters.inbound.controllers.sales.controllers.QuoteController"
     }
   ],
   "auth": {
