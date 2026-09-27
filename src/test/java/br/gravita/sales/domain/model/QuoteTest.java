@@ -88,6 +88,33 @@ class QuoteTest {
 	}
 
 	@Test
+	void sendingAQuoteBeforeItsValidityDateMovesItToSent() {
+		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+
+		Quote sent = quote.send(TODAY);
+
+		assertThat(sent.getStatus()).isEqualTo(QuoteStatus.SENT);
+	}
+
+	@Test
+	void sendingAQuoteOnItsValidityDateStillSucceeds() {
+		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+
+		Quote sent = quote.send(TODAY.plusDays(1));
+
+		assertThat(sent.getStatus()).isEqualTo(QuoteStatus.SENT);
+	}
+
+	@Test
+	void rejectsSendingAQuoteWhoseValidityDateHasPassed() {
+		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+
+		assertThatThrownBy(() -> quote.send(TODAY.plusDays(2)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("has expired");
+	}
+
+	@Test
 	void anItemWithoutADiscountDefaultsToZero() {
 		QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null);
 

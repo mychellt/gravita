@@ -37,9 +37,9 @@ public interface SendQuoteUseCase {
 
 ## Acceptance criteria
 
-- [ ] Quote status transitions to `SENT` on successful delivery.
-- [ ] Sending an expired (`validUntil` passed) quote is rejected.
-- [ ] `WHATSAPP` channel uses the customer's registered WhatsApp contact from `masterdata`.
+- [x] Quote status transitions to `SENT` on successful delivery.
+- [x] Sending an expired (`validUntil` passed) quote is rejected.
+- [x] `WHATSAPP` channel uses the customer's registered WhatsApp contact from `masterdata`.
 
 ## Dependencies
 
@@ -49,3 +49,7 @@ public interface SendQuoteUseCase {
 ## Notes
 
 - The module spec doesn't name a dedicated PDF-rendering port for quotes (unlike M9's `RenderPdfPort` for reports); PDF generation is assumed to reuse a shared document-rendering capability, not modeled as a separate outbound port here.
+- `Quote.send(today)` rejects up front - before any channel-specific delivery work - once `validUntil` has passed; only a successful delivery persists the `SENT` transition, so a WhatsApp delivery failure leaves the quote as it was.
+- "Expired" is read from `validUntil` against today, not from `QuoteStatus`: nothing in the module sweeps quotes to `EXPIRED` on a schedule, so the date is the only reliable signal at send time.
+- The customer's WhatsApp contact is resolved from the same `CustomerDomain`/`ContactDomain` masterdata model `ResendNfeEmailService` already reads for e-mail (`ContactType.WHATSAPP`); a customer with no such contact on file is rejected rather than silently skipped.
+- `SendQuoteByWhatsAppPort` is published to SQS the same way `SendFiscalDocumentByEmailPort` is - the downstream WhatsApp Business API integration is outside this repo.
