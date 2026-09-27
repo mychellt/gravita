@@ -14,9 +14,11 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Backs {@link br.gravita.core.ports.outbound.tax.TransmissionQueuePort}
- * (AC2). {@code SyncContingencySalesUseCase} (UC-08, not built yet) will
- * consume and clear rows from this table.
+ * Backs {@link br.gravita.core.ports.outbound.tax.TransmissionQueuePort}, now
+ * shared across M2 (NFe, UC-M2-01 AC7) and M3 (NFC-e contingency, AC2)
+ * despite the table's NFC-e-origin name. {@code SyncContingencySalesUseCase}
+ * (NFC-e) and {@code TransmitNfeUseCase} (NFe, GRA-103) will consume and
+ * clear rows from this table; neither is built yet.
  */
 @Getter
 @Setter
@@ -31,7 +33,7 @@ public class NfceContingencyQueueJpaEntity extends AbstractEntity<UUID> {
 	private UUID id;
 
 	@Column(name = "nfce_sale_id", nullable = false)
-	private UUID nfceSaleId;
+	private UUID documentId;
 
 	@Column(name = "queued_at", nullable = false)
 	private Instant queuedAt;
