@@ -236,3 +236,106 @@ export interface VendaPdv {
   troco?: number;
   cpfNota?: string;
 }
+
+// ── Administração da plataforma (configuração comum a todos os clientes) ──
+
+export type PlanTier = 'BRONZE' | 'SILVER' | 'GOLD';
+
+export interface PlanFeature {
+  label: string;
+  included: boolean;
+}
+
+/** `null` = ilimitado */
+export interface PlanLimits {
+  cnpjs: number | null;
+  filiais: number | null;
+  caixasPdv: number | null;
+  usuarios: number | null;
+}
+
+export interface PlanSupport {
+  email: boolean;
+  chat: boolean;
+  telefone: boolean;
+  slaHoras: number;
+  horarioComercial: boolean;
+  gerenteDedicado: boolean;
+}
+
+/** Espelha `PlanDomain` do backend (`/api/plans`), com os campos extras exibidos no site. */
+export interface Plan {
+  id: string;
+  tier: PlanTier;
+  name: string;
+  description: string;
+  priceMonthly: number;
+  /** Valor mensal equivalente na cobrança anual */
+  priceAnnual: number;
+  featured: boolean;
+  active: boolean;
+  limits: PlanLimits;
+  features: PlanFeature[];
+  support: PlanSupport;
+}
+
+export interface BillingSettings {
+  trialDias: number;
+  trialExigeCartao: boolean;
+  taxaImplantacao: number;
+  fidelidadeMeses: number;
+  mesesGratisAnual: number;
+}
+
+export type IntegracaoCategoria = 'banco' | 'ecommerce' | 'mensageria';
+
+export interface IntegracaoCatalogo {
+  id: string;
+  nome: string;
+  categoria: IntegracaoCategoria;
+  icon: string;
+  ativa: boolean;
+  planoMinimo: PlanTier;
+}
+
+export interface ComplianceSettings {
+  retencaoXmlAnos: number;
+  retencaoBackupDias: number;
+  horarioBackup: string;
+  exigir2faAdmin: boolean;
+  senhaMinCaracteres: number;
+  uptimeSla: number;
+}
+
+export interface InstitucionalSettings {
+  razaoSocial: string;
+  cnpj: string;
+  cidadeUf: string;
+  emailContato: string;
+  urlCentralAjuda: string;
+  urlDocsApi: string;
+  urlStatus: string;
+  urlPrivacidade: string;
+  urlTermos: string;
+  urlLgpd: string;
+}
+
+export interface SiteStat {
+  valor: string;
+  legenda: string;
+}
+
+export interface FaqItem {
+  pergunta: string;
+  resposta: string;
+}
+
+export interface PlatformConfig {
+  plans: Plan[];
+  billing: BillingSettings;
+  integracoes: IntegracaoCatalogo[];
+  compliance: ComplianceSettings;
+  institucional: InstitucionalSettings;
+  siteStats: SiteStat[];
+  faq: FaqItem[];
+}

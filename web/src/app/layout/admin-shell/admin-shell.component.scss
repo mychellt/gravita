@@ -1,0 +1,9 @@
+.admin-dot { background: var(--accent2); font-size: 13px; }
+.external { font-size: 12px; opacity: .6; }
+.admin-env {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+  background: #EDE9FE; color: var(--accent2); border: 1px solid #DDD6FE;
+}
+.admin-pill, .admin-pill:hover { cursor: default; background: rgba(255,255,255,.07); }

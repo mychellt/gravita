@@ -14,7 +14,17 @@ const ROUTE_TITLES: Record<string, string> = {
   '/financeiro': 'Financeiro',
   '/relatorios': 'Relatórios & BI',
   '/settings':   'Configurações',
+  '/admin/configuracoes': 'Configurações gerais da plataforma',
 };
+
+function titleFor(url: string): string {
+  const path = url.split(/[?#]/)[0];
+  if (ROUTE_TITLES[path]) return ROUTE_TITLES[path];
+  const prefix = Object.keys(ROUTE_TITLES)
+    .filter(k => path.startsWith(k + '/'))
+    .sort((a, b) => b.length - a.length)[0];
+  return prefix ? ROUTE_TITLES[prefix] : 'Gravita';
+}
 
 @Injectable({ providedIn: 'root' })
 export class TitleService {
@@ -22,7 +32,7 @@ export class TitleService {
 
   constructor(router: Router) {
     router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe((e: any) => {
-      this.title.set(ROUTE_TITLES[e.urlAfterRedirects] ?? 'Gravita');
+      this.title.set(titleFor(e.urlAfterRedirects));
     });
   }
 }
