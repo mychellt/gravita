@@ -5,12 +5,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A cart line within an {@link NfceSale} (UC-M3-03, AC1). {@code unitPrice}
- * arrives already resolved by the caller (UC-02's search result plus any
- * price-table lookup); this record only enforces that the line and its
- * discount are internally consistent.
- */
 public record SaleItem(UUID productId, BigDecimal quantity, BigDecimal unitPrice, BigDecimal itemDiscount) {
 
 	public SaleItem {

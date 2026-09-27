@@ -5,11 +5,6 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * One payment method/amount pair within an {@link NfceSale} (UC-M3-03, AC3).
- * Reuses masterdata's {@link PaymentMethodType} rather than a PDV-specific
- * duplicate.
- */
 public record Payment(PaymentMethodType method, BigDecimal amount) {
 
 	public Payment {

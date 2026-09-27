@@ -12,13 +12,6 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-/**
- * AES-256-GCM encryption for {@code credential_payload} at rest (doc §11.4). The IV is
- * generated per encryption and prepended to the ciphertext so a single opaque column is
- * enough to store and later decrypt the value; the key is provisioned out-of-band via
- * {@code gravita.system.integration-credential-encryption-key}, never checked into a
- * production profile.
- */
 @Component
 public class CredentialCipher {
 

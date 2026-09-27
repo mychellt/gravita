@@ -16,9 +16,6 @@ public interface UserPersistenceMapper {
     @Mapping(target = "passwordHash", source = "passwordHash")
     UserJpaEntity toEntity(final User domain, final String passwordHash);
 
-    // User exposes no setter for rawPassword (immutable outside its validating
-    // constructor), so disableBuilder leaves MapStruct with no write accessor to
-    // target - build it by hand instead.
     default User toDomain(final UserJpaEntity entity) {
         return User.builder()
                 .id(UserId.of(entity.getId()))

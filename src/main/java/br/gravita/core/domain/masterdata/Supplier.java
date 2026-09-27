@@ -8,13 +8,6 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import lombok.Getter;
 
-/**
- * Supplier aggregate root (UC-M1-09), sharing the PF/PJ {@link Document}
- * value object with customer registration rather than duplicating the
- * CPF/CNPJ form. {@code averageLeadTimeDays} and {@code defaultPurchaseCfop}
- * are optional here but required before a purchase order (M6) can reference
- * this supplier — see {@link #assertReadyForPurchasing()}.
- */
 @Getter
 public final class Supplier {
 
@@ -54,10 +47,6 @@ public final class Supplier {
 		return document.personType();
 	}
 
-	/**
-	 * M6 (purchasing) must call this before placing a purchase order against
-	 * this supplier; both fields are optional at registration time.
-	 */
 	public void assertReadyForPurchasing() {
 		if (averageLeadTimeDays == null) {
 			throw new BusinessRuleException("Average lead time is required before using this supplier in a purchase order");

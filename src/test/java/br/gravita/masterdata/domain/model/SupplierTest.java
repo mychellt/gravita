@@ -125,7 +125,6 @@ class SupplierTest {
 		return new Builder();
 	}
 
-	/** Small local builder to keep each test focused on a single overridden field. */
 	private static final class Builder {
 		private SupplierId id = SupplierId.of(UUID.randomUUID());
 		private Document document = VALID_CNPJ;

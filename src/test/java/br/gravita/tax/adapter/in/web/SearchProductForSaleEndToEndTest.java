@@ -30,11 +30,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-90: end-to-end verification of SearchProductForSaleUseCase
- * (GET /api/pdv/products/search) through the real HTTP stack, backed by a
- * real (H2) ProductRepositoryPort/PriceTableRepositoryPort/CustomerRepositoryPort.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

@@ -7,11 +7,6 @@ import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
 
-/**
- * {@code DigitalCertificate} exposes no setters (immutable outside its validating
- * constructor), so disableBuilder leaves MapStruct with no write accessor to target - both
- * directions are built by hand, the same approach used by {@code IntegrationCredentialPersistenceMapper}.
- */
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface DigitalCertificatePersistenceMapper {
 

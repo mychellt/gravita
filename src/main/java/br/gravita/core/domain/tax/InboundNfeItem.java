@@ -4,13 +4,6 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-/**
- * A line item parsed from a supplier's NFe XML ({@code det}/{@code prod}).
- * {@code supplierProductCode} is the supplier's own SKU ({@code cProd}), not
- * a `masterdata` product id - matching it to a catalog product (or to a
- * {@code PurchaseOrderItem}) is a later conference concern (UC-M2-10 /
- * UC-M6-07), not this use case's.
- */
 public record InboundNfeItem(
 		String supplierProductCode,
 		String description,

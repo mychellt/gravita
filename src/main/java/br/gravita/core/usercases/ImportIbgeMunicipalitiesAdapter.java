@@ -9,10 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Bulk import is the only write path for this table (AC: pre-loaded reference data, not manual entry).
- * Rows are upserted by their natural key (ibgeCode) so re-running an import is idempotent.
- */
 @Component
 public class ImportIbgeMunicipalitiesAdapter implements ImportIbgeMunicipalitiesPort {
 

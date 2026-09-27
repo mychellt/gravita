@@ -39,11 +39,6 @@ public class SuggestReorderService implements SuggestReorderUseCase {
 		return suggestions;
 	}
 
-	/**
-	 * A product with no configured reorder point (e.g. not yet parameterized
-	 * in masterdata) is skipped rather than treated as always/never due for
-	 * reorder.
-	 */
 	private Optional<ReorderSuggestion> toSuggestion(StockBalance balance) {
 		return productRepositoryPort.get(balance.getProductId())
 				.map(ProductDomain::getStock)

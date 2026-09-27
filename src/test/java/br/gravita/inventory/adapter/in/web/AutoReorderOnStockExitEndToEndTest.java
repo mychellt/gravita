@@ -26,12 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-88: end-to-end verification that a stock exit which drops
- * {@code available} to/below the configured reorder point automatically
- * opens a {@code MIN_STOCK_TRIGGER} purchase request (AC1), and that a
- * further drop while one is already OPEN does not open a second one (AC2).
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
@@ -62,7 +56,6 @@ class AutoReorderOnStockExitEndToEndTest {
 		assertThat(requests.get(0).getOrigin()).isEqualTo(PurchaseRequestOrigin.MIN_STOCK_TRIGGER);
 		assertThat(requests.get(0).getStatus()).isEqualTo(PurchaseRequestStatus.OPEN);
 		assertThat(requests.get(0).getRequestedBy()).isNull();
-		// available after exit = 15; suggested quantity brings it back to maximum (100): 85
 		assertThat(requests.get(0).getItems().get(0).getQuantity()).isEqualByComparingTo("85");
 	}
 

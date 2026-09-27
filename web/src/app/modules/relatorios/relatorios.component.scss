@@ -32,7 +32,6 @@
   gap: 14px;
 }
 
-/* ABC chart */
 .abc-chart {
   display: flex; gap: 6px; height: 100px;
   align-items: flex-end; padding: 4px 0;
@@ -54,7 +53,6 @@
 .abc-dot.b { background: var(--accent2); }
 .abc-dot.c { background: var(--surface3); border: 1px solid var(--border2); }
 
-/* DRE table */
 .dre-table {
   width: 100%;
   border-collapse: collapse;

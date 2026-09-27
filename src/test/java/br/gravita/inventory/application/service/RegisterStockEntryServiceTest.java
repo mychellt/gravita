@@ -82,7 +82,6 @@ class RegisterStockEntryServiceTest {
 		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("150");
-		// (100*12.50 + 50*14.00) / 150 = 13.00
 		assertThat(savedBalance.getValue().getAverageCost()).isEqualByComparingTo("13.00");
 	}
 

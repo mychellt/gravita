@@ -10,12 +10,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-/**
- * Depends on an {@link ObjectProvider} rather than {@link SessionStorePort} directly so this
- * resolver - picked up by every {@code @WebMvcTest} slice because it implements {@link
- * HandlerMethodArgumentResolver} - doesn't force a {@code SessionStorePort} bean into test slices
- * for controllers that never use {@link AuthenticatedUser}.
- */
 public class AuthenticatedUserArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private static final String BEARER_PREFIX = "Bearer ";

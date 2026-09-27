@@ -25,14 +25,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * Drives RegisterQuotationResponseUseCase (GRA-58) against a real H2-backed
- * repository (@DataJpaTest), proving the response set round-trips through
- * persistence rather than just what the mocked
- * RegisterQuotationResponseServiceTest can prove. Seeds the Quotation
- * directly through the adapter since SendQuotationUseCase (GRA-57/M6-02)
- * isn't built yet.
- */
 @DataJpaTest
 @Import({QuotationRepositoryAdapter.class, QuotationPersistenceMapperImpl.class})
 class RegisterQuotationResponseIntegrationTest {

@@ -51,14 +51,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * GRA-91/GRA-92: end-to-end verification of RegisterNfceSaleUseCase +
- * IssueNfceUseCase (POST /api/pdv/sales) through the real HTTP stack. Every
- * successful registration now also attempts issuance (module spec: one
- * shared endpoint), which always lands in contingency here - the default
- * SEFAZ base URL is an RFC 2606 reserved, never-resolvable domain, so no real
- * network access is required for a deterministic "SEFAZ unavailable" result.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

@@ -7,11 +7,6 @@ import br.gravita.core.ports.inbound.masterdata.SwitchSefazEnvironmentCommand;
 import br.gravita.core.ports.inbound.masterdata.SwitchSefazEnvironmentUseCase;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 
-/**
- * Persists the new SEFAZ environment immediately so M2/M3/M4's
- * {@code SubmitToSefazPort} reads the current value at transmission time
- * instead of a cached one (UC-M1-03).
- */
 @UseCase
 public class SwitchSefazEnvironmentService implements SwitchSefazEnvironmentUseCase {
 

@@ -13,6 +13,4 @@ CREATE TABLE pos_sessions (
 
 CREATE INDEX idx_pos_sessions_register_id ON pos_sessions (register_id);
 
--- Enforces the one-open-session-per-register invariant (UC-M3-01, AC1) at the
--- DB level, closing the race window between the app-level check and the insert.
 CREATE UNIQUE INDEX uq_pos_sessions_register_open ON pos_sessions (register_id) WHERE status = 'OPEN';

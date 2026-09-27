@@ -9,13 +9,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Delivers UC-M5-10's expiring-lot alert over the existing e-mail channel
- * ({@link EmailNotificationPort}), the same stand-in used for the purchasing
- * approval-workflow notification until M9/M10 land their own dashboard/alerting
- * consumers. An empty result is not notified - there is nothing for the recipient
- * to act on.
- */
 @Component
 public class ExpiringLotNotificationAdapter implements NotifyExpiringLotPort {
 

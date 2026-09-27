@@ -17,10 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-74: end-to-end verification of AdjustInventoryUseCase
- * (POST /api/inventory/adjustments) through the real HTTP stack.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

@@ -8,15 +8,6 @@ import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
 
-/**
- * NfceSale aggregate (UC-M3-03). Built from the cart ({@link SaleItem}s) plus
- * one or more {@link Payment}s; max-discount enforcement against the linked
- * price table (AC2) happens in the use case before {@link #register} is
- * called, since a single aggregate instance has no visibility into
- * masterdata's {@code PriceTable} — the same split used by {@link PosSession}
- * for its one-open-session-per-register check. {@code changeGiven} is always
- * derived here, never accepted as an input (AC4).
- */
 @Getter
 public final class NfceSale {
 
@@ -55,11 +46,6 @@ public final class NfceSale {
 		this.contingencyMode = contingencyMode;
 	}
 
-	/**
-	 * Registers a new DRAFT sale (AC5): total payments must cover the sale
-	 * total or the sale is rejected; {@code changeGiven} is computed as
-	 * {@code sum(payments) - saleTotal}.
-	 */
 	public static NfceSale register(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items,
 			BigDecimal totalDiscount, List<Payment> payments, String customerCpf, Instant createdAt) {
 		BigDecimal normalizedDiscount = totalDiscount == null ? BigDecimal.ZERO : totalDiscount;
@@ -79,9 +65,6 @@ public final class NfceSale {
 				NfceSaleStatus.DRAFT, createdAt, null, null, null, null, false);
 	}
 
-	/**
-	 * Reconstructs a sale from persistence, at any status in its lifecycle.
-	 */
 	public static NfceSale of(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
 			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
 			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
@@ -90,12 +73,6 @@ public final class NfceSale {
 				documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode);
 	}
 
-	/**
-	 * UC-M3-04, online path: SEFAZ-UF authorized the document in real time
-	 * (AC1). Only a {@code DRAFT} sale can be issued — re-issuing an
-	 * already-decided sale would allocate a second document number for the
-	 * same commercial transaction.
-	 */
 	public NfceSale authorize(String documentSeries, Long documentNumber, String accessKey, String sefazProtocol) {
 		requireDraft();
 		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
@@ -105,11 +82,6 @@ public final class NfceSale {
 				false);
 	}
 
-	/**
-	 * UC-M3-04, contingency path (AC2): SEFAZ-UF was unreachable, so the sale
-	 * is numbered and flagged for a later sync (UC-08) instead of blocking the
-	 * cashier. No protocol is available yet.
-	 */
 	public NfceSale queueForContingency(String documentSeries, Long documentNumber, String accessKey) {
 		requireDraft();
 		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
@@ -118,11 +90,6 @@ public final class NfceSale {
 				Objects.requireNonNull(accessKey, "accessKey is required"), null, true);
 	}
 
-	/**
-	 * UC-M3-07: only an {@code AUTHORIZED} sale can be cancelled - a
-	 * {@code DRAFT} sale was never transmitted, and {@code PENDING_SYNC}/
-	 * {@code CANCELLED}/{@code VOIDED} sales are outside this flow's reach.
-	 */
 	public NfceSale cancel() {
 		if (status != NfceSaleStatus.AUTHORIZED) {
 			throw new BusinessRuleException(

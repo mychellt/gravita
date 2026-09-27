@@ -93,7 +93,6 @@ class SuggestReorderServiceTest {
 
 		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
-		// maximum (100) - available (15), not reorderPoint (20) - available (15)
 		assertThat(suggestions.get(0).suggestedQuantity()).isEqualByComparingTo("85");
 	}
 

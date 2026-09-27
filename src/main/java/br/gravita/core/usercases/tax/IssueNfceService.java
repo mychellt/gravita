@@ -31,14 +31,6 @@ import br.gravita.core.ports.outbound.tax.SubmitToSefazPort;
 import br.gravita.core.ports.outbound.tax.TransmissionQueuePort;
 import java.util.List;
 
-/**
- * UC-M3-04. The issuing {@link Company} is resolved transitively through the
- * sale's {@link PosSession} (GRA-96) rather than duplicating a
- * {@code companyId} on {@link NfceSale} itself. {@code originState}/
- * {@code destinationState} are both the issuing company's own
- * {@link Company#getState()} - NFC-e is a walk-in retail sale, so the
- * consumer is always in the same state as the register.
- */
 @UseCase
 public class IssueNfceService implements IssueNfceUseCase {
 
@@ -71,18 +63,14 @@ public class IssueNfceService implements IssueNfceUseCase {
 		NfceSale sale = nfceRepositoryPort.findById(saleId)
 				.orElseThrow(() -> new ResourceNotFoundException("NfceSale not found: " + command.nfceSaleId()));
 		if (sale.getStatus() != NfceSaleStatus.DRAFT) {
-			// Guard up front: an already-decided sale must not consume a second
-			// document number (AC4) just to fail later in NfceSale.authorize().
 			throw new BusinessRuleException(
 					"NfceSale " + saleId.value() + " is not DRAFT (current status: " + sale.getStatus() + ")");
 		}
 
 		Company company = resolveIssuingCompany(sale);
 
-		// AC3: tax totals always come from the shared engine, never recomputed here.
 		TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(sale, company));
 
-		// AC4: allocated exactly once per sale; concurrent-safety lives in AllocateDocumentNumberService.
 		DocumentNumber documentNumber = allocateDocumentNumberUseCase
 				.execute(new AllocateDocumentNumberCommand(company.getId(), FiscalDocumentType.NFCE));
 
@@ -96,12 +84,10 @@ public class IssueNfceService implements IssueNfceUseCase {
 			TaxCalculationResult taxResult) {
 		String onlineAccessKey = accessKey(company, documentNumber, EmissionType.NORMAL);
 		try {
-			// AC1: authorized in real time before the caller returns.
 			SefazSubmissionResult result = submitToSefazPort.submit(new SefazSubmissionRequest(company.getId(),
 					company.getSefazEnvironment(), onlineAccessKey, sale.getSaleTotal(), taxResult));
 			return sale.authorize(documentNumber.series(), documentNumber.number(), onlineAccessKey, result.protocol());
 		} catch (SefazUnavailableException unavailable) {
-			// AC2: SEFAZ-UF unreachable - queue for later sync instead of blocking the cashier.
 			String contingencyAccessKey = accessKey(company, documentNumber, EmissionType.CONTINGENCY);
 			NfceSale queued = sale.queueForContingency(documentNumber.series(), documentNumber.number(),
 					contingencyAccessKey);
@@ -119,8 +105,6 @@ public class IssueNfceService implements IssueNfceUseCase {
 		List<TaxItemCommand> items = sale.getItems().stream()
 				.map(item -> new TaxItemCommand(item.productId().toString(), item.quantity(), item.unitPrice()))
 				.toList();
-		// masterdata.TaxRegime and tax.TaxRegime are separate enums with the same
-		// values (one per module's package boundary); convert by name at the seam.
 		br.gravita.core.domain.tax.TaxRegime taxRegime = br.gravita.core.domain.tax.TaxRegime
 				.valueOf(company.getTaxRegime().name());
 		return new CalculateTaxCommand(items, company.getState(), company.getState(), taxRegime, OPERATION_TYPE,

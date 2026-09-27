@@ -18,10 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * GRA-88: unit coverage for the M5->M6 reorder bridge, in particular AC2
- * (no duplicate OPEN MIN_STOCK_TRIGGER request for the same product).
- */
 @ExtendWith(MockitoExtension.class)
 class CreatePurchaseRequestAdapterTest {
 

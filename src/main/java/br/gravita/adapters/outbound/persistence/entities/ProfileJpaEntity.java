@@ -24,7 +24,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "profiles")
 public class ProfileJpaEntity extends AbstractEntity<UUID> {
-	// id is always caller-assigned (URL path variable); repository adapter sets isNew from existsById before save
 	@Id
 	private UUID id;
 

@@ -8,12 +8,6 @@ import br.gravita.core.ports.outbound.persistence.tax.ProductTaxProfileRepositor
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * {@code productRef} is the product's own UUID, stringified - the same
- * identity every M3 caller already uses ({@link br.gravita.core.domain.tax.SaleItem#productId()}).
- * GRA-32's previously-unwired production adapter (no NCM catalog existed
- * anywhere else); the NCM itself is a plain field on the product record.
- */
 @PersistenceAdapter
 class ProductTaxProfileRepositoryAdapter implements ProductTaxProfileRepositoryPort {
 

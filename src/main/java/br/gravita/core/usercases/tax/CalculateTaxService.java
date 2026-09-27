@@ -14,11 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * The single implementation of {@link CalculateTaxUseCase}. Every caller —
- * NFe issuance, NFCe/PDV, NFSe, sales/purchasing previews — goes through
- * this class; there is no per-module variant (UC-M2-02 acceptance criteria).
- */
 @UseCase
 public class CalculateTaxService implements CalculateTaxUseCase {
 

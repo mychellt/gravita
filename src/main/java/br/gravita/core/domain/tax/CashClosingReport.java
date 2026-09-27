@@ -9,17 +9,6 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 
-/**
- * CashClosingReport aggregate (UC-M3-06, the "Z report"). Generated once a
- * {@link PosSession} closes; reconciles the session's sales - only those that
- * reached issuance (UC-04's {@code AUTHORIZED}/{@code PENDING_SYNC}, a
- * {@code DRAFT} sale was never committed) - and cash movements against the
- * opening amount, broken down by payment method (AC1/AC2).
- * {@code countedAmountsByPaymentMethod} is the cashier's optional physical
- * count; when a method wasn't counted, {@link #differenceFor} returns
- * {@code null} rather than zero, since "not counted" and "counted with no
- * discrepancy" are different facts.
- */
 @Getter
 public final class CashClosingReport {
 
@@ -56,18 +45,12 @@ public final class CashClosingReport {
 		this.saleCount = saleCount;
 		this.openedAt = Objects.requireNonNull(openedAt, "openedAt is required");
 		this.closedAt = Objects.requireNonNull(closedAt, "closedAt is required");
-		// Expected cash in the drawer at close (AC2): opening float, plus CASH
-		// sales and suprimento deposits, minus sangria withdrawals. Non-cash
-		// payment methods never touch the physical drawer.
 		this.expectedCashAmount = this.openingAmount
 				.add(this.expectedAmountsByPaymentMethod.getOrDefault(PaymentMethodType.CASH, BigDecimal.ZERO))
 				.add(this.totalSuprimentoAmount)
 				.subtract(this.totalSangriaAmount);
 	}
 
-	/**
-	 * Generates the Z report at close time.
-	 */
 	public static CashClosingReport close(CashClosingReportId id, PosSessionId sessionId, UUID registerId,
 			UUID operatorId, BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
 			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
@@ -77,9 +60,6 @@ public final class CashClosingReport {
 				saleCount, openedAt, closedAt);
 	}
 
-	/**
-	 * Reconstructs a report from persistence.
-	 */
 	public static CashClosingReport of(CashClosingReportId id, PosSessionId sessionId, UUID registerId,
 			UUID operatorId, BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
 			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
@@ -89,10 +69,6 @@ public final class CashClosingReport {
 				saleCount, openedAt, closedAt);
 	}
 
-	/**
-	 * Physical-count discrepancy for one payment method (AC1); {@code null}
-	 * when the cashier didn't supply a count for it.
-	 */
 	public BigDecimal differenceFor(PaymentMethodType method) {
 		BigDecimal counted = countedAmountsByPaymentMethod.get(method);
 		if (counted == null) {

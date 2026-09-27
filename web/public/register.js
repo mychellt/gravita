@@ -1,6 +1,4 @@
-/* ─ register.js — Registration page interactions ─ */
 
-/* ── Plan data ───────────────────────────────────────────────── */
 const PLANS = {
   bronze: {
     name: 'Bronze',
@@ -46,14 +44,12 @@ const PLANS = {
   },
 };
 
-/* ── Read URL params ─────────────────────────────────────────── */
 const params   = new URLSearchParams(window.location.search);
 const planKey  = (params.get('plan') || 'silver').toLowerCase();
 const billing  = (params.get('billing') || 'monthly').toLowerCase();
 const plan     = PLANS[planKey] || PLANS.silver;
 const isAnnual = billing === 'annual';
 
-/* ── Build plan summary card ─────────────────────────────────── */
 function buildPlanSummary() {
   const price = isAnnual ? plan.priceAnnual : plan.priceMonthly;
   const billingLabel = isAnnual ? 'Cobrança anual · 2 meses grátis' : 'Cobrança mensal';
@@ -97,19 +93,15 @@ function buildPlanSummary() {
 
 buildPlanSummary();
 
-/* ── Step management ─────────────────────────────────────────── */
 let currentStep = 1;
 
 function goToStep(step) {
-  // Hide all
   document.getElementById('form-step-1').classList.add('hidden');
   document.getElementById('form-step-2').classList.add('hidden');
   document.getElementById('form-step-3').classList.add('hidden');
 
-  // Show target
   document.getElementById(`form-step-${step}`).classList.remove('hidden');
 
-  // Update step dots
   [1, 2, 3].forEach(n => {
     const dot = document.getElementById(`step-dot-${n}`);
     dot.classList.remove('active', 'done');
@@ -117,7 +109,6 @@ function goToStep(step) {
     if (n === step) dot.classList.add('active');
   });
 
-  // Update step lines
   const lines = document.querySelectorAll('.step-line');
   lines.forEach((line, i) => {
     line.classList.toggle('done', i + 1 < step);
@@ -127,7 +118,6 @@ function goToStep(step) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ── Validation helpers ──────────────────────────────────────── */
 function setError(fieldId, errId, msg) {
   const field = document.getElementById(fieldId);
   const err   = document.getElementById(errId);
@@ -164,7 +154,6 @@ function validateCNPJ(raw) {
   return parseInt(n[12]) === d1 && parseInt(n[13]) === d2;
 }
 
-/* ── Password strength ───────────────────────────────────────── */
 const pwInput     = document.getElementById('password');
 const strengthBox = document.getElementById('pw-strength');
 const strengthFill = document.getElementById('strength-fill');
@@ -197,14 +186,12 @@ pwInput.addEventListener('input', () => {
   strengthLabel.style.color = lvl.color;
 });
 
-/* ── Eye toggle ──────────────────────────────────────────────── */
 document.getElementById('eye-toggle').addEventListener('click', () => {
   const isText = pwInput.type === 'text';
   pwInput.type = isText ? 'password' : 'text';
   document.getElementById('eye-icon').className = isText ? 'ti ti-eye' : 'ti ti-eye-off';
 });
 
-/* ── CNPJ mask ───────────────────────────────────────────────── */
 document.getElementById('cnpj').addEventListener('input', function () {
   let v = this.value.replace(/\D/g, '').slice(0, 14);
   if (v.length > 12)      v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
@@ -214,7 +201,6 @@ document.getElementById('cnpj').addEventListener('input', function () {
   this.value = v;
 });
 
-/* ── Phone mask ──────────────────────────────────────────────── */
 document.getElementById('phone').addEventListener('input', function () {
   let v = this.value.replace(/\D/g, '').slice(0, 11);
   if (v.length > 10)      v = v.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
@@ -223,7 +209,6 @@ document.getElementById('phone').addEventListener('input', function () {
   this.value = v;
 });
 
-/* ── Step 1 submit ───────────────────────────────────────────── */
 document.getElementById('form1').addEventListener('submit', function (e) {
   e.preventDefault();
 
@@ -254,10 +239,8 @@ document.getElementById('form1').addEventListener('submit', function (e) {
   if (valid) goToStep(2);
 });
 
-/* ── Back button ─────────────────────────────────────────────── */
 document.getElementById('btn-back').addEventListener('click', () => goToStep(1));
 
-/* ── Step 2 submit ───────────────────────────────────────────── */
 document.getElementById('form2').addEventListener('submit', async function (e) {
   e.preventDefault();
 
@@ -280,7 +263,6 @@ document.getElementById('form2').addEventListener('submit', async function (e) {
 
   if (!valid) return;
 
-  // Show loading state
   const btnText   = document.getElementById('btn-submit-text');
   const btnIcon   = document.getElementById('btn-submit-icon');
   const spinner   = document.getElementById('btn-spinner');
@@ -291,17 +273,14 @@ document.getElementById('form2').addEventListener('submit', async function (e) {
   spinner.classList.remove('hidden');
   submitBtn.disabled = true;
 
-  // Simulate API call
   await new Promise(r => setTimeout(r, 1600));
 
-  // Show success
   document.getElementById('confirm-email').textContent =
     document.getElementById('email').value.trim();
 
   goToStep(3);
 });
 
-/* ── Resend email ────────────────────────────────────────────── */
 document.getElementById('resend-btn').addEventListener('click', function () {
   this.textContent = 'Enviado!';
   this.disabled = true;
@@ -311,7 +290,6 @@ document.getElementById('resend-btn').addEventListener('click', function () {
   }, 5000);
 });
 
-/* ── Live CNPJ validation on blur ────────────────────────────── */
 document.getElementById('cnpj').addEventListener('blur', function () {
   const v = this.value.trim();
   if (v.length > 0 && !validateCNPJ(v)) {
@@ -321,7 +299,6 @@ document.getElementById('cnpj').addEventListener('blur', function () {
   }
 });
 
-/* ── Live email validation on blur ───────────────────────────── */
 document.getElementById('email').addEventListener('blur', function () {
   const v = this.value.trim();
   if (v.length > 0 && !validateEmail(v)) {

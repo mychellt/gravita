@@ -10,13 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-/**
- * Backs {@code PUT /api/profiles/{id}/permissions} for standard profiles (shared REST
- * endpoint per docs/specs/m10-sistema.md): replaces the permission set of an existing
- * profile (AssignProfileUseCase, M10-03). When {@code id} has no matching profile and a
- * {@code name} is supplied, delegates to {@link SaveCustomProfilePort} to create a new
- * custom profile instead (SaveCustomProfileUseCase, M10-04).
- */
 @Component
 public class AssignProfileAdapter implements AssignProfilePort {
 

@@ -95,7 +95,6 @@ class CreatePurchaseOrderServiceTest {
                         LocalDate.now().plusDays(5));
         when(quotationRepositoryPort.findById(QuotationId.of(quotationId))).thenReturn(Optional.of(quotation));
 
-        // Command items carry no real pricing intent here - the quotation response is authoritative.
         List<PurchaseOrderItem> commandItems = List.of(new PurchaseOrderItem(productId, BigDecimal.ONE,
                 BigDecimal.TEN));
 

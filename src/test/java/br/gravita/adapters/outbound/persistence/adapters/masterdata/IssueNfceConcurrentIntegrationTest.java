@@ -36,14 +36,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * GRA-92 AC4: two racing UC-04 issuances against the same company/NFCE series
- * must never return the same document number. Drives the real
- * {@code AllocateDocumentNumberService} through {@code IssueNfceService}
- * exactly as the shared REST endpoint would, the same "stale snapshot"
- * simulation {@code AllocateDocumentNumberConcurrentIntegrationTest} (GRA-31)
- * uses instead of real threads.
- */
 @DataJpaTest
 @Import({DocumentSeriesRepositoryAdapter.class, DocumentSeriesPersistenceMapperImpl.class})
 class IssueNfceConcurrentIntegrationTest {

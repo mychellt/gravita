@@ -5,11 +5,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A {@code {product, quantity, unitPrice}} line on a {@link PurchaseOrder}.
- * {@code productId} references `masterdata`'s product by id rather than
- * embedding its domain type, mirroring {@link PurchaseRequestItem}.
- */
 public record PurchaseOrderItem(UUID productId, BigDecimal quantity, BigDecimal unitPrice) {
 
 	public PurchaseOrderItem {

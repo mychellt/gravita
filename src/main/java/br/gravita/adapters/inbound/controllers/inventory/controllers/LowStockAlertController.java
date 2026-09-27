@@ -10,11 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * UC-M5-11, AC3: exposes {@link SuggestReorderUseCase} for inspection (and,
- * per the module spec, shared with M9's future min-stock dashboard widget).
- * Omitting {@code warehouseId} runs a full sweep.
- */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/inventory/alerts")

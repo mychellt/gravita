@@ -2,11 +2,6 @@ package br.gravita.core.domain.tax;
 
 import java.math.BigDecimal;
 
-/**
- * The computed result for a single tax on a single item. {@code computedAmount}
- * is always the engine's own calculation, kept for audit even when
- * {@code overridden} replaces {@code finalAmount} with a manual value.
- */
 public record TaxLineBreakdown(
 		TaxType taxType,
 		BigDecimal base,

@@ -7,14 +7,6 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-/**
- * Enforces the ports-and-adapters boundary for both the legacy
- * {@code br.gravita.core} / {@code br.gravita.adapters} layout and the
- * per-context {@code br.gravita.<context>.domain/application/adapter} layout
- * used by the M1-M10 modules (docs/ARCHITECTURE.md). Package matching is
- * generic ({@code ..domain..}, {@code ..adapter..}, ...) so a new context
- * is covered automatically, with no test change required.
- */
 @AnalyzeClasses(packages = "br.gravita", importOptions = ImportOption.DoNotIncludeTests.class)
 class HexagonalArchitectureTest {
 

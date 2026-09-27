@@ -22,12 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * masterdata's Product has no free-text name/description field yet (UC-M1-11
- * only defines internalCode, barcodes and classification), so the
- * description search/display below is backed by internalCode until a
- * dedicated field lands upstream.
- */
 @UseCase
 public class SearchProductForSaleService implements SearchProductForSaleUseCase {
 

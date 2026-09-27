@@ -11,11 +11,6 @@ import jakarta.validation.constraints.Positive;
 
 import java.util.List;
 
-/**
- * Every field is optional: only what's set is changed (UC-M1-10 partial
- * update), unlike {@link RegisterSupplierRequest} where most fields are
- * mandatory.
- */
 public record UpdateSupplierRequest(
 		PersonType personType,
 		String document,

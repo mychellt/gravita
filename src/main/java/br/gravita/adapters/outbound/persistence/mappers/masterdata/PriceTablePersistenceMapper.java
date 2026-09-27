@@ -50,8 +50,6 @@ public interface PriceTablePersistenceMapper {
     }
 
     private List<PriceTableEntryEmbeddable> toEntryEmbeddables(final List<PriceTableEntry> entries) {
-        // Hibernate merges a detached entity's collections in place (clear + addAll), so
-        // this must stay mutable rather than an immutable Stream.toList().
         return entries.stream()
                 .map(entry -> PriceTableEntryEmbeddable.builder()
                         .refType(entry.ref().type())

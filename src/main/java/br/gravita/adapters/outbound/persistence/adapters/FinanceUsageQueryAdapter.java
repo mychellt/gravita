@@ -5,12 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-/**
- * Finance (M8) does not exist yet, so there is nothing to query against. This stub keeps the
- * delete-guard in {@code DeleteCostCenterAdapter}/{@code DeleteChartOfAccountsAdapter} correct
- * (never blocks on usage it cannot see) until M8 ships its own {@link FinanceUsageQueryPort}
- * adapter backed by real expense/entry tables.
- */
 @Component
 class FinanceUsageQueryAdapter implements FinanceUsageQueryPort {
 

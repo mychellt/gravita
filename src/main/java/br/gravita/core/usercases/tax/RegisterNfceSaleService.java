@@ -77,15 +77,6 @@ public class RegisterNfceSaleService implements RegisterNfceSaleUseCase {
 		return new Payment(paymentCommand.method(), paymentCommand.amount());
 	}
 
-	/**
-	 * AC2: caps {@code discount} (a money amount) against the linked price
-	 * table's {@code maxDiscountPercent} by converting it to a percentage of
-	 * {@code base} first, since {@link PriceTable#evaluateDiscount} works in
-	 * percentage terms. A {@code BLOCK} table throws; an {@code ALERT} table
-	 * lets the sale proceed (the use case has no channel back to the cashier
-	 * for a non-blocking toast, so the ALERT outcome is intentionally
-	 * discarded here).
-	 */
 	private void checkDiscount(PriceTable priceTable, BigDecimal discount, BigDecimal base) {
 		if (priceTable == null || discount == null || discount.compareTo(BigDecimal.ZERO) <= 0
 				|| base.compareTo(BigDecimal.ZERO) <= 0) {

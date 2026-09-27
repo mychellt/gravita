@@ -71,8 +71,6 @@ public interface NfceSalePersistenceMapper {
 		return embeddables.stream().map(e -> new Payment(e.getMethod(), e.getAmount())).toList();
 	}
 
-	// Hibernate merges a detached entity's collections in place (clear + addAll), so
-	// these must stay mutable rather than an immutable Stream.toList().
 	private List<SaleItemEmbeddable> toItemEmbeddables(final List<SaleItem> items) {
 		return items.stream()
 				.map(item -> SaleItemEmbeddable.builder()

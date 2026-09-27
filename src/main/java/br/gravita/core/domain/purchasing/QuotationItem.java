@@ -5,12 +5,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A {@code {product, quantity}} line carried by a {@link Quotation} from its
- * originating {@link PurchaseRequest} (UC-M6-02), mirroring
- * {@link PurchaseRequestItem}. Used by UC-M6-03 to check that a supplier's
- * response prices every item.
- */
 public record QuotationItem(UUID productId, BigDecimal quantity) {
 
 	public QuotationItem {

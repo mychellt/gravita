@@ -5,11 +5,6 @@ import br.gravita.core.domain.tax.InboundNfeTotals;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * Raw values read off a supplier's NFe XML, before {@link ImportSupplierNfeXmlService}
- * applies domain semantics (e.g. {@code supplierCnpj} becomes a validated
- * {@code Document}).
- */
 public record ParsedSupplierNfe(
 		String accessKey,
 		String series,

@@ -20,10 +20,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * GRA-73: end-to-end verification of RegisterStockExitUseCase
- * (POST /api/inventory/movements/exit) through the real HTTP stack.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional

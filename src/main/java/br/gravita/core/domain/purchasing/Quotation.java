@@ -11,15 +11,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 
-/**
- * Quotation aggregate (UC-M6-02/UC-M6-03). Created by {@link #send} with the
- * originating {@link PurchaseRequest}'s item list and the suppliers it was
- * sent to; starts with no responses. Each supplier's reply is recorded via
- * {@link #registerResponse}, which the buyer later compares side by side to
- * pick a winner before creating the {@code PurchaseOrder} (UC-M6-04) - that
- * comparison is a query over this aggregate's responses, not a separate use
- * case.
- */
 @Getter
 public final class Quotation {
 
@@ -48,12 +39,6 @@ public final class Quotation {
 		return new Quotation(id, requestId, items, suppliers, responses);
 	}
 
-	/**
-	 * UC-M6-03: records a supplier's reply. The supplier must be one of the
-	 * ones the quotation was originally sent to, and the reply must price
-	 * every item on the quotation. A prior response from the same supplier is
-	 * replaced rather than duplicated.
-	 */
 	public Quotation registerResponse(SupplierId supplierId, List<QuotationItemPrice> itemPrices, LocalDate deadline) {
 		requireSupplierWasSentTheQuotation(supplierId);
 		QuotationResponse response = new QuotationResponse(supplierId, itemPrices, deadline);

@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# One-time setup script for low-cost Angular SPA hosting on AWS (S3 website hosting only).
-# Usage:
-#   REGION=us-east-1 APP_NAME=gravita-web ./scripts/aws-setup.sh
-
 : "${REGION:=us-east-1}"
 : "${APP_NAME:=gravita-web}"
 

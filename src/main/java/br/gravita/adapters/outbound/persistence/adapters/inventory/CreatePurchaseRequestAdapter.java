@@ -9,15 +9,6 @@ import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepo
 import java.util.List;
 import org.springframework.stereotype.Component;
 
-/**
- * Bridges inventory (M5) into purchasing's (M6) real
- * {@link CreatePurchaseRequestUseCase} (UC-M5-11, GRA-88): every low-stock
- * suggestion becomes a {@code MIN_STOCK_TRIGGER} purchase request, unless one
- * is already OPEN for the same product (AC2) - checked here rather than in
- * {@code CreatePurchaseRequestService} so the general-purpose use case keeps
- * always creating what it's asked to create, and this auto-trigger path owns
- * its own dedupe rule.
- */
 @Component
 class CreatePurchaseRequestAdapter implements CreatePurchaseRequestPort {
 

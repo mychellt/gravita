@@ -5,10 +5,6 @@ import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * A supplier's {@code {product, unitPrice}} quote line within a
- * {@link QuotationResponse} (UC-M6-03).
- */
 public record QuotationItemPrice(UUID productId, BigDecimal unitPrice) {
 
 	public QuotationItemPrice {

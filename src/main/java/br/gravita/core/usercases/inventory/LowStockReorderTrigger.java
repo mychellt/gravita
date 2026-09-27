@@ -8,13 +8,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
-/**
- * Automatic-trigger path required by UC-M5-11 (GRA-88): called after a
- * stock-affecting operation that can lower {@code available}
- * ({@link RegisterStockExitService}, {@link ReserveStockService}), it sweeps
- * the affected warehouse for reorder suggestions and opens a purchase request
- * for each one (AC1).
- */
 @Component
 public class LowStockReorderTrigger {
 

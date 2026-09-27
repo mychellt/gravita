@@ -9,5 +9,4 @@ CREATE TABLE approval_alcada (
     modified_at                 TIMESTAMP NOT NULL
 );
 
--- Exactly one active configuration per module (doc UC-M10-09 acceptance criteria).
 CREATE UNIQUE INDEX idx_approval_alcada_module ON approval_alcada (module);

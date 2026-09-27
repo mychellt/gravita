@@ -11,14 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * One {@code {product, unitPrice}} line of a supplier's
- * {@code QuotationResponse}, flattened for persistence: {@code supplierId}
- * and {@code deadline} repeat across every line belonging to the same
- * response so the whole response set can live in a single
- * {@code @ElementCollection}, matching how sibling purchasing aggregates
- * persist their item lists.
- */
 @Getter
 @Setter
 @Embeddable

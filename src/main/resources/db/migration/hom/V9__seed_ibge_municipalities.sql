@@ -1,5 +1,3 @@
--- Pre-loaded from the official IBGE localities API (servicodados.ibge.gov.br/api/v1/localidades/municipios).
--- Satisfies the M1-14 requirement that IbgeMunicipality ships pre-loaded rather than requiring manual entry.
 INSERT INTO ibge_municipalities (id, ibge_code, name, state_code, active, created_at, modified_at) VALUES
     ('45f3b572-5065-5404-bfa1-eb605a6c3f5c', '1100015', 'Alta Floresta D''Oeste', 'RO', TRUE, now(), now()),
     ('2dac900d-b286-5e86-b826-6f8fd203d049', '1100023', 'Ariquemes', 'RO', TRUE, now(), now()),

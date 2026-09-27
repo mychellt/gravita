@@ -15,12 +15,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Verifies the RFC 6238 TOTP algorithm against RFC 4226 Appendix D's published HOTP(secret,
- * counter) test vectors for counter=1 (code {@code 287082}), using the well-known ASCII secret
- * {@code "12345678901234567890"} base32-encoded as {@code GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"}.
- * The fixed clock lands at epoch second 59, so {@code 59 / 30 = 1} matches that counter.
- */
 @DataJpaTest
 class TotpVerificationAdapterTest {
 

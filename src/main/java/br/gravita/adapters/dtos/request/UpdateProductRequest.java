@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** Every field is optional: only fields present in the request are applied, the rest of the product is left untouched. */
 public record UpdateProductRequest(
 		String internalCode,
 		List<String> barcodes,

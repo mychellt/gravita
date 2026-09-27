@@ -26,21 +26,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * GRA-50: independent QA verification of GRA-29's ManagePriceTableUseCase
- * (POST/PATCH /api/price-tables). The existing ManagePriceTableServiceTest
- * mocks the repository, so it can't prove real persistence semantics. This
- * drives the real ManagePriceTable service against a real H2-backed
- * repository (@DataJpaTest), covering what the mocked tests cannot: that an
- * update fully replaces the prior state instead of merging, that percent
- * formations do not bake a computed price into the stored entry, and that an
- * expired table is correctly excluded from active resolution.
- *
- * A full @SpringBootTest/HTTP-level equivalent could not be used because the
- * application context currently fails to start (TotpVerificationAdapter has
- * ambiguous constructors, tracked separately as GRA-54), so this exercises
- * the real use case + repository + database directly instead.
- */
 @DataJpaTest
 @Import({PriceTableRepositoryAdapter.class, PriceTablePersistenceMapperImpl.class})
 class PriceTableManagementIntegrationTest {
@@ -123,7 +108,6 @@ class PriceTableManagementIntegrationTest {
 		assertThat(block.getMaxDiscountBehavior()).isEqualTo(MaxDiscountBehavior.BLOCK);
 		assertThat(alert.getMaxDiscountBehavior()).isEqualTo(MaxDiscountBehavior.ALERT);
 
-		// resolvable: BLOCK throws once the limit is exceeded, ALERT does not.
 		assertThatThrownBy(() -> block.evaluateDiscount(BigDecimal.valueOf(15))).isInstanceOf(BusinessRuleException.class);
 		assertThat(alert.evaluateDiscount(BigDecimal.valueOf(15)))
 				.isEqualTo(br.gravita.core.domain.masterdata.DiscountCheckResult.ALERT);
@@ -148,10 +132,8 @@ class PriceTableManagementIntegrationTest {
 		flushAndClear();
 
 		PriceTable persisted = priceTableRepositoryAdapter.findById(id).orElseThrow();
-		// The stored entry is still the raw 20 (percent), not a baked-in price computed from some cost at save time.
 		assertThat(persisted.getEntries().get(0).value()).isEqualByComparingTo("20");
 
-		// Resolution time uses whatever cost is current then - propagating later cost changes automatically.
 		BigDecimal resolvedAtCost100 = persisted.resolvePrice(ProductOrClassRef.product("sku-percent"), BigDecimal.valueOf(100), null);
 		BigDecimal resolvedAtCost200 = persisted.resolvePrice(ProductOrClassRef.product("sku-percent"), BigDecimal.valueOf(200), null);
 		assertThat(resolvedAtCost100).isEqualByComparingTo("120");

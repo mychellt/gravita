@@ -7,14 +7,6 @@ import java.time.Instant;
 import java.util.Objects;
 import lombok.Getter;
 
-/**
- * UC-M2-06 (Inutilização). Audit record of a range of allocated-but-unused
- * document numbers formally voided with SEFAZ. Immutable by design - no
- * update or delete operation exists for it, see
- * {@code VoidedNumberRangeRepositoryPort} - since the numbering gap it
- * explains must never be revised after the fact. Carries everything
- * UC-M2-13 (SPED/Livros Fiscais, not yet built) will need to explain the gap.
- */
 @Getter
 public final class VoidedNumberRange {
 

@@ -36,12 +36,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
-/**
- * Drives ConfirmPurchaseReceiptUseCase (GRA-63) against a real H2-backed
- * repository (@DataJpaTest), proving the receipt and its order both round-trip
- * through persistence correctly - rather than just what the mocked
- * ConfirmPurchaseReceiptServiceTest can prove.
- */
 @DataJpaTest
 @ExtendWith(MockitoExtension.class)
 @Import({PurchaseOrderRepositoryAdapter.class, PurchaseOrderPersistenceMapperImpl.class,

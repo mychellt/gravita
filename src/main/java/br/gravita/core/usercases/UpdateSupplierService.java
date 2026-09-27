@@ -7,13 +7,6 @@ import br.gravita.core.ports.inbound.masterdata.UpdateSupplierCommand;
 import br.gravita.core.ports.inbound.masterdata.UpdateSupplierUseCase;
 import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 
-/**
- * Merges the command's non-null fields onto the existing supplier and saves
- * the result; fields left {@code null} in the command keep their current
- * value (UC-M1-10). Purchase-order/return/quality history lives in
- * {@code purchasing} (M6), keyed by {@link br.gravita.core.domain.masterdata.SupplierId}
- * and never touched here, so it's unaffected by any field change.
- */
 @UseCase
 public class UpdateSupplierService implements UpdateSupplierUseCase {
 

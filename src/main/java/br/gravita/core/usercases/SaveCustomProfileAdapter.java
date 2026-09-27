@@ -7,13 +7,6 @@ import br.gravita.core.ports.business.SaveCustomProfilePort;
 import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
 import org.springframework.stereotype.Component;
 
-/**
- * SaveCustomProfileUseCase (M10-04): saves an arbitrary module/screen/action permission
- * combination as a new, named, reusable {@link ProfileDomain}, selectable exactly like a
- * standard profile. Reached via {@code PUT /api/profiles/{id}/permissions} - the same
- * shared endpoint as AssignProfileUseCase (M10-03, see {@link AssignProfileAdapter}), which
- * delegates here when the path {@code id} has no matching profile.
- */
 @Component
 public class SaveCustomProfileAdapter implements SaveCustomProfilePort {
 

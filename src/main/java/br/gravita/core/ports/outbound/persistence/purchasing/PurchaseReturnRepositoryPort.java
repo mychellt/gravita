@@ -10,10 +10,5 @@ public interface PurchaseReturnRepositoryPort {
 	PurchaseReturn save(PurchaseReturn purchaseReturn);
 	Optional<PurchaseReturn> findById(PurchaseReturnId id);
 
-	/**
-	 * UC-M6-09 needs every return already recorded against a receipt to net out
-	 * previously-returned quantities before validating a new one against what
-	 * was originally received.
-	 */
 	List<PurchaseReturn> findByReceiptId(PurchaseReceiptId receiptId);
 }

@@ -18,12 +18,6 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 
-/**
- * RFC 6238 TOTP verification (Google Authenticator/Authy-compatible, doc §11.1) against a
- * per-user secret stored on {@code UserJpaEntity#totpSecret}. There is no enrollment use case
- * yet in M10's roadmap, so a user without a provisioned secret simply never verifies - 2FA stays
- * fail-closed rather than silently bypassed.
- */
 @Component
 public class TotpVerificationAdapter implements TotpVerificationPort {
 

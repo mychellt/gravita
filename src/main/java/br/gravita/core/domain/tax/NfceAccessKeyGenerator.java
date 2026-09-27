@@ -6,13 +6,6 @@ import java.time.YearMonth;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * Builds the 44-digit NFC-e access key (chave de acesso) per the SEFAZ
- * layout: cUF(2) + AAMM(4) + CNPJ(14) + mod(2, always "65") + serie(3) +
- * nNF(9) + tpEmis(1) + cNF(8, random) + cDV(1, modulo-11 check digit). This
- * is the real, independently verifiable part of UC-M3-04's "SEFAZ-UF client
- * adapter" - it needs no network access, unlike the XML submission itself.
- */
 public final class NfceAccessKeyGenerator {
 
 	private static final String NFCE_MODEL = "65";
@@ -66,10 +59,6 @@ public final class NfceAccessKeyGenerator {
 		return "0".repeat(length - value.length()) + value;
 	}
 
-	/**
-	 * Modulo-11 check digit: weights cycle 2..9 from the rightmost digit;
-	 * remainder &lt; 2 maps to 0, otherwise the digit is {@code 11 - remainder}.
-	 */
 	private static char checkDigit(String digits) {
 		int sum = 0;
 		int weight = 2;

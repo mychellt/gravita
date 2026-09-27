@@ -18,16 +18,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * GRA-51: end-to-end QA verification of GRA-20's ConfigureDocumentSeriesUseCase
- * (PUT /api/companies/{id}/document-series/{type}) through the real HTTP stack -
- * real controller, real use case, real H2-backed repository. This closes the gap
- * left by DocumentSeriesConfigurationIntegrationTest (which drove the use case
- * directly because the application context previously failed to start) and by
- * CompanyControllerTest (which mocks the use case). GRA-54 fixed the
- * TotpVerificationAdapter ambiguous-constructor bug that blocked context startup,
- * so this now exercises the full path end to end.
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Transactional
