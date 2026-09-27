@@ -34,6 +34,17 @@ class InboundNfeTest {
 	}
 
 	@Test
+	void enteringManuallyProducesTheSamePendingConferenceShapeAsXmlImport() {
+		InboundNfe inboundNfe = InboundNfe.enteredManually(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, ACCESS_KEY,
+				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", Instant.now(),
+				List.of(item()), totals());
+
+		assertThat(inboundNfe.getStatus()).isEqualTo(InboundNfeStatus.PENDING_CONFERENCE);
+		assertThat(inboundNfe.getItems()).hasSize(1);
+		assertThat(inboundNfe.getXmlStorageRef()).isNotBlank();
+	}
+
+	@Test
 	void rejectsAnAccessKeyThatIsNot44Digits() {
 		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, "12345",
 				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(), List.of(item()),
