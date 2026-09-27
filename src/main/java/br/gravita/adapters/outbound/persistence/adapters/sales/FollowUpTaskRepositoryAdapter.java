@@ -6,6 +6,8 @@ import br.gravita.adapters.outbound.persistence.repositories.sales.FollowUpTaskJ
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.FollowUpTask;
 import br.gravita.core.ports.outbound.persistence.sales.FollowUpTaskRepositoryPort;
+import java.time.LocalDate;
+import java.util.UUID;
 
 @PersistenceAdapter
 class FollowUpTaskRepositoryAdapter implements FollowUpTaskRepositoryPort {
@@ -24,5 +26,13 @@ class FollowUpTaskRepositoryAdapter implements FollowUpTaskRepositoryPort {
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		FollowUpTaskJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
+	}
+
+	@Override
+	public boolean existsForTargetOnDate(UUID opportunityId, UUID customerId, LocalDate dueDate) {
+		if (opportunityId != null) {
+			return jpaRepository.existsByOpportunityIdAndDueDate(opportunityId, dueDate);
+		}
+		return jpaRepository.existsByCustomerIdAndDueDate(customerId, dueDate);
 	}
 }
