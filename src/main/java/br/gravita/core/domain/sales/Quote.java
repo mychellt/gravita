@@ -16,23 +16,25 @@ public final class Quote {
 
 	private final QuoteId id;
 	private final UUID customerId;
+	private final UUID salespersonId;
 	private final List<QuoteItem> items;
 	private final LocalDate validUntil;
 	private final QuoteStatus status;
 
-	public static Quote create(QuoteId id, UUID customerId, List<QuoteItem> items, LocalDate validUntil,
-			LocalDate today) {
+	public static Quote create(QuoteId id, UUID customerId, UUID salespersonId, List<QuoteItem> items,
+			LocalDate validUntil, LocalDate today) {
 		Objects.requireNonNull(customerId, "customerId is required");
+		Objects.requireNonNull(salespersonId, "salespersonId is required");
 		Objects.requireNonNull(validUntil, "validUntil is required");
 		if (!validUntil.isAfter(today)) {
 			throw new BusinessRuleException("Quote validUntil must be in the future, was " + validUntil);
 		}
-		return new Quote(id, customerId, requireNonEmptyItems(items), validUntil, QuoteStatus.DRAFT);
+		return new Quote(id, customerId, salespersonId, requireNonEmptyItems(items), validUntil, QuoteStatus.DRAFT);
 	}
 
-	public static Quote of(QuoteId id, UUID customerId, List<QuoteItem> items, LocalDate validUntil,
-			QuoteStatus status) {
-		return new Quote(id, customerId, items, validUntil, status);
+	public static Quote of(QuoteId id, UUID customerId, UUID salespersonId, List<QuoteItem> items,
+			LocalDate validUntil, QuoteStatus status) {
+		return new Quote(id, customerId, salespersonId, items, validUntil, status);
 	}
 
 	/**
@@ -46,11 +48,21 @@ public final class Quote {
 			throw new BusinessRuleException(
 					"Quote " + id.value() + " has expired (validUntil: " + validUntil + ")");
 		}
-		return new Quote(id, customerId, items, validUntil, QuoteStatus.SENT);
+		return new Quote(id, customerId, salespersonId, items, validUntil, QuoteStatus.SENT);
 	}
 
 	public BigDecimal totalValue() {
 		return items.stream().map(QuoteItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	public Quote convert(LocalDate today) {
+		if (status == QuoteStatus.CONVERTED) {
+			throw new BusinessRuleException("Quote is already converted: " + id.value());
+		}
+		if (today.isAfter(validUntil)) {
+			throw new BusinessRuleException("Cannot convert an expired quote, validUntil was " + validUntil);
+		}
+		return new Quote(id, customerId, salespersonId, items, validUntil, QuoteStatus.CONVERTED);
 	}
 
 	private static List<QuoteItem> requireNonEmptyItems(List<QuoteItem> items) {

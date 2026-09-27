@@ -2,10 +2,15 @@ package br.gravita.adapters.inbound.controllers.sales.controllers;
 
 import br.gravita.adapters.inbound.controllers.sales.dtos.CreateQuoteRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.QuoteResponse;
+import br.gravita.adapters.inbound.controllers.sales.dtos.SalesOrderResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.SendQuoteRequest;
+import br.gravita.core.domain.sales.QuoteNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.sales.ConvertQuoteToOrderCommand;
+import br.gravita.core.ports.inbound.sales.ConvertQuoteToOrderUseCase;
 import br.gravita.core.ports.inbound.sales.CreateQuoteUseCase;
 import br.gravita.core.ports.inbound.sales.QuoteView;
+import br.gravita.core.ports.inbound.sales.SalesOrderView;
 import br.gravita.core.ports.inbound.sales.SendQuoteUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,7 @@ public class QuoteController {
 
 	private final CreateQuoteUseCase createQuoteUseCase;
 	private final SendQuoteUseCase sendQuoteUseCase;
+	private final ConvertQuoteToOrderUseCase convertQuoteToOrderUseCase;
 
 	@PostMapping
 	public ResponseEntity<QuoteResponse> create(@Valid @RequestBody CreateQuoteRequest request) {
@@ -42,6 +48,18 @@ public class QuoteController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void send(@PathVariable UUID id, @Valid @RequestBody SendQuoteRequest request) {
 		sendQuoteUseCase.execute(request.toCommand(id));
+	}
+
+	@PostMapping("/{id}/convert")
+	public ResponseEntity<SalesOrderResponse> convert(@PathVariable UUID id) {
+		SalesOrderView order = convertQuoteToOrderUseCase.execute(new ConvertQuoteToOrderCommand(id));
+		return ResponseEntity.created(URI.create("/api/sales/orders/" + order.id()))
+				.body(SalesOrderResponse.from(order));
+	}
+
+	@ExceptionHandler(QuoteNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleQuoteNotFoundException(QuoteNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)

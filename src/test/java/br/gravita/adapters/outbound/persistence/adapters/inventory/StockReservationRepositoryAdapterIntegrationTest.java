@@ -51,4 +51,25 @@ class StockReservationRepositoryAdapterIntegrationTest {
 
 		assertThat(found).isEmpty();
 	}
+
+	@Test
+	void findsOnlyTheActiveReservationsForAGivenOrderRef() {
+		UUID orderRef = UUID.randomUUID();
+		StockReservation active = StockReservation.create(StockReservationId.of(UUID.randomUUID()), orderRef,
+				UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10"));
+		StockReservation released = StockReservation.create(StockReservationId.of(UUID.randomUUID()), orderRef,
+				UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("5")).release();
+		StockReservation otherOrder = StockReservation.create(StockReservationId.of(UUID.randomUUID()),
+				UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("7"));
+
+		stockReservationRepositoryAdapter.save(active);
+		stockReservationRepositoryAdapter.save(released);
+		stockReservationRepositoryAdapter.save(otherOrder);
+		entityManager.flush();
+		entityManager.clear();
+
+		assertThat(stockReservationRepositoryAdapter.findActiveByOrderRef(orderRef))
+				.extracting(StockReservation::getId)
+				.containsExactly(active.getId());
+	}
 }

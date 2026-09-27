@@ -9,11 +9,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-public record QuoteView(UUID id, UUID customerId, QuoteStatus status, List<QuoteItem> items, LocalDate validUntil,
-		BigDecimal totalValue) {
+public record QuoteView(UUID id, UUID customerId, UUID salespersonId, QuoteStatus status, List<QuoteItem> items,
+		LocalDate validUntil, BigDecimal totalValue) {
 
 	public static QuoteView from(Quote quote) {
-		return new QuoteView(quote.getId().value(), quote.getCustomerId(), quote.getStatus(), quote.getItems(),
-				quote.getValidUntil(), quote.totalValue());
+		return new QuoteView(quote.getId().value(), quote.getCustomerId(), quote.getSalespersonId(),
+				quote.getStatus(), quote.getItems(), quote.getValidUntil(), quote.totalValue());
 	}
 }

@@ -149,11 +149,57 @@ class QuoteTest {
 				.hasMessageContaining("cannot exceed the item subtotal");
 	}
 
+	@Test
+	void convertingADraftQuoteTransitionsItToConvertedAndKeepsItsData() {
+		QuoteItem item = item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
+		Quote quote = create(List.of(item), TODAY.plusDays(1));
+
+		Quote converted = quote.convert(TODAY);
+
+		assertThat(converted.getStatus()).isEqualTo(QuoteStatus.CONVERTED);
+		assertThat(converted.getId()).isEqualTo(quote.getId());
+		assertThat(converted.getCustomerId()).isEqualTo(quote.getCustomerId());
+		assertThat(converted.getItems()).containsExactly(item);
+		assertThat(converted.getValidUntil()).isEqualTo(quote.getValidUntil());
+	}
+
+	@Test
+	void convertingOnTheLastValidDayIsAllowed() {
+		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY, QuoteStatus.DRAFT);
+
+		Quote converted = quote.convert(TODAY);
+
+		assertThat(converted.getStatus()).isEqualTo(QuoteStatus.CONVERTED);
+	}
+
+	@Test
+	void rejectsConvertingAnAlreadyConvertedQuote() {
+		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1))
+				.convert(TODAY);
+
+		assertThatThrownBy(() -> quote.convert(TODAY))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("already converted");
+	}
+
+	@Test
+	void rejectsConvertingAnExpiredQuote() {
+		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.minusDays(1),
+				QuoteStatus.DRAFT);
+
+		assertThatThrownBy(() -> quote.convert(TODAY))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("expired");
+	}
+
 	private static QuoteItem item(BigDecimal quantity, BigDecimal unitPrice, BigDecimal discount) {
 		return new QuoteItem(UUID.randomUUID(), quantity, unitPrice, discount);
 	}
 
 	private static Quote create(List<QuoteItem> items, LocalDate validUntil) {
-		return Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), items, validUntil, TODAY);
+		return Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), items, validUntil,
+				TODAY);
 	}
 }

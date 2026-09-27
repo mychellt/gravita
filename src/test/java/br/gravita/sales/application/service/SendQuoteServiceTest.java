@@ -8,6 +8,7 @@ import br.gravita.core.domain.sales.Quote;
 import br.gravita.core.domain.sales.QuoteDeliveryChannel;
 import br.gravita.core.domain.sales.QuoteId;
 import br.gravita.core.domain.sales.QuoteItem;
+import br.gravita.core.domain.sales.QuoteNotFoundException;
 import br.gravita.core.domain.sales.QuoteStatus;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.SendQuoteCommand;
@@ -132,7 +133,7 @@ class SendQuoteServiceTest {
 
 		assertThatThrownBy(
 				() -> service.execute(new SendQuoteCommand(quoteId.value(), QuoteDeliveryChannel.PDF)))
-				.isInstanceOf(ResourceNotFoundException.class);
+				.isInstanceOf(QuoteNotFoundException.class);
 	}
 
 	@Test
@@ -150,6 +151,6 @@ class SendQuoteServiceTest {
 
 	private Quote draftQuote(LocalDate validUntil) {
 		QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO);
-		return Quote.of(quoteId, customerId, List.of(item), validUntil, QuoteStatus.DRAFT);
+		return Quote.of(quoteId, customerId, UUID.randomUUID(), List.of(item), validUntil, QuoteStatus.DRAFT);
 	}
 }

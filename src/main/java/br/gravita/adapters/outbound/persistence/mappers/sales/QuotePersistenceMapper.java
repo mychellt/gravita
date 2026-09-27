@@ -19,6 +19,7 @@ public interface QuotePersistenceMapper {
 		return Quote.of(
 				QuoteId.of(entity.getId()),
 				entity.getCustomerId(),
+				entity.getSalespersonId(),
 				toItems(entity.getItems()),
 				entity.getValidUntil(),
 				entity.getStatus());
@@ -28,6 +29,7 @@ public interface QuotePersistenceMapper {
 		return QuoteJpaEntity.builder()
 				.id(domain.getId() == null ? null : domain.getId().value())
 				.customerId(domain.getCustomerId())
+				.salespersonId(domain.getSalespersonId())
 				.validUntil(domain.getValidUntil())
 				.status(domain.getStatus())
 				.items(toItemEmbeddables(domain.getItems()))

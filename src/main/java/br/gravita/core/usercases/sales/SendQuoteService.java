@@ -8,6 +8,7 @@ import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.sales.Quote;
 import br.gravita.core.domain.sales.QuoteDeliveryChannel;
 import br.gravita.core.domain.sales.QuoteId;
+import br.gravita.core.domain.sales.QuoteNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.SendQuoteCommand;
 import br.gravita.core.ports.inbound.sales.SendQuoteUseCase;
@@ -40,7 +41,7 @@ public class SendQuoteService implements SendQuoteUseCase {
 	@Override
 	public void execute(SendQuoteCommand command) {
 		Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
-				.orElseThrow(() -> new ResourceNotFoundException("Quote not found: " + command.quoteId()));
+				.orElseThrow(() -> new QuoteNotFoundException(command.quoteId()));
 
 		Quote sent = quote.send(LocalDate.now());
 

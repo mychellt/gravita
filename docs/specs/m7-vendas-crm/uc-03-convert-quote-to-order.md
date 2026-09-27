@@ -47,3 +47,7 @@ public interface ConvertQuoteToOrderUseCase {
 
 - **Depends on:** [UC-01 Create Quote](uc-01-create-quote.md).
 - **Blocks:** [UC-04 Approve Sales Order](uc-04-approve-sales-order.md).
+
+## Notes
+
+- `SalesOrder.salespersonId` is carried over unchanged from `Quote.salespersonId`, alongside customer/items/prices/discounts. The field was added by [UC-08 Calculate Commission](uc-08-calculate-commission.md), which needed a salesperson to attribute commissions to; see its Notes.

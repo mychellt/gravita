@@ -41,6 +41,7 @@ class CreateQuoteEndToEndTest {
 	@Test
 	void aQuoteIsPersistedAsDraftWithItsItemsPricesDiscountsAndValidityAsSubmitted() throws Exception {
 		UUID customerId = UUID.randomUUID();
+		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();
 		UUID serviceId = UUID.randomUUID();
 		LocalDate validUntil = LocalDate.now().plusDays(15);
@@ -48,13 +49,14 @@ class CreateQuoteEndToEndTest {
 		String body = """
 				{
 				  "customerId": "%s",
+				  "salespersonId": "%s",
 				  "validUntil": "%s",
 				  "items": [
 				    {"productOrServiceId": "%s", "quantity": 3, "unitPrice": 12.3456, "discount": 1.50},
 				    {"productOrServiceId": "%s", "quantity": 1, "unitPrice": 250.00}
 				  ]
 				}
-				""".formatted(customerId, validUntil, productId, serviceId);
+				""".formatted(customerId, salespersonId, validUntil, productId, serviceId);
 
 		String response = mockMvc.perform(post("/api/sales/quotes").contentType("application/json").content(body))
 				.andExpect(status().isCreated())
@@ -157,9 +159,10 @@ class CreateQuoteEndToEndTest {
 		return """
 				{
 				  "customerId": "%s",
+				  "salespersonId": "%s",
 				  "validUntil": "%s",
 				  "items": [{"productOrServiceId": "%s", "quantity": 1, "unitPrice": 10}]
 				}
-				""".formatted(UUID.randomUUID(), validUntil, UUID.randomUUID());
+				""".formatted(UUID.randomUUID(), UUID.randomUUID(), validUntil, UUID.randomUUID());
 	}
 }
