@@ -7,7 +7,9 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.ports.outbound.persistence.finance.PayableRepositoryPort;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class PayableRepositoryAdapter implements PayableRepositoryPort {
@@ -31,5 +33,11 @@ class PayableRepositoryAdapter implements PayableRepositoryPort {
 	@Override
 	public Optional<Payable> findById(PayableId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<Payable> findByPurchaseReceiptRef(UUID purchaseReceiptRef) {
+		return jpaRepository.findByPurchaseReceiptRefOrderByInstallmentNumber(purchaseReceiptRef).stream()
+				.map(mapper::toDomain).toList();
 	}
 }

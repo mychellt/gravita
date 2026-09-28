@@ -20,9 +20,13 @@ public final class Payable {
 	private final LocalDate dueDate;
 	private final List<CostCenterShare> costCenterSplit;
 	private final PayableStatus status;
+	private final UUID purchaseReceiptRef;
+	private final Integer installmentNumber;
+	private final Integer installments;
 
 	private Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
-			List<CostCenterShare> costCenterSplit, PayableStatus status) {
+			List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
+			Integer installmentNumber, Integer installments) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.supplierId = supplierId;
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -30,6 +34,9 @@ public final class Payable {
 		this.dueDate = Objects.requireNonNull(dueDate, "dueDate is required");
 		this.costCenterSplit = requireValidSplit(costCenterSplit);
 		this.status = Objects.requireNonNull(status, "status is required");
+		this.purchaseReceiptRef = purchaseReceiptRef;
+		this.installmentNumber = installmentNumber;
+		this.installments = installments;
 	}
 
 	/**
@@ -40,12 +47,31 @@ public final class Payable {
 	public static Payable createManual(PayableId id, UUID supplierId, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit) {
 		return new Payable(id, supplierId, PayableOrigin.MANUAL, amount, dueDate, costCenterSplit,
-				PayableStatus.OPEN);
+				PayableStatus.OPEN, null, null, null);
+	}
+
+	/**
+	 * One installment of the payment terms of a confirmed purchase receipt.
+	 * {@code installments} is the total number of installments of the receipt,
+	 * {@code installmentNumber} (1-based) this title's position among them.
+	 */
+	public static Payable createFromPurchaseReceipt(PayableId id, UUID supplierId, UUID purchaseReceiptRef,
+			BigDecimal amount, LocalDate dueDate, int installmentNumber, int installments) {
+		Objects.requireNonNull(supplierId, "supplierId is required");
+		Objects.requireNonNull(purchaseReceiptRef, "purchaseReceiptRef is required");
+		if (installmentNumber < 1 || installmentNumber > installments) {
+			throw new BusinessRuleException(
+					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
+		}
+		return new Payable(id, supplierId, PayableOrigin.PURCHASE_RECEIPT, amount, dueDate, null,
+				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments);
 	}
 
 	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status) {
-		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status);
+			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
+			Integer installmentNumber, Integer installments) {
+		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
+				installmentNumber, installments);
 	}
 
 	private static BigDecimal requirePositive(BigDecimal amount) {

@@ -18,7 +18,8 @@ public interface PayablePersistenceMapper {
 				entity.getAmount(), entity.getDueDate(),
 				entity.getCostCenterSplit().stream()
 						.map(share -> new CostCenterShare(share.getCostCenterId(), share.getPercent())).toList(),
-				entity.getStatus());
+				entity.getStatus(), entity.getPurchaseReceiptRef(), entity.getInstallmentNumber(),
+				entity.getInstallments());
 	}
 
 	default PayableJpaEntity toEntity(final Payable domain) {
@@ -32,6 +33,9 @@ public interface PayablePersistenceMapper {
 						.map(share -> new CostCenterShareEmbeddable(share.costCenterId(), share.percent()))
 						.toList()))
 				.status(domain.getStatus())
+				.purchaseReceiptRef(domain.getPurchaseReceiptRef())
+				.installmentNumber(domain.getInstallmentNumber())
+				.installments(domain.getInstallments())
 				.build();
 	}
 }
