@@ -1,10 +1,13 @@
 package br.gravita.adapters.inbound.controllers.finance.controllers;
 
 import br.gravita.adapters.inbound.controllers.finance.dtos.CashMovementResponse;
+import br.gravita.adapters.inbound.controllers.finance.dtos.CloseDailyCashRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.DailyClosingResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.RecordInternalCashMovementRequest;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.CashMovement;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.finance.CloseDailyCashUseCase;
 import br.gravita.core.ports.inbound.finance.RecordInternalCashMovementUseCase;
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -23,12 +26,18 @@ import org.springframework.web.bind.annotation.RestController;
 public class InternalCashController {
 
 	private final RecordInternalCashMovementUseCase recordInternalCashMovementUseCase;
+	private final CloseDailyCashUseCase closeDailyCashUseCase;
 
 	@PostMapping("/movements")
 	public ResponseEntity<CashMovementResponse> recordMovement(
 			@Valid @RequestBody RecordInternalCashMovementRequest request) {
 		CashMovement recorded = recordInternalCashMovementUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(CashMovementResponse.from(recorded));
+	}
+
+	@PostMapping("/close")
+	public ResponseEntity<DailyClosingResponse> close(@Valid @RequestBody CloseDailyCashRequest request) {
+		return ResponseEntity.ok(DailyClosingResponse.from(closeDailyCashUseCase.execute(request.toCommand())));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
