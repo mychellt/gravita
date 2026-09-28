@@ -111,6 +111,23 @@ public final class Payable {
 				.orElse(BigDecimal.ZERO);
 	}
 
+	/**
+	 * Replaces the cost center split (rateio). Unlike at creation, where the
+	 * split is optional, the split given here must be non-empty; its percentages
+	 * must add up to 100 with no repeated cost center. A cancelled payable no
+	 * longer counts as an expense, so it cannot be split.
+	 */
+	public Payable withCostCenterSplit(List<CostCenterShare> split) {
+		if (split == null || split.isEmpty()) {
+			throw new BusinessRuleException("costCenterSplit is required");
+		}
+		if (status == PayableStatus.CANCELLED) {
+			throw new BusinessRuleException("Payable " + id.value() + " cannot be split: " + status);
+		}
+		return new Payable(id, supplierId, origin, amount, dueDate, split, status, purchaseReceiptRef,
+				installmentNumber, installments, scope);
+	}
+
 	private static BigDecimal requirePositive(BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
