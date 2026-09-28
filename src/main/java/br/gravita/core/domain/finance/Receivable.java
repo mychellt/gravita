@@ -57,6 +57,21 @@ public final class Receivable {
 				ReceivableStatus.OPEN, originDocumentRef, installmentNumber);
 	}
 
+	/**
+	 * One installment of the plan agreed in a {@link Renegotiation}.
+	 * {@code installments} is the plan's total number of installments,
+	 * {@code installmentNumber} (1-based) this title's position in it.
+	 */
+	public static Receivable createFromRenegotiation(ReceivableId id, UUID customerId, BigDecimal amount,
+			LocalDate dueDate, int installmentNumber, int installments) {
+		if (installmentNumber < 1 || installmentNumber > installments) {
+			throw new BusinessRuleException(
+					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
+		}
+		return new Receivable(id, customerId, ReceivableOrigin.RENEGOTIATION, amount, dueDate, installments,
+				ReceivableStatus.OPEN, null, installmentNumber);
+	}
+
 	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
 			Integer installmentNumber) {
@@ -69,6 +84,30 @@ public final class Receivable {
 		if (status != ReceivableStatus.OPEN) {
 			throw new BusinessRuleException("Receivable " + id.value() + " is not OPEN: " + status);
 		}
+	}
+
+	/** Still owed by the customer: {@code OPEN} or {@code PARTIALLY_SETTLED}. */
+	public boolean isOutstanding() {
+		return status == ReceivableStatus.OPEN || status == ReceivableStatus.PARTIALLY_SETTLED;
+	}
+
+	/** Outstanding and past its due date as of {@code today}. */
+	public boolean isOverdue(LocalDate today) {
+		return isOutstanding() && dueDate.isBefore(today);
+	}
+
+	/**
+	 * Replaces this title by a renegotiated installment plan. Only an overdue
+	 * title (see {@link #isOverdue}) can be renegotiated; it leaves the aging
+	 * and every open-balance view as {@code RENEGOTIATED}.
+	 */
+	public Receivable renegotiate(LocalDate today) {
+		if (!isOverdue(today)) {
+			throw new BusinessRuleException("Receivable " + id.value() + " is not overdue: " + status + ", due "
+					+ dueDate);
+		}
+		return new Receivable(id, customerId, origin, amount, dueDate, installments, ReceivableStatus.RENEGOTIATED,
+				originDocumentRef, installmentNumber);
 	}
 
 	/**
