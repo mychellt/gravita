@@ -82,6 +82,26 @@ public final class Receivable {
 				originDocumentRef, installmentNumber);
 	}
 
+	/**
+	 * Applies the total credited to this title so far (its settlements'
+	 * principal plus discounts): {@code SETTLED} once that covers the title's
+	 * amount, {@code PARTIALLY_SETTLED} until then. Only a title that is still
+	 * {@code OPEN} or {@code PARTIALLY_SETTLED} can take a payment.
+	 */
+	public Receivable applyCreditedTotal(BigDecimal totalCredited) {
+		if (totalCredited == null || totalCredited.signum() <= 0) {
+			throw new BusinessRuleException("totalCredited must be positive: " + totalCredited);
+		}
+		if (totalCredited.compareTo(amount) >= 0) {
+			return settle();
+		}
+		if (status != ReceivableStatus.OPEN && status != ReceivableStatus.PARTIALLY_SETTLED) {
+			throw new BusinessRuleException("Receivable " + id.value() + " cannot be settled: " + status);
+		}
+		return new Receivable(id, customerId, origin, amount, dueDate, installments,
+				ReceivableStatus.PARTIALLY_SETTLED, originDocumentRef, installmentNumber);
+	}
+
 	private static BigDecimal requirePositive(BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
