@@ -5,16 +5,20 @@ import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualReceivab
 import br.gravita.adapters.inbound.controllers.finance.dtos.GenerateBoletoRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.PixChargeResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.ReceivableResponse;
+import br.gravita.adapters.inbound.controllers.finance.dtos.RenegotiateTitleRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.RenegotiationResponse;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.BankIntegrationUnavailableException;
 import br.gravita.core.domain.finance.Boleto;
 import br.gravita.core.domain.finance.PixCharge;
 import br.gravita.core.domain.finance.Receivable;
+import br.gravita.core.domain.finance.Renegotiation;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.CreateManualReceivableUseCase;
 import br.gravita.core.ports.inbound.finance.GenerateBoletoUseCase;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeCommand;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeUseCase;
+import br.gravita.core.ports.inbound.finance.RenegotiateTitleUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
@@ -37,6 +41,7 @@ public class ReceivableController {
 	private final CreateManualReceivableUseCase createManualReceivableUseCase;
 	private final GenerateBoletoUseCase generateBoletoUseCase;
 	private final GeneratePixChargeUseCase generatePixChargeUseCase;
+	private final RenegotiateTitleUseCase renegotiateTitleUseCase;
 
 	@PostMapping
 	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody CreateManualReceivableRequest request) {
@@ -56,6 +61,13 @@ public class ReceivableController {
 	public ResponseEntity<PixChargeResponse> generatePixCharge(@PathVariable UUID id) {
 		PixCharge pixCharge = generatePixChargeUseCase.execute(new GeneratePixChargeCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(PixChargeResponse.from(pixCharge));
+	}
+
+	@PostMapping("/{id}/renegotiate")
+	public ResponseEntity<RenegotiationResponse> renegotiate(@PathVariable UUID id,
+			@Valid @RequestBody RenegotiateTitleRequest request) {
+		Renegotiation renegotiation = renegotiateTitleUseCase.execute(request.toCommand(id));
+		return ResponseEntity.status(HttpStatus.CREATED).body(RenegotiationResponse.from(renegotiation));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
