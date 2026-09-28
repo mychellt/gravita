@@ -4,14 +4,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.gravita.adapters.outbound.persistence.entities.sales.SalespersonTargetJpaEntity;
-import br.gravita.adapters.outbound.persistence.repositories.sales.SalespersonTargetJpaRepository;
 import br.gravita.core.domain.sales.QuoteId;
 import br.gravita.core.domain.sales.SalesOrder;
 import br.gravita.core.domain.sales.SalesOrderId;
 import br.gravita.core.domain.sales.SalesOrderItem;
 import br.gravita.core.domain.sales.SalesOrderStatus;
+import br.gravita.core.domain.sales.SalespersonTarget;
 import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.sales.SalespersonTargetRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -36,7 +36,7 @@ class GetTargetProgressEndToEndTest {
 	private SalesOrderRepositoryPort salesOrderRepositoryPort;
 
 	@Autowired
-	private SalespersonTargetJpaRepository salespersonTargetJpaRepository;
+	private SalespersonTargetRepositoryPort salespersonTargetRepositoryPort;
 
 	@Test
 	void reportsProgressAgainstTheConfiguredTarget() throws Exception {
@@ -69,14 +69,8 @@ class GetTargetProgressEndToEndTest {
 				.andExpect(jsonPath("$.percentComplete").doesNotExist());
 	}
 
-	private void seedTarget(UUID salespersonId, YearMonth month, BigDecimal valueTarget, long orderCountTarget) {
-		salespersonTargetJpaRepository.save(SalespersonTargetJpaEntity.builder()
-				.id(UUID.randomUUID())
-				.salespersonId(salespersonId)
-				.referenceMonth(month.atDay(1))
-				.valueTarget(valueTarget)
-				.orderCountTarget(orderCountTarget)
-				.build());
+	private void seedTarget(UUID salespersonId, YearMonth month, BigDecimal valueTarget, int orderCountTarget) {
+		salespersonTargetRepositoryPort.save(new SalespersonTarget(salespersonId, month, valueTarget, orderCountTarget));
 	}
 
 	private void persistInvoicedOrder(UUID salespersonId, BigDecimal itemValue, LocalDate invoicedAt) {

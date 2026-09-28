@@ -6,7 +6,7 @@ import java.time.YearMonth;
 import java.util.Objects;
 import java.util.UUID;
 
-public record SalespersonTarget(UUID salespersonId, YearMonth month, BigDecimal valueTarget, long orderCountTarget) {
+public record SalespersonTarget(UUID salespersonId, YearMonth month, BigDecimal valueTarget, int orderCountTarget) {
 
 	public SalespersonTarget {
 		Objects.requireNonNull(salespersonId, "salespersonId is required");

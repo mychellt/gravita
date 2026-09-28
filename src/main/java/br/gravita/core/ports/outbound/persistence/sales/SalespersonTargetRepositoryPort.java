@@ -6,5 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SalespersonTargetRepositoryPort {
+	SalespersonTarget save(SalespersonTarget target);
+
 	Optional<SalespersonTarget> findBySalespersonAndMonth(UUID salespersonId, YearMonth month);
 }

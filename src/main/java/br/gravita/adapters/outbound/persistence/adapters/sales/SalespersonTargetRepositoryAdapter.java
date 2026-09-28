@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters.sales;
 
+import br.gravita.adapters.outbound.persistence.entities.sales.SalespersonTargetJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.sales.SalespersonTargetPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.sales.SalespersonTargetJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
@@ -22,7 +23,20 @@ class SalespersonTargetRepositoryAdapter implements SalespersonTargetRepositoryP
 	}
 
 	@Override
+	public SalespersonTarget save(SalespersonTarget target) {
+		String month = target.month().toString();
+		UUID id = jpaRepository.findBySalespersonIdAndMonth(target.salespersonId(), month)
+				.map(SalespersonTargetJpaEntity::getId)
+				.orElseGet(UUID::randomUUID);
+
+		SalespersonTargetJpaEntity entity = mapper.toEntity(target, id);
+		entity.setNew(!jpaRepository.existsById(id));
+		SalespersonTargetJpaEntity saved = jpaRepository.save(entity);
+		return mapper.toDomain(saved);
+	}
+
+	@Override
 	public Optional<SalespersonTarget> findBySalespersonAndMonth(UUID salespersonId, YearMonth month) {
-		return jpaRepository.findBySalespersonIdAndReferenceMonth(salespersonId, month.atDay(1)).map(mapper::toDomain);
+		return jpaRepository.findBySalespersonIdAndMonth(salespersonId, month.toString()).map(mapper::toDomain);
 	}
 }
