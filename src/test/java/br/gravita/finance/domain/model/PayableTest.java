@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.gravita.core.domain.finance.CostCenterShare;
 import br.gravita.core.domain.finance.LedgerScope;
+import br.gravita.core.domain.finance.AttachmentFile;
 import br.gravita.core.domain.finance.Payable;
+import br.gravita.core.domain.finance.PayableAttachment;
 import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.domain.finance.PayableOrigin;
 import br.gravita.core.domain.finance.PayableStatus;
@@ -260,5 +262,61 @@ class PayableTest {
 
 		assertThat(payable.getScope()).isEqualTo(LedgerScope.NONE);
 		assertThat(payable.inScope(scope).getScope()).isEqualTo(scope);
+	}
+
+	@Test
+	void aNewPayableHasNoAttachments() {
+		assertThat(Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).getAttachments()).isEmpty();
+	}
+
+	@Test
+	void withAttachmentAppendsAfterTheExistingOnesLeavingTheOriginalUntouched() {
+		UUID center = UUID.randomUUID();
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, List.of(share(center, "100")));
+		PayableAttachment first = new PayableAttachment("ref-1", "boleto.pdf", "application/pdf", 10);
+		PayableAttachment second = new PayableAttachment("ref-2", "nf.pdf", "application/pdf", 20);
+
+		Payable attached = payable.withAttachment(first).withAttachment(second);
+
+		assertThat(attached.getAttachments()).containsExactly(first, second);
+		assertThat(payable.getAttachments()).isEmpty();
+		assertThat(attached.getId()).isEqualTo(payable.getId());
+		assertThat(attached.getCostCenterSplit()).isEqualTo(payable.getCostCenterSplit());
+	}
+
+	@Test
+	void attachmentsSurviveSplitAndScopeChanges() {
+		PayableAttachment attachment = new PayableAttachment("ref-1", "boleto.pdf", "application/pdf", 10);
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).withAttachment(attachment);
+
+		assertThat(payable.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100"))).getAttachments())
+				.containsExactly(attachment);
+		assertThat(payable.inScope(new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID()))
+				.getAttachments()).containsExactly(attachment);
+	}
+
+	@Test
+	void aPaidPayableCanStillReceiveADocument() {
+		Payable paid = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, PayableStatus.PAID,
+				null, null, null);
+
+		Payable attached = paid.withAttachment(new PayableAttachment("ref", "comprovante.pdf", "application/pdf", 1));
+
+		assertThat(attached.getStatus()).isEqualTo(PayableStatus.PAID);
+		assertThat(attached.getAttachments()).hasSize(1);
+	}
+
+	@Test
+	void anAttachmentFileNeedsANameAndContentAndDefaultsItsContentType() {
+		assertThatThrownBy(() -> new AttachmentFile(" ", "application/pdf", new byte[] { 1 }))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> new AttachmentFile(null, "application/pdf", new byte[] { 1 }))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> new AttachmentFile("a.pdf", "application/pdf", new byte[0]))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> new AttachmentFile("a.pdf", "application/pdf", null))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThat(new AttachmentFile("a.pdf", null, new byte[] { 1 }).contentType())
+				.isEqualTo("application/octet-stream");
 	}
 }

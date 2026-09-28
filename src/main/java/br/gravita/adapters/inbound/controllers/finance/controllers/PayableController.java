@@ -4,16 +4,22 @@ import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualPayableR
 import br.gravita.adapters.inbound.controllers.finance.dtos.PayableResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.SplitPayableRequest;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.finance.AttachmentFile;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.finance.AttachPayableDocumentCommand;
+import br.gravita.core.ports.inbound.finance.AttachPayableDocumentUseCase;
 import br.gravita.core.ports.inbound.finance.CreateManualPayableUseCase;
 import br.gravita.core.ports.inbound.finance.SplitPayableByCostCenterUseCase;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -21,7 +27,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -30,6 +38,7 @@ public class PayableController {
 
 	private final CreateManualPayableUseCase createManualPayableUseCase;
 	private final SplitPayableByCostCenterUseCase splitPayableByCostCenterUseCase;
+	private final AttachPayableDocumentUseCase attachPayableDocumentUseCase;
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
@@ -41,6 +50,21 @@ public class PayableController {
 	@PatchMapping("/{id}")
 	public PayableResponse split(@PathVariable UUID id, @Valid @RequestBody SplitPayableRequest request) {
 		return PayableResponse.from(splitPayableByCostCenterUseCase.execute(request.toCommand(id)));
+	}
+
+	@PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<PayableResponse> attach(@PathVariable UUID id, @RequestPart("file") MultipartFile file) {
+		Payable payable = attachPayableDocumentUseCase.execute(new AttachPayableDocumentCommand(id,
+				new AttachmentFile(file.getOriginalFilename(), file.getContentType(), readBytes(file))));
+		return ResponseEntity.status(HttpStatus.CREATED).body(PayableResponse.from(payable));
+	}
+
+	private byte[] readBytes(MultipartFile file) {
+		try {
+			return file.getBytes();
+		} catch (IOException e) {
+			throw new UncheckedIOException("Unable to read uploaded payable document", e);
+		}
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)

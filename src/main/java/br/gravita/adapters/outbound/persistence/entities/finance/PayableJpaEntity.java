@@ -53,6 +53,11 @@ public class PayableJpaEntity extends AbstractEntity<UUID> {
 	@OrderColumn(name = "position")
 	private List<CostCenterShareEmbeddable> costCenterSplit;
 
+	@ElementCollection
+	@CollectionTable(name = "payable_attachments", joinColumns = @JoinColumn(name = "payable_id"))
+	@OrderColumn(name = "position")
+	private List<PayableAttachmentEmbeddable> attachments;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private PayableStatus status;

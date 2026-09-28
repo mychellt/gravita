@@ -4,6 +4,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -25,10 +26,12 @@ public final class Payable {
 	private final Integer installmentNumber;
 	private final Integer installments;
 	private final LedgerScope scope;
+	private final List<PayableAttachment> attachments;
 
 	private Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope) {
+			Integer installmentNumber, Integer installments, LedgerScope scope,
+			List<PayableAttachment> attachments) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.supplierId = supplierId;
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -40,6 +43,7 @@ public final class Payable {
 		this.installmentNumber = installmentNumber;
 		this.installments = installments;
 		this.scope = scope == null ? LedgerScope.NONE : scope;
+		this.attachments = attachments == null ? List.of() : List.copyOf(attachments);
 	}
 
 	/**
@@ -50,7 +54,7 @@ public final class Payable {
 	public static Payable createManual(PayableId id, UUID supplierId, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit) {
 		return new Payable(id, supplierId, PayableOrigin.MANUAL, amount, dueDate, costCenterSplit,
-				PayableStatus.OPEN, null, null, null, LedgerScope.NONE);
+				PayableStatus.OPEN, null, null, null, LedgerScope.NONE, null);
 	}
 
 	/**
@@ -67,7 +71,7 @@ public final class Payable {
 					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
 		}
 		return new Payable(id, supplierId, PayableOrigin.PURCHASE_RECEIPT, amount, dueDate, null,
-				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments, LedgerScope.NONE);
+				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments, LedgerScope.NONE, null);
 	}
 
 	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
@@ -80,14 +84,22 @@ public final class Payable {
 	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
 			Integer installmentNumber, Integer installments, LedgerScope scope) {
+		return of(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
+				installmentNumber, installments, scope, null);
+	}
+
+	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
+			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
+			Integer installmentNumber, Integer installments, LedgerScope scope,
+			List<PayableAttachment> attachments) {
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, attachments);
 	}
 
 	/** The same title placed in {@code scope} (company, branch and bank account). */
 	public Payable inScope(LedgerScope scope) {
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, attachments);
 	}
 
 	/** Still to be paid: {@code OPEN} or {@code APPROVED}. */
@@ -125,7 +137,20 @@ public final class Payable {
 			throw new BusinessRuleException("Payable " + id.value() + " cannot be split: " + status);
 		}
 		return new Payable(id, supplierId, origin, amount, dueDate, split, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, attachments);
+	}
+
+	/**
+	 * The same title with {@code attachment} appended after the existing ones.
+	 * Supporting documents may be added at any point of the title's life, a
+	 * receipt after payment included.
+	 */
+	public Payable withAttachment(PayableAttachment attachment) {
+		Objects.requireNonNull(attachment, "attachment is required");
+		List<PayableAttachment> all = new ArrayList<>(attachments);
+		all.add(attachment);
+		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
+				installmentNumber, installments, scope, all);
 	}
 
 	private static BigDecimal requirePositive(BigDecimal amount) {
