@@ -17,9 +17,12 @@ public final class Receivable {
 	private final LocalDate dueDate;
 	private final Integer installments;
 	private final ReceivableStatus status;
+	private final UUID originDocumentRef;
+	private final Integer installmentNumber;
 
 	private Receivable(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, Integer installments, ReceivableStatus status) {
+			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
+			Integer installmentNumber) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -27,17 +30,37 @@ public final class Receivable {
 		this.dueDate = Objects.requireNonNull(dueDate, "dueDate is required");
 		this.installments = requireValidInstallments(installments);
 		this.status = Objects.requireNonNull(status, "status is required");
+		this.originDocumentRef = originDocumentRef;
+		this.installmentNumber = installmentNumber;
 	}
 
 	public static Receivable createManual(ReceivableId id, UUID customerId, BigDecimal amount, LocalDate dueDate,
 			Integer installments) {
 		return new Receivable(id, customerId, ReceivableOrigin.MANUAL, amount, dueDate, installments,
-				ReceivableStatus.OPEN);
+				ReceivableStatus.OPEN, null, null);
+	}
+
+	/**
+	 * One installment of an invoice's payment terms. {@code installments} is the
+	 * total number of installments of the invoice, {@code installmentNumber}
+	 * (1-based) is this title's position among them.
+	 */
+	public static Receivable createFromInvoicing(ReceivableId id, UUID customerId, UUID originDocumentRef,
+			BigDecimal amount, LocalDate dueDate, int installmentNumber, int installments) {
+		Objects.requireNonNull(originDocumentRef, "originDocumentRef is required");
+		if (installmentNumber < 1 || installmentNumber > installments) {
+			throw new BusinessRuleException(
+					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
+		}
+		return new Receivable(id, customerId, ReceivableOrigin.INVOICING, amount, dueDate, installments,
+				ReceivableStatus.OPEN, originDocumentRef, installmentNumber);
 	}
 
 	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, Integer installments, ReceivableStatus status) {
-		return new Receivable(id, customerId, origin, amount, dueDate, installments, status);
+			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
+			Integer installmentNumber) {
+		return new Receivable(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
+				installmentNumber);
 	}
 
 	private static BigDecimal requirePositive(BigDecimal amount) {
