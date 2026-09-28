@@ -43,7 +43,7 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	}
 
 	@Override
-	public List<Receivable> findOutstandingByCustomerId(UUID customerId) {
+	public List<Receivable> findUnsettledByCustomerId(UUID customerId) {
 		return jpaRepository
 				.findByCustomerIdAndStatusIn(customerId,
 						List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED))

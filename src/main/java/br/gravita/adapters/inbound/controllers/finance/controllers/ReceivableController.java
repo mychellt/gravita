@@ -7,18 +7,22 @@ import br.gravita.adapters.inbound.controllers.finance.dtos.PixChargeResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.ReceivableResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.RenegotiateTitleRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.RenegotiationResponse;
+import br.gravita.adapters.inbound.controllers.finance.dtos.SettleTitleRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.SettlementResponse;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.BankIntegrationUnavailableException;
 import br.gravita.core.domain.finance.Boleto;
 import br.gravita.core.domain.finance.PixCharge;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.finance.Renegotiation;
+import br.gravita.core.domain.finance.Settlement;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.CreateManualReceivableUseCase;
 import br.gravita.core.ports.inbound.finance.GenerateBoletoUseCase;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeCommand;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeUseCase;
 import br.gravita.core.ports.inbound.finance.RenegotiateTitleUseCase;
+import br.gravita.core.ports.inbound.finance.SettleTitleManuallyUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
@@ -42,6 +46,7 @@ public class ReceivableController {
 	private final GenerateBoletoUseCase generateBoletoUseCase;
 	private final GeneratePixChargeUseCase generatePixChargeUseCase;
 	private final RenegotiateTitleUseCase renegotiateTitleUseCase;
+	private final SettleTitleManuallyUseCase settleTitleManuallyUseCase;
 
 	@PostMapping
 	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody CreateManualReceivableRequest request) {
@@ -68,6 +73,13 @@ public class ReceivableController {
 			@Valid @RequestBody RenegotiateTitleRequest request) {
 		Renegotiation renegotiation = renegotiateTitleUseCase.execute(request.toCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(RenegotiationResponse.from(renegotiation));
+	}
+
+	@PostMapping("/{id}/settle")
+	public ResponseEntity<SettlementResponse> settle(@PathVariable UUID id,
+			@Valid @RequestBody SettleTitleRequest request) {
+		Settlement settlement = settleTitleManuallyUseCase.execute(request.toCommand(id));
+		return ResponseEntity.status(HttpStatus.CREATED).body(SettlementResponse.from(settlement));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)

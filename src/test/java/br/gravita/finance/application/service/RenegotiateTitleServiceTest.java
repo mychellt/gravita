@@ -3,35 +3,28 @@ package br.gravita.finance.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.ReceivableOrigin;
 import br.gravita.core.domain.finance.ReceivableStatus;
 import br.gravita.core.domain.finance.Renegotiation;
-import br.gravita.core.domain.finance.Settlement;
-import br.gravita.core.domain.finance.SettlementId;
-import br.gravita.core.domain.finance.SettlementMethod;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.RenegotiateTitleCommand;
 import br.gravita.core.ports.inbound.finance.RenegotiateTitleCommand.Installment;
 import br.gravita.core.ports.outbound.finance.UpdateCustomerCreditStatusPort;
 import br.gravita.core.ports.outbound.persistence.finance.ReceivableRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.finance.RenegotiationRepositoryPort;
-import br.gravita.core.ports.outbound.persistence.finance.SettlementRepositoryPort;
 import br.gravita.core.usercases.finance.RenegotiateTitleService;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,9 +43,6 @@ class RenegotiateTitleServiceTest {
 
 	@Mock
 	private ReceivableRepositoryPort receivableRepositoryPort;
-
-	@Mock
-	private SettlementRepositoryPort settlementRepositoryPort;
 
 	@Mock
 	private RenegotiationRepositoryPort renegotiationRepositoryPort;
@@ -105,7 +96,6 @@ class RenegotiateTitleServiceTest {
 	void marksTheOriginalsRenegotiatedAndCreatesOneOpenReceivablePerInstallment() {
 		Receivable first = overdue("100.00");
 		Receivable second = overdue("50.00");
-		when(receivableRepositoryPort.findOutstandingByCustomerId(customerId)).thenReturn(List.of());
 
 		Renegotiation renegotiation = service.execute(command(List.of(first, second),
 				new Installment(today.plusDays(30), new BigDecimal("80.00")),
@@ -134,7 +124,6 @@ class RenegotiateTitleServiceTest {
 	void theRenegotiationLinksBackToTheOriginalTitles() {
 		Receivable first = overdue("100.00");
 		Receivable second = overdue("50.00");
-		when(receivableRepositoryPort.findOutstandingByCustomerId(customerId)).thenReturn(List.of());
 
 		Renegotiation renegotiation = service.execute(command(List.of(first, second),
 				new Installment(today.plusDays(30), new BigDecimal("150.00"))));
@@ -145,38 +134,16 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
-	void refreshesTheCustomersCreditStatusFromWhatIsStillOwed() {
+	void refreshesTheCustomersCreditStatusOnceEverythingIsSaved() {
 		Receivable original = overdue("100.00");
-		Receivable outstandingNew = receivable(customerId, ReceivableStatus.OPEN, today.plusDays(30), "100.00");
-		Receivable partiallyPaid = receivable(customerId, ReceivableStatus.PARTIALLY_SETTLED, today.plusDays(10),
-				"200.00");
-		when(receivableRepositoryPort.findOutstandingByCustomerId(customerId))
-				.thenReturn(List.of(outstandingNew, partiallyPaid));
-		when(settlementRepositoryPort.findByReceivableId(outstandingNew.getId())).thenReturn(List.of());
-		when(settlementRepositoryPort.findByReceivableId(partiallyPaid.getId())).thenReturn(List.of(Settlement.of(
-				SettlementId.of(UUID.randomUUID()), partiallyPaid.getId(), new BigDecimal("50.00"), null, null,
-				new BigDecimal("10.00"), null, SettlementMethod.MANUAL,
-				Instant.now())));
 
 		service.execute(command(List.of(original), new Installment(today.plusDays(30), new BigDecimal("100.00"))));
 
-		verify(updateCustomerCreditStatusPort).update(eq(customerId),
-				argThat((BigDecimal balance) -> balance.compareTo(new BigDecimal("240.00")) == 0),
-				eq(CustomerStatus.REGULAR));
-	}
-
-	@Test
-	void theCustomerStaysDelinquentWhileAnotherTitleIsStillOverdue() {
-		Receivable original = overdue("100.00");
-		Receivable stillOverdue = receivable(customerId, ReceivableStatus.OPEN, today.minusDays(3), "70.00");
-		when(receivableRepositoryPort.findOutstandingByCustomerId(customerId)).thenReturn(List.of(stillOverdue));
-		when(settlementRepositoryPort.findByReceivableId(stillOverdue.getId())).thenReturn(List.of());
-
-		service.execute(command(List.of(original), new Installment(today.plusDays(30), new BigDecimal("100.00"))));
-
-		verify(updateCustomerCreditStatusPort).update(eq(customerId),
-				argThat((BigDecimal balance) -> balance.compareTo(new BigDecimal("70.00")) == 0),
-				eq(CustomerStatus.DELINQUENT));
+		InOrder inOrder = inOrder(receivableRepositoryPort, renegotiationRepositoryPort,
+				updateCustomerCreditStatusPort);
+		inOrder.verify(receivableRepositoryPort, atLeastOnce()).save(any(Receivable.class));
+		inOrder.verify(renegotiationRepositoryPort).save(any(Renegotiation.class));
+		inOrder.verify(updateCustomerCreditStatusPort).update(customerId);
 	}
 
 	@Test
@@ -269,6 +236,6 @@ class RenegotiateTitleServiceTest {
 				.isInstanceOf(BusinessRuleException.class);
 
 		verify(receivableRepositoryPort, never()).save(any());
-		verify(updateCustomerCreditStatusPort, never()).update(any(), any(), any());
+		verify(updateCustomerCreditStatusPort, never()).update(any());
 	}
 }

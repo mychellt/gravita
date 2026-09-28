@@ -1,13 +1,11 @@
 package br.gravita.core.usercases.finance;
 
 import br.gravita.core.annotations.UseCase;
-import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.Renegotiation;
 import br.gravita.core.domain.finance.RenegotiationId;
-import br.gravita.core.domain.finance.Settlement;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.RenegotiateTitleCommand;
 import br.gravita.core.ports.inbound.finance.RenegotiateTitleCommand.Installment;
@@ -15,8 +13,6 @@ import br.gravita.core.ports.inbound.finance.RenegotiateTitleUseCase;
 import br.gravita.core.ports.outbound.finance.UpdateCustomerCreditStatusPort;
 import br.gravita.core.ports.outbound.persistence.finance.ReceivableRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.finance.RenegotiationRepositoryPort;
-import br.gravita.core.ports.outbound.persistence.finance.SettlementRepositoryPort;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,22 +25,21 @@ import org.springframework.transaction.annotation.Transactional;
 public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 
 	private final ReceivableRepositoryPort receivableRepositoryPort;
-	private final SettlementRepositoryPort settlementRepositoryPort;
 	private final RenegotiationRepositoryPort renegotiationRepositoryPort;
 	private final UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort;
 
 	public RenegotiateTitleService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort, RenegotiationRepositoryPort renegotiationRepositoryPort,
+			RenegotiationRepositoryPort renegotiationRepositoryPort,
 			UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
-		this.settlementRepositoryPort = settlementRepositoryPort;
 		this.renegotiationRepositoryPort = renegotiationRepositoryPort;
 		this.updateCustomerCreditStatusPort = updateCustomerCreditStatusPort;
 	}
 
 	/**
-	 * One transaction: the originals, the new titles, the renegotiation and the
-	 * customer's credit status change together or not at all.
+	 * One transaction: the originals, the new titles and the renegotiation
+	 * change together or not at all. The credit status refresh runs last; the
+	 * port itself never fails the renegotiation.
 	 */
 	@Override
 	@Transactional
@@ -86,31 +81,12 @@ public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 		created.forEach(receivableRepositoryPort::save);
 		Renegotiation saved = renegotiationRepositoryPort.save(renegotiation);
 
-		refreshCreditStatus(customerId, today);
+		updateCustomerCreditStatusPort.update(customerId);
 		return saved;
 	}
 
 	private Receivable load(UUID receivableId) {
 		return receivableRepositoryPort.findById(ReceivableId.of(receivableId))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + receivableId));
-	}
-
-	/**
-	 * The customer's position after the change: what is still owed on the
-	 * outstanding titles, and delinquent while any of them is overdue.
-	 */
-	private void refreshCreditStatus(UUID customerId, LocalDate today) {
-		List<Receivable> outstanding = receivableRepositoryPort.findOutstandingByCustomerId(customerId);
-		BigDecimal balance = outstanding.stream().map(this::remaining).reduce(BigDecimal.ZERO, BigDecimal::add);
-		CustomerStatus status = outstanding.stream().anyMatch(receivable -> receivable.isOverdue(today))
-				? CustomerStatus.DELINQUENT
-				: CustomerStatus.REGULAR;
-		updateCustomerCreditStatusPort.update(customerId, balance, status);
-	}
-
-	private BigDecimal remaining(Receivable receivable) {
-		BigDecimal credited = settlementRepositoryPort.findByReceivableId(receivable.getId()).stream()
-				.map(Settlement::creditedAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-		return receivable.getAmount().subtract(credited).max(BigDecimal.ZERO);
 	}
 }

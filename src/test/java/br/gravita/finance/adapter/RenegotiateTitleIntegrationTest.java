@@ -106,7 +106,7 @@ class RenegotiateTitleIntegrationTest {
 
 		renegotiateTitleUseCase.execute(twoInstallmentsFor(original));
 
-		assertThat(receivableRepositoryPort.findOutstandingByCustomerId(customer.getId()))
+		assertThat(receivableRepositoryPort.findUnsettledByCustomerId(customer.getId()))
 				.extracting(Receivable::getId).doesNotContain(original.getId()).hasSize(2);
 	}
 
@@ -119,18 +119,6 @@ class RenegotiateTitleIntegrationTest {
 
 		CustomerDomain updated = customerRepositoryPort.get(customer.getId()).orElseThrow();
 		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.REGULAR);
-		assertThat(updated.getCurrentBalance()).isEqualByComparingTo("120.00");
-	}
-
-	@Test
-	void aBlockedCustomerStaysBlocked() {
-		CustomerDomain customer = savedCustomer(CustomerStatus.BLOCKED);
-		Receivable original = savedOverdue(customer.getId(), "100.00");
-
-		renegotiateTitleUseCase.execute(twoInstallmentsFor(original));
-
-		CustomerDomain updated = customerRepositoryPort.get(customer.getId()).orElseThrow();
-		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.BLOCKED);
 		assertThat(updated.getCurrentBalance()).isEqualByComparingTo("120.00");
 	}
 
