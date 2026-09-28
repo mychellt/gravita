@@ -157,6 +157,35 @@ public final class Receivable {
 				ReceivableStatus.PARTIALLY_SETTLED, originDocumentRef, installmentNumber, scope);
 	}
 
+	/**
+	 * Reverses {@code returnedAmount} of what is still owed on this title for a
+	 * customer return. A return covering the whole remaining balance cancels the
+	 * title; a smaller one lowers its amount by the returned value and leaves the
+	 * status untouched ({@code OPEN} or {@code PARTIALLY_SETTLED}). Only the
+	 * unsettled portion is adjustable: what {@code settlements} already credited
+	 * is never clawed back, and a return above the remaining balance is rejected.
+	 */
+	public Receivable adjustForReturn(BigDecimal returnedAmount, Collection<Settlement> settlements) {
+		if (returnedAmount == null || returnedAmount.signum() <= 0) {
+			throw new BusinessRuleException("returnedAmount must be positive: " + returnedAmount);
+		}
+		if (!isOutstanding()) {
+			throw new BusinessRuleException("Receivable " + id.value() + " cannot be adjusted: " + status);
+		}
+		BigDecimal remaining = remainingBalance(settlements);
+		int comparison = returnedAmount.compareTo(remaining);
+		if (comparison > 0) {
+			throw new BusinessRuleException("Returned amount of " + returnedAmount
+					+ " exceeds the open balance of " + remaining);
+		}
+		if (comparison == 0) {
+			return new Receivable(id, customerId, origin, amount, dueDate, installments, ReceivableStatus.CANCELLED,
+					originDocumentRef, installmentNumber, scope);
+		}
+		return new Receivable(id, customerId, origin, amount.subtract(returnedAmount), dueDate, installments, status,
+				originDocumentRef, installmentNumber, scope);
+	}
+
 	/** What is still to be credited to this title once {@code settlements} (its baixas so far) are applied. */
 	public BigDecimal remainingBalance(Collection<Settlement> settlements) {
 		return settlements.stream().map(Settlement::creditedAmount).reduce(amount, BigDecimal::subtract);
