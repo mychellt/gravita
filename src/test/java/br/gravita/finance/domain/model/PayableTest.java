@@ -28,6 +28,56 @@ class PayableTest {
 	}
 
 	@Test
+	void aPurchaseReceiptPayableStartsOpenReferencingTheReceiptAndItsInstallment() {
+		UUID supplierId = UUID.randomUUID();
+		UUID receiptId = UUID.randomUUID();
+
+		Payable payable = Payable.createFromPurchaseReceipt(id(), supplierId, receiptId, new BigDecimal("450.00"),
+				DUE, 2, 3);
+
+		assertThat(payable.getOrigin()).isEqualTo(PayableOrigin.PURCHASE_RECEIPT);
+		assertThat(payable.getStatus()).isEqualTo(PayableStatus.OPEN);
+		assertThat(payable.getSupplierId()).isEqualTo(supplierId);
+		assertThat(payable.getPurchaseReceiptRef()).isEqualTo(receiptId);
+		assertThat(payable.getInstallmentNumber()).isEqualTo(2);
+		assertThat(payable.getInstallments()).isEqualTo(3);
+		assertThat(payable.getAmount()).isEqualByComparingTo("450.00");
+		assertThat(payable.getDueDate()).isEqualTo(DUE);
+		assertThat(payable.getCostCenterSplit()).isEmpty();
+	}
+
+	@Test
+	void aPurchaseReceiptPayableRequiresSupplierAndReceipt() {
+		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), null, UUID.randomUUID(), BigDecimal.TEN,
+				DUE, 1, 1)).isInstanceOf(NullPointerException.class);
+		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), null, BigDecimal.TEN,
+				DUE, 1, 1)).isInstanceOf(NullPointerException.class);
+	}
+
+	@Test
+	void aPurchaseReceiptPayableRejectsAnInstallmentNumberOutsideTheTotal() {
+		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), UUID.randomUUID(),
+				BigDecimal.TEN, DUE, 0, 2)).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), UUID.randomUUID(),
+				BigDecimal.TEN, DUE, 3, 2)).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void aPurchaseReceiptPayableRejectsANonPositiveAmount() {
+		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), UUID.randomUUID(),
+				BigDecimal.ZERO, DUE, 1, 1)).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void aManualPayableHasNoReceiptReference() {
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+
+		assertThat(payable.getPurchaseReceiptRef()).isNull();
+		assertThat(payable.getInstallmentNumber()).isNull();
+		assertThat(payable.getInstallments()).isNull();
+	}
+
+	@Test
 	void aManualPayableStartsOpenWithManualOrigin() {
 		UUID supplierId = UUID.randomUUID();
 

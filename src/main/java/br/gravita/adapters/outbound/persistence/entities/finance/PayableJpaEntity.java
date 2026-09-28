@@ -56,4 +56,13 @@ public class PayableJpaEntity extends AbstractEntity<UUID> {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private PayableStatus status;
+
+	@Column(name = "purchase_receipt_ref")
+	private UUID purchaseReceiptRef;
+
+	@Column(name = "installment_number")
+	private Integer installmentNumber;
+
+	@Column
+	private Integer installments;
 }
