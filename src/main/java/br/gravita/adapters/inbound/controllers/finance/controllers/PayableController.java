@@ -1,11 +1,14 @@
 package br.gravita.adapters.inbound.controllers.finance.controllers;
 
+import br.gravita.adapters.inbound.controllers.finance.dtos.ApprovePayableRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualPayableRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.PayableResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.SplitPayableRequest;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.system.UserNotFoundException;
+import br.gravita.core.ports.inbound.finance.ApprovePayableUseCase;
 import br.gravita.core.ports.inbound.finance.CreateManualPayableUseCase;
 import br.gravita.core.ports.inbound.finance.SplitPayableByCostCenterUseCase;
 import jakarta.validation.Valid;
@@ -30,6 +33,7 @@ public class PayableController {
 
 	private final CreateManualPayableUseCase createManualPayableUseCase;
 	private final SplitPayableByCostCenterUseCase splitPayableByCostCenterUseCase;
+	private final ApprovePayableUseCase approvePayableUseCase;
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
@@ -41,6 +45,16 @@ public class PayableController {
 	@PatchMapping("/{id}")
 	public PayableResponse split(@PathVariable UUID id, @Valid @RequestBody SplitPayableRequest request) {
 		return PayableResponse.from(splitPayableByCostCenterUseCase.execute(request.toCommand(id)));
+	}
+
+	@PostMapping("/{id}/approve")
+	public PayableResponse approve(@PathVariable UUID id, @Valid @RequestBody ApprovePayableRequest request) {
+		return PayableResponse.from(approvePayableUseCase.execute(request.toCommand(id)));
+	}
+
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException exception) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)

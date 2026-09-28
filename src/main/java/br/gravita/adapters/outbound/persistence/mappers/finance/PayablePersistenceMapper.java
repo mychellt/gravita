@@ -21,7 +21,8 @@ public interface PayablePersistenceMapper {
 						.map(share -> new CostCenterShare(share.getCostCenterId(), share.getPercent())).toList(),
 				entity.getStatus(), entity.getPurchaseReceiptRef(), entity.getInstallmentNumber(),
 				entity.getInstallments(),
-				new LedgerScope(entity.getCompanyId(), entity.getBranchId(), entity.getBankAccountId()));
+				new LedgerScope(entity.getCompanyId(), entity.getBranchId(), entity.getBankAccountId()),
+				entity.getApprovedBy());
 	}
 
 	default PayableJpaEntity toEntity(final Payable domain) {
@@ -41,6 +42,7 @@ public interface PayablePersistenceMapper {
 				.companyId(domain.getScope().companyId())
 				.branchId(domain.getScope().branchId())
 				.bankAccountId(domain.getScope().bankAccountId())
+				.approvedBy(domain.getApprovedBy())
 				.build();
 	}
 }

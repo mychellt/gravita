@@ -261,4 +261,54 @@ class PayableTest {
 		assertThat(payable.getScope()).isEqualTo(LedgerScope.NONE);
 		assertThat(payable.inScope(scope).getScope()).isEqualTo(scope);
 	}
+
+	@Test
+	void approvingAnOpenPayableMovesItToApprovedAndRecordsTheApprover() {
+		UUID approver = UUID.randomUUID();
+		Payable open = Payable.createManual(id(), UUID.randomUUID(), new BigDecimal("80.00"), DUE,
+				List.of(share(UUID.randomUUID(), "100")));
+
+		Payable approved = open.approve(approver);
+
+		assertThat(open.getStatus()).isEqualTo(PayableStatus.OPEN);
+		assertThat(open.getApprovedBy()).isNull();
+		assertThat(approved.getStatus()).isEqualTo(PayableStatus.APPROVED);
+		assertThat(approved.getApprovedBy()).isEqualTo(approver);
+		assertThat(approved.getId()).isEqualTo(open.getId());
+		assertThat(approved.getAmount()).isEqualByComparingTo("80.00");
+		assertThat(approved.getCostCenterSplit()).isEqualTo(open.getCostCenterSplit());
+		assertThat(approved.isOutstanding()).isTrue();
+	}
+
+	@Test
+	void onlyOpenPayablesCanBeApproved() {
+		for (PayableStatus status : PayableStatus.values()) {
+			if (status == PayableStatus.OPEN) {
+				continue;
+			}
+			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, List.of(), status,
+					null, null, null);
+
+			assertThatThrownBy(() -> payable.approve(UUID.randomUUID())).isInstanceOf(BusinessRuleException.class)
+					.hasMessageContaining(status.name());
+		}
+	}
+
+	@Test
+	void approvingRequiresAnApprover() {
+		Payable open = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+
+		assertThatThrownBy(() -> open.approve(null)).isInstanceOf(NullPointerException.class);
+	}
+
+	@Test
+	void theApproverSurvivesSplittingAndPlacingInAScope() {
+		UUID approver = UUID.randomUUID();
+		Payable approved = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).approve(approver);
+
+		assertThat(approved.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100"))).getApprovedBy())
+				.isEqualTo(approver);
+		assertThat(approved.inScope(new LedgerScope(UUID.randomUUID(), null, null)).getApprovedBy())
+				.isEqualTo(approver);
+	}
 }
