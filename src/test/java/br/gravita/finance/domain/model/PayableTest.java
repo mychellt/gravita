@@ -152,4 +152,69 @@ class PayableTest {
 		assertThatThrownBy(() -> share(a, "100.01")).isInstanceOf(BusinessRuleException.class);
 		assertThat(share(a, "100").percent()).isEqualByComparingTo("100");
 	}
+
+	@Test
+	void withCostCenterSplitReplacesThePreviousSplitKeepingEverythingElse() {
+		UUID a = UUID.randomUUID();
+		UUID b = UUID.randomUUID();
+		UUID c = UUID.randomUUID();
+		Payable payable = Payable.createManual(id(), UUID.randomUUID(), BigDecimal.TEN, DUE,
+				List.of(share(a, "100")));
+
+		Payable split = payable.withCostCenterSplit(List.of(share(b, "60"), share(c, "40")));
+
+		assertThat(split.getCostCenterSplit()).extracting(CostCenterShare::costCenterId).containsExactly(b, c);
+		assertThat(split.getId()).isEqualTo(payable.getId());
+		assertThat(split.getSupplierId()).isEqualTo(payable.getSupplierId());
+		assertThat(split.getAmount()).isEqualByComparingTo(payable.getAmount());
+		assertThat(split.getDueDate()).isEqualTo(payable.getDueDate());
+		assertThat(split.getStatus()).isEqualTo(payable.getStatus());
+		assertThat(payable.getCostCenterSplit()).extracting(CostCenterShare::costCenterId).containsExactly(a);
+	}
+
+	@Test
+	void withCostCenterSplitRejectsPercentagesNotSummingTo100() {
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+
+		assertThatThrownBy(() -> payable.withCostCenterSplit(
+				List.of(share(UUID.randomUUID(), "60"), share(UUID.randomUUID(), "30"))))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("sum to 100");
+	}
+
+	@Test
+	void withCostCenterSplitRejectsARepeatedCostCenter() {
+		UUID a = UUID.randomUUID();
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+
+		assertThatThrownBy(() -> payable.withCostCenterSplit(List.of(share(a, "50"), share(a, "50"))))
+				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void withCostCenterSplitRequiresAtLeastOneShare() {
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, List.of(share(UUID.randomUUID(), "100")));
+
+		assertThatThrownBy(() -> payable.withCostCenterSplit(null)).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> payable.withCostCenterSplit(List.of())).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void aCancelledPayableCannotBeSplit() {
+		Payable cancelled = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
+				PayableStatus.CANCELLED, null, null, null);
+
+		assertThatThrownBy(() -> cancelled.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100"))))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("CANCELLED");
+	}
+
+	@Test
+	void aPaidPayableCanStillBeReclassified() {
+		Payable paid = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, PayableStatus.PAID,
+				null, null, null);
+
+		Payable split = paid.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100")));
+
+		assertThat(split.getStatus()).isEqualTo(PayableStatus.PAID);
+		assertThat(split.getCostCenterSplit()).hasSize(1);
+	}
 }
