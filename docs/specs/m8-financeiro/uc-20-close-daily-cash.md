@@ -43,3 +43,11 @@ public interface CloseDailyCashUseCase {
 
 - **Depends on:** UC-M8-19.
 - **Blocks:** —
+
+## Implementation notes
+
+- `CloseDailyCashCommand.account` is the `InternalCashBoxId` to close. The request's `account` is optional and defaults to the single back-office box (`InternalCashBoxId.MAIN`).
+- Read-only summary: nothing is persisted. `DailyClosing` is derived from the day's `CashMovement`s: entries = sum of `FROM_BANK`, exits = sum of `TO_BANK`, closing = opening + entries − exits. It lists those movements too.
+- Opening balance = the box balance when the day started (current balance minus every movement from that day on), which is the prior day's closing balance by construction. Days are cut in the server's time zone.
+- A date after today is rejected (`BusinessRuleException`, HTTP 400); an unknown box is a 404. The box row is locked during the call so balance and movements are one consistent snapshot.
+- REST: `POST /api/finance/internal-cash/close` with `{"account": "<uuid, optional>", "date": "yyyy-MM-dd"}` → `200` with `account`, `date`, `openingBalance`, `entries`, `exits`, `closingBalance`, `movements`.

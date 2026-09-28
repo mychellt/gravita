@@ -10,6 +10,8 @@ import br.gravita.core.domain.finance.CashMovement;
 import br.gravita.core.domain.finance.InternalCashBox;
 import br.gravita.core.domain.finance.InternalCashBoxId;
 import br.gravita.core.ports.outbound.persistence.finance.InternalCashBoxRepositoryPort;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @PersistenceAdapter
@@ -48,5 +50,12 @@ class InternalCashBoxRepositoryAdapter implements InternalCashBoxRepositoryPort 
 		InternalCashMovementJpaEntity entity = mapper.toEntity(movement);
 		entity.setNew(!movementJpaRepository.existsById(entity.getId()));
 		return mapper.toDomain(movementJpaRepository.save(entity));
+	}
+
+	@Override
+	public List<CashMovement> findMovementsFrom(InternalCashBoxId cashBoxId, Instant from) {
+		return movementJpaRepository
+				.findByCashBoxIdAndTimestampGreaterThanEqualOrderByTimestampAsc(cashBoxId.value(), from)
+				.stream().map(mapper::toDomain).toList();
 	}
 }

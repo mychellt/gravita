@@ -3,6 +3,8 @@ package br.gravita.core.ports.outbound.persistence.finance;
 import br.gravita.core.domain.finance.CashMovement;
 import br.gravita.core.domain.finance.InternalCashBox;
 import br.gravita.core.domain.finance.InternalCashBoxId;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface InternalCashBoxRepositoryPort {
@@ -18,4 +20,7 @@ public interface InternalCashBoxRepositoryPort {
 	InternalCashBox save(InternalCashBox cashBox);
 
 	CashMovement saveMovement(CashMovement movement);
+
+	/** Every movement of the box recorded at or after {@code from}, oldest first. */
+	List<CashMovement> findMovementsFrom(InternalCashBoxId cashBoxId, Instant from);
 }
