@@ -58,4 +58,17 @@ class SettlementTest {
 				.isFalse();
 		assertThat(settlement.isSamePaymentAs(cnab(new BigDecimal("51.00"), null, null, paidAt))).isFalse();
 	}
+
+	@Test
+	void aManualSettlementCarriesTheManualMethodAndTheEnteredAdjustments() {
+		Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivableId,
+				new BigDecimal("90.00"), new BigDecimal("1.00"), new BigDecimal("2.00"), new BigDecimal("3.00"),
+				new BigDecimal("4.00"), paidAt);
+
+		assertThat(settlement.getMethod()).isEqualTo(SettlementMethod.MANUAL);
+		assertThat(settlement.getInterest()).isEqualByComparingTo("1.00");
+		assertThat(settlement.getFine()).isEqualByComparingTo("2.00");
+		assertThat(settlement.getDiscount()).isEqualByComparingTo("3.00");
+		assertThat(settlement.getSurcharge()).isEqualByComparingTo("4.00");
+	}
 }
