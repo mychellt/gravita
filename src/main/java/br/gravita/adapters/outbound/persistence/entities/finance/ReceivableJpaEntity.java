@@ -49,4 +49,10 @@ public class ReceivableJpaEntity extends AbstractEntity<UUID> {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private ReceivableStatus status;
+
+	@Column(name = "origin_document_ref")
+	private UUID originDocumentRef;
+
+	@Column(name = "installment_number")
+	private Integer installmentNumber;
 }

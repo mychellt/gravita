@@ -12,7 +12,8 @@ public interface ReceivablePersistenceMapper {
 
 	default Receivable toDomain(final ReceivableJpaEntity entity) {
 		return Receivable.of(ReceivableId.of(entity.getId()), entity.getCustomerId(), entity.getOrigin(),
-				entity.getAmount(), entity.getDueDate(), entity.getInstallments(), entity.getStatus());
+				entity.getAmount(), entity.getDueDate(), entity.getInstallments(), entity.getStatus(),
+				entity.getOriginDocumentRef(), entity.getInstallmentNumber());
 	}
 
 	default ReceivableJpaEntity toEntity(final Receivable domain) {
@@ -24,6 +25,8 @@ public interface ReceivablePersistenceMapper {
 				.dueDate(domain.getDueDate())
 				.installments(domain.getInstallments())
 				.status(domain.getStatus())
+				.originDocumentRef(domain.getOriginDocumentRef())
+				.installmentNumber(domain.getInstallmentNumber())
 				.build();
 	}
 }

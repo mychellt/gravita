@@ -6,6 +6,8 @@ import br.gravita.adapters.outbound.persistence.repositories.finance.ReceivableJ
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.ports.outbound.persistence.finance.ReceivableRepositoryPort;
+import java.util.List;
+import java.util.UUID;
 
 @PersistenceAdapter
 class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
@@ -24,5 +26,11 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		ReceivableJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
+	}
+
+	@Override
+	public List<Receivable> findByOriginDocumentRef(UUID originDocumentRef) {
+		return jpaRepository.findByOriginDocumentRefOrderByInstallmentNumber(originDocumentRef).stream()
+				.map(mapper::toDomain).toList();
 	}
 }

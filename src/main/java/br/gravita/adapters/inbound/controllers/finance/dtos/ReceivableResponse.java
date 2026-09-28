@@ -8,11 +8,12 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record ReceivableResponse(UUID id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-		LocalDate dueDate, Integer installments, ReceivableStatus status) {
+		LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
+		Integer installmentNumber) {
 
 	public static ReceivableResponse from(Receivable receivable) {
 		return new ReceivableResponse(receivable.getId().value(), receivable.getCustomerId(), receivable.getOrigin(),
 				receivable.getAmount(), receivable.getDueDate(), receivable.getInstallments(),
-				receivable.getStatus());
+				receivable.getStatus(), receivable.getOriginDocumentRef(), receivable.getInstallmentNumber());
 	}
 }
