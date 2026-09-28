@@ -3,14 +3,18 @@ package br.gravita.adapters.inbound.controllers.finance.controllers;
 import br.gravita.adapters.inbound.controllers.finance.dtos.BoletoResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualReceivableRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.GenerateBoletoRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.PixChargeResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.ReceivableResponse;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.finance.BankIntegrationUnavailableException;
 import br.gravita.core.domain.finance.Boleto;
+import br.gravita.core.domain.finance.PixCharge;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.CreateManualReceivableUseCase;
 import br.gravita.core.ports.inbound.finance.GenerateBoletoUseCase;
+import br.gravita.core.ports.inbound.finance.GeneratePixChargeCommand;
+import br.gravita.core.ports.inbound.finance.GeneratePixChargeUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
@@ -32,6 +36,7 @@ public class ReceivableController {
 
 	private final CreateManualReceivableUseCase createManualReceivableUseCase;
 	private final GenerateBoletoUseCase generateBoletoUseCase;
+	private final GeneratePixChargeUseCase generatePixChargeUseCase;
 
 	@PostMapping
 	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody CreateManualReceivableRequest request) {
@@ -45,6 +50,12 @@ public class ReceivableController {
 			@Valid @RequestBody GenerateBoletoRequest request) {
 		Boleto boleto = generateBoletoUseCase.execute(request.toCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(BoletoResponse.from(boleto));
+	}
+
+	@PostMapping("/{id}/pix-charge")
+	public ResponseEntity<PixChargeResponse> generatePixCharge(@PathVariable UUID id) {
+		PixCharge pixCharge = generatePixChargeUseCase.execute(new GeneratePixChargeCommand(id));
+		return ResponseEntity.status(HttpStatus.CREATED).body(PixChargeResponse.from(pixCharge));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)

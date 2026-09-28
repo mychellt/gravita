@@ -74,4 +74,31 @@ class ReceivableTest {
 		assertThatThrownBy(cancelled::requireOpen).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("not OPEN");
 	}
+
+	@Test
+	void settleMovesAnOpenOrPartiallySettledReceivableToSettled() {
+		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
+				ReceivableStatus.PARTIALLY_SETTLED }) {
+			Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+					ReceivableOrigin.MANUAL, BigDecimal.TEN, LocalDate.now().plusDays(1), null, status, null, null);
+
+			Receivable settled = receivable.settle();
+
+			assertThat(settled.getStatus()).isEqualTo(ReceivableStatus.SETTLED);
+			assertThat(settled.getId()).isEqualTo(receivable.getId());
+			assertThat(settled.getAmount()).isEqualByComparingTo(BigDecimal.TEN);
+		}
+	}
+
+	@Test
+	void settleRejectsAReceivableThatCannotBeSettled() {
+		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
+				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
+			Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+					ReceivableOrigin.MANUAL, BigDecimal.TEN, LocalDate.now().plusDays(1), null, status, null, null);
+
+			assertThatThrownBy(receivable::settle).isInstanceOf(BusinessRuleException.class)
+					.hasMessageContaining("cannot be settled");
+		}
+	}
 }

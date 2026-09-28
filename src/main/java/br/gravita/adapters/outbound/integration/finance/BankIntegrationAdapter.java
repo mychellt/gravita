@@ -18,4 +18,9 @@ class BankIntegrationAdapter implements BankIntegrationPort {
 		throw new BankIntegrationUnavailableException(
 				"Bank integration not configured: " + request.bankIntegration());
 	}
+
+	@Override
+	public IssuedPixCharge issuePixCharge(PixChargeIssueRequest request) {
+		throw new BankIntegrationUnavailableException("Bank integration not configured for PIX charges");
+	}
 }

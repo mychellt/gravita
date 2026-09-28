@@ -1,0 +1,51 @@
+package br.gravita.adapters.outbound.persistence.entities.finance;
+
+import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
+import br.gravita.core.domain.finance.PixChargeStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+@Getter
+@Setter
+@Entity
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "pix_charges")
+public class PixChargeJpaEntity extends AbstractEntity<UUID> {
+
+	@Id
+	private UUID id;
+
+	@Column(name = "receivable_id", nullable = false)
+	private UUID receivableId;
+
+	@Column(name = "dynamic_qr_payload", nullable = false, length = 1024)
+	private String dynamicQrPayload;
+
+	@Column(nullable = false, precision = 14, scale = 2)
+	private BigDecimal amount;
+
+	@Column(name = "due_date", nullable = false)
+	private LocalDate dueDate;
+
+	@Column(name = "expires_at", nullable = false)
+	private Instant expiresAt;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 20)
+	private PixChargeStatus status;
+}
