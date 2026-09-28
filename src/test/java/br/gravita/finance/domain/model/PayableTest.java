@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.gravita.core.domain.finance.CostCenterShare;
+import br.gravita.core.domain.finance.LedgerScope;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.domain.finance.PayableOrigin;
@@ -173,6 +174,16 @@ class PayableTest {
 	}
 
 	@Test
+	void withCostCenterSplitKeepsTheLedgerScope() {
+		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).inScope(scope);
+
+		Payable split = payable.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100")));
+
+		assertThat(split.getScope()).isEqualTo(scope);
+	}
+
+	@Test
 	void withCostCenterSplitRejectsPercentagesNotSummingTo100() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 
@@ -216,5 +227,38 @@ class PayableTest {
 
 		assertThat(split.getStatus()).isEqualTo(PayableStatus.PAID);
 		assertThat(split.getCostCenterSplit()).hasSize(1);
+	}
+
+	@Test
+	void shareOfAppliesTheCostCentersPercentageAndIsZeroForACostCenterNotCharged() {
+		UUID a = UUID.randomUUID();
+		UUID b = UUID.randomUUID();
+		Payable payable = Payable.createManual(id(), null, new BigDecimal("100.00"), DUE,
+				List.of(share(a, "33.33"), share(b, "66.67")));
+
+		assertThat(payable.shareOf(new BigDecimal("100.00"), a)).isEqualByComparingTo("33.33");
+		assertThat(payable.shareOf(new BigDecimal("50.00"), b)).isEqualByComparingTo("33.34");
+		assertThat(payable.shareOf(new BigDecimal("100.00"), UUID.randomUUID())).isEqualByComparingTo("0");
+		assertThat(payable.shareOf(new BigDecimal("100.00"), null)).isEqualByComparingTo("100.00");
+	}
+
+	@Test
+	void isOutstandingWhileOpenOrApproved() {
+		for (PayableStatus status : PayableStatus.values()) {
+			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, List.of(), status,
+					null, null, null);
+
+			assertThat(payable.isOutstanding())
+					.isEqualTo(status == PayableStatus.OPEN || status == PayableStatus.APPROVED);
+		}
+	}
+
+	@Test
+	void aPayableIsInNoScopeUntilPlacedInOne() {
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+		assertThat(payable.getScope()).isEqualTo(LedgerScope.NONE);
+		assertThat(payable.inScope(scope).getScope()).isEqualTo(scope);
 	}
 }
