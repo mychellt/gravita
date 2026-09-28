@@ -70,6 +70,18 @@ public final class Receivable {
 		}
 	}
 
+	/**
+	 * Full settlement (e.g. a confirmed PIX payment). Only a title that is still
+	 * {@code OPEN} or {@code PARTIALLY_SETTLED} can be settled.
+	 */
+	public Receivable settle() {
+		if (status != ReceivableStatus.OPEN && status != ReceivableStatus.PARTIALLY_SETTLED) {
+			throw new BusinessRuleException("Receivable " + id.value() + " cannot be settled: " + status);
+		}
+		return new Receivable(id, customerId, origin, amount, dueDate, installments, ReceivableStatus.SETTLED,
+				originDocumentRef, installmentNumber);
+	}
+
 	private static BigDecimal requirePositive(BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");

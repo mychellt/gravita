@@ -2,6 +2,7 @@ package br.gravita.core.ports.outbound.finance;
 
 import br.gravita.core.domain.finance.BankIntegration;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
@@ -19,6 +20,14 @@ public interface BankIntegrationPort {
 	 */
 	IssuedBoleto issueBoleto(BoletoIssueRequest request);
 
+	/**
+	 * Creates a dynamic PIX charge at the collection bank.
+	 *
+	 * @throws br.gravita.core.domain.finance.BankIntegrationUnavailableException
+	 *             if the bank isn't configured or can't be reached
+	 */
+	IssuedPixCharge issuePixCharge(PixChargeIssueRequest request);
+
 	record BoletoIssueRequest(BankIntegration bankIntegration, UUID receivableId, UUID customerId, BigDecimal amount,
 			LocalDate dueDate) {
 		public BoletoIssueRequest {
@@ -33,6 +42,25 @@ public interface BankIntegrationPort {
 	record IssuedBoleto(String barcodeLine) {
 		public IssuedBoleto {
 			Objects.requireNonNull(barcodeLine, "barcodeLine is required");
+		}
+	}
+
+	/** {@code pixChargeId} is the charge's identity on our side; the bank echoes it back (as the txid) on confirmation. */
+	record PixChargeIssueRequest(UUID pixChargeId, UUID receivableId, UUID customerId, BigDecimal amount,
+			LocalDate dueDate) {
+		public PixChargeIssueRequest {
+			Objects.requireNonNull(pixChargeId, "pixChargeId is required");
+			Objects.requireNonNull(receivableId, "receivableId is required");
+			Objects.requireNonNull(customerId, "customerId is required");
+			Objects.requireNonNull(amount, "amount is required");
+			Objects.requireNonNull(dueDate, "dueDate is required");
+		}
+	}
+
+	record IssuedPixCharge(String dynamicQrPayload, Instant expiresAt) {
+		public IssuedPixCharge {
+			Objects.requireNonNull(dynamicQrPayload, "dynamicQrPayload is required");
+			Objects.requireNonNull(expiresAt, "expiresAt is required");
 		}
 	}
 }
