@@ -101,4 +101,45 @@ class ReceivableTest {
 					.hasMessageContaining("cannot be settled");
 		}
 	}
+
+	private Receivable receivable(ReceivableStatus status) {
+		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
+				new BigDecimal("100.00"), LocalDate.now().plusDays(1), null, status, null, null);
+	}
+
+	@Test
+	void applyCreditedTotalSettlesWhenTheTitleIsFullyCovered() {
+		assertThat(receivable(ReceivableStatus.OPEN).applyCreditedTotal(new BigDecimal("100.00")).getStatus())
+				.isEqualTo(ReceivableStatus.SETTLED);
+		assertThat(receivable(ReceivableStatus.PARTIALLY_SETTLED).applyCreditedTotal(new BigDecimal("120.00"))
+				.getStatus()).isEqualTo(ReceivableStatus.SETTLED);
+	}
+
+	@Test
+	void applyCreditedTotalPartiallySettlesWhenTheTitleIsNotCovered() {
+		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
+				ReceivableStatus.PARTIALLY_SETTLED }) {
+			assertThat(receivable(status).applyCreditedTotal(new BigDecimal("40.00")).getStatus())
+					.isEqualTo(ReceivableStatus.PARTIALLY_SETTLED);
+		}
+	}
+
+	@Test
+	void applyCreditedTotalRejectsAReceivableThatCannotTakeAPayment() {
+		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
+				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
+			Receivable receivable = receivable(status);
+
+			assertThatThrownBy(() -> receivable.applyCreditedTotal(new BigDecimal("40.00")))
+					.isInstanceOf(BusinessRuleException.class);
+			assertThatThrownBy(() -> receivable.applyCreditedTotal(new BigDecimal("100.00")))
+					.isInstanceOf(BusinessRuleException.class);
+		}
+	}
+
+	@Test
+	void applyCreditedTotalRejectsANonPositiveTotal() {
+		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN).applyCreditedTotal(BigDecimal.ZERO))
+				.isInstanceOf(BusinessRuleException.class);
+	}
 }

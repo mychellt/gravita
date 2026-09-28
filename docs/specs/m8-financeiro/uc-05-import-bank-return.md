@@ -51,3 +51,12 @@ Not listed in the module spec's adapter table — this runs as a scheduled job v
 ## Notes
 
 - Flag for the team: confirm whether an ops-facing manual-trigger/upload endpoint is needed for this job, since the source doc only describes the automatic daily import.
+
+## Implementation notes
+
+- **Trigger:** `BankReturnImportScheduler` (`gravita.finance.bank-return.import-cron`, default 06:00 daily) runs `ImportDailyBankReturnUseCase` for each bank in `gravita.finance.bank-return.banks` (empty by default), which fetches the bank's file via `BankIntegrationPort.fetchReturnFile` and delegates to `ImportBankReturnUseCase`. No REST endpoint; the manual-trigger/upload question above is still open for product (Atena).
+- **Matching:** a return line's title identifier must be the `Receivable` id the bank echoes back. Lines whose identifier is not a receivable id, or matches no receivable, are reported in `BankReturnImportResult.unmatchedLines` with a reason.
+- **Settlement status:** the receivable is `SETTLED` once its settlements' principal + discount cover its amount, otherwise `PARTIALLY_SETTLED`. `Settlement.timestamp` is the bank's payment date (UTC start of day).
+- **Idempotency:** a line for a payment already recorded (same receivable, principal and payment date) or for a receivable that is not `OPEN`/`PARTIALLY_SETTLED` is reported as unmatched, never settled twice. Non-payment occurrences (registration, rejection) are counted in `skippedCount`.
+- **Not yet implemented:** the per-bank CNAB 240/400 parsing behind `BankIntegrationPort.parseReturnFile`/`fetchReturnFile` — `BankIntegrationAdapter` still throws `BankIntegrationUnavailableException`, as it does for boletos and PIX.
+- **Follow-ups:** `Settlement` is currently receivable-only (`receivable_id` FK); UC-M8-22 will need to link it to a `Payable` too.
