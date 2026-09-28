@@ -13,4 +13,7 @@ public interface ReceivableRepositoryPort {
 
 	/** The receivables already generated for a fiscal document, ordered by installment number. */
 	List<Receivable> findByOriginDocumentRef(UUID originDocumentRef);
+
+	/** The customer's titles that are still to be paid: {@code OPEN} or {@code PARTIALLY_SETTLED}. */
+	List<Receivable> findUnsettledByCustomerId(UUID customerId);
 }

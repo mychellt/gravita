@@ -45,6 +45,13 @@ public final class Settlement {
 				SettlementMethod.AUTOMATIC_CNAB, timestamp);
 	}
 
+	/** A baixa entered by a user (e.g. a cash payment); {@code timestamp} is when it was recorded. */
+	public static Settlement manual(SettlementId id, ReceivableId receivableId, BigDecimal amount,
+			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {
+		return new Settlement(id, receivableId, amount, interest, fine, discount, surcharge,
+				SettlementMethod.MANUAL, timestamp);
+	}
+
 	public static Settlement of(SettlementId id, ReceivableId receivableId, BigDecimal amount, BigDecimal interest,
 			BigDecimal fine, BigDecimal discount, BigDecimal surcharge, SettlementMethod method, Instant timestamp) {
 		return new Settlement(id, receivableId, amount, interest, fine, discount, surcharge, method, timestamp);

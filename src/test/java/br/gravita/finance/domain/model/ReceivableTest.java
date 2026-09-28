@@ -7,9 +7,13 @@ import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.ReceivableOrigin;
 import br.gravita.core.domain.finance.ReceivableStatus;
+import br.gravita.core.domain.finance.Settlement;
+import br.gravita.core.domain.finance.SettlementId;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -141,5 +145,17 @@ class ReceivableTest {
 	void applyCreditedTotalRejectsANonPositiveTotal() {
 		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN).applyCreditedTotal(BigDecimal.ZERO))
 				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void remainingBalanceIsTheAmountLessWhatTheSettlementsCredited() {
+		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+		Settlement first = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
+				new BigDecimal("30.00"), new BigDecimal("5.00"), null, new BigDecimal("10.00"), null, Instant.now());
+		Settlement second = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
+				new BigDecimal("20.00"), null, null, null, null, Instant.now());
+
+		assertThat(receivable.remainingBalance(List.of())).isEqualByComparingTo("100.00");
+		assertThat(receivable.remainingBalance(List.of(first, second))).isEqualByComparingTo("40.00");
 	}
 }

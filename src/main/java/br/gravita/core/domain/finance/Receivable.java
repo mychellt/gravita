@@ -3,6 +3,7 @@ package br.gravita.core.domain.finance;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
@@ -100,6 +101,11 @@ public final class Receivable {
 		}
 		return new Receivable(id, customerId, origin, amount, dueDate, installments,
 				ReceivableStatus.PARTIALLY_SETTLED, originDocumentRef, installmentNumber);
+	}
+
+	/** What is still to be credited to this title once {@code settlements} (its baixas so far) are applied. */
+	public BigDecimal remainingBalance(Collection<Settlement> settlements) {
+		return settlements.stream().map(Settlement::creditedAmount).reduce(amount, BigDecimal::subtract);
 	}
 
 	private static BigDecimal requirePositive(BigDecimal amount) {
