@@ -3,6 +3,7 @@ package br.gravita.adapters.outbound.persistence.mappers.finance;
 import br.gravita.adapters.outbound.persistence.entities.finance.CostCenterShareEmbeddable;
 import br.gravita.adapters.outbound.persistence.entities.finance.PayableJpaEntity;
 import br.gravita.core.domain.finance.CostCenterShare;
+import br.gravita.core.domain.finance.LedgerScope;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.finance.PayableId;
 import java.util.ArrayList;
@@ -19,7 +20,8 @@ public interface PayablePersistenceMapper {
 				entity.getCostCenterSplit().stream()
 						.map(share -> new CostCenterShare(share.getCostCenterId(), share.getPercent())).toList(),
 				entity.getStatus(), entity.getPurchaseReceiptRef(), entity.getInstallmentNumber(),
-				entity.getInstallments());
+				entity.getInstallments(),
+				new LedgerScope(entity.getCompanyId(), entity.getBranchId(), entity.getBankAccountId()));
 	}
 
 	default PayableJpaEntity toEntity(final Payable domain) {
@@ -36,6 +38,9 @@ public interface PayablePersistenceMapper {
 				.purchaseReceiptRef(domain.getPurchaseReceiptRef())
 				.installmentNumber(domain.getInstallmentNumber())
 				.installments(domain.getInstallments())
+				.companyId(domain.getScope().companyId())
+				.branchId(domain.getScope().branchId())
+				.bankAccountId(domain.getScope().bankAccountId())
 				.build();
 	}
 }

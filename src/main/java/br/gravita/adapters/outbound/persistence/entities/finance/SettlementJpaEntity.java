@@ -29,8 +29,11 @@ public class SettlementJpaEntity extends AbstractEntity<UUID> {
 	@Id
 	private UUID id;
 
-	@Column(name = "receivable_id", nullable = false)
+	@Column(name = "receivable_id")
 	private UUID receivableId;
+
+	@Column(name = "payable_id")
+	private UUID payableId;
 
 	@Column(nullable = false, precision = 14, scale = 2)
 	private BigDecimal amount;

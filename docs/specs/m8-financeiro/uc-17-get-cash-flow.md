@@ -47,3 +47,12 @@ public interface GetCashFlowUseCase {
 
 - **Depends on:** UC-M8-01, UC-M8-02, UC-M8-10, UC-M8-11 (needs both receivables and payables to project anything meaningful).
 - **Blocks:** —
+
+## Implementation notes
+
+- `GetCashFlowQuery` also takes an optional period (`from`/`to`, default 30 days back to 90 days ahead, at most 3660 days) and an optional `openingBalance` (default 0): the finance model holds no bank balance yet, so the running balance is the opening balance plus the net movement of the buckets.
+- Realized: every `Settlement` in the period counts on its day for the cash that moved (principal + interest + fine + surcharge; a discount is not cash). A settlement applies either to a `Receivable` (inflow) or to a `Payable` (outflow).
+- Projected: an open receivable (`OPEN`/`PARTIALLY_SETTLED`) counts for its remaining balance and an open payable (`OPEN`/`APPROVED`) for its amount, on the due date; a title already overdue counts today.
+- Filters: `Receivable`, `Payable` carry a `LedgerScope` (company, branch, bank account); the cost center comes from a payable's cost-center split. A cost-center filter keeps only payables and counts each one's percentage share; receivables are not charged to a cost center.
+- Alert: `NotifyNegativeBalanceProjectionPort` is called when a period that is not over yet closes with a negative balance, carrying the first such period and the lowest balance. A failing notification is logged and does not fail the read. The alert is not de-duplicated across calls.
+- REST: `GET /api/finance/cash-flow?granularity=&companyId=&branchId=&bankAccountId=&costCenterId=&from=&to=&openingBalance=`.

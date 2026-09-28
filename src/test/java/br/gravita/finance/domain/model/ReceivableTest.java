@@ -3,6 +3,7 @@ package br.gravita.finance.domain.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.gravita.core.domain.finance.LedgerScope;
 import br.gravita.core.domain.finance.Receivable;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.ReceivableOrigin;
@@ -157,5 +158,18 @@ class ReceivableTest {
 
 		assertThat(receivable.remainingBalance(List.of())).isEqualByComparingTo("100.00");
 		assertThat(receivable.remainingBalance(List.of(first, second))).isEqualByComparingTo("40.00");
+	}
+
+	@Test
+	void theScopeSurvivesEveryStatusTransition() {
+		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+		Receivable open = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+				new BigDecimal("100.00"), LocalDate.now().minusDays(5), null);
+
+		assertThat(open.getScope()).isEqualTo(LedgerScope.NONE);
+		Receivable scoped = open.inScope(scope);
+		assertThat(scoped.settle().getScope()).isEqualTo(scope);
+		assertThat(scoped.applyCreditedTotal(new BigDecimal("40.00")).getScope()).isEqualTo(scope);
+		assertThat(scoped.renegotiate(LocalDate.now()).getScope()).isEqualTo(scope);
 	}
 }
