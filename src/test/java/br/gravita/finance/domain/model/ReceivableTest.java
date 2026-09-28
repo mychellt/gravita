@@ -61,4 +61,17 @@ class ReceivableTest {
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("installments must be at least 1");
 	}
+
+	@Test
+	void requireOpenPassesForAnOpenReceivableAndFailsOtherwise() {
+		ReceivableId id = ReceivableId.of(UUID.randomUUID());
+		Receivable open = Receivable.createManual(id, UUID.randomUUID(), BigDecimal.TEN,
+				LocalDate.now().plusDays(1), null);
+		Receivable cancelled = Receivable.of(id, UUID.randomUUID(), ReceivableOrigin.MANUAL, BigDecimal.TEN,
+				LocalDate.now().plusDays(1), null, ReceivableStatus.CANCELLED, null, null);
+
+		open.requireOpen();
+		assertThatThrownBy(cancelled::requireOpen).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("not OPEN");
+	}
 }

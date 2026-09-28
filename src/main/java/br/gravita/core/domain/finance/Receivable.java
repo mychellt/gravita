@@ -63,6 +63,13 @@ public final class Receivable {
 				installmentNumber);
 	}
 
+	/** A boleto (or any charge) can only be issued against a title that is still {@code OPEN}. */
+	public void requireOpen() {
+		if (status != ReceivableStatus.OPEN) {
+			throw new BusinessRuleException("Receivable " + id.value() + " is not OPEN: " + status);
+		}
+	}
+
 	private static BigDecimal requirePositive(BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
