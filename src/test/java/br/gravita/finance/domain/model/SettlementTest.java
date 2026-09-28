@@ -3,6 +3,7 @@ package br.gravita.finance.domain.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.Settlement;
 import br.gravita.core.domain.finance.SettlementId;
@@ -70,5 +71,28 @@ class SettlementTest {
 		assertThat(settlement.getFine()).isEqualByComparingTo("2.00");
 		assertThat(settlement.getDiscount()).isEqualByComparingTo("3.00");
 		assertThat(settlement.getSurcharge()).isEqualByComparingTo("4.00");
+	}
+
+	@Test
+	void theCashAmountIsThePrincipalPlusInterestFineAndSurchargeButNotTheDiscount() {
+		Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivableId,
+				new BigDecimal("90.00"), new BigDecimal("2.00"), new BigDecimal("1.00"), new BigDecimal("10.00"),
+				new BigDecimal("0.50"), paidAt);
+
+		assertThat(settlement.cashAmount()).isEqualByComparingTo("93.50");
+	}
+
+	@Test
+	void aSettlementAppliesToExactlyOneReceivableOrPayable() {
+		PayableId payableId = PayableId.of(UUID.randomUUID());
+		Settlement payment = Settlement.ofPayable(SettlementId.of(UUID.randomUUID()), payableId, BigDecimal.TEN, null,
+				null, null, null, SettlementMethod.PIX, paidAt);
+
+		assertThat(payment.isReceivableSide()).isFalse();
+		assertThat(payment.getPayableId()).isEqualTo(payableId);
+		assertThat(payment.getReceivableId()).isNull();
+		assertThat(cnab(BigDecimal.TEN, null, null, paidAt).isReceivableSide()).isTrue();
+		assertThatThrownBy(() -> Settlement.of(SettlementId.of(UUID.randomUUID()), null, BigDecimal.TEN, null, null,
+				null, null, SettlementMethod.MANUAL, paidAt)).isInstanceOf(BusinessRuleException.class);
 	}
 }

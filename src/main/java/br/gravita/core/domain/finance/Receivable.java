@@ -20,10 +20,11 @@ public final class Receivable {
 	private final ReceivableStatus status;
 	private final UUID originDocumentRef;
 	private final Integer installmentNumber;
+	private final LedgerScope scope;
 
 	private Receivable(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
-			Integer installmentNumber) {
+			Integer installmentNumber, LedgerScope scope) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -33,12 +34,13 @@ public final class Receivable {
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.originDocumentRef = originDocumentRef;
 		this.installmentNumber = installmentNumber;
+		this.scope = scope == null ? LedgerScope.NONE : scope;
 	}
 
 	public static Receivable createManual(ReceivableId id, UUID customerId, BigDecimal amount, LocalDate dueDate,
 			Integer installments) {
 		return new Receivable(id, customerId, ReceivableOrigin.MANUAL, amount, dueDate, installments,
-				ReceivableStatus.OPEN, null, null);
+				ReceivableStatus.OPEN, null, null, LedgerScope.NONE);
 	}
 
 	/**
@@ -54,7 +56,7 @@ public final class Receivable {
 					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
 		}
 		return new Receivable(id, customerId, ReceivableOrigin.INVOICING, amount, dueDate, installments,
-				ReceivableStatus.OPEN, originDocumentRef, installmentNumber);
+				ReceivableStatus.OPEN, originDocumentRef, installmentNumber, LedgerScope.NONE);
 	}
 
 	/**
@@ -69,14 +71,27 @@ public final class Receivable {
 					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
 		}
 		return new Receivable(id, customerId, ReceivableOrigin.RENEGOTIATION, amount, dueDate, installments,
-				ReceivableStatus.OPEN, null, installmentNumber);
+				ReceivableStatus.OPEN, null, installmentNumber, LedgerScope.NONE);
 	}
 
 	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
 			Integer installmentNumber) {
+		return of(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
+				installmentNumber, LedgerScope.NONE);
+	}
+
+	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
+			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
+			Integer installmentNumber, LedgerScope scope) {
 		return new Receivable(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
-				installmentNumber);
+				installmentNumber, scope);
+	}
+
+	/** The same title placed in {@code scope} (company, branch and bank account). */
+	public Receivable inScope(LedgerScope scope) {
+		return new Receivable(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
+				installmentNumber, scope);
 	}
 
 	/** A boleto (or any charge) can only be issued against a title that is still {@code OPEN}. */
@@ -107,7 +122,7 @@ public final class Receivable {
 					+ dueDate);
 		}
 		return new Receivable(id, customerId, origin, amount, dueDate, installments, ReceivableStatus.RENEGOTIATED,
-				originDocumentRef, installmentNumber);
+				originDocumentRef, installmentNumber, scope);
 	}
 
 	/**
@@ -119,7 +134,7 @@ public final class Receivable {
 			throw new BusinessRuleException("Receivable " + id.value() + " cannot be settled: " + status);
 		}
 		return new Receivable(id, customerId, origin, amount, dueDate, installments, ReceivableStatus.SETTLED,
-				originDocumentRef, installmentNumber);
+				originDocumentRef, installmentNumber, scope);
 	}
 
 	/**
@@ -139,7 +154,7 @@ public final class Receivable {
 			throw new BusinessRuleException("Receivable " + id.value() + " cannot be settled: " + status);
 		}
 		return new Receivable(id, customerId, origin, amount, dueDate, installments,
-				ReceivableStatus.PARTIALLY_SETTLED, originDocumentRef, installmentNumber);
+				ReceivableStatus.PARTIALLY_SETTLED, originDocumentRef, installmentNumber, scope);
 	}
 
 	/** What is still to be credited to this title once {@code settlements} (its baixas so far) are applied. */

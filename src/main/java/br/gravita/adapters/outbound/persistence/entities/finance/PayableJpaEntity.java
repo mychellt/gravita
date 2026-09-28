@@ -65,4 +65,13 @@ public class PayableJpaEntity extends AbstractEntity<UUID> {
 
 	@Column
 	private Integer installments;
+
+	@Column(name = "company_id")
+	private UUID companyId;
+
+	@Column(name = "branch_id")
+	private UUID branchId;
+
+	@Column(name = "bank_account_id")
+	private UUID bankAccountId;
 }
