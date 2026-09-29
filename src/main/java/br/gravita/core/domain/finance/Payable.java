@@ -25,10 +25,11 @@ public final class Payable {
 	private final Integer installmentNumber;
 	private final Integer installments;
 	private final LedgerScope scope;
+	private final UUID approvedBy;
 
 	private Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope) {
+			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.supplierId = supplierId;
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -40,6 +41,7 @@ public final class Payable {
 		this.installmentNumber = installmentNumber;
 		this.installments = installments;
 		this.scope = scope == null ? LedgerScope.NONE : scope;
+		this.approvedBy = approvedBy;
 	}
 
 	/**
@@ -50,7 +52,7 @@ public final class Payable {
 	public static Payable createManual(PayableId id, UUID supplierId, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit) {
 		return new Payable(id, supplierId, PayableOrigin.MANUAL, amount, dueDate, costCenterSplit,
-				PayableStatus.OPEN, null, null, null, LedgerScope.NONE);
+				PayableStatus.OPEN, null, null, null, LedgerScope.NONE, null);
 	}
 
 	/**
@@ -67,7 +69,7 @@ public final class Payable {
 					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
 		}
 		return new Payable(id, supplierId, PayableOrigin.PURCHASE_RECEIPT, amount, dueDate, null,
-				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments, LedgerScope.NONE);
+				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments, LedgerScope.NONE, null);
 	}
 
 	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
@@ -80,14 +82,36 @@ public final class Payable {
 	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
 			Integer installmentNumber, Integer installments, LedgerScope scope) {
+		return of(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
+				installmentNumber, installments, scope, null);
+	}
+
+	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
+			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
+			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy) {
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, approvedBy);
 	}
 
 	/** The same title placed in {@code scope} (company, branch and bank account). */
 	public Payable inScope(LedgerScope scope) {
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, approvedBy);
+	}
+
+	/**
+	 * Approves an {@code OPEN} payable, recording who approved it; only then is
+	 * it eligible for payment. Whether {@code approvedBy} is entitled to approve
+	 * a title of this amount (the alçada) is for the caller to check.
+	 */
+	public Payable approve(UUID approvedBy) {
+		Objects.requireNonNull(approvedBy, "approvedBy is required");
+		if (status != PayableStatus.OPEN) {
+			throw new BusinessRuleException(
+					"Only OPEN payables can be approved: payable " + id.value() + " is " + status);
+		}
+		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, PayableStatus.APPROVED,
+				purchaseReceiptRef, installmentNumber, installments, scope, approvedBy);
 	}
 
 	/** Still to be paid: {@code OPEN} or {@code APPROVED}. */
@@ -125,7 +149,7 @@ public final class Payable {
 			throw new BusinessRuleException("Payable " + id.value() + " cannot be split: " + status);
 		}
 		return new Payable(id, supplierId, origin, amount, dueDate, split, status, purchaseReceiptRef,
-				installmentNumber, installments, scope);
+				installmentNumber, installments, scope, approvedBy);
 	}
 
 	private static BigDecimal requirePositive(BigDecimal amount) {

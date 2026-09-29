@@ -74,4 +74,7 @@ public class PayableJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "bank_account_id")
 	private UUID bankAccountId;
+
+	@Column(name = "approved_by")
+	private UUID approvedBy;
 }
