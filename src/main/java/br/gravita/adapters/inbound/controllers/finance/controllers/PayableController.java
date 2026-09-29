@@ -1,14 +1,18 @@
 package br.gravita.adapters.inbound.controllers.finance.controllers;
 
 import br.gravita.adapters.inbound.controllers.finance.dtos.ApprovePayableRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.BatchPayRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.CnabRemittanceResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualPayableRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.PayableResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.SplitPayableRequest;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.finance.BankIntegrationUnavailableException;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.ports.inbound.finance.ApprovePayableUseCase;
+import br.gravita.core.ports.inbound.finance.BatchPayUseCase;
 import br.gravita.core.ports.inbound.finance.CreateManualPayableUseCase;
 import br.gravita.core.ports.inbound.finance.SplitPayableByCostCenterUseCase;
 import jakarta.validation.Valid;
@@ -34,6 +38,7 @@ public class PayableController {
 	private final CreateManualPayableUseCase createManualPayableUseCase;
 	private final SplitPayableByCostCenterUseCase splitPayableByCostCenterUseCase;
 	private final ApprovePayableUseCase approvePayableUseCase;
+	private final BatchPayUseCase batchPayUseCase;
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
@@ -52,6 +57,11 @@ public class PayableController {
 		return PayableResponse.from(approvePayableUseCase.execute(request.toCommand(id)));
 	}
 
+	@PostMapping("/batch-pay")
+	public CnabRemittanceResponse batchPay(@Valid @RequestBody BatchPayRequest request) {
+		return CnabRemittanceResponse.from(batchPayUseCase.execute(request.toCommand()));
+	}
+
 	@ExceptionHandler(UserNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
@@ -65,5 +75,11 @@ public class PayableController {
 	@ExceptionHandler(BusinessRuleException.class)
 	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
+	}
+
+	@ExceptionHandler(BankIntegrationUnavailableException.class)
+	public ResponseEntity<Map<String, String>> handleBankIntegrationUnavailableException(
+			BankIntegrationUnavailableException exception) {
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
 	}
 }

@@ -28,6 +28,12 @@ class BankIntegrationAdapter implements BankIntegrationPort {
 	}
 
 	@Override
+	public IssuedRemittance sendRemittance(RemittanceRequest request) {
+		throw new BankIntegrationUnavailableException(
+				"Bank integration not configured: " + request.bankIntegration());
+	}
+
+	@Override
 	public Optional<String> fetchReturnFile(BankIntegration bankIntegration) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
 	}
