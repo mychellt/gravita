@@ -58,4 +58,11 @@ class InternalCashBoxRepositoryAdapter implements InternalCashBoxRepositoryPort 
 				.findByCashBoxIdAndTimestampGreaterThanEqualOrderByTimestampAsc(cashBoxId.value(), from)
 				.stream().map(mapper::toDomain).toList();
 	}
+
+	@Override
+	public List<CashMovement> findMovementsBetween(Instant from, Instant until) {
+		return movementJpaRepository
+				.findByTimestampGreaterThanEqualAndTimestampLessThanOrderByTimestampAscIdAsc(from, until).stream()
+				.map(mapper::toDomain).toList();
+	}
 }

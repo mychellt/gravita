@@ -23,4 +23,7 @@ public interface InternalCashBoxRepositoryPort {
 
 	/** Every movement of the box recorded at or after {@code from}, oldest first. */
 	List<CashMovement> findMovementsFrom(InternalCashBoxId cashBoxId, Instant from);
+
+	/** Every movement, of any box, recorded from {@code from} (inclusive) to {@code until} (exclusive), oldest first. */
+	List<CashMovement> findMovementsBetween(Instant from, Instant until);
 }
