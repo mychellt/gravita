@@ -6,6 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.finance.CashFlowQue
 import br.gravita.adapters.outbound.persistence.repositories.finance.SettlementJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.finance.CashFlowFilter;
+import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.Settlement;
 import br.gravita.core.ports.outbound.persistence.finance.SettlementRepositoryPort;
@@ -37,6 +38,12 @@ class SettlementRepositoryAdapter implements SettlementRepositoryPort {
 	@Override
 	public List<Settlement> findByReceivableId(ReceivableId receivableId) {
 		return jpaRepository.findByReceivableIdOrderByTimestampAscCreatedAtAsc(receivableId.value()).stream()
+				.map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<Settlement> findByPayableId(PayableId payableId) {
+		return jpaRepository.findByPayableIdOrderByTimestampAscCreatedAtAsc(payableId.value()).stream()
 				.map(mapper::toDomain).toList();
 	}
 

@@ -48,3 +48,14 @@ None — runs as a scheduled job via `BankIntegrationPort`, same pattern as `Imp
 
 - **Depends on:** [UC-M8-13](uc-13-batch-pay.md) (a remittance must exist for the bank to return on).
 - **Blocks:** —
+
+## Implementation notes
+
+- **Trigger:** `BatchPaymentConfirmationScheduler` (`gravita.finance.payment-return.confirm-cron`, default 07:00 daily) runs `ConfirmDailyBatchPaymentUseCase` for each bank in `gravita.finance.payment-return.banks` (empty by default), which fetches the bank's file via the new `BankIntegrationPort.fetchPaymentReturnFile` and delegates to `ConfirmBatchPaymentUseCase`. A payment return is a different file from the collection return of uc-05, so it has its own fetch; parsing is shared (`parseReturnFile`). No REST endpoint.
+- **Matching:** a return line's title identifier must be the `Payable` id the remittance carried (uc-13). Lines whose identifier is not a payable id, or matches no payable, are reported in `BankReturnImportResult.unmatchedLines` with a reason.
+- **Settlement:** a confirmed line creates `Settlement.automaticCnabForPayable` (`payable_id` set, `receivable_id` null); `timestamp` is the bank's payment date (UTC start of day). The payable moves `APPROVED → PAID` via `Payable.pay(null)` (no receipt attachment).
+- **Rejections:** `BankReturnLine` gained an optional `rejectionReason`; a line carrying one is not paid, touches nothing (the payable stays `APPROVED`, so it can be sent again) and is surfaced in the new `BankReturnImportResult.rejectedLines`. uc-05 does not look at it and still counts such lines in `skippedCount`.
+- **Amount check:** a payable has no partially-paid state, so a line whose principal + discount differs from the payable amount is reported as unmatched (payable stays `APPROVED`) rather than marked `PAID`.
+- **Idempotency:** a line for a payment already recorded (same payable, principal and payment date) or for a payable that is not `APPROVED` is reported as unmatched, never settled twice. Lines that are neither paid nor rejected are counted in `skippedCount`.
+- **Not yet implemented:** the per-bank parsing behind `parseReturnFile`/`fetchPaymentReturnFile` — `BankIntegrationAdapter` still throws `BankIntegrationUnavailableException`. PIX transfers (uc-14) mark the payable `PAID` directly and record no `Settlement`, so a PIX return line for one of them is reported as unmatched ("Payable is PAID").
+

@@ -44,6 +44,11 @@ class BankIntegrationAdapter implements BankIntegrationPort {
 	}
 
 	@Override
+	public Optional<String> fetchPaymentReturnFile(BankIntegration bankIntegration) {
+		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
+	}
+
+	@Override
 	public List<BankReturnLine> parseReturnFile(BankIntegration bankIntegration, String fileContent) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
 	}

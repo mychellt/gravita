@@ -10,5 +10,7 @@ public interface SettlementJpaRepository extends JpaRepository<SettlementJpaEnti
 
 	List<SettlementJpaEntity> findByReceivableIdOrderByTimestampAscCreatedAtAsc(UUID receivableId);
 
+	List<SettlementJpaEntity> findByPayableIdOrderByTimestampAscCreatedAtAsc(UUID payableId);
+
 	List<SettlementJpaEntity> findByReceivableIdInOrderByTimestampAscCreatedAtAsc(Collection<UUID> receivableIds);
 }
