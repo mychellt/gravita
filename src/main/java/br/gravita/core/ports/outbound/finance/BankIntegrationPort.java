@@ -49,6 +49,17 @@ public interface BankIntegrationPort {
 	 */
 	List<BankReturnLine> parseReturnFile(BankIntegration bankIntegration, String fileContent);
 
+	/**
+	 * Generates a single CNAB payment remittance (remessa) covering every item
+	 * of {@code request} and sends it to the bank. Each line carries its
+	 * payable's id as the title identifier, which the bank echoes back on the
+	 * return file.
+	 *
+	 * @throws br.gravita.core.domain.finance.BankIntegrationUnavailableException
+	 *             if the bank isn't configured or can't be reached
+	 */
+	IssuedRemittance sendRemittance(RemittanceRequest request);
+
 	record BoletoIssueRequest(BankIntegration bankIntegration, UUID receivableId, UUID customerId, BigDecimal amount,
 			LocalDate dueDate) {
 		public BoletoIssueRequest {
@@ -82,6 +93,34 @@ public interface BankIntegrationPort {
 		public IssuedPixCharge {
 			Objects.requireNonNull(dynamicQrPayload, "dynamicQrPayload is required");
 			Objects.requireNonNull(expiresAt, "expiresAt is required");
+		}
+	}
+
+	record RemittanceRequest(BankIntegration bankIntegration, List<RemittanceItem> items) {
+		public RemittanceRequest {
+			Objects.requireNonNull(bankIntegration, "bankIntegration is required");
+			Objects.requireNonNull(items, "items is required");
+			if (items.isEmpty()) {
+				throw new IllegalArgumentException("items must not be empty");
+			}
+			items = List.copyOf(items);
+		}
+	}
+
+	/** One payment of a remittance; {@code supplierId} is null for expenses that have no supplier. */
+	record RemittanceItem(UUID payableId, UUID supplierId, BigDecimal amount, LocalDate dueDate) {
+		public RemittanceItem {
+			Objects.requireNonNull(payableId, "payableId is required");
+			Objects.requireNonNull(amount, "amount is required");
+			Objects.requireNonNull(dueDate, "dueDate is required");
+		}
+	}
+
+	/** {@code reference} identifies the remittance at the bank; {@code fileContent} is the CNAB payload sent. */
+	record IssuedRemittance(String reference, String fileContent) {
+		public IssuedRemittance {
+			Objects.requireNonNull(reference, "reference is required");
+			Objects.requireNonNull(fileContent, "fileContent is required");
 		}
 	}
 
