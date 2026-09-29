@@ -59,4 +59,4 @@ Not listed in the module spec's adapter table — this runs as a scheduled job v
 - **Settlement status:** the receivable is `SETTLED` once its settlements' principal + discount cover its amount, otherwise `PARTIALLY_SETTLED`. `Settlement.timestamp` is the bank's payment date (UTC start of day).
 - **Idempotency:** a line for a payment already recorded (same receivable, principal and payment date) or for a receivable that is not `OPEN`/`PARTIALLY_SETTLED` is reported as unmatched, never settled twice. Non-payment occurrences (registration, rejection) are counted in `skippedCount`.
 - **Not yet implemented:** the per-bank CNAB 240/400 parsing behind `BankIntegrationPort.parseReturnFile`/`fetchReturnFile` — `BankIntegrationAdapter` still throws `BankIntegrationUnavailableException`, as it does for boletos and PIX.
-- **Follow-ups:** `Settlement` is currently receivable-only (`receivable_id` FK); UC-M8-22 will need to link it to a `Payable` too.
+- **Follow-ups:** none — `Settlement` now also links to a `Payable` (`payable_id`), used by [UC-M8-22](uc-22-confirm-batch-payment.md).

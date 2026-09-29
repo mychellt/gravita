@@ -53,6 +53,13 @@ public final class Settlement {
 				SettlementMethod.AUTOMATIC_CNAB, timestamp);
 	}
 
+	/** A baixa of a payable created from a line of the bank's CNAB payment return; {@code timestamp} is when the bank says it paid. */
+	public static Settlement automaticCnabForPayable(SettlementId id, PayableId payableId, BigDecimal amount,
+			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {
+		return new Settlement(id, null, payableId, amount, interest, fine, discount, surcharge,
+				SettlementMethod.AUTOMATIC_CNAB, timestamp);
+	}
+
 	/** A baixa entered by a user (e.g. a cash payment); {@code timestamp} is when it was recorded. */
 	public static Settlement manual(SettlementId id, ReceivableId receivableId, BigDecimal amount,
 			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {

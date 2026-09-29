@@ -1,6 +1,7 @@
 package br.gravita.core.ports.outbound.persistence.finance;
 
 import br.gravita.core.domain.finance.CashFlowFilter;
+import br.gravita.core.domain.finance.PayableId;
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.Settlement;
 import java.time.Instant;
@@ -12,6 +13,9 @@ public interface SettlementRepositoryPort {
 
 	/** The baixas applied to a receivable, oldest first. */
 	List<Settlement> findByReceivableId(ReceivableId receivableId);
+
+	/** The baixas applied to a payable, oldest first. */
+	List<Settlement> findByPayableId(PayableId payableId);
 
 	/** The baixas applied to any of the given receivables, oldest first. */
 	List<Settlement> findByReceivableIds(Collection<ReceivableId> receivableIds);

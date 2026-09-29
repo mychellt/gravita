@@ -51,6 +51,17 @@ public interface BankIntegrationPort {
 	List<BankReturnLine> parseReturnFile(BankIntegration bankIntegration, String fileContent);
 
 	/**
+	 * The bank's CNAB 240/400 return file for the payment remittances (and PIX
+	 * transfers) it executed, if it has published one. A payment return is a
+	 * different file from the collection return of {@link #fetchReturnFile}; it
+	 * is parsed with {@link #parseReturnFile}.
+	 *
+	 * @throws br.gravita.core.domain.finance.BankIntegrationUnavailableException
+	 *             if the bank isn't configured or can't be reached
+	 */
+	Optional<String> fetchPaymentReturnFile(BankIntegration bankIntegration);
+
+	/**
 	 * Generates a single CNAB payment remittance (remessa) covering every item
 	 * of {@code request} and sends it to the bank. Each line carries its
 	 * payable's id as the title identifier, which the bank echoes back on the
@@ -168,15 +179,31 @@ public interface BankIntegrationPort {
 	 * line carries the principal {@code amount} credited against the title, what
 	 * was paid on top of it ({@code interest}, {@code fine}, {@code surcharge}),
 	 * the {@code discount} granted, and the date the bank received the money.
+	 * A line the bank refused (e.g. a payment remittance line with insufficient
+	 * funds or a bad account) is not paid and carries the bank's
+	 * {@code rejectionReason}; it is null on every other line.
 	 */
 	record BankReturnLine(int lineNumber, String titleIdentifier, boolean paid, BigDecimal amount,
-			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, LocalDate paidAt) {
+			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, LocalDate paidAt,
+			String rejectionReason) {
 		public BankReturnLine {
 			Objects.requireNonNull(titleIdentifier, "titleIdentifier is required");
 			if (paid) {
 				Objects.requireNonNull(amount, "amount is required on a paid line");
 				Objects.requireNonNull(paidAt, "paidAt is required on a paid line");
+				if (rejectionReason != null) {
+					throw new IllegalArgumentException("A paid line cannot be rejected");
+				}
 			}
+		}
+
+		public BankReturnLine(int lineNumber, String titleIdentifier, boolean paid, BigDecimal amount,
+				BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, LocalDate paidAt) {
+			this(lineNumber, titleIdentifier, paid, amount, interest, fine, discount, surcharge, paidAt, null);
+		}
+
+		public boolean rejected() {
+			return rejectionReason != null;
 		}
 	}
 }
