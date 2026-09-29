@@ -2,6 +2,7 @@ package br.gravita.adapters.outbound.persistence.repositories.finance;
 
 import br.gravita.adapters.outbound.persistence.entities.finance.ReceivableJpaEntity;
 import br.gravita.core.domain.finance.ReceivableStatus;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -12,4 +13,10 @@ public interface ReceivableJpaRepository extends JpaRepository<ReceivableJpaEnti
 	List<ReceivableJpaEntity> findByOriginDocumentRefOrderByInstallmentNumber(UUID originDocumentRef);
 
 	List<ReceivableJpaEntity> findByCustomerIdAndStatusIn(UUID customerId, Collection<ReceivableStatus> statuses);
+
+	List<ReceivableJpaEntity> findByStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(
+			Collection<ReceivableStatus> statuses, LocalDate until);
+
+	List<ReceivableJpaEntity> findByCustomerIdAndStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(
+			UUID customerId, Collection<ReceivableStatus> statuses, LocalDate until);
 }

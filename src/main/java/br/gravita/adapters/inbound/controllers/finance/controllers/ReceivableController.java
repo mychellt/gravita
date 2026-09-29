@@ -1,5 +1,6 @@
 package br.gravita.adapters.inbound.controllers.finance.controllers;
 
+import br.gravita.adapters.inbound.controllers.finance.dtos.AgingReportResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.BoletoResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualReceivableRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.GenerateBoletoRequest;
@@ -18,6 +19,8 @@ import br.gravita.core.domain.finance.Renegotiation;
 import br.gravita.core.domain.finance.Settlement;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.finance.CreateManualReceivableUseCase;
+import br.gravita.core.ports.inbound.finance.GetAgingListQuery;
+import br.gravita.core.ports.inbound.finance.GetAgingListUseCase;
 import br.gravita.core.ports.inbound.finance.GenerateBoletoUseCase;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeCommand;
 import br.gravita.core.ports.inbound.finance.GeneratePixChargeUseCase;
@@ -25,16 +28,20 @@ import br.gravita.core.ports.inbound.finance.RenegotiateTitleUseCase;
 import br.gravita.core.ports.inbound.finance.SettleTitleManuallyUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
@@ -44,6 +51,7 @@ public class ReceivableController {
 
 	private final CreateManualReceivableUseCase createManualReceivableUseCase;
 	private final GenerateBoletoUseCase generateBoletoUseCase;
+	private final GetAgingListUseCase getAgingListUseCase;
 	private final GeneratePixChargeUseCase generatePixChargeUseCase;
 	private final RenegotiateTitleUseCase renegotiateTitleUseCase;
 	private final SettleTitleManuallyUseCase settleTitleManuallyUseCase;
@@ -53,6 +61,14 @@ public class ReceivableController {
 		Receivable created = createManualReceivableUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/finance/receivables/" + created.getId().value()))
 				.body(ReceivableResponse.from(created));
+	}
+
+	@GetMapping("/aging")
+	public ResponseEntity<AgingReportResponse> aging(@RequestParam(required = false) UUID customerId,
+			@RequestParam(required = false) UUID costCenterId,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate asOfDate) {
+		return ResponseEntity.ok(AgingReportResponse
+				.from(getAgingListUseCase.execute(new GetAgingListQuery(customerId, costCenterId, asOfDate))));
 	}
 
 	@PostMapping("/{id}/boleto")

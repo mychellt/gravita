@@ -26,4 +26,11 @@ public interface ReceivableRepositoryPort {
 	 * which receivables are not charged to.
 	 */
 	List<Receivable> findOutstandingDueUntil(LocalDate until, CashFlowFilter filter);
+
+	/**
+	 * The titles still to be received ({@code OPEN} or {@code PARTIALLY_SETTLED})
+	 * that fall due on or before {@code until}, oldest first. Restricted to
+	 * {@code customerId}'s titles unless it is {@code null}.
+	 */
+	List<Receivable> findOutstandingByCustomerDueUntil(UUID customerId, LocalDate until);
 }
