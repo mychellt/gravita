@@ -12,6 +12,8 @@ public interface ReceivableJpaRepository extends JpaRepository<ReceivableJpaEnti
 
 	List<ReceivableJpaEntity> findByOriginDocumentRefOrderByInstallmentNumber(UUID originDocumentRef);
 
+	List<ReceivableJpaEntity> findByCustomerId(UUID customerId);
+
 	List<ReceivableJpaEntity> findByCustomerIdAndStatusIn(UUID customerId, Collection<ReceivableStatus> statuses);
 
 	List<ReceivableJpaEntity> findByStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(
