@@ -22,7 +22,7 @@ public interface PayablePersistenceMapper {
 				entity.getStatus(), entity.getPurchaseReceiptRef(), entity.getInstallmentNumber(),
 				entity.getInstallments(),
 				new LedgerScope(entity.getCompanyId(), entity.getBranchId(), entity.getBankAccountId()),
-				entity.getApprovedBy());
+				entity.getApprovedBy(), entity.getAttachments());
 	}
 
 	default PayableJpaEntity toEntity(final Payable domain) {
@@ -43,6 +43,7 @@ public interface PayablePersistenceMapper {
 				.branchId(domain.getScope().branchId())
 				.bankAccountId(domain.getScope().bankAccountId())
 				.approvedBy(domain.getApprovedBy())
+				.attachments(new ArrayList<>(domain.getAttachments()))
 				.build();
 	}
 }

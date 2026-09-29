@@ -77,4 +77,10 @@ public class PayableJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "approved_by")
 	private UUID approvedBy;
+
+	@ElementCollection
+	@CollectionTable(name = "payable_attachments", joinColumns = @JoinColumn(name = "payable_id"))
+	@OrderColumn(name = "position")
+	@Column(name = "url", nullable = false, length = 2048)
+	private List<String> attachments;
 }

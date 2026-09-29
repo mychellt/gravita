@@ -28,6 +28,11 @@ class BankIntegrationAdapter implements BankIntegrationPort {
 	}
 
 	@Override
+	public PixPaymentReceipt payViaPix(PixPaymentRequest request) {
+		throw new BankIntegrationUnavailableException("Bank integration not configured for PIX payments");
+	}
+
+	@Override
 	public IssuedRemittance sendRemittance(RemittanceRequest request) {
 		throw new BankIntegrationUnavailableException(
 				"Bank integration not configured: " + request.bankIntegration());

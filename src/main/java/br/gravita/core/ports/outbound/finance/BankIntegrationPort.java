@@ -1,6 +1,7 @@
 package br.gravita.core.ports.outbound.finance;
 
 import br.gravita.core.domain.finance.BankIntegration;
+import br.gravita.core.domain.finance.LedgerScope;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -11,8 +12,8 @@ import java.util.UUID;
 
 /**
  * Gateway to the banks' APIs (Itaú, BB, Bradesco, Sicoob, Sicredi); one
- * implementation per bank behind this port. Only boleto issuance is needed so
- * far (UC-M8-03); PIX and CNAB operations join it with their use cases.
+ * implementation per bank behind this port; operations join it with their use
+ * cases.
  */
 public interface BankIntegrationPort {
 
@@ -60,6 +61,18 @@ public interface BankIntegrationPort {
 	 */
 	IssuedRemittance sendRemittance(RemittanceRequest request);
 
+	/**
+	 * Transfers {@code request.amount()} to the recipient's PIX key right away
+	 * and returns the payment receipt. A returned receipt means the money moved;
+	 * any failure to move it is an exception.
+	 *
+	 * @throws br.gravita.core.domain.finance.BankIntegrationUnavailableException
+	 *             if the bank isn't configured or can't be reached
+	 * @throws br.gravita.core.domain.shared.BusinessRuleException
+	 *             if the bank refuses the transfer (unknown key, insufficient funds, ...)
+	 */
+	PixPaymentReceipt payViaPix(PixPaymentRequest request);
+
 	record BoletoIssueRequest(BankIntegration bankIntegration, UUID receivableId, UUID customerId, BigDecimal amount,
 			LocalDate dueDate) {
 		public BoletoIssueRequest {
@@ -93,6 +106,29 @@ public interface BankIntegrationPort {
 		public IssuedPixCharge {
 			Objects.requireNonNull(dynamicQrPayload, "dynamicQrPayload is required");
 			Objects.requireNonNull(expiresAt, "expiresAt is required");
+		}
+	}
+
+	/**
+	 * {@code payableId} is the payment's reference on our side, so a retried
+	 * request can be told apart from a new payment; {@code scope} says which
+	 * company, branch and bank account the money leaves from.
+	 */
+	record PixPaymentRequest(UUID payableId, LedgerScope scope, String pixKey, BigDecimal amount) {
+		public PixPaymentRequest {
+			Objects.requireNonNull(payableId, "payableId is required");
+			Objects.requireNonNull(scope, "scope is required");
+			Objects.requireNonNull(pixKey, "pixKey is required");
+			Objects.requireNonNull(amount, "amount is required");
+		}
+	}
+
+	/** {@code endToEndId} identifies the transfer in the PIX network; {@code content} is the receipt document (e.g. a PDF). */
+	record PixPaymentReceipt(String endToEndId, String contentType, byte[] content) {
+		public PixPaymentReceipt {
+			Objects.requireNonNull(endToEndId, "endToEndId is required");
+			Objects.requireNonNull(contentType, "contentType is required");
+			Objects.requireNonNull(content, "content is required");
 		}
 	}
 

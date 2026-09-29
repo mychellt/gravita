@@ -311,4 +311,50 @@ class PayableTest {
 		assertThat(approved.inScope(new LedgerScope(UUID.randomUUID(), null, null)).getApprovedBy())
 				.isEqualTo(approver);
 	}
+
+	@Test
+	void payingAnApprovedPayableMovesItToPaidAndAppendsTheReceipt() {
+		Payable approved = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).approve(UUID.randomUUID());
+
+		Payable paid = approved.pay("https://files.example.com/receipt.pdf");
+
+		assertThat(paid.getStatus()).isEqualTo(PayableStatus.PAID);
+		assertThat(paid.getAttachments()).containsExactly("https://files.example.com/receipt.pdf");
+		assertThat(paid.getApprovedBy()).isEqualTo(approved.getApprovedBy());
+		assertThat(approved.getStatus()).isEqualTo(PayableStatus.APPROVED);
+		assertThat(approved.getAttachments()).isEmpty();
+	}
+
+	@Test
+	void payingKeepsTheAttachmentsAlreadyLinkedAndAllowsMissingReceipt() {
+		Payable approved = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
+				PayableStatus.APPROVED, null, null, null, LedgerScope.NONE, UUID.randomUUID(), List.of("boleto.pdf"));
+
+		assertThat(approved.pay("receipt.pdf").getAttachments()).containsExactly("boleto.pdf", "receipt.pdf");
+		assertThat(approved.pay(null).getAttachments()).containsExactly("boleto.pdf");
+		assertThat(approved.pay(null).getStatus()).isEqualTo(PayableStatus.PAID);
+	}
+
+	@Test
+	void onlyApprovedPayablesCanBePaid() {
+		for (PayableStatus status : List.of(PayableStatus.OPEN, PayableStatus.PAID, PayableStatus.CANCELLED)) {
+			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, status, null,
+					null, null);
+
+			assertThatThrownBy(() -> payable.pay("receipt.pdf")).isInstanceOf(BusinessRuleException.class)
+					.hasMessageContaining(status.name());
+		}
+	}
+
+	@Test
+	void attachmentsSurviveApprovingSplittingAndPlacingInAScope() {
+		Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
+				PayableStatus.OPEN, null, null, null, LedgerScope.NONE, null, List.of("boleto.pdf"));
+
+		assertThat(payable.approve(UUID.randomUUID()).getAttachments()).containsExactly("boleto.pdf");
+		assertThat(payable.withCostCenterSplit(List.of(share(UUID.randomUUID(), "100"))).getAttachments())
+				.containsExactly("boleto.pdf");
+		assertThat(payable.inScope(new LedgerScope(UUID.randomUUID(), null, null)).getAttachments())
+				.containsExactly("boleto.pdf");
+	}
 }

@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 public record PayableResponse(UUID id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
-		List<CostCenterShareResponse> costCenterSplit, PayableStatus status, UUID approvedBy) {
+		List<CostCenterShareResponse> costCenterSplit, PayableStatus status, UUID approvedBy,
+		List<String> attachments) {
 
 	public record CostCenterShareResponse(UUID costCenterId, BigDecimal percent) {
 	}
@@ -19,6 +20,6 @@ public record PayableResponse(UUID id, UUID supplierId, PayableOrigin origin, Bi
 				payable.getAmount(), payable.getDueDate(),
 				payable.getCostCenterSplit().stream()
 						.map(share -> new CostCenterShareResponse(share.costCenterId(), share.percent())).toList(),
-				payable.getStatus(), payable.getApprovedBy());
+				payable.getStatus(), payable.getApprovedBy(), payable.getAttachments());
 	}
 }

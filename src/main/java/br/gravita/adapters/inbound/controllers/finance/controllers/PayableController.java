@@ -4,6 +4,7 @@ import br.gravita.adapters.inbound.controllers.finance.dtos.ApprovePayableReques
 import br.gravita.adapters.inbound.controllers.finance.dtos.BatchPayRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CnabRemittanceResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.CreateManualPayableRequest;
+import br.gravita.adapters.inbound.controllers.finance.dtos.PayViaPixRequest;
 import br.gravita.adapters.inbound.controllers.finance.dtos.PayableResponse;
 import br.gravita.adapters.inbound.controllers.finance.dtos.SplitPayableRequest;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.ports.inbound.finance.ApprovePayableUseCase;
 import br.gravita.core.ports.inbound.finance.BatchPayUseCase;
 import br.gravita.core.ports.inbound.finance.CreateManualPayableUseCase;
+import br.gravita.core.ports.inbound.finance.PayViaPixUseCase;
 import br.gravita.core.ports.inbound.finance.SplitPayableByCostCenterUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -39,6 +41,7 @@ public class PayableController {
 	private final SplitPayableByCostCenterUseCase splitPayableByCostCenterUseCase;
 	private final ApprovePayableUseCase approvePayableUseCase;
 	private final BatchPayUseCase batchPayUseCase;
+	private final PayViaPixUseCase payViaPixUseCase;
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
@@ -60,6 +63,11 @@ public class PayableController {
 	@PostMapping("/batch-pay")
 	public CnabRemittanceResponse batchPay(@Valid @RequestBody BatchPayRequest request) {
 		return CnabRemittanceResponse.from(batchPayUseCase.execute(request.toCommand()));
+	}
+
+	@PostMapping("/{id}/pix-pay")
+	public PayableResponse pixPay(@PathVariable UUID id, @Valid @RequestBody PayViaPixRequest request) {
+		return PayableResponse.from(payViaPixUseCase.execute(request.toCommand(id)));
 	}
 
 	@ExceptionHandler(UserNotFoundException.class)
