@@ -357,4 +357,26 @@ class PayableTest {
 		assertThat(payable.inScope(new LedgerScope(UUID.randomUUID(), null, null)).getAttachments())
 				.containsExactly("boleto.pdf");
 	}
+
+	@Test
+	void attachingAppendsTheDocumentToThoseAlreadyLinkedInAnyStatus() {
+		for (PayableStatus status : PayableStatus.values()) {
+			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, status, null,
+					null, null, LedgerScope.NONE, null, List.of("boleto.pdf"));
+
+			Payable attached = payable.attach("nf.pdf");
+
+			assertThat(attached.getAttachments()).containsExactly("boleto.pdf", "nf.pdf");
+			assertThat(attached.getStatus()).isEqualTo(status);
+			assertThat(payable.getAttachments()).containsExactly("boleto.pdf");
+		}
+	}
+
+	@Test
+	void attachingRequiresADocumentReference() {
+		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
+
+		assertThatThrownBy(() -> payable.attach(null)).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> payable.attach("  ")).isInstanceOf(BusinessRuleException.class);
+	}
 }

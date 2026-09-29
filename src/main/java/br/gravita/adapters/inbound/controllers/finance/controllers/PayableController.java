@@ -13,16 +13,22 @@ import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.ports.inbound.finance.ApprovePayableUseCase;
+import br.gravita.core.ports.inbound.finance.AttachPayableDocumentCommand;
+import br.gravita.core.ports.inbound.finance.AttachPayableDocumentUseCase;
 import br.gravita.core.ports.inbound.finance.BatchPayUseCase;
 import br.gravita.core.ports.inbound.finance.CreateManualPayableUseCase;
 import br.gravita.core.ports.inbound.finance.PayViaPixUseCase;
 import br.gravita.core.ports.inbound.finance.SplitPayableByCostCenterUseCase;
+import br.gravita.core.ports.outbound.finance.DocumentAttachmentStoragePort.DocumentStorageUnavailableException;
 import jakarta.validation.Valid;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -30,7 +36,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -42,6 +50,7 @@ public class PayableController {
 	private final ApprovePayableUseCase approvePayableUseCase;
 	private final BatchPayUseCase batchPayUseCase;
 	private final PayViaPixUseCase payViaPixUseCase;
+	private final AttachPayableDocumentUseCase attachPayableDocumentUseCase;
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
@@ -70,6 +79,33 @@ public class PayableController {
 		return PayableResponse.from(payViaPixUseCase.execute(request.toCommand(id)));
 	}
 
+	@PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<PayableResponse> attach(@PathVariable UUID id,
+			@RequestPart("file") MultipartFile file) {
+		Payable payable = attachPayableDocumentUseCase.execute(new AttachPayableDocumentCommand(id,
+				new AttachPayableDocumentCommand.File(fileNameOf(file), contentTypeOf(file), readBytes(file))));
+		return ResponseEntity.status(HttpStatus.CREATED).body(PayableResponse.from(payable));
+	}
+
+	private static String fileNameOf(MultipartFile file) {
+		String fileName = file.getOriginalFilename();
+		return fileName == null || fileName.isBlank() ? "document" : fileName;
+	}
+
+	private static String contentTypeOf(MultipartFile file) {
+		String contentType = file.getContentType();
+		return contentType == null || contentType.isBlank() ? MediaType.APPLICATION_OCTET_STREAM_VALUE
+				: contentType;
+	}
+
+	private static byte[] readBytes(MultipartFile file) {
+		try {
+			return file.getBytes();
+		} catch (IOException exception) {
+			throw new UncheckedIOException("Unable to read uploaded document", exception);
+		}
+	}
+
 	@ExceptionHandler(UserNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
@@ -88,6 +124,12 @@ public class PayableController {
 	@ExceptionHandler(BankIntegrationUnavailableException.class)
 	public ResponseEntity<Map<String, String>> handleBankIntegrationUnavailableException(
 			BankIntegrationUnavailableException exception) {
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
+	}
+
+	@ExceptionHandler(DocumentStorageUnavailableException.class)
+	public ResponseEntity<Map<String, String>> handleDocumentStorageUnavailableException(
+			DocumentStorageUnavailableException exception) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
 	}
 }

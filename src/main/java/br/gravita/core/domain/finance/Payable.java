@@ -145,6 +145,21 @@ public final class Payable {
 				purchaseReceiptRef, installmentNumber, installments, scope, approvedBy, paidAttachments);
 	}
 
+	/**
+	 * Appends {@code documentUrl} (a boleto, NF or receipt) to the attachments.
+	 * Any number of documents can be attached, in any status: a receipt is
+	 * typically attached after the title is {@code PAID}.
+	 */
+	public Payable attach(String documentUrl) {
+		if (documentUrl == null || documentUrl.isBlank()) {
+			throw new BusinessRuleException("documentUrl is required");
+		}
+		List<String> attached = new ArrayList<>(attachments);
+		attached.add(documentUrl);
+		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
+				installmentNumber, installments, scope, approvedBy, attached);
+	}
+
 	/** Still to be paid: {@code OPEN} or {@code APPROVED}. */
 	public boolean isOutstanding() {
 		return status == PayableStatus.OPEN || status == PayableStatus.APPROVED;
