@@ -10,4 +10,7 @@ public interface InternalCashMovementJpaRepository extends JpaRepository<Interna
 
 	List<InternalCashMovementJpaEntity> findByCashBoxIdAndTimestampGreaterThanEqualOrderByTimestampAsc(UUID cashBoxId,
 			Instant from);
+
+	List<InternalCashMovementJpaEntity> findByTimestampGreaterThanEqualAndTimestampLessThanOrderByTimestampAscIdAsc(
+			Instant from, Instant until);
 }
