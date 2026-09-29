@@ -64,4 +64,14 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 		return cashFlowQueryRepository.findOutstandingReceivables(until, filter).stream().map(mapper::toDomain)
 				.toList();
 	}
+
+	@Override
+	public List<Receivable> findOutstandingByCustomerDueUntil(UUID customerId, LocalDate until) {
+		List<ReceivableStatus> outstanding = List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED);
+		List<ReceivableJpaEntity> entities = customerId == null
+				? jpaRepository.findByStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(outstanding, until)
+				: jpaRepository.findByCustomerIdAndStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(customerId,
+						outstanding, until);
+		return entities.stream().map(mapper::toDomain).toList();
+	}
 }
