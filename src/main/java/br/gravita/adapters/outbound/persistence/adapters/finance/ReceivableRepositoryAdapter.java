@@ -49,6 +49,11 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	}
 
 	@Override
+	public List<Receivable> findByCustomerId(UUID customerId) {
+		return jpaRepository.findByCustomerId(customerId).stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
 	public List<Receivable> findUnsettledByCustomerId(UUID customerId) {
 		return jpaRepository
 				.findByCustomerIdAndStatusIn(customerId,
