@@ -45,3 +45,11 @@ public interface RegisterMunicipalityIntegrationUseCase {
 
 - **Depends on:** None.
 - **Blocks:** UC-M4-04 (`transmit-nfse`), which reads this configuration to select the adapter.
+
+## Implementation notes
+
+- `POST /api/municipalities/{ibgeCode}/integration` takes `standard`, `version`, `webserviceUrl`, `requiredCertificateType` (`A1` | `A3`, the existing `CertificateType`), `requiredFields` (optional list of field names) and `homologated` in the body; `ibgeCode` comes from the path and must have 7 digits. Always answers `200` with `{"id": "<uuid>"}`, whether it created or updated the configuration.
+- Upsert by `ibgeCode`: a unique constraint (`municipality_integrations.ibge_code`) plus find-then-update in `RegisterMunicipalityIntegrationService` keep one row per municipality; the id is stable across re-registrations.
+- `version` and `webserviceUrl` are mandatory only when `homologated` is `true`; a non-homologated municipality (manual-upload path) may omit them.
+- Registration never consults `IssueNfsePort`: a standard without a deployed adapter is accepted and only surfaces at transmission time (M4-04).
+- The IBGE code is not cross-checked against the `masterdata` IBGE municipality table.
