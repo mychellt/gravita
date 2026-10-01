@@ -4,6 +4,8 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.NfseDocument;
 import br.gravita.core.domain.tax.NfseId;
 import br.gravita.core.domain.tax.NfseNumber;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /** Persistence of the {@link NfseDocument} aggregate, including its pre-conversion RPS state. */
@@ -24,4 +26,7 @@ public interface NfseRepositoryPort {
 	 * NFe/NFCe/RPS series. Must be called inside a transaction: the number is only consumed if it commits.
 	 */
 	NfseNumber allocateNextNumber(CompanyId companyId, String municipalityIbgeCode);
+
+	/** The NFSe authorized over {@code [from, to)}, oldest authorization first. Cancelled ones are not included. */
+	List<NfseDocument> findAuthorizedBetween(Instant from, Instant to);
 }
