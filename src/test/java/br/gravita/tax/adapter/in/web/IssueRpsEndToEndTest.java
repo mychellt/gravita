@@ -26,6 +26,7 @@ import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,6 +106,7 @@ class IssueRpsEndToEndTest {
 			""";
 
 	@Test
+	@DisplayName("Issues an RPS with its own series, the resolved ISS and the withholdings")
 	void issuesAnRpsWithItsOwnSeriesAndTheResolvedIssAndWithholdings() throws Exception {
 		String response = mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON)
 						.content(body(PJ_FULL, "")))
@@ -127,6 +129,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Gives consecutive RPS consecutive numbers and leaves the NF-e series untouched")
 	void ac5_consecutiveRpsGetConsecutiveNumbersAndLeaveTheNfeSeriesUntouched() throws Exception {
 		for (int i = 0; i < 2; i++) {
 			mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON).content(body(PF, "")))
@@ -144,6 +147,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 409 a withholding tomador without a full address and persists nothing")
 	void ac2_aWithholdingTomadorWithoutAFullAddressIsRejectedWith409AndNothingIsPersisted() throws Exception {
 		mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON)
 						.content(body(PJ_NO_ADDRESS, "")))
@@ -155,6 +159,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Requires a justification for an override and records it when given")
 	void ac3_anOverrideNeedsAJustificationAndIsRecordedWhenGiven() throws Exception {
 		mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON)
 						.content(body(PF, ", \"issRateOverride\": 3.0")))
@@ -171,6 +176,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a service code missing from the municipal list")
 	void ac1_aCodeMissingFromTheMunicipalListIsRejected() throws Exception {
 		MunicipalServiceCodeJpaEntity other = MunicipalServiceCodeJpaEntity.builder().id(UUID.randomUUID())
 				.municipalityIbge(SP).serviceCode("02.01").build();
@@ -186,6 +192,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a service code outside the LC 116 list")
 	void ac1_aCodeOutsideLc116IsRejected() throws Exception {
 		mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON)
 						.content(body(PF, "").replace("\"1.05\"", "\"99.99\"")))
@@ -193,6 +200,7 @@ class IssueRpsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown provider and 400 for an incomplete body")
 	void anUnknownProviderIs404AndAnIncompleteBodyIs400() throws Exception {
 		mockMvc.perform(post("/api/nfse/rps").contentType(MediaType.APPLICATION_JSON)
 						.content(body(PF, "").replace(companyId.value().toString(), UUID.randomUUID().toString())))

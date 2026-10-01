@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -75,6 +76,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown company without reading or writing anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrWritingAnything() {
 		CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
@@ -86,6 +88,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refuses a company under Simples Nacional without reading or writing anything")
 	void refusesACompanyUnderTheSimplesNacionalWithoutReadingOrWritingAnything() {
 		company(TaxRegime.SIMPLES_NACIONAL);
 
@@ -96,6 +99,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reads the company's documents over the whole month in the clock's time zone")
 	void readsTheCompanysDocumentsOverTheWholeMonthInTheClocksZone() {
 		execute();
 
@@ -110,6 +114,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns the file the writer produced, named after the company and the period")
 	void returnsTheFileTheWriterProducedNamedAfterTheCompanyAndThePeriod() {
 		SpedContribuicoesFile file = execute();
 
@@ -120,6 +125,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assesses the non-cumulative regime of Lucro Real with credits on purchases")
 	void assessesTheNonCumulativeRegimeOfLucroRealWithCreditsOnPurchases() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		sale("6102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
@@ -154,6 +160,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Carries forward the credit that exceeds the contribution")
 	void carriesForwardTheCreditThatExceedsTheContribution() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "600.00", "9.90", "45.60", "2028-02-12T10:00:00Z");
@@ -171,6 +178,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assesses the cumulative regime of Lucro Presumido without credits")
 	void assessesTheCumulativeRegimeOfLucroPresumidoWithoutCredits() {
 		company(TaxRegime.LUCRO_PRESUMIDO);
 		sale("5102", 12, "2028-02-10T10:00:00Z", "0.65", "3.00");
@@ -195,6 +203,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives no credit to a purchase that is not for resale or an input, or that the supplier did not levy")
 	void givesNoCreditToAPurchaseThatIsNotForResaleOrAsAnInputOrThatTheSupplierDidNotLevy() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1556", "100.00", "1.65", "7.60", "2028-02-11T10:00:00Z");
@@ -213,6 +222,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives an input purchase its own nature of credit")
 	void givesAnInputPurchaseItsOwnNatureOfCredit() {
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1101", "100.00", "1.65", "7.60", "2028-02-11T10:00:00Z");
 		purchase(InboundNfeStatus.CONFIRMED, "101", "2403", "200.00", "3.30", "15.20", "2028-02-12T10:00:00Z");
@@ -227,6 +237,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Books only authorized NF-e and confirmed inbound NF-e")
 	void booksOnlyTheAuthorizedNfeAndTheConfirmedInboundNfe() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "100.00", "1.65", "7.60", "2028-02-11T10:00:00Z");
@@ -242,6 +253,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assesses an NF-e issued by the company under an entry CFOP as a purchase of its own")
 	void assessesAnNfeTheCompanyIssuedUnderAnEntryCfopAsAPurchaseOfItsOwn() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				SpedContribuicoesFixtures.issuedNfe(companyId, "1102", "1", 7L, Instant.parse("2028-02-10T10:00:00Z"),
@@ -257,6 +269,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves items of a sale that states no contribution out of the assessment")
 	void leavesTheItemsOfASaleThatStatesNoContributionOutOfTheAssessment() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", null, null);
 		sale("5102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
@@ -271,6 +284,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Groups sales at another rate under the differentiated code and declares the contribution type")
 	void groupsSalesAtAnotherRateUnderTheDifferentiatedCodeAndDeclaresTheContributionType() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "0.65", "7.60");
 		sale("5102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
@@ -290,6 +304,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lays out the company, its participants, items and units in block 0")
 	void laysTheCompanyAndItsParticipantsItemsAndUnitsOutInBlockZero() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "100.00", "1.65", "7.60", "2028-02-11T10:00:00Z");
@@ -318,6 +333,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lays out documents in block C by date, then series and number, with an item register each")
 	void laysTheDocumentsOutInBlockCByDateThenSeriesAndNumberWithAnItemRegisterEach() {
 		sale("5102", 10, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		sale("5102", 9, "2028-02-10T08:00:00Z", "1.65", "7.60");
@@ -332,6 +348,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Writes the document and its items with the fields of the layout")
 	void writesTheDocumentAndItsItemsWithTheFieldsOfTheLayout() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 
@@ -346,6 +363,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives every register exactly the fields of its layout")
 	void everyRegisterCarriesExactlyTheFieldsOfItsLayout() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "600.00", "9.90", "45.60", "2028-02-12T10:00:00Z");
@@ -361,6 +379,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Writes every block in order, leaving empty those the module has nothing for")
 	void writesEveryBlockInOrderLeavingEmptyTheOnesTheModuleHasNothingFor() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 
@@ -373,6 +392,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Writes an empty period as a file with no documents or assessment")
 	void writesAnEmptyPeriodAsAFileWithNoDocumentsOrAssessment() {
 		SpedContribuicoesFile file = execute();
 
@@ -388,6 +408,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Classifies the company's activity from its CNAE")
 	void classifiesTheCompanysActivityFromItsCnae() {
 		company(TaxRegime.LUCRO_REAL, "2511000");
 		execute();

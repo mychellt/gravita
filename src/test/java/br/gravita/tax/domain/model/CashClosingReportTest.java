@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CashClosingReportTest {
@@ -24,6 +25,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Breaks the reconciliation totals down by payment method")
 	void ac1_reconciliationTotalsAreBrokenDownByPaymentMethod() {
 		Map<PaymentMethodType, BigDecimal> expected = Map.of(
 				PaymentMethodType.CASH, new BigDecimal("100.00"),
@@ -36,6 +38,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Reports a null difference for a payment method that was not counted")
 	void ac1_differenceForAnUncountedMethodIsNull() {
 		CashClosingReport report = close(new BigDecimal("100.00"), Map.of(PaymentMethodType.CASH, new BigDecimal("50.00")),
 				Map.of(), BigDecimal.ZERO, BigDecimal.ZERO, 1);
@@ -44,6 +47,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Computes the difference of a counted method as counted minus expected")
 	void ac1_differenceForACountedMethodIsCountedMinusExpected() {
 		CashClosingReport report = close(new BigDecimal("100.00"), Map.of(PaymentMethodType.CASH, new BigDecimal("50.00")),
 				Map.of(PaymentMethodType.CASH, new BigDecimal("48.00")), BigDecimal.ZERO, BigDecimal.ZERO, 1);
@@ -52,6 +56,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Includes the opening amount, cash movements and sale count in the report")
 	void ac2_theReportIncludesOpeningAmountCashMovementsAndSaleCount() {
 		CashClosingReport report = close(new BigDecimal("100.00"), Map.of(PaymentMethodType.CASH, new BigDecimal("200.00")),
 				Map.of(), new BigDecimal("30.00"), new BigDecimal("20.00"), 5);
@@ -64,6 +69,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Ignores non-cash payment methods in the expected cash amount")
 	void ac2_expectedCashAmountIgnoresNonCashPaymentMethods() {
 		CashClosingReport report = close(new BigDecimal("100.00"), Map.of(PaymentMethodType.PIX, new BigDecimal("500.00")),
 				Map.of(), BigDecimal.ZERO, BigDecimal.ZERO, 1);
@@ -72,6 +78,7 @@ class CashClosingReportTest {
 	}
 
 	@Test
+	@DisplayName("Consolidates multiple registers into a single day closing")
 	void ac5_multipleRegistersCanBeConsolidatedIntoASingleDayClosing() {
 		CashClosingReport registerOne = close(new BigDecimal("100.00"),
 				Map.of(PaymentMethodType.CASH, new BigDecimal("200.00"), PaymentMethodType.PIX, new BigDecimal("50.00")),

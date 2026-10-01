@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -67,6 +68,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Converts a single RPS into a draft with the next number of its company and municipality")
 	void ac1_convertsASingleRpsIntoADraftWithTheNextNumberOfItsCompanyAndMunicipality() {
 		NfseDocument rps = rps();
 		stored(rps);
@@ -85,6 +87,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Converts every RPS of a batch, returning ids in the given order with consecutive numbers")
 	void ac1and2_aBatchConvertsEveryRpsReturningTheIdsInTheOrderGivenWithConsecutiveNumbers() {
 		NfseDocument first = rps();
 		NfseDocument second = rps();
@@ -105,6 +108,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Numbers each document within the scope of its own company and provider municipality")
 	void ac2_eachDocumentIsNumberedInTheScopeOfItsOwnCompanyAndProviderMunicipality() {
 		CompanyId other = CompanyId.of(UUID.randomUUID());
 		NfseDocument mine = rps();
@@ -124,6 +128,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns the same id for an already converted RPS without a new number or second document")
 	void ac4_anAlreadyConvertedRpsYieldsTheSameIdWithoutANewNumberOrSecondDocument() {
 		NfseDocument converted = rps().convertToNfse("1", 3L, Instant.now());
 		stored(converted);
@@ -136,6 +141,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Converts an id repeated within one batch only once")
 	void ac4_theSameIdRepeatedInOneBatchIsConvertedOnce() {
 		NfseDocument rps = rps();
 		stored(rps);
@@ -148,6 +154,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown RPS")
 	void anUnknownRpsIsNotFound() {
 		RpsId missing = RpsId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(missing.toNfseId())).thenReturn(Optional.empty());
@@ -158,6 +165,7 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires at least one RPS id in the command")
 	void theCommandNeedsAtLeastOneRpsId() {
 		assertThatThrownBy(() -> new ConvertRpsToNfseCommand(List.of())).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> new ConvertRpsToNfseCommand(null)).isInstanceOf(BusinessRuleException.class);

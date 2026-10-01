@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -131,6 +132,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Defaults to the most specific configured ISS rate and computes the withholdings from the rules")
 	void ac3and4_defaultsToTheMostSpecificConfiguredIssRateAndComputesTheWithholdingsFromTheRules() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -155,6 +157,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Withholds nothing for an individual tomador and needs no address, as it is not a withholding agent")
 	void ac4_aPfTomadorIsNotAWithholdingAgentSoNothingIsWithheldAndNoAddressIsNeeded() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -166,6 +169,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Follows the rule table, not the code, when determining withholdings")
 	void ac4_withholdingsFollowTheRuleTableNotTheCode() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of(
 				rule(SP, null, TaxType.ISS, "3.0000", WithholdingMode.NEVER),
@@ -179,6 +183,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Ranks a regime-specific rule above a wildcard one")
 	void ac4_aRegimeSpecificRuleOutranksAWildcardOne() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of(
 				rule(SP, null, TaxType.ISS, "5.0000", WithholdingMode.NEVER),
@@ -196,6 +201,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Replaces the configured rate with a manual override that carries a justification")
 	void ac3_aManualOverrideWithJustificationReplacesTheConfiguredRate() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -210,6 +216,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the configured ISS withholding behaviour when the rate is overridden")
 	void ac3_anOverrideKeepsTheConfiguredIssWithholdingBehaviour() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -220,6 +227,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an override without justification")
 	void ac3_anOverrideWithoutJustificationIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05",
 				new BigDecimal("3.0"), null))).isInstanceOf(BusinessRuleException.class)
@@ -232,6 +240,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an override outside the zero-to-one-hundred range")
 	void ac3_anOverrideOutsideZeroToOneHundredIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05",
 				new BigDecimal("120"), "j"))).isInstanceOf(BusinessRuleException.class);
@@ -240,6 +249,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lets a justified override cover a service with no configured rate")
 	void ac3_aJustifiedOverrideCoversAServiceWithNoConfiguredRate() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of());
 
@@ -249,6 +259,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an RPS with no configured rate and no override")
 	void ac3_noConfiguredRateAndNoOverrideIsRejected() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of());
 
@@ -258,6 +269,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects withheld tax without the tomador's full address before any number is allocated")
 	void ac2_aWithheldTaxWithoutTheTomadorsFullAddressIsRejectedBeforeAnyNumberIsAllocated() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -272,6 +284,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a service code outside the LC 116 list")
 	void ac1_aCodeOutsideTheLc116ListIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "99.99", null, null)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("LC 116");
@@ -282,6 +295,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Accepts only the codes on the list when the municipality has its own list")
 	void ac1_aMunicipalityWithItsOwnListOnlyAcceptsTheCodesOnIt() {
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(SP)).thenReturn(true);
 		when(municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(SP, "01.05")).thenReturn(false);
@@ -292,6 +306,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a code that is on the municipal list")
 	void ac1_aCodeOnTheMunicipalListIsAccepted() {
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(SP)).thenReturn(true);
 		when(municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(SP, "01.05")).thenReturn(true);
@@ -303,6 +318,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Checks the list of the municipality to which ISS is due")
 	void ac1_theListCheckedIsTheOneOfTheMunicipalityIssIsDueTo() {
 		// place of provision = RECIPIENT: ISS is due to the tomador's municipality, so that municipality's list rules.
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(RIO)).thenReturn(true);
@@ -315,6 +331,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Resolves the rate in the tomador's municipality when the place of provision is the recipient")
 	void recipientPlaceOfProvisionResolvesTheRateInTheTomadorsMunicipality() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", RIO)).thenReturn(List.of(
 				rule(RIO, null, TaxType.ISS, "4.0000", WithholdingMode.NEVER)));
@@ -329,12 +346,14 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires the tomador's municipality when the place of provision is the recipient")
 	void recipientPlaceOfProvisionRequiresTheTomadorsMunicipality() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.RECIPIENT, "1.05", null, null)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("municipalityIbgeCode");
 	}
 
 	@Test
+	@DisplayName("Numbers the RPS from its own RPS series, not the NF-e one")
 	void ac5_numbersTheRpsFromItsOwnRpsSeriesNotTheNfeOne() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
@@ -352,6 +371,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown provider company")
 	void anUnknownProviderCompanyIsNotFound() {
 		UUID unknown = UUID.randomUUID();
 		when(companyRepositoryPort.findById(CompanyId.of(unknown))).thenReturn(Optional.empty());
@@ -362,6 +382,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid tomador document")
 	void anInvalidTomadorDocumentIsRejected() {
 		TomadorCommand bad = new TomadorCommand(null, "11111111111", PersonType.INDIVIDUAL, "X", null, null);
 
@@ -370,6 +391,7 @@ class IssueRpsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Stores every rule table lookup with the service code in canonical form")
 	void storesEveryRuleTableLookupWithTheServiceCodeInCanonicalForm() {
 		when(serviceTaxRuleRepositoryPort.findCandidates(anyString(), eq(SP))).thenReturn(standardRules());
 

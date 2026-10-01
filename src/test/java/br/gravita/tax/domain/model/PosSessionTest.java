@@ -11,11 +11,13 @@ import br.gravita.core.domain.tax.PosSessionStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PosSessionTest {
 
 	@Test
+	@DisplayName("Opening a session always starts it open with the given opened-at time and amount")
 	void openingASessionAlwaysStartsOpenWithTheGivenOpenedAtAndAmount() {
 		UUID registerId = UUID.randomUUID();
 		UUID operatorId = UUID.randomUUID();
@@ -35,6 +37,7 @@ class PosSessionTest {
 	}
 
 	@Test
+	@DisplayName("Rejects opening with a negative opening change amount")
 	void openingWithANegativeOpeningChangeAmountIsRejected() {
 		assertThatThrownBy(() -> PosSession.open(PosSessionId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), CompanyId.of(UUID.randomUUID()), new BigDecimal("-1"), Instant.now()))
@@ -42,6 +45,7 @@ class PosSessionTest {
 	}
 
 	@Test
+	@DisplayName("Rejects opening without an opening change amount")
 	void openingWithoutAnOpeningChangeAmountIsRejected() {
 		assertThatThrownBy(() -> PosSession.open(PosSessionId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), CompanyId.of(UUID.randomUUID()), null, Instant.now()))

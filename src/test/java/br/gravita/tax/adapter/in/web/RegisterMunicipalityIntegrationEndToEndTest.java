@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.gravita.adapters.outbound.persistence.entities.tax.MunicipalityIntegrationJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.MunicipalityIntegrationJpaRepository;
 import br.gravita.core.domain.tax.NfseStandard;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +37,7 @@ class RegisterMunicipalityIntegrationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Registers a non-homologated municipality even without an adapter for its standard")
 	void ac1and2_registersANonHomologatedMunicipalityWithoutAnAdapterForItsStandard() throws Exception {
 		register("3550308", """
 				{ "standard": "BETHA", "requiredCertificateType": "A1", "requiredFields": ["inscricaoMunicipal"],
@@ -49,6 +51,7 @@ class RegisterMunicipalityIntegrationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Re-registering the same IBGE code updates the integration in place")
 	void ac3_reRegisteringTheSameIbgeCodeUpdatesInPlace() throws Exception {
 		String first = register("4106902", """
 				{ "standard": "ABRASF", "version": "2.03", "webserviceUrl": "https://old.example/ws",
@@ -69,6 +72,7 @@ class RegisterMunicipalityIntegrationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown standard and a malformed IBGE code")
 	void rejectsUnknownStandardAndMalformedIbgeCode() throws Exception {
 		mockMvc.perform(post("/api/municipalities/3550308/integration").contentType(MediaType.APPLICATION_JSON)
 				.content("{ \"standard\": \"WEBISS\", \"requiredCertificateType\": \"A1\" }"))
@@ -79,6 +83,7 @@ class RegisterMunicipalityIntegrationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Defaults homologated to false when it is omitted")
 	void homologatedDefaultsToFalseWhenOmitted() throws Exception {
 		register("3550308", "{ \"standard\": \"ABRASF\", \"requiredCertificateType\": \"A1\" }");
 

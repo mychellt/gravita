@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -91,6 +92,7 @@ class ConvertRpsToNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Converts a single RPS into an NFS-e draft without transmitting it")
 	void convertsASingleRpsIntoADraftWithoutTransmittingIt() throws Exception {
 		UUID rps = issueRps(SP);
 
@@ -107,6 +109,7 @@ class ConvertRpsToNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Numbers a batch consecutively per municipality without touching the NF-e series")
 	void aBatchGetsConsecutiveNumbersPerMunicipalityAndLeavesTheNfeSeriesUntouched() throws Exception {
 		UUID sp1 = issueRps(SP);
 		UUID rio1 = issueRps(RIO);
@@ -128,6 +131,7 @@ class ConvertRpsToNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Converting the same RPS twice creates no second document and consumes no extra number")
 	void convertingTheSameRpsTwiceDoesNotCreateASecondDocumentOrConsumeANumber() throws Exception {
 		UUID rps = issueRps(SP);
 		UUID next = issueRps(SP);
@@ -147,6 +151,7 @@ class ConvertRpsToNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown RPS and 400 for an empty or missing RPS list")
 	void anUnknownRpsIs404AndAnEmptyOrMissingListIs400() throws Exception {
 		mockMvc.perform(post("/api/nfse/rps/convert").contentType(MediaType.APPLICATION_JSON)
 						.content(body(UUID.randomUUID())))

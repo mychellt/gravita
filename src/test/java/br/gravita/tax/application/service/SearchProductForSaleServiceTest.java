@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,6 +52,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches a product by barcode")
 	void ac1_matchesByBarcode() {
 		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
@@ -61,6 +63,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches a product by a substring of the internal code")
 	void ac1_matchesByInternalCodeSubstring() {
 		ProductDomain product = product("SKU-COLA-2L", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
@@ -71,6 +74,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty list when nothing matches")
 	void ac1_noMatchReturnsEmptyList() {
 		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
@@ -81,6 +85,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Excludes out-of-stock and inactive products")
 	void ac4_excludesOutOfStockAndInactiveProducts() {
 		ProductDomain active = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		ProductDomain outOfStock = product("SKU-2", List.of("7891234567896"), ProductStatus.OUT_OF_STOCK, "9.90");
@@ -93,6 +98,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Falls back to the base price when no customer is set")
 	void ac3_fallsBackToBasePriceWhenNoCustomerIsSet() {
 		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
@@ -105,6 +111,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Uses the customer's linked price table when a customer is set")
 	void ac3_usesTheCustomersLinkedPriceTableWhenACustomerIsSet() {
 		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		UUID customerId = UUID.randomUUID();
@@ -127,6 +134,7 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Falls back to the base price when the customer's price table has no entry for the product")
 	void ac3_fallsBackToBasePriceWhenTheCustomersPriceTableHasNoEntryForTheProduct() {
 		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		UUID customerId = UUID.randomUUID();

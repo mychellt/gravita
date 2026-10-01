@@ -29,6 +29,7 @@ import java.time.ZoneId;
 import java.util.Base64;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,6 +93,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Books the company's documents of the period and assesses ICMS")
 	void booksTheCompanysDocumentsOfThePeriodAndAssessesIcms() throws Exception {
 		mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString()).param("period",
 				"2018-03"))
@@ -123,6 +125,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Explains numbering gaps with the ranges the company voided in the period")
 	void explainsTheNumberingGapsWithTheRangesTheCompanyVoidedInThePeriod() throws Exception {
 		mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString()).param("period",
 				"2018-03"))
@@ -137,6 +140,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Summarises ICMS, IPI, PIS and COFINS of the period")
 	void summarisesIcmsIpiPisAndCofinsOfThePeriod() throws Exception {
 		mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString()).param("period",
 				"2018-03"))
@@ -151,6 +155,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Reconciles the exit book against the period's authorized NF-e")
 	void reconcilesTheExitBookAgainstTheAuthorizedNfeOfThePeriod() throws Exception {
 		String body = mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString())
 				.param("period", "2018-03")).andExpect(status().isOk()).andReturn().getResponse()
@@ -163,6 +168,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Renders the PDF and the TXT with the same books")
 	void rendersThePdfAndTheTxtWithTheSameBooks() throws Exception {
 		String body = mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString())
 				.param("period", "2018-03")).andExpect(status().isOk())
@@ -181,6 +187,7 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty books for a period without documents")
 	void answersEmptyBooksForAPeriodWithoutDocuments() throws Exception {
 		mockMvc.perform(get("/api/livros-fiscais").param("companyId", company.value().toString()).param("period",
 				"2018-01"))
@@ -194,12 +201,14 @@ class GenerateLivrosFiscaisEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown company")
 	void answersNotFoundForAnUnknownCompany() throws Exception {
 		mockMvc.perform(get("/api/livros-fiscais").param("companyId", UUID.randomUUID().toString()).param("period",
 				"2018-03")).andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Returns 400 when the company or period is missing or malformed")
 	void answersBadRequestWhenTheCompanyOrThePeriodIsMissingOrMalformed() throws Exception {
 		String companyId = company.value().toString();
 		mockMvc.perform(get("/api/livros-fiscais").param("period", "2018-03")).andExpect(status().isBadRequest());

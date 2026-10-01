@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -105,6 +106,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancels an authorized document through the adapter of its municipality's standard")
 	void ac1and3_anAuthorizedDocumentIsCancelledThroughTheAdapterOfItsMunicipalitysStandard() {
 		NfseDocument authorized = authorized();
 		MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
@@ -122,6 +124,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves the confirmed cancellation as cancelled with the justification, keeping the same record")
 	void ac2and4_theConfirmedCancellationIsSavedAsCancelledWithTheJustificationAndTheSameRecord() {
 		NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
@@ -139,6 +142,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refuses a missing or blank justification before loading or sending anything")
 	void ac2_aMissingOrBlankJustificationIsRefusedBeforeAnythingIsLoadedOrSent() {
 		NfseId id = NfseId.of(UUID.randomUUID());
 
@@ -153,6 +157,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Only an authorized document can be cancelled")
 	void ac1_onlyAnAuthorizedDocumentCanBeCancelled() {
 		NfseDocument draft = draft();
 		NfseDocument cancelled = authorized().cancel("motivo", Instant.now());
@@ -175,6 +180,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a municipality refusal with its reason and saves nothing")
 	void aMunicipalityRefusalIsReportedWithItsReasonAndNothingIsSaved() {
 		NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
@@ -187,6 +193,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Propagates a municipality that does not answer and saves nothing")
 	void aMunicipalityThatDoesNotAnswerPropagatesAndNothingIsSaved() {
 		NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
@@ -199,6 +206,7 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Treats a standard without an adapter or a non-homologated municipality as a business rule violation")
 	void aStandardWithoutAnAdapterOrANonHomologatedMunicipalityIsABusinessRuleViolation() {
 		NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.NFSE_NACIONAL, true));
@@ -218,12 +226,14 @@ class CancelNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects two adapters registered for the same standard at wiring time")
 	void twoAdaptersForTheSameStandardAreRejectedAtWiring() {
 		assertThatThrownBy(() -> new CancelNfseService(nfseRepositoryPort, integrationRepositoryPort,
 				List.of(abrasf, issuer(NfseStandard.ABRASF)))).isInstanceOf(IllegalStateException.class);
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown document")
 	void anUnknownDocumentIsNotFound() {
 		NfseId id = NfseId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(id)).thenReturn(Optional.empty());

@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -73,6 +74,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown company without reading or rendering anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrRenderingAnything() {
 		CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
@@ -84,6 +86,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reads the company's documents over the whole month in the clock's time zone")
 	void readsTheCompanysDocumentsOverTheWholeMonthInTheClocksZone() {
 		service.execute(new GenerateLivrosFiscaisCommand(companyId, PERIOD));
 
@@ -99,6 +102,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Books received NF-e as entries in document order with their CFOPs joined")
 	void booksTheReceivedNfeAsEntriesInDocumentOrderWithTheirCfopsJoined() {
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1403", "300.00",
@@ -121,6 +125,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Books issued NF-e by CFOP as entry or exit and by authorization day")
 	void booksTheIssuedNfeByTheirCfopEntryOrExitAndByTheirAuthorizationDay() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 12L,
@@ -152,6 +157,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Carries voided ranges on the exit book so numbering gaps are explained")
 	void carriesTheVoidedRangesOnTheExitBookSoTheGapsInItsNumberingAreExplained() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 100L,
@@ -177,6 +183,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves out voided ranges of other document types")
 	void leavesOutVoidedRangesOfOtherDocumentTypes() {
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of(
 				VoidedNumberRange.of(VoidedNumberRangeId.of(UUID.randomUUID()), companyId, FiscalDocumentType.NFSE, "1",
@@ -186,6 +193,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assesses ICMS with exits as debits and entries as credits")
 	void assessesIcmsWithTheExitsAsDebitsAndTheEntriesAsCredits() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 1L,
@@ -210,6 +218,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Summarises ICMS, IPI, PIS and COFINS of the exits and the entries")
 	void summarisesIcmsIpiPisAndCofinsOfTheExitsAndTheEntries() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 1L,
@@ -227,6 +236,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty books and zero totals for a period without documents")
 	void answersEmptyBooksAndZeroTotalsForAPeriodWithoutDocuments() {
 		LivrosFiscaisBooks result = execute().books();
 
@@ -239,6 +249,7 @@ class GenerateLivrosFiscaisServiceTest {
 	}
 
 	@Test
+	@DisplayName("Identifies the company and period and hands the books to the renderer")
 	void identifiesTheCompanyAndThePeriodAndHandsTheBooksToTheRenderer() {
 		LivrosFiscaisReport report = execute();
 

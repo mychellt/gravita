@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,6 +81,7 @@ class ExportAccountingEntriesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Exports every authorized and confirmed document of the period as CSV")
 	void exportsEveryAuthorizedAndConfirmedDocumentOfThePeriodAsCsv() throws Exception {
 		var result = mockMvc.perform(post("/api/accounting/export").contentType(MediaType.APPLICATION_JSON)
 				.content(body(company, "2018-03", "CSV"))).andExpect(status().isOk())
@@ -99,6 +101,7 @@ class ExportAccountingEntriesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Exports the same accounting entries in TXT format")
 	void exportsTheSameEntriesAsTxt() throws Exception {
 		var result = mockMvc.perform(post("/api/accounting/export").contentType(MediaType.APPLICATION_JSON)
 				.content(body(company, "2018-03", "TXT"))).andExpect(status().isOk())
@@ -115,6 +118,7 @@ class ExportAccountingEntriesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Defaults to CSV when no format is requested")
 	void exportsCsvWhenNoFormatIsGiven() throws Exception {
 		mockMvc.perform(post("/api/accounting/export").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"companyId\":\"" + company.value() + "\",\"period\":\"2018-03\"}"))
@@ -122,6 +126,7 @@ class ExportAccountingEntriesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty file for a period without documents")
 	void answersAnEmptyFileForAPeriodWithoutDocuments() throws Exception {
 		var result = mockMvc.perform(post("/api/accounting/export").contentType(MediaType.APPLICATION_JSON)
 				.content(body(company, "2018-01", "CSV"))).andExpect(status().isOk())
@@ -131,12 +136,14 @@ class ExportAccountingEntriesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown company")
 	void answersNotFoundForAnUnknownCompany() throws Exception {
 		mockMvc.perform(post("/api/accounting/export").contentType(MediaType.APPLICATION_JSON)
 				.content(body(CompanyId.of(UUID.randomUUID()), "2018-03", "CSV"))).andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Returns 400 when the request is incomplete or malformed")
 	void answersBadRequestWhenTheRequestIsIncompleteOrMalformed() throws Exception {
 		String id = company.value().toString();
 		for (String json : new String[] { "{\"period\":\"2018-03\"}", "{\"companyId\":\"" + id + "\"}",

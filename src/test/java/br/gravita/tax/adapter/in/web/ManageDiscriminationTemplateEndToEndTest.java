@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,6 +63,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Creates, updates, lists and deletes discrimination templates")
 	void ac1_createsUpdatesListsAndDeletes() throws Exception {
 		String id = create("1.05", "Licenciamento de software");
 
@@ -82,6 +84,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Listing by service type returns only templates of that type")
 	void ac2_listingByServiceTypeReturnsOnlyThatType() throws Exception {
 		create("01.05", "software a");
 		create("1.05", "software b");
@@ -99,6 +102,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Deleting a template leaves the discrimination of already issued RPS untouched")
 	void ac3_deletingATemplateLeavesDiscriminationOfIssuedRpsUntouched() throws Exception {
 		String id = create("01.05", "Desenvolvimento de software sob demanda");
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
@@ -119,6 +123,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 when updating or deleting an unknown template")
 	void unknownTemplateIsNotFoundOnUpdateAndDelete() throws Exception {
 		String unknown = UUID.randomUUID().toString();
 
@@ -128,6 +133,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects missing, blank or invalid input")
 	void rejectsMissingBlankOrInvalidInput() throws Exception {
 		mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content("{ \"serviceCode\": \"01.05\" }"))
 				.andExpect(status().is4xxClientError());

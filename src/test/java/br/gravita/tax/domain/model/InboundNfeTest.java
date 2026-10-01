@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +24,7 @@ class InboundNfeTest {
 	private static final String ACCESS_KEY = "35240111222333000181550010000012345123456789";
 
 	@Test
+	@DisplayName("Importing from XML starts in pending conference")
 	void importingFromXmlStartsPendingConference() {
 		InboundNfe inboundNfe = InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
 				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", Instant.now(),
@@ -34,6 +36,7 @@ class InboundNfeTest {
 	}
 
 	@Test
+	@DisplayName("Manual entry produces the same pending-conference shape as an XML import")
 	void enteringManuallyProducesTheSamePendingConferenceShapeAsXmlImport() {
 		InboundNfe inboundNfe = InboundNfe.enteredManually(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, ACCESS_KEY,
 				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", Instant.now(),
@@ -45,6 +48,7 @@ class InboundNfeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an access key that is not 44 digits")
 	void rejectsAnAccessKeyThatIsNot44Digits() {
 		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, "12345",
 				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(), List.of(item()),
@@ -54,6 +58,7 @@ class InboundNfeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty item list")
 	void rejectsAnEmptyItemList() {
 		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
 				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(), List.of(),
@@ -63,6 +68,7 @@ class InboundNfeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a missing XML storage reference")
 	void rejectsAMissingXmlStorageRef() {
 		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
 				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(),

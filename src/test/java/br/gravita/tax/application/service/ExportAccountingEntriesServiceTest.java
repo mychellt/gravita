@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -69,6 +70,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown company without reading or exporting anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrExportingAnything() {
 		CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
@@ -81,6 +83,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reads authorized and confirmed documents over the whole month in the clock's time zone")
 	void readsTheAuthorizedAndTheConfirmedDocumentsOverTheWholeMonthInTheClocksZone() {
 		execute(AccountingExportFormat.CSV);
 
@@ -95,6 +98,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Turns every issued and received document into one entry, oldest first")
 	void turnsEveryIssuedAndReceivedDocumentIntoOneEntryOldestFirst() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20,
@@ -116,6 +120,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Carries each document's counterpart and values into its entry")
 	void carriesTheDocumentsCounterpartAndValues() {
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of(LivrosFiscaisFixtures
 				.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20,
@@ -145,6 +150,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Exports an empty period as a file without entries")
 	void exportsAnEmptyPeriodAsAFileWithoutEntries() {
 		AccountingExportFile file = execute(AccountingExportFormat.CSV);
 
@@ -154,6 +160,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Names the file after the company, the period and the format")
 	void namesTheFileAfterTheCompanyThePeriodAndTheFormat() {
 		assertThat(execute(AccountingExportFormat.CSV).fileName())
 				.isEqualTo("accounting-entries-11222333000181-2028-02.csv");
@@ -163,6 +170,7 @@ class ExportAccountingEntriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Exports as CSV when no format is given")
 	void exportsAsCsvWhenNoFormatIsGiven() {
 		AccountingExportFile file = service.execute(new ExportAccountingEntriesCommand(companyId, PERIOD, null));
 

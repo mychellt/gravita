@@ -32,6 +32,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,6 +106,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Generates the month's file with every authorized, cancelled and confirmed document")
 	void generatesTheFileOfTheMonthWithEveryAuthorizedCancelledAndConfirmedDocument() throws Exception {
 		List<String> lines = generate("\"period\": \"2018-03\"");
 
@@ -126,6 +128,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Assesses ICMS and keeps blocks and counters consistent")
 	void assessesTheIcmsAndKeepsBlocksAndCountersConsistent() throws Exception {
 		List<String> lines = generate("\"period\": \"2018-03\"");
 
@@ -144,6 +147,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds with the file as Base64 Latin-1 plus its validation report")
 	void respondsWithTheFileAsBase64LatinOneAndItsValidationReport() throws Exception {
 		String body = mockMvc.perform(post("/api/sped/fiscal").contentType(MediaType.APPLICATION_JSON)
 				.content(request("\"period\": \"2018-03\""))).andExpect(status().isOk())
@@ -157,6 +161,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a date range inside a single month")
 	void acceptsADateRangeWithinTheMonth() throws Exception {
 		List<String> lines = generate("\"startDate\": \"2018-03-10\", \"endDate\": \"2018-03-11\"");
 
@@ -165,6 +170,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty but complete file for a period without documents")
 	void answersAnEmptyButCompleteFileForAPeriodWithoutDocuments() throws Exception {
 		List<String> lines = generate("\"period\": \"2018-01\"");
 
@@ -174,6 +180,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Fails listing the missing records and generates nothing")
 	void failsWithTheListOfMissingRecordsAndGeneratesNothing() throws Exception {
 		mockMvc.perform(post("/api/sped/fiscal").contentType(MediaType.APPLICATION_JSON).content("""
 				{"companyId": "%s", "period": "2018-03",
@@ -192,6 +199,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the period spans two months")
 	void failsWhenThePeriodSpansTwoMonths() throws Exception {
 		mockMvc.perform(post("/api/sped/fiscal").contentType(MediaType.APPLICATION_JSON)
 				.content(request("\"startDate\": \"2018-03-20\", \"endDate\": \"2018-04-05\"")))
@@ -200,12 +208,14 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown company")
 	void answersNotFoundForAnUnknownCompany() throws Exception {
 		mockMvc.perform(post("/api/sped/fiscal").contentType(MediaType.APPLICATION_JSON)
 				.content(request(UUID.randomUUID().toString(), "\"period\": \"2018-03\""))).andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Returns 400 when the period is missing, ambiguous or malformed")
 	void answersBadRequestWhenThePeriodIsMissingAmbiguousOrMalformed() throws Exception {
 		for (String period : List.of("", "\"period\": \"March\"", "\"startDate\": \"2018-03-01\"",
 				"\"period\": \"2018-03\", \"startDate\": \"2018-03-01\", \"endDate\": \"2018-03-05\"",

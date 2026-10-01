@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -61,12 +62,14 @@ class ManifestInboundNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Offers exactly the three manifestation types from the spec and no others")
 	void ac1_exactlyTheThreeManifestationTypesFromTheSpecExistNoOthers() {
 		assertThat(ManifestationType.values()).containsExactlyInAnyOrder(ManifestationType.CONFIRMED,
 				ManifestationType.UNKNOWN, ManifestationType.OPERATION_NOT_PERFORMED);
 	}
 
 	@Test
+	@DisplayName("Records the manifestation with a timestamp and forwards it to SEFAZ")
 	void ac2_theManifestationIsRecordedWithATimestampAndForwardedToSefaz() {
 		InboundManifestation result = service.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.CONFIRMED));
 
@@ -84,6 +87,7 @@ class ManifestInboundNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Works by access key alone even when no matching inbound NF-e exists yet")
 	void ac3_worksByAccessKeyAloneEvenWhenNoMatchingInboundNfeRowExistsYet() {
 		InboundManifestation result = service
 				.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.UNKNOWN));
@@ -93,6 +97,7 @@ class ManifestInboundNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Links the manifestation back to the matching inbound NF-e when one exists")
 	void whenAMatchingInboundNfeExistsTheManifestationLinksBackToIt() {
 		InboundNfe inboundNfe = existingInboundNfe();
 		when(inboundNfeRepositoryPort.findByAccessKey(ACCESS_KEY)).thenReturn(Optional.of(inboundNfe));

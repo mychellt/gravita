@@ -8,6 +8,7 @@ import br.gravita.core.domain.tax.DiscriminationTemplate;
 import br.gravita.core.domain.tax.DiscriminationTemplateId;
 import br.gravita.core.domain.tax.ServiceCode;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class DiscriminationTemplateTest {
@@ -15,6 +16,7 @@ class DiscriminationTemplateTest {
 	private static final DiscriminationTemplateId ID = DiscriminationTemplateId.of(UUID.randomUUID());
 
 	@Test
+	@DisplayName("Creates and updates a template while keeping its identity")
 	void createsAndUpdatesKeepingIdentity() {
 		DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("1.05"), "Licenciamento");
 
@@ -26,6 +28,7 @@ class DiscriminationTemplateTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a missing service code and blank text")
 	void rejectsMissingServiceCodeAndBlankText() {
 		assertThatThrownBy(() -> DiscriminationTemplate.of(ID, null, "x")).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> DiscriminationTemplate.of(ID, ServiceCode.of("01.05"), " "))
@@ -33,6 +36,7 @@ class DiscriminationTemplateTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the template unchanged when an update fails")
 	void aFailedUpdateLeavesTheTemplateUnchanged() {
 		DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("01.05"), "keep");
 

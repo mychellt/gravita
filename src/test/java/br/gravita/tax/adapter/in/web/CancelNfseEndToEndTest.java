@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -151,6 +152,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Cancels an authorized NFS-e through its municipality's standard adapter and keeps the record")
 	void anAuthorizedDocumentIsCancelledThroughItsStandardsAdapterAndTheRecordIsRetained() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = authorized(BETHA_CITY);
@@ -169,6 +171,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Refuses a missing or blank justification with a client error and sends nothing to the municipality")
 	void aMissingOrBlankJustificationIs400OrRefusedAndNothingIsSent() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = authorized(BETHA_CITY);
@@ -181,6 +184,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 with the municipality's reason when it refuses the cancellation, leaving the document authorized")
 	void aMunicipalityRefusalIs409WithItsReasonAndTheDocumentStaysAuthorized() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = authorized(BETHA_CITY);
@@ -195,6 +199,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 503 and leaves the document authorized when the municipality does not answer")
 	void aMunicipalityThatDoesNotAnswerIs503AndTheDocumentStaysAuthorized() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = authorized(BETHA_CITY);
@@ -208,6 +213,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Refuses a second cancellation of an NFS-e that was already cancelled")
 	void aSecondCancellationOfTheSameDocumentIsRefused() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = authorized(BETHA_CITY);
@@ -220,6 +226,7 @@ class CancelNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Refuses cancelling drafts, RPS, unregistered municipalities and standards without an adapter, and returns 404 for an unknown id")
 	void aDraftAnRpsAnUnregisteredMunicipalityAndAStandardWithoutAnAdapterAreRefusedAndAnUnknownIdIs404()
 			throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);

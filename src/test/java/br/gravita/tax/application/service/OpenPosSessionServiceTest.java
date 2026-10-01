@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -59,6 +60,7 @@ class OpenPosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects opening a session on a register that already has an open session")
 	void ac1_rejectsOpeningASessionOnARegisterThatAlreadyHasAnOpenSession() {
 		UUID registerId = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(registerId, PosSessionStatus.OPEN))
@@ -72,6 +74,7 @@ class OpenPosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves the session open with its opened-at time and the given amount")
 	void ac2_theSavedSessionIsOpenWithOpenedAtAndTheGivenAmount() {
 		UUID registerId = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(eq(registerId), any())).thenReturn(false);
@@ -90,6 +93,7 @@ class OpenPosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Links the operator to the register on the saved session")
 	void ac3_theOperatorIsLinkedToTheRegisterOnTheSavedSession() {
 		UUID registerId = UUID.randomUUID();
 		UUID operatorId = UUID.randomUUID();
@@ -105,6 +109,7 @@ class OpenPosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lets multiple registers each hold an independent open session")
 	void ac4_multipleRegistersCanEachHoldAnIndependentOpenSession() {
 		UUID registerA = UUID.randomUUID();
 		UUID registerB = UUID.randomUUID();

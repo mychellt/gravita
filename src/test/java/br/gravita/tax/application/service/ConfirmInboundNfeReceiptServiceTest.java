@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -75,6 +76,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Records the three-way comparison before confirming the receipt")
 	void confirmingRecordsTheThreeWayComparisonBeforeConfirmingTheReceipt() {
 		InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
@@ -90,6 +92,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers the stock entry immediately for what was physically received")
 	void confirmingRegistersTheStockEntryImmediatelyForWhatWasPhysicallyReceived() {
 		InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
@@ -106,6 +109,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Generates a payable installment matching the NF-e's own total value")
 	void confirmingGeneratesAPayableInstallmentMatchingTheNfsOwnTotalValue() {
 		InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
@@ -125,6 +129,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Computes the ICMS, PIS and COFINS credit under the company's tax regime")
 	void confirmingComputesTheIcmsPisCofinsCreditUnderTheCompanysTaxRegime() {
 		InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
@@ -143,6 +148,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming an inbound NF-e that does not exist")
 	void rejectsConfirmingAnInboundNfeThatDoesNotExist() {
 		UUID inboundNfeId = UUID.randomUUID();
 		when(inboundNfeRepositoryPort.findById(InboundNfeId.of(inboundNfeId))).thenReturn(Optional.empty());
@@ -156,6 +162,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming an already confirmed inbound NF-e without duplicating side effects")
 	void rejectsConfirmingAnAlreadyConfirmedInboundNfeWithoutDuplicatingSideEffects() {
 		InboundNfe confirmed = pendingInboundNfe()
 				.confirm(List.of(new br.gravita.core.domain.tax.InboundNfeConferenceItem(productId, BigDecimal.TEN,

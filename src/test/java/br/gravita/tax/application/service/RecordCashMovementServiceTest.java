@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +54,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Records a sangria against the open session")
 	void ac1_recordsASangriaAgainstTheOpenSession() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
@@ -69,6 +71,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Records a suprimento against the open session")
 	void ac1_recordsASuprimentoAgainstTheOpenSession() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
@@ -84,6 +87,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank justification before touching the repository")
 	void ac2_blankJustificationIsRejectedBeforeTouchingTheRepository() {
 		UUID sessionId = UUID.randomUUID();
 
@@ -96,6 +100,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives the saved movement a timestamp")
 	void ac3_theSavedMovementHasATimestamp() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
@@ -111,6 +116,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Links the movement to the given session")
 	void ac4_theMovementIsLinkedToTheGivenSession() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
@@ -126,6 +132,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects recording a movement against a closed session")
 	void ac4_recordingAgainstAClosedSessionIsRejected() {
 		UUID sessionId = UUID.randomUUID();
 		PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
@@ -141,6 +148,7 @@ class RecordCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects recording a movement against a non-existent session")
 	void ac4_recordingAgainstANonExistentSessionIsRejected() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.empty());

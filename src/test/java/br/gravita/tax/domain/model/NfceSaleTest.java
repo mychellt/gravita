@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class NfceSaleTest {
@@ -26,6 +27,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Adds an item with a positive quantity without further confirmation")
 	void ac1_anItemWithAPositiveQuantityIsAddedWithNoFurtherConfirmation() {
 		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
@@ -35,18 +37,21 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a zero or negative quantity")
 	void ac1_zeroOrNegativeQuantityIsRejected() {
 		assertThatThrownBy(() -> new SaleItem(UUID.randomUUID(), BigDecimal.ZERO, new BigDecimal("10.00"), null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Rejects an item discount that would make the line negative")
 	void ac2_anItemDiscountThatWouldMakeTheLineNegativeIsRejected() {
 		assertThatThrownBy(() -> new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"),
 				new BigDecimal("10.01"))).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Combines multiple payment methods in the same sale")
 	void ac3_multiplePaymentMethodsCanBeCombinedInTheSameSale() {
 		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("80.00")),
 				null,
@@ -58,6 +63,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Derives the change given from the payments minus the sale total, never entered directly")
 	void ac4_changeGivenIsDerivedFromPaymentsMinusSaleTotalNeverEnteredDirectly() {
 		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("18.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("20.00"))), null, Instant.now());
@@ -67,6 +73,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects payments that do not cover the sale total")
 	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("50.00")), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("40.00"))),
@@ -74,6 +81,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a total discount above the subtotal")
 	void ac5_totalDiscountAboveTheSubtotalIsRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("50.00")), new BigDecimal("50.01"),
@@ -82,6 +90,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Treats the customer CPF as optional")
 	void ac6_customerCpfIsOptional() {
 		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
@@ -90,6 +99,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Normalizes a valid CPF to digits only")
 	void ac6_aValidCpfIsNormalizedToDigitsOnly() {
 		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), "529.982.247-25",
@@ -99,6 +109,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid CPF")
 	void ac6_anInvalidCpfIsRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("10.00")), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))),
@@ -107,6 +118,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Requires a sale to have at least one item")
 	void aSaleMustHaveAtLeastOneItem() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(), null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now()))
@@ -114,6 +126,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Requires a sale to have at least one payment")
 	void aSaleMustHaveAtLeastOnePayment() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("10.00")), null, List.of(), null, Instant.now()))
@@ -126,6 +139,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Authorizing a draft sale moves it to authorized with the SEFAZ protocol")
 	void ac1_authorizingADraftSaleMovesItToAuthorizedWithTheSefazProtocol() {
 		NfceSale sale = draftSale();
 
@@ -139,6 +153,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Queuing a draft sale for contingency moves it to pending sync with no protocol")
 	void ac2_queuingADraftSaleForContingencyMovesItToPendingSyncWithNoProtocol() {
 		NfceSale sale = draftSale();
 
@@ -150,6 +165,7 @@ class NfceSaleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects issuing an already authorized sale again")
 	void anAlreadyAuthorizedSaleCannotBeIssuedAgain() {
 		NfceSale authorized = draftSale().authorize("001", 1L, "35" + "0".repeat(42), "protocol-1");
 

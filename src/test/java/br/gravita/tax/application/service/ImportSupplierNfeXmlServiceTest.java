@@ -10,6 +10,7 @@ import br.gravita.core.usercases.tax.ImportSupplierNfeXmlService;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +39,7 @@ class ImportSupplierNfeXmlServiceTest {
 	}
 
 	@Test
+	@DisplayName("Stores the XML before persisting and returns an inbound NF-e pending conference")
 	void storesTheXmlBeforePersistingAndReturnsAPendingConferenceInboundNfe() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
