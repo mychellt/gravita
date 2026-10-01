@@ -8,6 +8,8 @@ import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 
@@ -51,5 +53,11 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	private boolean violatesAccessKeyUniqueness(DataIntegrityViolationException e) {
 		String message = e.getMostSpecificCause().getMessage();
 		return message != null && message.contains("access_key");
+	}
+
+	@Override
+	public List<InboundNfe> findIssuedBetween(Instant from, Instant to) {
+		return jpaRepository.findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(from, to).stream()
+				.map(mapper::toDomain).toList();
 	}
 }

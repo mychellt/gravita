@@ -2,6 +2,8 @@ package br.gravita.core.ports.outbound.persistence.tax;
 
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface InboundNfeRepositoryPort {
@@ -15,4 +17,7 @@ public interface InboundNfeRepositoryPort {
 	 * manifestation works by access key alone regardless of import status.
 	 */
 	Optional<InboundNfe> findByAccessKey(String accessKey);
+
+	/** The received NFe that their suppliers issued over {@code [from, to)}, oldest first. */
+	List<InboundNfe> findIssuedBetween(Instant from, Instant to);
 }

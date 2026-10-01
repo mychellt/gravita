@@ -6,7 +6,10 @@ import br.gravita.adapters.outbound.persistence.repositories.tax.NfeJpaRepositor
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
+import br.gravita.core.domain.tax.NfeDocumentStatus;
 import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @PersistenceAdapter
@@ -31,5 +34,13 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 	@Override
 	public Optional<NfeDocument> findById(NfeDocumentId id) {
 		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<NfeDocument> findAuthorizedBetween(Instant from, Instant to) {
+		return jpaRepository
+				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+						NfeDocumentStatus.AUTHORIZED, from, to)
+				.stream().map(mapper::toDomain).toList();
 	}
 }

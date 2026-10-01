@@ -1,6 +1,8 @@
 package br.gravita.adapters.outbound.persistence.repositories.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.NfceSaleJpaEntity;
+import br.gravita.core.domain.tax.NfceSaleStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,4 +13,7 @@ public interface NfceSaleJpaRepository extends JpaRepository<NfceSaleJpaEntity, 
 	Optional<NfceSaleJpaEntity> findFirstByOrderByRegisteredAtDesc();
 
 	List<NfceSaleJpaEntity> findBySessionId(UUID sessionId);
+
+	List<NfceSaleJpaEntity> findByStatusAndRegisteredAtGreaterThanEqualAndRegisteredAtLessThanOrderByRegisteredAt(
+			NfceSaleStatus status, Instant from, Instant to);
 }
