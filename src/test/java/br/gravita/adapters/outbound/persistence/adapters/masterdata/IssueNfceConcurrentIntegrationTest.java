@@ -155,6 +155,11 @@ class IssueNfceConcurrentIntegrationTest {
 			public List<NfceSale> findBySessionId(PosSessionId id) {
 				throw new UnsupportedOperationException("not exercised by this test");
 			}
+
+			@Override
+			public List<NfceSale> findAuthorizedBetween(Instant from, Instant to) {
+				throw new UnsupportedOperationException("not exercised by this test");
+			}
 		};
 	}
 
