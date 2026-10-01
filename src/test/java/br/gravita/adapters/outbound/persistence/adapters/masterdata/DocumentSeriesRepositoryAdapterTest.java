@@ -7,6 +7,7 @@ import br.gravita.core.domain.masterdata.DocumentSeries;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -47,6 +48,7 @@ class DocumentSeriesRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Saves a document series and retrieves it by company and document type")
 	void shouldSaveAndRetrieveByCompanyAndDocumentType() {
 		CompanyId companyId = persistCompany();
 		DocumentSeries placeholder = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE);
@@ -60,6 +62,7 @@ class DocumentSeriesRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when no series is configured for the document type")
 	void shouldReturnEmptyWhenNoSeriesConfiguredForType() {
 		CompanyId companyId = persistCompany();
 
@@ -67,6 +70,7 @@ class DocumentSeriesRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps each document type independent for the same company")
 	void shouldKeepEachDocumentTypeIndependentForTheSameCompany() {
 		CompanyId companyId = persistCompany();
 		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE).reconfigure("001", 100L));
@@ -80,6 +84,7 @@ class DocumentSeriesRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Reflects a reconfigured series on the next read right after saving it again")
 	void reconfiguringAndSavingAgainImmediatelyReflectsOnNextRead() {
 		CompanyId companyId = persistCompany();
 		DocumentSeries configured = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFSE).reconfigure("001", 10L);

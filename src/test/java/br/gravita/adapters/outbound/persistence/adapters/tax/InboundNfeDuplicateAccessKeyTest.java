@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -28,6 +29,7 @@ class InboundNfeDuplicateAccessKeyTest {
 	private InboundNfeRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Throws DuplicateResourceException when a second inbound NF-e reuses an access key")
 	void savingASecondInboundNfeWithAnAlreadyUsedAccessKeyThrowsADuplicateResourceException() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		String accessKey = "35240111222333000181550010000012345123456789";

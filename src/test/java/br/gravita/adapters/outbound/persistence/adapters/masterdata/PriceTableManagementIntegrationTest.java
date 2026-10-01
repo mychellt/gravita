@@ -12,6 +12,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.masterdata.UpsertPriceTableCommand;
 import br.gravita.core.usercases.ManagePriceTable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -44,6 +45,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a fixed price table with one entry and returns its id")
 	void creatingAFixedPriceTableWithOneEntryPersistsAndReturnsAnId() {
 		ProductOrClassRef ref = ProductOrClassRef.product("sku-1");
 		PriceTableId id = service.execute(new UpsertPriceTableCommand(null, PriceFormation.FIXED,
@@ -58,6 +60,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Throws not found when patching an unknown price table id")
 	void patchingAnUnknownIdThrowsNotFound() {
 		UUID unknownId = UUID.randomUUID();
 		assertThatThrownBy(() -> service.execute(new UpsertPriceTableCommand(unknownId, PriceFormation.FIXED,
@@ -66,6 +69,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Fully replaces an existing price table on update instead of merging")
 	void updatingAnExistingTableFullyReplacesItRatherThanMerging() {
 		ProductOrClassRef originalRef = ProductOrClassRef.product("sku-original");
 		PriceTableId id = service.execute(new UpsertPriceTableCommand(null, PriceFormation.FIXED,
@@ -85,6 +89,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a validity end before the validity start with a business rule message")
 	void validToBeforeValidFromIsRejectedWithABusinessRuleMessage() {
 		assertThatThrownBy(() -> service.execute(new UpsertPriceTableCommand(null, PriceFormation.FIXED,
 				LocalDate.of(2026, 6, 1), LocalDate.of(2026, 1, 1), null, null,
@@ -94,6 +99,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the block and alert max-discount behaviors without blocking creation")
 	void maxDiscountBehaviorBlockAndAlertBothPersistWithoutBlockingCreation() {
 		PriceTableId blockId = service.execute(new UpsertPriceTableCommand(null, PriceFormation.FIXED,
 				LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10), MaxDiscountBehavior.BLOCK,
@@ -114,6 +120,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Excludes a table with a past validity end from active resolution without manual deactivation")
 	void aTableWithAPastValidToIsExcludedFromActiveResolutionWithoutManualDeactivation() {
 		PriceTableId id = service.execute(new UpsertPriceTableCommand(null, PriceFormation.FIXED,
 				LocalDate.of(2020, 1, 1), LocalDate.of(2020, 12, 31), null, null,
@@ -125,6 +132,7 @@ class PriceTableManagementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Stores the raw percentage for percent-based formations, not a price computed at save time")
 	void percentFormationsStoreTheRawPercentNotAComputedPriceAtSaveTime() {
 		PriceTableId id = service.execute(new UpsertPriceTableCommand(null, PriceFormation.PERCENT_OVER_COST,
 				LocalDate.of(2026, 1, 1), null, null, null,

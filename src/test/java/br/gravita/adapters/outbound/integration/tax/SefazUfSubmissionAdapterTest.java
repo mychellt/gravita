@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -55,6 +56,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns the protocol when SEFAZ authorizes the document")
 	void ac1_returnsTheProtocolWhenSefazAuthorizesTheDocument() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfce/autorizacao", exchange -> {
@@ -77,6 +79,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Reports an unreachable SEFAZ endpoint as unavailable")
 	void ac2_anUnreachableSefazEndpointIsReportedAsUnavailable() throws Exception {
 		String unreachableUrl = "http://localhost:1";
 		SefazUfSubmissionAdapter adapter = adapterFor(unreachableUrl, unreachableUrl);
@@ -86,6 +89,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Routes to the contingency endpoint when the request is flagged for contingency")
 	void ac3_routesToTheContingencyEndpointWhenTheRequestIsFlaggedForContingency() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfce/autorizacao", exchange -> {
@@ -110,6 +114,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Treats a missing certificate as a business rule violation, not a contingency path")
 	void aMissingCertificateIsABusinessRuleViolationNotAContingencyPath() {
 		SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.empty());
@@ -118,6 +123,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Treats an expired certificate as a business rule violation")
 	void anExpiredCertificateIsABusinessRuleViolation() throws Exception {
 		SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(expiredCertificate()));
@@ -126,6 +132,7 @@ class SefazUfSubmissionAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns the protocol when SEFAZ accepts a number range voiding request")
 	void ucM206_returnsTheProtocolWhenSefazAcceptsAVoidRangeRequest() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfe/inutilizacao", exchange -> {

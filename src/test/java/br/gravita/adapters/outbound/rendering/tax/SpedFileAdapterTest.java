@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class SpedFileAdapterTest {
@@ -17,6 +18,7 @@ class SpedFileAdapterTest {
 	private final SpedFileAdapter adapter = new SpedFileAdapter();
 
 	@Test
+	@DisplayName("Writes one register per line between pipes, ended by CRLF")
 	void writesOneRegisterPerLineBetweenPipesEndedByCrLf() {
 		String txt = write(layout(new SpedBlock('0', List.of(SpedRecord.of("0140", "1", null, "x")))));
 
@@ -26,6 +28,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Writes amounts with a comma, dates as ddMMyyyy and text without characters that would split the register")
 	void writesAmountsWithACommaDatesAsDdMmYyyyAndTextWithoutWhatWouldSplitTheRegister() {
 		String txt = write(layout(new SpedBlock('0', List.of(SpedRecord.of("0150", new BigDecimal("1234.50"),
 				new BigDecimal("1.6500"), LocalDate.of(2028, 2, 9), 7, 12L, " a|b\r\nc ")))));
@@ -34,6 +37,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a field of a type it does not know how to write")
 	void rejectsAFieldOfATypeItDoesNotKnowHowToWrite() {
 		SpedLayout layout = layout(new SpedBlock('0', List.of(SpedRecord.of("0150", new Object()))));
 
@@ -41,6 +45,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Encodes the file in ISO-8859-1 so each accent takes one byte")
 	void encodesInIso88591SoAccentsAreOneByteEach() {
 		byte[] bytes = adapter.generate(layout(new SpedBlock('0', List.of(SpedRecord.of("0150", "Ação")))));
 
@@ -49,6 +54,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Opens each block flagged with or without data and closes it counting its own lines")
 	void opensEachBlockFlaggedWithOrWithoutDataAndClosesItCountingItsOwnLines() {
 		String txt = write(layout(new SpedBlock('0', List.of(SpedRecord.of("0140", "1"))),
 				new SpedBlock('A', List.of()),
@@ -59,6 +65,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Closes the file with a block 9 counting every register and every line")
 	void closesTheFileWithABlockNineCountingEveryRegisterAndEveryLine() {
 		String txt = write(layout(new SpedBlock('0', List.of(SpedRecord.of("0150", "a"), SpedRecord.of("0150", "b"))),
 				new SpedBlock('A', List.of())));
@@ -75,6 +82,7 @@ class SpedFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a layout whose first block is not block 0 or that supplies block 9")
 	void rejectsALayoutWhoseFirstBlockIsNotBlockZeroOrThatSuppliesBlockNine() {
 		SpedRecord header = SpedRecord.of("0000", "006");
 		assertThatThrownBy(() -> new SpedLayout(header, List.of(new SpedBlock('C', List.of()))))

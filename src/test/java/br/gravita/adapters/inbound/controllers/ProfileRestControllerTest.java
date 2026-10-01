@@ -7,6 +7,7 @@ import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.AssignProfilePort;
 import br.gravita.core.ports.business.FindProfilePort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -43,6 +44,7 @@ class ProfileRestControllerTest {
 			{"permissions":[{"module":"finance","screen":"invoices","action":"VIEW"}]}""";
 
 	@Test
+	@DisplayName("Returns 200 OK when permissions are assigned to a profile")
 	void shouldReturn200WhenAssigningPermissions() throws Exception {
 		UUID id = UUID.randomUUID();
 		ProfileDomain updated = ProfileDomain.builder().id(id).name("Financial")
@@ -60,6 +62,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 Not Found when assigning permissions to an unknown profile")
 	void shouldReturn404WhenProfileUnknown() throws Exception {
 		UUID id = UUID.randomUUID();
 		when(assignProfilePort.execute(any())).thenThrow(new ResourceNotFoundException("Profile not found: " + id));
@@ -71,6 +74,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when the permission action is invalid")
 	void shouldReturn400WhenActionIsInvalid() throws Exception {
 		UUID id = UUID.randomUUID();
 		String invalidBody = """
@@ -83,6 +87,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when the permissions list is missing")
 	void shouldReturn400WhenPermissionsMissing() throws Exception {
 		UUID id = UUID.randomUUID();
 
@@ -93,6 +98,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when a new custom profile is saved")
 	void shouldReturn200WhenSavingNewCustomProfile() throws Exception {
 		UUID id = UUID.randomUUID();
 		ProfileDomain created = ProfileDomain.builder().id(id).name("Sales Read-Only")
@@ -110,6 +116,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 Conflict when the custom profile name is already in use")
 	void shouldReturn409WhenCustomProfileNameAlreadyInUse() throws Exception {
 		UUID id = UUID.randomUUID();
 		when(assignProfilePort.execute(any()))
@@ -123,6 +130,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when an existing profile is found")
 	void shouldReturn200WhenFindingExistingProfile() throws Exception {
 		UUID id = UUID.randomUUID();
 		ProfileDomain profile = ProfileDomain.builder().id(id).name("Financial")
@@ -137,6 +145,7 @@ class ProfileRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 Not Found when finding an unknown profile")
 	void shouldReturn404WhenFindingUnknownProfile() throws Exception {
 		UUID id = UUID.randomUUID();
 		when(findProfilePort.execute(any())).thenThrow(new ResourceNotFoundException("Profile not found: " + id));

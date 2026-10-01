@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -40,6 +41,7 @@ class NfeRepositoryAdapterTest {
 	private NfeJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Saves and reloads a queued NF-e preserving its items, tax lines and transport")
 	void savesAndReloadsAQueuedDocumentPreservingItemsTaxLinesAndTransport() {
 		UUID productId = UUID.randomUUID();
 		TaxLineBreakdown icmsLine = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),

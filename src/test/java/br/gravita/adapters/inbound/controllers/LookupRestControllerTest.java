@@ -3,6 +3,7 @@ package br.gravita.adapters.inbound.controllers;
 import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.business.LookupPersonByDocumentPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -25,6 +26,7 @@ class LookupRestControllerTest {
 	private LookupPersonByDocumentPort lookupPersonByDocumentPort;
 
 	@Test
+	@DisplayName("Returns 200 with the company name and address for a valid CNPJ")
 	void shouldReturn200WithNameAndAddressForValidCnpj() throws Exception {
 		AddressDomain address = AddressDomain.builder()
 				.street("Rua A").number("10").neighborhood("Centro").city("São Paulo").state("SP").zipCode("01000-000")
@@ -38,12 +40,14 @@ class LookupRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request for a malformed CNPJ")
 	void shouldReturn400ForMalformedCnpj() throws Exception {
 		mockMvc.perform(get("/api/lookup/cnpj/12345"))
 				.andExpect(status().isBadRequest());
 	}
 
 	@Test
+	@DisplayName("Returns 200 with the address only when looking up a CEP")
 	void shouldReturn200WithAddressOnlyForCep() throws Exception {
 		AddressDomain address = AddressDomain.builder()
 				.street("Rua B").neighborhood("Bairro").city("Rio de Janeiro").state("RJ").zipCode("20000-000")
@@ -57,6 +61,7 @@ class LookupRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 with an empty result when the lookup service degrades")
 	void shouldReturn200WithEmptyResultWhenLookupDegrades() throws Exception {
 		when(lookupPersonByDocumentPort.execute(any())).thenReturn(PersonLookupResult.notFound());
 

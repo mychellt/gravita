@@ -10,6 +10,7 @@ import br.gravita.core.domain.tax.ProductTaxProfile;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -26,6 +27,7 @@ class ProductTaxProfileRepositoryAdapterTest {
 	private ProductJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Resolves a product's NCM by its id")
 	void resolvesTheProductsNcmByItsId() {
 		UUID productId = UUID.randomUUID();
 		ProductJpaEntity entity = ProductJpaEntity.builder()
@@ -46,11 +48,13 @@ class ProductTaxProfileRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty for an unknown product")
 	void returnsEmptyForAnUnknownProduct() {
 		assertThat(repositoryAdapter.findByProductRef(UUID.randomUUID().toString())).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Returns empty for a product reference that is not a UUID")
 	void returnsEmptyForANonUuidProductRef() {
 		assertThat(repositoryAdapter.findByProductRef("not-a-uuid")).isEmpty();
 	}

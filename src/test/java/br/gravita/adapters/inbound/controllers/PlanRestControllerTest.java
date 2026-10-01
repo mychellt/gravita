@@ -8,6 +8,7 @@ import br.gravita.core.ports.business.DeletePlanPort;
 import br.gravita.core.ports.business.FindPlanPort;
 import br.gravita.core.ports.business.ListPlansPort;
 import br.gravita.core.ports.business.UpdatePlanPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -56,6 +57,7 @@ class PlanRestControllerTest {
 			"Bronze", PlanTier.BRONZE, new BigDecimal("297"), new BigDecimal("247"), List.of("1 CNPJ · 1 filial"));
 
 	@Test
+	@DisplayName("Returns 201 Created when a plan is created")
 	void shouldReturn201WhenCreatingPlan() throws Exception {
 		PlanDomain created = request.toDomain(UUID.randomUUID());
 		when(createPlanPort.execute(any())).thenReturn(created);
@@ -68,6 +70,7 @@ class PlanRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when plans are listed")
 	void shouldReturn200WhenListingPlans() throws Exception {
 		when(listPlansPort.execute(any())).thenReturn(List.of(request.toDomain(UUID.randomUUID())));
 
@@ -77,6 +80,7 @@ class PlanRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when an existing plan is found")
 	void shouldReturn200WhenFindingExistingPlan() throws Exception {
 		UUID id = UUID.randomUUID();
 		when(findPlanPort.execute(any())).thenReturn(request.toDomain(id));
@@ -87,6 +91,7 @@ class PlanRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when a plan is updated")
 	void shouldReturn200WhenUpdatingPlan() throws Exception {
 		UUID id = UUID.randomUUID();
 		when(updatePlanPort.execute(any())).thenReturn(request.toDomain(id));
@@ -98,6 +103,7 @@ class PlanRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 204 No Content when a plan is deleted")
 	void shouldReturn204WhenDeletingPlan() throws Exception {
 		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID()))
 				.andExpect(status().isNoContent());

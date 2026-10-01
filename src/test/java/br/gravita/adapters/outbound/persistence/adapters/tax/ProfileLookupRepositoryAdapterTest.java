@@ -2,6 +2,7 @@ package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
 import br.gravita.core.domain.system.ProfileReference;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -25,6 +26,7 @@ class ProfileLookupRepositoryAdapterTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Finds an existing profile by id")
 	void shouldFindExistingProfileById() {
 		UUID id = UUID.randomUUID();
 		entityManager.persist(ProfileJpaEntity.builder().id(id).name("Financial").permissions(List.of()).build());
@@ -35,6 +37,7 @@ class ProfileLookupRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when the profile does not exist")
 	void shouldReturnEmptyWhenProfileDoesNotExist() {
 		assertThat(repositoryAdapter.findById(UUID.randomUUID())).isEmpty();
 	}

@@ -10,6 +10,7 @@ import br.gravita.core.domain.tax.MunicipalityIntegrationId;
 import br.gravita.core.domain.tax.NfseStandard;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -26,6 +27,7 @@ class MunicipalityIntegrationRepositoryAdapterTest {
 	private MunicipalityIntegrationJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Saves a municipality integration and finds it by IBGE code with its required fields")
 	void savesAndFindsByIbgeCodeWithRequiredFields() {
 		repositoryAdapter.save(MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), "3550308",
 				NfseStandard.ABRASF, "2.04", "https://nfse.example/ws", CertificateType.A1,
@@ -40,6 +42,7 @@ class MunicipalityIntegrationRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps a single row per IBGE code when an updated integration is saved again")
 	void ac3_savingAnUpdatedIntegrationKeepsASingleRowPerIbgeCode() {
 		MunicipalityIntegration integration = repositoryAdapter
 				.save(MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), "3550308",

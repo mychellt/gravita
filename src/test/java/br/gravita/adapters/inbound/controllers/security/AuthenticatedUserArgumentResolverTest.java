@@ -4,6 +4,7 @@ import br.gravita.core.domain.exceptions.UnauthorizedException;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.ports.outbound.security.SessionStorePort;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -49,11 +50,13 @@ class AuthenticatedUserArgumentResolverTest {
 	}
 
 	@Test
+	@DisplayName("Supports only user id parameters annotated as the authenticated user")
 	void shouldSupportOnlyAuthenticatedUserAnnotatedUserIdParameters() throws NoSuchMethodException {
 		assertThat(resolver.supportsParameter(annotatedParameter())).isTrue();
 	}
 
 	@Test
+	@DisplayName("Resolves the user id bound to the bearer token")
 	void shouldResolveTheUserIdBoundToTheBearerToken() {
 		UserId userId = UserId.generate();
 		when(sessionStorePortProvider.getObject()).thenReturn(sessionStorePort);
@@ -66,6 +69,7 @@ class AuthenticatedUserArgumentResolverTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a request with a missing Authorization header")
 	void shouldRejectAMissingAuthorizationHeader() {
 		when(webRequest.getHeader("Authorization")).thenReturn(null);
 
@@ -74,6 +78,7 @@ class AuthenticatedUserArgumentResolverTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an Authorization header that lacks the Bearer prefix")
 	void shouldRejectAHeaderWithoutTheBearerPrefix() {
 		when(webRequest.getHeader("Authorization")).thenReturn("abc-123");
 
@@ -82,6 +87,7 @@ class AuthenticatedUserArgumentResolverTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a token that does not resolve to a user")
 	void shouldRejectATokenThatDoesNotResolveToAUser() {
 		when(sessionStorePortProvider.getObject()).thenReturn(sessionStorePort);
 		when(webRequest.getHeader("Authorization")).thenReturn("Bearer unknown-token");

@@ -5,6 +5,7 @@ import br.gravita.adapters.outbound.persistence.mappers.tax.ApprovalAlcadaPersis
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.domain.system.ProfileReference;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -35,6 +36,7 @@ class ApprovalAlcadaRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Saves an approval alcada and retrieves it by module")
 	void shouldSaveAndRetrieveAlcadaByModule() {
 		ProfileReference approver = persistApprover("Purchasing Manager");
 		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("5000.00"), null,
@@ -49,11 +51,13 @@ class ApprovalAlcadaRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when the module has no alcada configured")
 	void shouldReturnEmptyWhenModuleHasNoAlcadaConfigured() {
 		assertThat(repositoryAdapter.findByModule(ApprovalModule.SALES)).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Keeps each module's configuration independent")
 	void shouldKeepEachModuleConfigurationIndependent() {
 		ProfileReference approver = persistApprover("Ops Manager");
 		repositoryAdapter.save(ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("1000.00"), null,
@@ -69,6 +73,7 @@ class ApprovalAlcadaRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Reflects a reconfigured alcada on the next read right after saving it again")
 	void reconfiguringAndSavingAgainImmediatelyReflectsTheNewValueOnNextRead() {
 		ProfileReference approver = persistApprover("Finance Manager");
 		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("2000.00"), null,

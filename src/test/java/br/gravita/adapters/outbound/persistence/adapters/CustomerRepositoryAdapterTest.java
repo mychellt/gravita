@@ -6,6 +6,7 @@ import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
 import br.gravita.adapters.outbound.persistence.mappers.CustomerPersistenceMapperImpl;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -31,6 +32,7 @@ class CustomerRepositoryAdapterTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Saves a customer with its addresses and retrieves it intact")
 	void shouldSaveAndRetrieveCustomerWithAddresses() {
 		CustomerDomain customer = customer("Maria Silva", "111.444.777-35");
 
@@ -51,6 +53,7 @@ class CustomerRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a stale update instead of silently overwriting a concurrent write")
 	void shouldRejectStaleUpdateInsteadOfSilentlyOverwritingAConcurrentWrite() {
 		CustomerDomain saved = repositoryAdapter.save(customer("Maria Silva", "111.444.777-35"));
 		entityManager.flush();
@@ -70,6 +73,7 @@ class CustomerRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Lists all saved customers")
 	void shouldListAllCustomers() {
 		repositoryAdapter.save(customer("Ana", "111.444.777-35"));
 		repositoryAdapter.save(customer("Bruno", "529.982.247-25"));

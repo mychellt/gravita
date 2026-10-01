@@ -12,6 +12,7 @@ import br.gravita.core.ports.outbound.persistence.inventory.CreatePurchaseReques
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepositoryPort;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +33,7 @@ class CreatePurchaseRequestAdapterTest {
 	private final UUID productId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("Creates a minimum-stock trigger request when none is already open for the product")
 	void ac1_createsAMinStockTriggerRequestWhenNoneIsAlreadyOpenForTheProduct() {
 		adapter = new CreatePurchaseRequestAdapter(createPurchaseRequestUseCase, purchaseRequestRepositoryPort);
 		when(purchaseRequestRepositoryPort.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
@@ -51,6 +53,7 @@ class CreatePurchaseRequestAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Skips creation when an open minimum-stock trigger request already exists for the product")
 	void ac2_skipsCreationWhenAnOpenMinStockTriggerRequestAlreadyExistsForTheProduct() {
 		adapter = new CreatePurchaseRequestAdapter(createPurchaseRequestUseCase, purchaseRequestRepositoryPort);
 		when(purchaseRequestRepositoryPort.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,

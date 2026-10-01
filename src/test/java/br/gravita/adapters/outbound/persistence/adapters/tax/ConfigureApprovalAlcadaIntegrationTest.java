@@ -8,6 +8,7 @@ import br.gravita.core.domain.system.UnknownApprovalModuleException;
 import br.gravita.core.domain.system.UnknownProfileException;
 import br.gravita.core.usercases.system.ConfigureApprovalAlcadaCommand;
 import br.gravita.core.usercases.tax.ConfigureApprovalAlcadaService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -46,6 +47,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Updates the single row when the same module is reconfigured instead of creating a second one")
 	void reconfiguringTheSameModuleUpdatesTheSingleRowInsteadOfCreatingASecondOne() {
 		UUID approver = persistProfile("Purchasing Manager");
 		ConfigureApprovalAlcadaService service = service();
@@ -64,6 +66,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a configuration that sets only the discount percent threshold")
 	void configuringWithOnlyThresholdDiscountPercentSucceeds() {
 		UUID approver = persistProfile("Sales Manager");
 
@@ -76,6 +79,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a configuration that sets neither threshold")
 	void configuringWithNeitherThresholdSetIsRejected() {
 		UUID approver = persistProfile("Finance Manager");
 
@@ -86,6 +90,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid module, naming the module in the error")
 	void anInvalidModuleIsRejectedNamingTheModule() {
 		UUID approver = persistProfile("Someone");
 
@@ -96,6 +101,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a non-existent approver profile")
 	void aNonExistentApproverProfileIsRejected() {
 		UUID unknownProfile = UUID.randomUUID();
 
@@ -107,6 +113,7 @@ class ConfigureApprovalAlcadaIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a custom non-standard profile like any other existing profile")
 	void aCustomNonStandardProfileIsAcceptedJustLikeAnyOtherExistingProfile() {
 		UUID customProfile = persistProfile("Custom Regional Approver");
 

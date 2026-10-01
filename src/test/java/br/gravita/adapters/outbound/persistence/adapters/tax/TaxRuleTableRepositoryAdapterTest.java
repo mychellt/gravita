@@ -11,6 +11,7 @@ import br.gravita.core.ports.outbound.persistence.tax.TaxRateQuery;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -27,6 +28,7 @@ class TaxRuleTableRepositoryAdapterTest {
 	private TaxRateRuleJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Finds only the rules matching every dimension of the query")
 	void findsOnlyTheRulesMatchingEveryDimensionOfTheQuery() {
 		jpaRepository.save(matchingRule());
 		jpaRepository.save(ruleFor("85171231", "SP", "RJ"));
@@ -39,6 +41,7 @@ class TaxRuleTableRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty list when no rule matches the query")
 	void returnsAnEmptyListWhenNoRuleMatches() {
 		List<TaxRateRule> rates = repositoryAdapter
 				.findApplicableRates(new TaxRateQuery("00000000", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV"));

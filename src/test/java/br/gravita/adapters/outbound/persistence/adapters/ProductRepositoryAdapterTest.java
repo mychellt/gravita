@@ -8,6 +8,7 @@ import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.ProductVariantDomain;
 import br.gravita.core.domain.StockParametersDomain;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -27,6 +28,7 @@ class ProductRepositoryAdapterTest {
 	private ProductRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Saves a simple product and retrieves it")
 	void shouldSaveAndRetrieveSimpleProduct() {
 		ProductDomain product = ProductDomain.builder()
 				.internalCode("SKU-1")
@@ -59,6 +61,7 @@ class ProductRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Detects an already registered barcode")
 	void shouldDetectExistingBarcode() {
 		ProductDomain product = ProductDomain.builder()
 				.internalCode("SKU-2")
@@ -74,6 +77,7 @@ class ProductRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Saves a kit with its components and variants with a grid")
 	void shouldSaveKitWithComponentsAndVariantsWithGrid() {
 		UUID componentId = UUID.randomUUID();
 		ProductDomain kit = ProductDomain.builder()

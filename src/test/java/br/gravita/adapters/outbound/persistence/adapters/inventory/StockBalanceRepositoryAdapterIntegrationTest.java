@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -26,6 +27,7 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Finds the balance row for a given product and warehouse")
 	void findsTheRowForAGivenProductAndWarehouse() {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -41,6 +43,7 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when no balance row exists for the product and warehouse")
 	void returnsEmptyWhenNoRowExistsForThatProductAndWarehouse() {
 		Optional<StockBalance> found = stockBalanceRepositoryAdapter.findByProductIdAndWarehouseId(UUID.randomUUID(),
 				UUID.randomUUID());
@@ -49,6 +52,7 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Finds every warehouse balance row for a product")
 	void findsEveryWarehouseRowForAProduct() {
 		UUID productId = UUID.randomUUID();
 		seed(productId, UUID.randomUUID(), "30", "0", "0", "8.00");
@@ -64,6 +68,7 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Finds every balance row of a warehouse across products")
 	void findsEveryRowForAGivenWarehouseAcrossProducts() {
 		UUID warehouseId = UUID.randomUUID();
 		seed(UUID.randomUUID(), warehouseId, "30", "0", "0", "8.00");
@@ -77,6 +82,7 @@ class StockBalanceRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Finds every balance row across products and warehouses for a sweep")
 	void findsEveryRowAcrossProductsAndWarehousesForASweep() {
 		seed(UUID.randomUUID(), UUID.randomUUID(), "30", "0", "0", "8.00");
 		seed(UUID.randomUUID(), UUID.randomUUID(), "70", "5", "0", "12.00");

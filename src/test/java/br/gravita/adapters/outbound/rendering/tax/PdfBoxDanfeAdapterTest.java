@@ -37,6 +37,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PdfBoxDanfeAdapterTest {
@@ -44,6 +45,7 @@ class PdfBoxDanfeAdapterTest {
 	private static final String VALID_CNPJ = "11.222.333/0001-81";
 
 	@Test
+	@DisplayName("Uses portrait as the default DANFE orientation")
 	void ac4_portraitIsTheDefaultOrientation() throws Exception {
 		PdfBoxDanfeAdapter adapter = new PdfBoxDanfeAdapter(noLogoHttpClient());
 
@@ -58,6 +60,7 @@ class PdfBoxDanfeAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Renders the DANFE in landscape on request")
 	void ac4_landscapeIsRenderedOnRequest() throws Exception {
 		PdfBoxDanfeAdapter adapter = new PdfBoxDanfeAdapter(noLogoHttpClient());
 
@@ -71,6 +74,7 @@ class PdfBoxDanfeAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Embeds the access key barcode as an image on the page")
 	void ac4_theAccessKeyBarcodeIsEmbeddedAsAnImageOnThePage() throws Exception {
 		PdfBoxDanfeAdapter adapter = new PdfBoxDanfeAdapter(noLogoHttpClient());
 
@@ -83,6 +87,7 @@ class PdfBoxDanfeAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Embeds the company logo when its URL is reachable")
 	void ac4_theCompanyLogoIsEmbeddedWhenItsUrlIsReachable() throws Exception {
 		HttpClient httpClient = mock(HttpClient.class);
 		@SuppressWarnings("unchecked")
@@ -103,6 +108,7 @@ class PdfBoxDanfeAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Falls back to a text-only header when the logo URL is unreachable, instead of failing the DANFE")
 	void ac4_anUnreachableLogoUrlFallsBackToATextOnlyHeaderInsteadOfFailingTheWholeDanfe() throws Exception {
 		HttpClient httpClient = mock(HttpClient.class);
 		when(httpClient.send(any(HttpRequest.class), any())).thenThrow(new java.io.IOException("unreachable"));

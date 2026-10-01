@@ -13,6 +13,7 @@ import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.shared.Document;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -29,6 +30,7 @@ class SupplierRepositoryAdapterTest {
 	private SupplierRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Persists a new supplier using the application-assigned id")
 	void shouldPersistNewSupplierWithApplicationAssignedId() {
 		Supplier supplier = newSupplier(SupplierId.of(UUID.randomUUID()));
 
@@ -44,6 +46,7 @@ class SupplierRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Persists the optional bank account, PIX key and purchasing fields")
 	void shouldPersistOptionalBankAccountPixKeyAndPurchasingFields() {
 		SupplierId id = SupplierId.of(UUID.randomUUID());
 		Supplier supplier = Supplier.of(id, Document.cnpj("11222333000181"), "Acme Supplies", List.of(VALID_ADDRESS),
@@ -62,6 +65,7 @@ class SupplierRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Updates an existing supplier without losing its creation timestamp")
 	void shouldUpdateExistingSupplierWithoutLosingCreatedAt() {
 		Supplier supplier = newSupplier(SupplierId.of(UUID.randomUUID()));
 		Supplier saved = repositoryAdapter.save(supplier);

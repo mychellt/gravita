@@ -7,6 +7,7 @@ import br.gravita.core.ports.inbound.inventory.RegisterStockEntryUseCase;
 import br.gravita.core.ports.outbound.persistence.purchasing.RegisterStockEntryPort.RegisterStockEntryCommand;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +21,7 @@ class RegisterStockEntryAdapterTest {
 	private RegisterStockEntryUseCase registerStockEntryUseCase;
 
 	@Test
+	@DisplayName("Delegates to the real use case, mapping product, quantity and cost")
 	void delegatesToTheRealUseCaseMappingProductQuantityAndCost() {
 		RegisterStockEntryAdapter adapter = new RegisterStockEntryAdapter(registerStockEntryUseCase);
 		UUID productId = UUID.randomUUID();

@@ -9,6 +9,7 @@ import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderReposi
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
 import br.gravita.core.usercases.purchasing.CreatePurchaseOrderService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,6 +40,7 @@ class CreatePurchaseOrderIntegrationTest {
     private CreatePurchaseOrderService service;
 
     @Test
+    @DisplayName("Persists a created order and converts the originating purchase request")
     void creatingAnOrderPersistsItAndConvertsTheOriginatingRequest() {
         when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING)).thenReturn(Optional.empty());
         var savedPurchaseOrder = PurchaseOrder.builder()
@@ -58,6 +60,7 @@ class CreatePurchaseOrderIntegrationTest {
     }
 
     @Test
+    @DisplayName("Resolves whether approval is required from the configured approval threshold")
     void resolvesApprovalRequiredFromTheConfiguredAlcadaThreshold() {
         when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING))
                 .thenReturn(Optional.of(ApprovalAlcada.builder().thresholdValue(new BigDecimal("10.00")).build()));

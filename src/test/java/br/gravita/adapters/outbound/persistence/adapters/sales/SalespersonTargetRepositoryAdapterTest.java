@@ -7,6 +7,7 @@ import br.gravita.core.domain.sales.SalespersonTarget;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -20,6 +21,7 @@ class SalespersonTargetRepositoryAdapterTest {
 	private SalespersonTargetRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Persists a salesperson target and reloads it intact")
 	void shouldPersistAndReloadASalespersonTarget() {
 		UUID salespersonId = UUID.randomUUID();
 		YearMonth month = YearMonth.of(2026, 1);
@@ -37,6 +39,7 @@ class SalespersonTargetRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Overwrites the existing target when one is set again for the same month")
 	void settingATargetForAMonthThatAlreadyHasOneOverwritesIt() {
 		UUID salespersonId = UUID.randomUUID();
 		YearMonth month = YearMonth.of(2026, 1);
@@ -52,11 +55,13 @@ class SalespersonTargetRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when no target exists for the salesperson and month")
 	void findBySalespersonAndMonthReturnsEmptyWhenNoTargetExists() {
 		assertThat(repositoryAdapter.findBySalespersonAndMonth(UUID.randomUUID(), YearMonth.of(2026, 1))).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Returns every target of the requested month only")
 	void findByMonthReturnsEveryTargetOfThatMonthOnly() {
 		UUID ana = UUID.randomUUID();
 		UUID bruno = UUID.randomUUID();

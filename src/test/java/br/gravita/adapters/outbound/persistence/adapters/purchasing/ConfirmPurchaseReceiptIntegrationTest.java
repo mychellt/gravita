@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,6 +69,7 @@ class ConfirmPurchaseReceiptIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a fully received receipt on confirmation and closes the purchase order")
 	void confirmingAFullyReceivedReceiptPersistsItAndClosesTheOrder() {
 		PurchaseOrderId orderId = persistOpenOrder(BigDecimal.TEN);
 		PurchaseReceiptId receiptId = persistConferencedReceipt(orderId, BigDecimal.TEN);

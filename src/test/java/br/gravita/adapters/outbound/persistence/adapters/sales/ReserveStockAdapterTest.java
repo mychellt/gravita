@@ -8,6 +8,7 @@ import br.gravita.core.ports.inbound.inventory.ReserveStockUseCase;
 import br.gravita.core.ports.outbound.sales.ReserveStockPort.ReserveStockForOrderCommand;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,6 +22,7 @@ class ReserveStockAdapterTest {
 	private ReserveStockUseCase reserveStockUseCase;
 
 	@Test
+	@DisplayName("Delegates to the real use case using the default warehouse")
 	void delegatesToTheRealUseCaseUsingTheDefaultWarehouse() {
 		ReserveStockAdapter adapter = new ReserveStockAdapter(reserveStockUseCase);
 		UUID orderId = UUID.randomUUID();

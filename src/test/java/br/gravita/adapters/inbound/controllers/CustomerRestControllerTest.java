@@ -10,6 +10,7 @@ import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
 import br.gravita.core.ports.inbound.masterdata.UpdateCustomerUseCase;
 import br.gravita.core.domain.shared.PersonType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -59,6 +60,7 @@ class CustomerRestControllerTest {
 			List.of());
 
 	@Test
+	@DisplayName("Returns 201 Created when a customer is registered with valid data")
 	void shouldReturn201WhenRegisteringCustomer() throws Exception {
 		CustomerDomain created = request.toDomain();
 		created.setId(UUID.randomUUID());
@@ -76,6 +78,7 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when a customer is registered without any address")
 	void shouldReturn400WhenNoAddressProvided() throws Exception {
 		RegisterCustomerRequest invalid = new RegisterCustomerRequest(
 				PersonType.INDIVIDUAL, "111.444.777-35", "Maria Silva", null, null, null, null, List.of(), List.of(), List.of());
@@ -87,6 +90,7 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when required customer fields are missing")
 	void shouldReturn400WhenRequiredFieldsAreMissing() throws Exception {
 		mockMvc.perform(post("/api/customers")
 						.contentType("application/json")
@@ -95,12 +99,14 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK with the customer when an existing customer is found")
 	void shouldReturn200WhenFindingCustomer() throws Exception {
 		mockMvc.perform(get("/api/customers/" + UUID.randomUUID()))
 				.andExpect(status().isOk());
 	}
 
 	@Test
+	@DisplayName("Returns 204 No Content when a customer is updated successfully")
 	void shouldReturn204WhenUpdatingCustomer() throws Exception {
 		UUID id = UUID.randomUUID();
 		UpdateCustomerRequest update = new UpdateCustomerRequest(
@@ -115,6 +121,7 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 404 Not Found when updating a customer that does not exist")
 	void shouldReturn404WhenUpdatingUnknownCustomer() throws Exception {
 		UUID id = UUID.randomUUID();
 		UpdateCustomerRequest update = new UpdateCustomerRequest(
@@ -128,6 +135,7 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 Conflict when the document is updated without informing the person type")
 	void shouldReturn409WhenUpdatingDocumentWithoutType() throws Exception {
 		UUID id = UUID.randomUUID();
 		UpdateCustomerRequest update = new UpdateCustomerRequest(
@@ -140,6 +148,7 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 Conflict when the document is updated with an invalid check digit")
 	void shouldReturn409WhenUpdatingDocumentWithInvalidCheckDigit() throws Exception {
 		UUID id = UUID.randomUUID();
 		UpdateCustomerRequest update = new UpdateCustomerRequest(

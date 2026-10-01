@@ -7,6 +7,7 @@ import br.gravita.core.domain.finance.BankStatementLine;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class BankStatementParserAdapterTest {
@@ -42,6 +43,7 @@ class BankStatementParserAdapterTest {
 			""";
 
 	@Test
+	@DisplayName("Parses an SGML-style OFX bank statement into statement lines")
 	void parsesAnSgmlOfxStatement() {
 		List<BankStatementLine> lines = parser.parse(OFX_SGML);
 
@@ -61,6 +63,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Parses an XML-style OFX bank statement into statement lines")
 	void parsesAnXmlOfxStatement() {
 		String xml = """
 				<?xml version="1.0"?>
@@ -80,11 +83,13 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns no lines for an OFX statement without transactions")
 	void anOfxWithoutTransactionsHasNoLines() {
 		assertThat(parser.parse("<OFX><BANKTRANLIST></BANKTRANLIST></OFX>")).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Rejects an OFX transaction that lacks a date or an amount")
 	void anOfxTransactionNeedsADateAndAnAmount() {
 		assertThatThrownBy(() -> parser.parse("<OFX><STMTTRN><TRNAMT>1.00</TRNAMT></STMTTRN></OFX>"))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("OFX transaction 1");
@@ -93,6 +98,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an OFX transaction with an invalid date or amount")
 	void anOfxTransactionWithAnInvalidDateOrAmountIsRejected() {
 		assertThatThrownBy(() -> parser
 				.parse("<OFX><STMTTRN><DTPOSTED>20261399</DTPOSTED><TRNAMT>1.00</TRNAMT></STMTTRN></OFX>"))
@@ -103,6 +109,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Parses a comma-separated CSV bank statement")
 	void parsesACommaSeparatedCsv() {
 		String csv = """
 				date,amount,description,reference
@@ -123,6 +130,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Parses a Brazilian semicolon-separated CSV bank statement")
 	void parsesABrazilianSemicolonCsv() {
 		String csv = "﻿Data;Valor;Histórico;Documento\r\n"
 				+ "25/09/2026;\"1.234,56\";TED RECEBIDA;123\r\n"
@@ -143,6 +151,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a CSV statement where the optional columns are absent")
 	void theOptionalCsvColumnsMayBeAbsent() {
 		List<BankStatementLine> lines = parser.parse("date;amount\n2026-09-25;10");
 
@@ -153,6 +162,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a CSV statement that lacks a date or an amount column")
 	void aCsvNeedsADateAndAnAmountColumn() {
 		assertThatThrownBy(() -> parser.parse("date,description\n2026-09-25,x"))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("date and an amount");
@@ -161,6 +171,7 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a CSV row with a missing or invalid value, reporting its file line")
 	void aCsvRowWithAMissingOrInvalidValueIsRejectedWithItsFileLine() {
 		assertThatThrownBy(() -> parser.parse("date,amount\n2026-09-25,1.00\n2026-09-26,"))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("Line 3");
@@ -171,11 +182,13 @@ class BankStatementParserAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns no lines for a CSV statement that has only a header")
 	void aCsvWithOnlyAHeaderHasNoLines() {
 		assertThat(parser.parse("date,amount\n")).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Rejects a blank bank statement")
 	void aBlankStatementIsRejected() {
 		assertThatThrownBy(() -> parser.parse("  ")).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> parser.parse(null)).isInstanceOf(BusinessRuleException.class);

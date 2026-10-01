@@ -30,6 +30,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -47,6 +48,7 @@ class IssueNfceConcurrentIntegrationTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Never allocates the same document number to two racing NFC-e issuances")
 	void twoRacingIssuancesNeverAllocateTheSameDocumentNumber() {
 		CompanyId companyId = persistCompany();
 		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFCE).reconfigure("001", 700L));

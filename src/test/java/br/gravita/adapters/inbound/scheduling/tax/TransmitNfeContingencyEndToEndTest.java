@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -106,6 +107,7 @@ class TransmitNfeContingencyEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Switches to SVC contingency after repeated SEFAZ UF timeouts and then authorizes through it")
 	void ac3_switchesToSvcContingencyAfterRepeatedSefazUfTimeoutsAndThenAuthorizesThroughIt() {
 		NfeDocumentId documentId = NfeDocumentId.of(UUID.randomUUID());
 		NfeDocument queued = queuedDocument(documentId);

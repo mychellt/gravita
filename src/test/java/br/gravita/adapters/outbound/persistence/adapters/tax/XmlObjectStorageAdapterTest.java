@@ -4,6 +4,7 @@ import br.gravita.adapters.outbound.persistence.repositories.tax.XmlObjectJpaRep
 import br.gravita.core.domain.masterdata.CompanyId;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -22,6 +23,7 @@ class XmlObjectStorageAdapterTest {
 	private XmlObjectJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Returns a reference that resolves to the original content after storing an XML")
 	void storingXmlReturnsAReferenceThatResolvesToTheOriginalContent() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		byte[] xml = "<NFe>example</NFe>".getBytes(StandardCharsets.UTF_8);

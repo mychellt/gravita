@@ -4,6 +4,7 @@ import br.gravita.adapters.outbound.persistence.mappers.ProfilePersistenceMapper
 import br.gravita.core.domain.PermissionAction;
 import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -22,6 +23,7 @@ class ProfileRepositoryAdapterTest {
 	private ProfileRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Saves a profile with its permissions and retrieves it")
 	void shouldSaveAndRetrieveProfileWithPermissions() {
 		UUID id = UUID.randomUUID();
 		ProfileDomain profile = ProfileDomain.builder().id(id).name("Sales Read-Only")
@@ -42,6 +44,7 @@ class ProfileRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Finds a profile by its name")
 	void shouldFindProfileByName() {
 		UUID id = UUID.randomUUID();
 		ProfileDomain profile = ProfileDomain.builder().id(id).name("Purchasing").permissions(List.of()).build();
@@ -52,11 +55,13 @@ class ProfileRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when no profile has the given name")
 	void shouldReturnEmptyWhenNameNotFound() {
 		assertThat(repositoryAdapter.findByName("Unknown Profile")).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Replaces a profile's permissions without affecting other profiles")
 	void shouldReplacePermissionsWithoutAffectingOtherProfiles() {
 		ProfileDomain financial = ProfileDomain.builder().id(UUID.randomUUID()).name("Financial")
 				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")

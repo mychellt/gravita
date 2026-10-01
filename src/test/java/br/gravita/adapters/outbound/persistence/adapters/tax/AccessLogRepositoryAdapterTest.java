@@ -6,6 +6,7 @@ import br.gravita.core.domain.system.AccessLog;
 import br.gravita.core.domain.system.AccessLogEvent;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.usercases.system.GetAccessLogQuery;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -25,6 +26,7 @@ class AccessLogRepositoryAdapterTest {
 	private AccessLogRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Persists a successful login with the attempting user")
 	void shouldPersistASuccessfulLoginWithTheAttemptingUser() {
 		AccessLog accessLog = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
 
@@ -38,6 +40,7 @@ class AccessLogRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Persists a failed login with no matching user")
 	void shouldPersistAFailedLoginWithNoMatchingUser() {
 		AccessLog accessLog = AccessLog.login(null, "ghost@example.com", false, "5.6.7.8", "curl/8.0");
 
@@ -49,6 +52,7 @@ class AccessLogRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Excludes entries older than the given start date")
 	void shouldExcludeEntriesOlderThanTheGivenDateFrom() {
 		UserId userId = UserId.generate();
 		Instant now = Instant.now();
@@ -69,6 +73,7 @@ class AccessLogRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Filters access log entries by user id")
 	void shouldFilterByUserId() {
 		UserId targetUser = UserId.generate();
 		Instant now = Instant.now();
