@@ -21,6 +21,5 @@ export class AdminShellComponent {
 
   readonly nav: AdminNavItem[] = [
     { label: 'Configurações gerais', icon: 'ti-adjustments-horizontal', route: '/admin/configuracoes' },
-    { label: 'Clientes', icon: 'ti-address-book', route: '/admin/clientes' },
   ];
 }

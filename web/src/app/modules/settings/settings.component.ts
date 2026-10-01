@@ -24,7 +24,7 @@ export class SettingsComponent {
   readonly menus: SettingsMenu[] = [
     { key: 'empresa',     label: 'Empresa',       icon: 'ti-building' },
     { key: 'usuarios',    label: 'Usuários',       icon: 'ti-users' },
-    { key: 'clientes',    label: 'Clientes',       icon: 'ti-address-book', route: '/admin/clientes' },
+    { key: 'clientes',    label: 'Clientes',       icon: 'ti-address-book', route: '/settings/clientes' },
     { key: 'permissoes',  label: 'Permissões',     icon: 'ti-shield-lock' },
     { key: 'certificado', label: 'Cert. Digital',  icon: 'ti-certificate' },
     { key: 'integracoes', label: 'Integrações',    icon: 'ti-plug' },
