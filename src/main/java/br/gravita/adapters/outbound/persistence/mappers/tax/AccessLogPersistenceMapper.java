@@ -14,10 +14,10 @@ import java.util.UUID;
 public interface AccessLogPersistenceMapper {
 
 	@Mapping(target = "userId", source = "userId", qualifiedByName = "toUuid")
-	AccessLogJpaEntity toEntity(AccessLog domain);
+	AccessLogJpaEntity map(final AccessLog domain);
 
 	@Mapping(target = "userId", source = "userId", qualifiedByName = "toUserId")
-	AccessLog toDomain(AccessLogJpaEntity entity);
+	AccessLog map(final AccessLogJpaEntity entity);
 
 	@Named("toUuid")
 	default UUID toUuid(UserId userId) {

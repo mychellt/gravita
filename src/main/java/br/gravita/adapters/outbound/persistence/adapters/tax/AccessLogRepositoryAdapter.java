@@ -24,7 +24,7 @@ class AccessLogRepositoryAdapter implements AccessLogRepositoryPort {
 
 	@Override
 	public AccessLog save(AccessLog accessLog) {
-		return mapper.toDomain(jpaRepository.save(mapper.toEntity(accessLog)));
+		return mapper.map(jpaRepository.save(mapper.map(accessLog)));
 	}
 
 	@Override
@@ -38,7 +38,7 @@ class AccessLogRepositoryAdapter implements AccessLogRepositoryPort {
 				PageRequest.of(query.page(), query.size(), Sort.by(Sort.Direction.DESC, "timestamp")));
 
 		return new Page<>(
-				result.getContent().stream().map(mapper::toDomain).toList(),
+				result.getContent().stream().map(mapper::map).toList(),
 				result.getNumber(),
 				result.getSize(),
 				result.getTotalElements());
