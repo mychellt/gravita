@@ -3,7 +3,6 @@ package br.gravita.core.domain.system;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -11,7 +10,6 @@ import java.util.UUID;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class AccessLog {
 
 	public static final int RETENTION_MONTHS = 12;
