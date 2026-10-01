@@ -100,7 +100,7 @@ public class NfeXmlParser {
 		for (int i = 0; i < detNodes.getLength(); i++) {
 			Node det = detNodes.item(i);
 			Node prod = node(xpath, det, "*[local-name()='prod']");
-			Node imposto = node(xpath, det, "*[local-name()='imposto']");
+			Node taxNode = node(xpath, det, "*[local-name()='imposto']");
 			if (prod == null) {
 				throw new BusinessRuleException("Supplier NFe XML item #" + (i + 1) + " is missing <prod>");
 			}
@@ -114,10 +114,10 @@ public class NfeXmlParser {
 					decimal(xpath, prod, "*[local-name()='qCom']"),
 					decimal(xpath, prod, "*[local-name()='vUnCom']"),
 					decimal(xpath, prod, "*[local-name()='vProd']"),
-					decimalOrZero(xpath, imposto, ".//*[local-name()='ICMS']//*[local-name()='vICMS']"),
-					decimalOrZero(xpath, imposto, ".//*[local-name()='IPI']//*[local-name()='vIPI']"),
-					decimalOrZero(xpath, imposto, ".//*[local-name()='PIS']//*[local-name()='vPIS']"),
-					decimalOrZero(xpath, imposto, ".//*[local-name()='COFINS']//*[local-name()='vCOFINS']")));
+					decimalOrZero(xpath, taxNode, ".//*[local-name()='ICMS']//*[local-name()='vICMS']"),
+					decimalOrZero(xpath, taxNode, ".//*[local-name()='IPI']//*[local-name()='vIPI']"),
+					decimalOrZero(xpath, taxNode, ".//*[local-name()='PIS']//*[local-name()='vPIS']"),
+					decimalOrZero(xpath, taxNode, ".//*[local-name()='COFINS']//*[local-name()='vCOFINS']")));
 		}
 		return items;
 	}
