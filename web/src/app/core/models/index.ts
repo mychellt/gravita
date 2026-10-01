@@ -363,6 +363,18 @@ export interface FaqItem {
   resposta: string;
 }
 
+/** Cliente da Gravita (tenant) com plano contratado — não confundir com `Cliente`, que é cliente do tenant. */
+export interface PlatformCustomer {
+  id: string;
+  cnpj: string;
+  razaoSocial: string;
+  nomeFantasia: string;
+  email: string;
+  planTier: PlanTier;
+  status: 'ativo' | 'inadimplente' | 'bloqueado' | 'inativo';
+  assinaturaDesde: Date;
+}
+
 export interface PlatformConfig {
   plans: Plan[];
   billing: BillingSettings;

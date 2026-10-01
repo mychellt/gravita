@@ -1,0 +1,40 @@
+<app-page-header title="Clientes Gravita" subtitle="Empresas com plano contratado na plataforma · somente leitura" />
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">Todos os clientes</span>
+    <input class="filter-input" type="text" placeholder="Buscar por nome ou CNPJ..."
+           aria-label="Buscar cliente por nome ou CNPJ"
+           [value]="searchQuery()"
+           (input)="searchQuery.set($any($event.target).value)" />
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Empresa</th>
+        <th>CNPJ</th>
+        <th>Plano</th>
+        <th>Status</th>
+        <th>Assinante desde</th>
+        <th class="td-right">Mensalidade</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of customers(); track c.id) {
+        <tr>
+          <td class="td-name">{{ c.nomeFantasia || c.razaoSocial }}<div style="font-size:11px;color:var(--text3);font-weight:400">{{ c.email }}</div></td>
+          <td class="td-mono">{{ c.cnpj }}</td>
+          <td>{{ c.planName }}</td>
+          <td><app-badge [value]="c.status" /></td>
+          <td style="font-size:12px">{{ c.assinaturaDesde | date:'dd/MM/yyyy' }}</td>
+          <td class="td-right">{{ c.planPrice != null ? (c.planPrice | brl) : '--' }}</td>
+        </tr>
+      }
+      @empty {
+        <tr>
+          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
