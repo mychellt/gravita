@@ -21,6 +21,15 @@ class PermissionCheckAdapter implements PermissionCheckPort {
 
 	@Override
 	public boolean canView(UserId userId, String screen) {
-		return checkPermissionUseCase.execute(new CheckPermissionQuery(userId, MODULE, screen, PermissionAction.VIEW));
+		return can(userId, screen, PermissionAction.VIEW);
+	}
+
+	@Override
+	public boolean canExport(UserId userId, String screen) {
+		return can(userId, screen, PermissionAction.EXPORT);
+	}
+
+	private boolean can(UserId userId, String screen, PermissionAction action) {
+		return checkPermissionUseCase.execute(new CheckPermissionQuery(userId, MODULE, screen, action));
 	}
 }
