@@ -22,6 +22,10 @@ const LABELS: Record<string, string> = {
   inadimplente:      'Inadimplente',
   ativo:             'Ativo',
   inativo:           'Inativo',
+  parcial:           'Parcialmente baixado',
+  liquidado:         'Liquidado',
+  renegociado:       'Renegociado',
+  cancelado:         'Cancelado',
 };
 
 const CLASSES: Record<string, BadgeType> = {
@@ -40,6 +44,10 @@ const CLASSES: Record<string, BadgeType> = {
   vencido:           'canc',
   bloqueado:         'canc',
   inativo:           'inativo',
+  parcial:           'proc',
+  liquidado:         'auth',
+  renegociado:       'rascunho',
+  cancelado:         'inativo',
   rascunho:          'rascunho',
   em_envio:          'proc',
   em_transito:       'proc',

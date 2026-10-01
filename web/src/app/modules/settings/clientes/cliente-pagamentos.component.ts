@@ -1,25 +1,53 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { DataService } from '../../../core/services/data.service';
+import { Recebivel, RecebivelOrigem } from '../../../core/models';
+import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { BrlPipe } from '../../../shared/pipes/brl.pipe';
 
-/**
- * Placeholder for the customer "Pagamentos" page. The follow-up task replaces
- * this component's template/logic; the route and `id` input are already wired.
- */
+const ORIGEM_LABELS: Record<RecebivelOrigem, string> = {
+  faturamento: 'Faturamento',
+  manual: 'Manual',
+  renegociacao: 'Renegociação',
+};
+
+/** Still owed by the customer (backend `Receivable.isOutstanding`). */
+const isOutstanding = (r: Recebivel) => r.status === 'aberto' || r.status === 'parcial';
+
+/** Outstanding and past its due date (backend `Receivable.isOverdue`). */
+const isOverdue = (r: Recebivel, today: Date) => isOutstanding(r) && r.vencimento < today;
+
 @Component({
   selector: 'app-cliente-pagamentos',
   standalone: true,
-  imports: [RouterLink, PageHeaderComponent],
-  template: `
-    <app-page-header title="Pagamentos" subtitle="Pagamentos do cliente">
-      <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
-    </app-page-header>
-    <div class="card" style="padding:40px;text-align:center;color:var(--text3)">
-      <i class="ti ti-settings" style="font-size:32px;display:block;margin-bottom:8px"></i>
-      Em desenvolvimento
-    </div>
-  `
+  imports: [DatePipe, RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
+  styleUrl: './cliente-pagamentos.component.scss',
+  templateUrl: './cliente-pagamentos.component.html'
 })
 export class ClientePagamentosComponent {
+  private data = inject(DataService);
+
+  /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
+
+  readonly cliente = computed(() => this.data.clientes().find(c => c.id === this.id()));
+
+  readonly titulos = computed(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.data.recebiveis()
+      .filter(r => r.clienteId === this.id())
+      .sort((a, b) => a.vencimento.getTime() - b.vencimento.getTime())
+      .map(r => ({
+        ...r,
+        origemLabel: ORIGEM_LABELS[r.origem] ?? r.origem,
+        parcelaLabel: r.parcela != null && r.totalParcelas != null ? `${r.parcela}/${r.totalParcelas}` : '--',
+        vencido: isOverdue(r, today),
+      }));
+  });
+
+  readonly vencidos = computed(() => this.titulos().filter(t => t.vencido));
+  readonly totalVencido = computed(() => this.vencidos().reduce((s, t) => s + t.valor, 0));
 }
