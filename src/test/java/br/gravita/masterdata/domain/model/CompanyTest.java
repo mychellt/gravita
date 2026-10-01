@@ -6,6 +6,7 @@ import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -19,6 +20,7 @@ class CompanyTest {
 	private static final Document VALID_CNPJ = Document.cnpj("11222333000181");
 
 	@Test
+	@DisplayName("Creates a company with valid data")
 	void shouldCreateCompanyWithValidData() {
 		Company company = validCompanyBuilder().build();
 
@@ -31,6 +33,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Allows registering a branch with a parent company id")
 	void shouldAllowRegisteringBranchWithParentCompanyId() {
 		CompanyId parentId = CompanyId.of(UUID.randomUUID());
 
@@ -40,6 +43,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null CNPJ")
 	void shouldRejectNullCnpj() {
 		assertThatThrownBy(() -> build(b -> b.cnpj(null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -47,6 +51,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null tax regime")
 	void shouldRejectNullTaxRegime() {
 		assertThatThrownBy(() -> build(b -> b.taxRegime(null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -54,6 +59,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null SEFAZ environment")
 	void shouldRejectNullSefazEnvironment() {
 		assertThatThrownBy(() -> build(b -> b.sefazEnvironment(null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -61,6 +67,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank state registration (IE)")
 	void shouldRejectBlankIe() {
 		assertThatThrownBy(() -> build(b -> b.ie(" ")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -68,6 +75,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a non-numeric state registration (IE)")
 	void shouldRejectNonNumericIe() {
 		assertThatThrownBy(() -> build(b -> b.ie("ABC123")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -75,11 +83,13 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Accepts ISENTO as state registration (IE), case-insensitively")
 	void shouldAcceptIsentoIeCaseInsensitive() {
 		assertThatCode(() -> build(b -> b.ie("isento"))).doesNotThrowAnyException();
 	}
 
 	@Test
+	@DisplayName("Rejects a blank municipal registration (IM)")
 	void shouldRejectBlankIm() {
 		assertThatThrownBy(() -> build(b -> b.im("")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -87,6 +97,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a non-numeric municipal registration (IM)")
 	void shouldRejectNonNumericIm() {
 		assertThatThrownBy(() -> build(b -> b.im("IM-1")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -94,6 +105,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank state")
 	void shouldRejectBlankState() {
 		assertThatThrownBy(() -> build(b -> b.state(" ")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -101,6 +113,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid state")
 	void shouldRejectInvalidState() {
 		assertThatThrownBy(() -> build(b -> b.state("SPX")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -108,6 +121,7 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Normalizes the state to uppercase")
 	void shouldNormalizeStateToUppercase() {
 		Company company = build(b -> b.state("sp"));
 

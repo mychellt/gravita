@@ -5,6 +5,7 @@ import br.gravita.adapters.inbound.controllers.tax.ConfigureApprovalAlcadaReques
 import br.gravita.core.usercases.system.ConfigureApprovalAlcadaCommand;
 import br.gravita.core.usercases.system.ConfigureApprovalAlcadaUseCase;
 import br.gravita.core.domain.system.UnknownApprovalModuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -38,6 +39,7 @@ class ApprovalAlcadaControllerTest {
 	private ConfigureApprovalAlcadaUseCase configureApprovalAlcadaUseCase;
 
 	@Test
+	@DisplayName("Responds 204 when configuring an approval alcada succeeds")
 	void shouldReturn204WhenConfiguringAlcadaSucceeds() throws Exception {
 		UUID approverProfileId = UUID.randomUUID();
 		ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("5000.00"), null,
@@ -57,6 +59,7 @@ class ApprovalAlcadaControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the approval module is unknown")
 	void shouldReturn400WhenModuleIsUnknown() throws Exception {
 		ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
 				UUID.randomUUID());
@@ -71,6 +74,7 @@ class ApprovalAlcadaControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the approver profile id is missing")
 	void shouldReturn400WhenApproverProfileIdIsMissing() throws Exception {
 		String body = objectMapper.writeValueAsString(new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
 				null));

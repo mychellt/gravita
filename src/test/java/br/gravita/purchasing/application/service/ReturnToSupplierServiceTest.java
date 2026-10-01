@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -81,6 +82,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returning every received item in full reverses stock and payable and issues the return NF-e")
 	void returningEveryReceivedItemInFullReversesStockAndPayableAndIssuesTheReturnNfe() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
@@ -120,6 +122,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returning less than the received quantity is recorded as a partial return")
 	void returningFewerThanTheReceivedQuantityIsRecordedAsPartial() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
@@ -142,6 +145,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("A second partial return that completes the received quantity is recorded as total")
 	void aSecondPartialReturnThatCompletesTheReceivedQuantityIsRecordedAsTotal() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
@@ -161,6 +165,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return against a receipt that is not confirmed")
 	void rejectsAReturnAgainstAReceiptThatIsNotConfirmed() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
@@ -180,6 +185,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return exceeding the originally received quantity without any side effect")
 	void rejectsAReturnQuantityExceedingWhatWasOriginallyReceivedWithoutAnySideEffect() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
@@ -197,6 +203,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects returning more than what remains after a prior return")
 	void rejectsReturningMoreThanWhatRemainsAfterAPriorReturn() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
 		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
@@ -214,6 +221,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return for a receipt that does not exist")
 	void rejectsAReturnForAReceiptThatDoesNotExist() {
 		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
 		when(purchaseReceiptRepositoryPort.findById(receiptId)).thenReturn(Optional.empty());
@@ -224,6 +232,7 @@ class ReturnToSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return whose order cannot be found")
 	void rejectsAReturnWhoseOrderCannotBeFound() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		PurchaseReceipt receipt = PurchaseReceipt

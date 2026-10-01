@@ -11,6 +11,7 @@ import br.gravita.core.ports.inbound.masterdata.RegisterCompanyUseCase;
 import br.gravita.core.ports.inbound.masterdata.SwitchSefazEnvironmentUseCase;
 import br.gravita.core.ports.inbound.masterdata.UploadDigitalCertificateCommand;
 import br.gravita.core.ports.inbound.masterdata.UploadDigitalCertificateUseCase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -55,6 +56,7 @@ class CompanyControllerTest {
 	private UploadDigitalCertificateUseCase uploadDigitalCertificateUseCase;
 
 	@Test
+	@DisplayName("Responds 204 when configuring a document series succeeds")
 	void shouldReturn204WhenConfiguringDocumentSeriesSucceeds() throws Exception {
 		UUID companyId = UUID.randomUUID();
 		ConfigureDocumentSeriesRequest request = new ConfigureDocumentSeriesRequest("001", 1000L);
@@ -73,6 +75,7 @@ class CompanyControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the document type is unknown")
 	void shouldReturn400WhenDocumentTypeIsUnknown() throws Exception {
 		ConfigureDocumentSeriesRequest request = new ConfigureDocumentSeriesRequest("001", 1L);
 
@@ -84,6 +87,7 @@ class CompanyControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the series is missing")
 	void shouldReturn400WhenSeriesIsMissing() throws Exception {
 		String body = objectMapper.writeValueAsString(new ConfigureDocumentSeriesRequest(null, 1L));
 
@@ -94,6 +98,7 @@ class CompanyControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when the company or series does not exist")
 	void shouldReturn404WhenCompanyOrSeriesDoesNotExist() throws Exception {
 		UUID companyId = UUID.randomUUID();
 		doThrow(new DocumentSeriesNotFoundException(companyId, FiscalDocumentType.NFSE))
@@ -106,6 +111,7 @@ class CompanyControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 204 when uploading a digital certificate succeeds")
 	void shouldReturn204WhenUploadingCertificateSucceeds() throws Exception {
 		UUID companyId = UUID.randomUUID();
 		MockMultipartFile pfxFile = new MockMultipartFile("pfxFile", "cert.pfx", "application/x-pkcs12",
@@ -125,6 +131,7 @@ class CompanyControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the use case rejects the certificate type")
 	void shouldReturn400WhenCertificateTypeIsRejectedByTheUseCase() throws Exception {
 		UUID companyId = UUID.randomUUID();
 		MockMultipartFile pfxFile = new MockMultipartFile("pfxFile", "cert.pfx", "application/x-pkcs12",

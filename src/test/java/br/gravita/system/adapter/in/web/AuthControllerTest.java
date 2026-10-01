@@ -6,6 +6,7 @@ import br.gravita.adapters.inbound.controllers.tax.TwoFactorVerifyRequest;
 import br.gravita.core.usercases.system.AuthResult;
 import br.gravita.core.usercases.system.AuthenticateCommand;
 import br.gravita.core.usercases.system.AuthenticateUseCase;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ class AuthControllerTest {
 	private AuthenticateUseCase authenticateUseCase;
 
 	@Test
+	@DisplayName("Responds 200 with a session token when login succeeds")
 	void shouldReturn200WithSessionTokenWhenLoginSucceeds() throws Exception {
 		when(authenticateUseCase.execute(any())).thenReturn(AuthResult.authenticated("token-123"));
 
@@ -54,6 +56,7 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 200 flagging that a TOTP code is required when two-factor is pending")
 	void shouldReturn200WithTotpRequiredWhenTwoFactorIsPending() throws Exception {
 		when(authenticateUseCase.execute(any())).thenReturn(AuthResult.totpRequired());
 
@@ -66,6 +69,7 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 401 when the login is rejected")
 	void shouldReturn401WhenLoginIsRejected() throws Exception {
 		when(authenticateUseCase.execute(any())).thenReturn(AuthResult.rejected());
 
@@ -77,6 +81,7 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the login email is blank")
 	void shouldReturn400WhenLoginEmailIsBlank() throws Exception {
 		mockMvc.perform(post("/api/auth/login")
 						.contentType("application/json")
@@ -85,6 +90,7 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 200 as authenticated when TOTP verification succeeds")
 	void shouldReturn200AndAuthenticatedWhenTotpVerificationSucceeds() throws Exception {
 		when(authenticateUseCase.execute(any())).thenReturn(AuthResult.authenticated("token-456"));
 
@@ -101,6 +107,7 @@ class AuthControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 401 when the TOTP code is invalid")
 	void shouldReturn401WhenTotpCodeIsInvalid() throws Exception {
 		when(authenticateUseCase.execute(any())).thenReturn(AuthResult.rejected());
 

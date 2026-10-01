@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +37,7 @@ class ManagePriceTableServiceTest {
 	private PriceTableRepositoryPort priceTableRepositoryPort;
 
 	@Test
+	@DisplayName("Creates a new price table when no id is provided")
 	void shouldCreateNewPriceTableWhenNoIdIsProvided() {
 		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
 		when(priceTableRepositoryPort.save(any(PriceTable.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -52,6 +54,7 @@ class ManagePriceTableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates the existing price table when an id is provided and found")
 	void shouldUpdateExistingPriceTableWhenIdIsProvidedAndFound() {
 		UUID existingId = UUID.randomUUID();
 		PriceTable existing = PriceTable.of(PriceTableId.of(existingId), PriceFormation.FIXED, LocalDate.of(2026, 1, 1),
@@ -73,6 +76,7 @@ class ManagePriceTableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an update when the price table id is unknown")
 	void shouldRejectUpdateWhenPriceTableIdIsUnknown() {
 		UUID unknownId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(unknownId))).thenReturn(Optional.empty());

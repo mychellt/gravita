@@ -11,6 +11,7 @@ import br.gravita.core.domain.purchasing.PurchaseRequestId;
 import br.gravita.core.domain.purchasing.PurchaseRequestStatus;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepositoryPort;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	private PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
 
 	@Test
+	@DisplayName("QA scenario 1: a user-originated request with requester and items is created and persisted as OPEN")
 	void scenario1_userOriginWithRequestedByAndItemsIsCreatedAndPersistedAsOpen() throws Exception {
 		UUID requestedBy = UUID.randomUUID();
 		String body = """
@@ -51,6 +53,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	}
 
 	@Test
+	@DisplayName("QA scenario 2: a minimum-stock trigger request without a requester is created")
 	void scenario2_minStockTriggerOriginWithoutRequestedByIsCreated() throws Exception {
 		String body = """
 				{
@@ -65,6 +68,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	}
 
 	@Test
+	@DisplayName("QA scenario 3: a sales-order demand request without a requester is created")
 	void scenario3_salesOrderDemandOriginWithoutRequestedByIsCreated() throws Exception {
 		String body = """
 				{
@@ -79,6 +83,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	}
 
 	@Test
+	@DisplayName("QA scenario 4: an empty item list is rejected with 400")
 	void scenario4_emptyItemListIsRejectedWith400() throws Exception {
 		String body = """
 				{
@@ -93,6 +98,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	}
 
 	@Test
+	@DisplayName("QA scenario 5: a user-originated request without a requester is rejected with 400")
 	void scenario5_userOriginWithoutRequestedByIsRejectedWith400() throws Exception {
 		String body = """
 				{
@@ -107,6 +113,7 @@ class CreatePurchaseRequestQaVerificationTest {
 	}
 
 	@Test
+	@DisplayName("QA scenario 6: a system-triggered request that carries a requester is rejected with 400")
 	void scenario6_systemTriggeredOriginWithRequestedByPresentIsRejectedWith400() throws Exception {
 		String body = """
 				{

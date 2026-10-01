@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +54,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Receiving the full ordered quantity records a total receipt pending conference")
 	void receivingTheFullOrderedQuantityRecordsATotalReceiptPendingConference() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -71,6 +73,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Receiving less than the ordered quantity records a partial receipt")
 	void receivingLessThanTheOrderedQuantityRecordsAPartialReceipt() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -86,6 +89,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects receiving against an order that does not exist")
 	void rejectsReceivingAgainstAnOrderThatDoesNotExist() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
@@ -98,6 +102,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects receiving against a closed order")
 	void rejectsReceivingAgainstAClosedOrder() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN).afterReceiptConfirmed(true);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -111,6 +116,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects receiving against an order pending approval")
 	void rejectsReceivingAgainstAnOrderPendingApproval() {
 		PurchaseOrder order = PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()),
 				PurchaseRequestId.of(UUID.randomUUID()), null, supplierId,
@@ -126,6 +132,7 @@ class ReceivePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a received item for a product that is not part of the order")
 	void rejectsAReceivedItemForAProductNotPartOfTheOrder() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));

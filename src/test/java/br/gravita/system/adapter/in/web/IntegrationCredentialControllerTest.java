@@ -6,6 +6,7 @@ import br.gravita.core.usercases.system.ConfigureIntegrationCredentialCommand;
 import br.gravita.core.usercases.system.ConfigureIntegrationCredentialUseCase;
 import br.gravita.core.domain.system.IntegrationEnvironment;
 import br.gravita.core.domain.system.UnknownIntegrationException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ class IntegrationCredentialControllerTest {
 	private ConfigureIntegrationCredentialUseCase configureIntegrationCredentialUseCase;
 
 	@Test
+	@DisplayName("Responds 204 when configuring an integration credential succeeds")
 	void shouldReturn204WhenConfiguringCredentialSucceeds() throws Exception {
 		ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
 				IntegrationEnvironment.PRODUCTION, "https://nfe.fazenda.example.com", "cert-payload");
@@ -53,6 +55,7 @@ class IntegrationCredentialControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the integration name is unknown")
 	void shouldReturn400WhenIntegrationNameIsUnknown() throws Exception {
 		ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
 				null, "https://stripe.example.com", "secret");
@@ -67,6 +70,7 @@ class IntegrationCredentialControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the endpoint is blank")
 	void shouldReturn400WhenEndpointIsBlank() throws Exception {
 		String body = objectMapper.writeValueAsString(new ConfigureIntegrationCredentialRequest(null, " ", "secret"));
 

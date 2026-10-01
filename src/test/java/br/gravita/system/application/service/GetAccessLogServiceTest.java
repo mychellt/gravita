@@ -6,6 +6,7 @@ import br.gravita.core.domain.system.UserId;
 import br.gravita.core.ports.outbound.persistence.system.AccessLogRepositoryPort;
 import br.gravita.core.usercases.system.GetAccessLogQuery;
 import br.gravita.core.usercases.tax.GetAccessLogService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +35,7 @@ class GetAccessLogServiceTest {
 	}
 
 	@Test
+	@DisplayName("Clamps dateFrom to the retention cutoff when none is given")
 	void shouldClampDateFromToTheRetentionCutoffWhenNoneIsGiven() {
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
 
@@ -46,6 +48,7 @@ class GetAccessLogServiceTest {
 	}
 
 	@Test
+	@DisplayName("Clamps dateFrom to the retention cutoff when the requested date is older")
 	void shouldClampDateFromToTheRetentionCutoffWhenARequestedDateIsOlder() {
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
 		Instant thirteenMonthsAgo = Instant.now().minus(395, ChronoUnit.DAYS);
@@ -58,6 +61,7 @@ class GetAccessLogServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the requested dateFrom when it is within the retention window")
 	void shouldKeepARequestedDateFromWhenItIsWithinTheRetentionWindow() {
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
 		Instant oneWeekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
@@ -70,6 +74,7 @@ class GetAccessLogServiceTest {
 	}
 
 	@Test
+	@DisplayName("Passes the user id and other filters through unchanged")
 	void shouldPassUserIdAndOtherFiltersThroughUnchanged() {
 		UserId userId = UserId.generate();
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
@@ -86,6 +91,7 @@ class GetAccessLogServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns whatever page the repository produces")
 	void shouldReturnWhateverPageTheRepositoryProduces() {
 		AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
 		Page<AccessLog> repositoryPage = new Page<>(List.of(entry), 0, 20, 1);

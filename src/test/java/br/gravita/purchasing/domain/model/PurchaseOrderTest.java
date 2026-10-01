@@ -14,11 +14,13 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PurchaseOrderTest {
 
 	@Test
+	@DisplayName("A newly created order starts OPEN")
 	void aNewlyCreatedOrderStartsOpen() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
@@ -27,6 +29,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Total value sums each line's quantity times unit price")
 	void totalValueSumsEachLinesQuantityTimesUnitPrice() {
 		PurchaseOrder order = create(List.of(
 				new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("2.00")),
@@ -36,6 +39,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Carries the approval-required flag it was created with")
 	void carriesTheApprovalRequiredFlagItWasCreatedWith() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.ONE,
 				BigDecimal.TEN)), true);
@@ -44,6 +48,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an order with an empty item list")
 	void rejectsAnEmptyItemList() {
 		assertThatThrownBy(() -> create(List.of(), false))
 				.isInstanceOf(BusinessRuleException.class)
@@ -51,6 +56,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an order line with a negative unit price")
 	void rejectsANegativeUnitPrice() {
 		assertThatThrownBy(() -> new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("-1")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -58,6 +64,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("An order whose quantities are fully received is closed")
 	void aFullyReceivedOrderCloses() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
@@ -68,6 +75,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("A partially received order stays partially received")
 	void aPartiallyReceivedOrderStaysPartiallyReceived() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
@@ -78,6 +86,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming a receipt against a closed order")
 	void confirmingAReceiptAgainstAClosedOrderIsRejected() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
@@ -88,6 +97,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("An open order that does not require approval can be received against")
 	void anOpenOrderNotRequiringApprovalIsReceivable() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
@@ -96,6 +106,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("A partially received order can still be received against")
 	void aPartiallyReceivedOrderIsStillReceivable() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(false);
@@ -104,6 +115,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("A closed order cannot be received against")
 	void aClosedOrderCannotBeReceivedAgainst() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
@@ -114,6 +126,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("An order still requiring approval cannot be received against")
 	void anOrderRequiringApprovalCannotBeReceivedAgainst() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
@@ -124,6 +137,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Approving an order pending approval clears the flag and makes it receivable")
 	void approvingAnOrderPendingApprovalClearsTheFlagAndMakesItReceivable() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
@@ -138,6 +152,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejecting an order pending approval cancels it")
 	void rejectingAnOrderPendingApprovalCancelsIt() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
@@ -148,6 +163,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("An order that does not require approval cannot be approved")
 	void anOrderNotRequiringApprovalCannotBeApproved() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
@@ -158,6 +174,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("An already approved order cannot be approved again")
 	void anAlreadyApprovedOrderCannotBeApprovedAgain() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true).approve(UUID.randomUUID());
@@ -168,6 +185,7 @@ class PurchaseOrderTest {
 	}
 
 	@Test
+	@DisplayName("A cancelled order cannot be rejected again")
 	void aCancelledOrderCannotBeRejectedAgain() {
 		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true).reject();

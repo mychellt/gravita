@@ -11,6 +11,7 @@ import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import br.gravita.core.usercases.system.CheckPermissionQuery;
 import br.gravita.core.usercases.tax.CheckPermissionService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -45,6 +46,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Denies access when the user does not exist")
 	void shouldDenyWhenUserDoesNotExist() {
 		UserId userId = UserId.generate();
 		when(userRepositoryPort.findById(userId)).thenReturn(Optional.empty());
@@ -55,6 +57,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Denies access when the user is inactive")
 	void shouldDenyWhenUserIsInactive() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);
@@ -67,6 +70,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Denies access when the user's profile no longer exists")
 	void shouldDenyWhenProfileNoLongerExists() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);
@@ -79,6 +83,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Denies access when the profile lacks the exact module, screen and action permission")
 	void shouldDenyWhenProfileLacksTheExactModuleScreenActionTriple() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);
@@ -96,6 +101,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Allows access when a standard profile grants the exact module, screen and action")
 	void shouldAllowWhenStandardProfileGrantsTheExactTriple() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);
@@ -111,6 +117,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Allows access when a custom profile grants the exact module, screen and action")
 	void shouldAllowWhenCustomProfileGrantsTheExactTriple() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);
@@ -126,6 +133,7 @@ class CheckPermissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Denies access when the profile has no permissions at all")
 	void shouldDenyWhenProfileHasNoPermissionsAtAll() {
 		UUID profileId = UUID.randomUUID();
 		User user = userWithProfile(profileId);

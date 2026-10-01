@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,6 +69,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a receipt that fully covers the order registers stock, generates payables and closes the order")
 	void confirmingARequestFullyCoveringTheOrderRegistersStockGeneratesPayablesAndClosesTheOrder() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), BigDecimal.TEN, "100.00");
@@ -101,6 +103,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a partial receipt leaves the order partially received")
 	void confirmingAPartialReceiptLeavesTheOrderPartiallyReceived() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
@@ -117,6 +120,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Closes the order only when all its confirmed receipts together cover the ordered quantity")
 	void closesTheOrderOnlyWhenAllOfItsConfirmedReceiptsTogetherCoverTheOrderedQuantity() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
@@ -138,6 +142,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming a receipt still pending conference without any side effect")
 	void confirmingAReceiptStillPendingConferenceIsRejectedWithoutAnySideEffect() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
@@ -156,6 +161,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming an already confirmed receipt without duplicating side effects")
 	void confirmingAnAlreadyConfirmedReceiptIsRejectedWithoutDuplicatingSideEffects() {
 		PurchaseOrder order = openOrder(BigDecimal.TEN);
 		PurchaseReceipt confirmed = PurchaseReceipt
@@ -176,6 +182,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming a receipt that does not exist")
 	void rejectsConfirmingAReceiptThatDoesNotExist() {
 		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
 		when(purchaseReceiptRepositoryPort.findById(receiptId)).thenReturn(Optional.empty());
@@ -185,6 +192,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects confirming a receipt whose order cannot be found")
 	void rejectsConfirmingAReceiptWhoseOrderCannotBeFound() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		PurchaseReceipt receipt = PurchaseReceipt

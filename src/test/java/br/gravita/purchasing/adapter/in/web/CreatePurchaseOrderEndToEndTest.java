@@ -10,6 +10,7 @@ import br.gravita.core.domain.purchasing.QuotationItem;
 import br.gravita.core.domain.purchasing.QuotationItemPrice;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.purchasing.QuotationRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +48,7 @@ class CreatePurchaseOrderEndToEndTest {
     private PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
 
     @Test
+    @DisplayName("An order can be created from an open request without a formal quotation")
     void anOrderCanBeCreatedFromAnOpenRequestWithoutAFormalQuotation() throws Exception {
         UUID requestId = createOpenRequest();
 
@@ -66,6 +68,7 @@ class CreatePurchaseOrderEndToEndTest {
     }
 
     @Test
+    @DisplayName("An order created from a quotation prices its items from the selected supplier's response")
     void anOrderCreatedFromAQuotationPricesItemsFromTheSelectedSuppliersResponse() throws Exception {
         UUID requestId = createOpenRequest();
         UUID quotationId = UUID.randomUUID();
@@ -100,6 +103,7 @@ class CreatePurchaseOrderEndToEndTest {
     }
 
     @Test
+    @DisplayName("Responds 404 when creating an order from an unknown purchase request")
     void creatingAnOrderFromAnUnknownRequestIsRejectedWith404() throws Exception {
         String body = """
                 {
@@ -114,6 +118,7 @@ class CreatePurchaseOrderEndToEndTest {
     }
 
     @Test
+    @DisplayName("Responds 400 when the purchase order has an empty item list")
     void anEmptyItemListIsRejectedWith400() throws Exception {
         UUID requestId = createOpenRequest();
 
@@ -130,6 +135,7 @@ class CreatePurchaseOrderEndToEndTest {
     }
 
     @Test
+    @DisplayName("Responds 400 on the second attempt to convert the same purchase request into an order")
     void convertingTheSameRequestTwiceIsRejectedWith400OnTheSecondAttempt() throws Exception {
         UUID requestId = createOpenRequest();
         String body = """

@@ -4,6 +4,7 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DocumentSeries;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -16,6 +17,7 @@ class DocumentSeriesTest {
 	private static final CompanyId COMPANY_ID = CompanyId.of(UUID.randomUUID());
 
 	@Test
+	@DisplayName("Allows any next number on first configuration")
 	void shouldAllowAnyNextNumberOnFirstConfiguration() {
 		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 
@@ -26,6 +28,7 @@ class DocumentSeriesTest {
 	}
 
 	@Test
+	@DisplayName("Allows increasing the next number once already configured")
 	void shouldAllowIncreasingNextNumberOnceAlreadyConfigured() {
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 100L);
 
@@ -35,6 +38,7 @@ class DocumentSeriesTest {
 	}
 
 	@Test
+	@DisplayName("Rejects decreasing the next number once already configured")
 	void shouldRejectDecreasingNextNumberOnceAlreadyConfigured() {
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFSE).reconfigure("001", 100L);
 
@@ -44,6 +48,7 @@ class DocumentSeriesTest {
 	}
 
 	@Test
+	@DisplayName("Keeps each document type independent")
 	void shouldKeepEachDocumentTypeIndependent() {
 		DocumentSeries nfe = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 100L);
 		DocumentSeries nfce = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 1L);
@@ -53,6 +58,7 @@ class DocumentSeriesTest {
 	}
 
 	@Test
+	@DisplayName("Advances the next number by one on allocation")
 	void shouldAdvanceNextNumberByOneOnAllocation() {
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
 
@@ -63,6 +69,7 @@ class DocumentSeriesTest {
 	}
 
 	@Test
+	@DisplayName("Rejects allocation when the series is not yet configured")
 	void shouldRejectAllocationWhenSeriesNotYetConfigured() {
 		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 

@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,7 @@ class ImportSupplierNfeAtReceivingEndToEndTest {
 	private final UUID productId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("Importing the supplier NF-e XML completes the conference and returns the reconciliation result")
 	void importingTheSupplierXmlCompletesConferenceAndReturnsTheResult() throws Exception {
 		PurchaseOrder order = seedOpenOrder();
 		PurchaseReceipt receipt = seedPendingReceipt(order.getId());
@@ -62,6 +64,7 @@ class ImportSupplierNfeAtReceivingEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when importing the supplier NF-e against an unknown receipt")
 	void importingAgainstAnUnknownReceiptIsRejectedWith404() throws Exception {
 		PurchaseOrder order = seedOpenOrder();
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",

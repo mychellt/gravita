@@ -8,6 +8,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.masterdata.ConfigureDocumentSeriesCommand;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.usercases.ConfigureDocumentSeriesService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +34,7 @@ class ConfigureDocumentSeriesServiceTest {
 	private DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
 	@Test
+	@DisplayName("Configures the series on first setup")
 	void shouldConfigureSeriesOnFirstSetup() {
 		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
 		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
@@ -49,6 +51,7 @@ class ConfigureDocumentSeriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects decreasing the next number once already configured")
 	void shouldRejectDecreasingNextNumberOnceAlreadyConfigured() {
 		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 500L);
@@ -63,6 +66,7 @@ class ConfigureDocumentSeriesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws when the series row does not exist")
 	void shouldThrowWhenSeriesRowDoesNotExist() {
 		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFSE))

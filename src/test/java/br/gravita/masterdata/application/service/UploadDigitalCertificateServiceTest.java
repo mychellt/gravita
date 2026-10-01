@@ -13,6 +13,7 @@ import br.gravita.core.ports.outbound.persistence.CertificateStoragePort;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.security.CertificateReaderPort;
 import br.gravita.core.usercases.UploadDigitalCertificateService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -57,6 +58,7 @@ class UploadDigitalCertificateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Uploads an A1 certificate and persists the extracted expiry date")
 	void shouldUploadA1CertificateAndPersistExtractedExpiry() {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
@@ -75,6 +77,7 @@ class UploadDigitalCertificateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Defaults to A1 when the certificate type is not provided")
 	void shouldDefaultToA1WhenTypeIsNotProvided() {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
@@ -88,6 +91,7 @@ class UploadDigitalCertificateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the A3 certificate type")
 	void shouldRejectA3CertificateType() {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
@@ -100,6 +104,7 @@ class UploadDigitalCertificateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws when the company does not exist")
 	void shouldThrowWhenCompanyDoesNotExist() {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.empty());
@@ -111,6 +116,7 @@ class UploadDigitalCertificateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Propagates the business rule exception when the PFX is invalid")
 	void shouldPropagateBusinessRuleExceptionWhenPfxIsInvalid() {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));

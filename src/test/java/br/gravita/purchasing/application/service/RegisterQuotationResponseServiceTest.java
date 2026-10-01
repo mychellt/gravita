@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +40,7 @@ class RegisterQuotationResponseServiceTest {
 	private final SupplierId supplierId = SupplierId.of(UUID.randomUUID());
 
 	@Test
+	@DisplayName("Registering a response from a supplier the quotation was sent to saves the updated quotation")
 	void registeringAResponseFromASentSupplierSavesTheUpdatedQuotation() {
 		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
 		Quotation quotation = sentQuotation(quotationId);
@@ -56,6 +58,7 @@ class RegisterQuotationResponseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response registered against a missing quotation")
 	void registeringAResponseForAMissingQuotationIsRejected() {
 		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
 		when(quotationRepositoryPort.findById(quotationId)).thenReturn(Optional.empty());
@@ -68,6 +71,7 @@ class RegisterQuotationResponseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response from a supplier the quotation was not sent to, without saving")
 	void registeringAResponseFromASupplierNotSentTheQuotationIsRejectedWithoutSaving() {
 		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
 		Quotation quotation = sentQuotation(quotationId);

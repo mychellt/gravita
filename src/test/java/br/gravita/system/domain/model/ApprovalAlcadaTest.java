@@ -4,6 +4,7 @@ import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ class ApprovalAlcadaTest {
 	private static final ProfileReference APPROVER = new ProfileReference(UUID.randomUUID(), "Financial Manager");
 
 	@Test
+	@DisplayName("Configures an alcada with a threshold value only")
 	void shouldConfigureAlcadaWithThresholdValueOnly() {
 		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("5000.00"), null,
 				APPROVER);
@@ -31,6 +33,7 @@ class ApprovalAlcadaTest {
 	}
 
 	@Test
+	@DisplayName("Configures an alcada with a discount percent only")
 	void shouldConfigureAlcadaWithDiscountPercentOnly() {
 		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("15.00"),
 				APPROVER);
@@ -40,6 +43,7 @@ class ApprovalAlcadaTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a configuration without any threshold")
 	void shouldRejectConfigurationWithoutAnyThreshold() {
 		assertThatThrownBy(() -> ApprovalAlcada.configure(ApprovalModule.FINANCE, null, null, APPROVER))
 				.isInstanceOf(BusinessRuleException.class)
@@ -47,6 +51,7 @@ class ApprovalAlcadaTest {
 	}
 
 	@Test
+	@DisplayName("Rejects negative thresholds")
 	void shouldRejectNegativeThresholds() {
 		assertThatThrownBy(() -> ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("-1"), null, APPROVER))
 				.isInstanceOf(BusinessRuleException.class);
@@ -56,6 +61,7 @@ class ApprovalAlcadaTest {
 	}
 
 	@Test
+	@DisplayName("Reconfigures in place without changing id or module")
 	void shouldReconfigureInPlaceWithoutChangingIdOrModule() {
 		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("1000.00"), null,
 				APPROVER);
