@@ -23,14 +23,14 @@ class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 
 	@Override
 	public Company save(Company company) {
-		CompanyJpaEntity entity = mapper.toEntity(company);
+		CompanyJpaEntity entity = mapper.map(company);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		CompanyJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Company> findById(CompanyId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 }

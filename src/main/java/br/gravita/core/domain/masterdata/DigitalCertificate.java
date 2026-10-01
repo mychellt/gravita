@@ -18,7 +18,7 @@ public final class DigitalCertificate {
 	private final Instant expiresAt;
 	private final Instant uploadedAt;
 
-	private DigitalCertificate(UUID id, CompanyId companyId, CertificateType type, byte[] pfxPayload, String password,
+	public DigitalCertificate(UUID id, CompanyId companyId, CertificateType type, byte[] pfxPayload, String password,
 			Instant expiresAt, Instant uploadedAt) {
 		this.id = id;
 		this.companyId = requireCompanyId(companyId);

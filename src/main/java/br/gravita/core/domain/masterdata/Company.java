@@ -29,7 +29,7 @@ public final class Company {
 	private final String logoUrl;
 	private final CompanyId parentCompanyId;
 
-	private Company(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
+	public Company(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
 			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
 			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
 		this.id = id;

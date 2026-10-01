@@ -22,14 +22,14 @@ class PriceTableRepositoryAdapter implements PriceTableRepositoryPort {
 
 	@Override
 	public PriceTable save(PriceTable priceTable) {
-		PriceTableJpaEntity entity = mapper.toEntity(priceTable);
+		PriceTableJpaEntity entity = mapper.map(priceTable);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PriceTableJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PriceTable> findById(PriceTableId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 }

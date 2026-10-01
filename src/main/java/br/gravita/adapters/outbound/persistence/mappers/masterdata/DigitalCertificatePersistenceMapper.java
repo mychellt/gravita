@@ -5,27 +5,32 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DigitalCertificate;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
+
+import java.util.UUID;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface DigitalCertificatePersistenceMapper {
 
-	default DigitalCertificateJpaEntity toEntity(final DigitalCertificate domain, final byte[] encryptedPfxPayload,
-			final String encryptedPassword) {
-		return DigitalCertificateJpaEntity.builder()
-				.id(domain.getId())
-				.companyId(domain.getCompanyId().value())
-				.type(domain.getType())
-				.encryptedPfxPayload(encryptedPfxPayload)
-				.encryptedPassword(encryptedPassword)
-				.expiresAt(domain.getExpiresAt())
-				.uploadedAt(domain.getUploadedAt())
-				.build();
-	}
+    @Mapping(target = "id", source = "domain.id")
+    @Mapping(target = "companyId", source = "domain.companyId.value")
+    @Mapping(target = "type", source = "domain.type")
+    @Mapping(target = "expiresAt", source = "domain.expiresAt")
+    @Mapping(target = "uploadedAt", source = "domain.uploadedAt")
+    DigitalCertificateJpaEntity map(final DigitalCertificate domain, final byte[] encryptedPfxPayload,
+            final String encryptedPassword);
 
-	default DigitalCertificate toDomain(final DigitalCertificateJpaEntity entity, final byte[] decryptedPfxPayload,
-			final String decryptedPassword) {
-		return DigitalCertificate.of(entity.getId(), CompanyId.of(entity.getCompanyId()), entity.getType(),
-				decryptedPfxPayload, decryptedPassword, entity.getExpiresAt(), entity.getUploadedAt());
-	}
+    @Mapping(target = "id", source = "entity.id")
+    @Mapping(target = "companyId", source = "entity.companyId")
+    @Mapping(target = "type", source = "entity.type")
+    @Mapping(target = "pfxPayload", source = "decryptedPfxPayload")
+    @Mapping(target = "password", source = "decryptedPassword")
+    @Mapping(target = "expiresAt", source = "entity.expiresAt")
+    @Mapping(target = "uploadedAt", source = "entity.uploadedAt")
+    DigitalCertificate map(final DigitalCertificateJpaEntity entity, final byte[] decryptedPfxPayload,
+            final String decryptedPassword);
+
+    @Mapping(target = "value", source = "id")
+    CompanyId map(final UUID id);
 }

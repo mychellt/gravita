@@ -5,29 +5,19 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DocumentSeries;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
+
+import java.util.UUID;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface DocumentSeriesPersistenceMapper {
 
-    default DocumentSeries toDomain(final DocumentSeriesJpaEntity entity) {
-        return DocumentSeries.of(
-                entity.getId(),
-                CompanyId.of(entity.getCompanyId()),
-                entity.getDocumentType(),
-                entity.getSeries(),
-                entity.getNextNumber(),
-                entity.getVersion());
-    }
+    DocumentSeries map(final DocumentSeriesJpaEntity entity);
 
-    default DocumentSeriesJpaEntity toEntity(final DocumentSeries domain) {
-        return DocumentSeriesJpaEntity.builder()
-                .id(domain.getId())
-                .companyId(domain.getCompanyId().value())
-                .documentType(domain.getDocumentType())
-                .series(domain.getSeries())
-                .nextNumber(domain.getNextNumber())
-                .version(domain.getVersion())
-                .build();
-    }
+    @Mapping(target = "companyId", source = "companyId.value")
+    DocumentSeriesJpaEntity map(final DocumentSeries domain);
+
+    @Mapping(target = "value", source = "id")
+    CompanyId map(final UUID id);
 }
