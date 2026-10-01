@@ -16,7 +16,7 @@ public final class DiscriminationTemplate {
 	private ServiceCode serviceCode;
 	private String templateText;
 
-	private DiscriminationTemplate(DiscriminationTemplateId id, ServiceCode serviceCode, String templateText) {
+	public DiscriminationTemplate(DiscriminationTemplateId id, ServiceCode serviceCode, String templateText) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		apply(serviceCode, templateText);
 	}

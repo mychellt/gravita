@@ -5,6 +5,7 @@ import br.gravita.core.domain.system.AccessLog;
 import br.gravita.core.domain.system.UserId;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 import java.util.UUID;
@@ -14,13 +15,9 @@ public interface AccessLogPersistenceMapper {
 
 	AccessLog map(final AccessLogJpaEntity entity);
 
+	@Mapping(target = "userId", source = "userId.value")
 	AccessLogJpaEntity map(final AccessLog domain);
 
-	default UUID map(final UserId userId) {
-		return userId == null ? null : userId.value();
-	}
-
-	default UserId map(final UUID id) {
-		return id == null ? null : UserId.of(id);
-	}
+	@Mapping(target = "value", source = "id")
+	UserId mapUserId(final UUID id);
 }

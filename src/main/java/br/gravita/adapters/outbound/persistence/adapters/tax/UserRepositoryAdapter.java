@@ -28,8 +28,8 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 	@Override
 	public User save(User user) {
 		String passwordHash = passwordHasher.hash(user.getRawPassword());
-		UserJpaEntity saved = jpaRepository.save(mapper.toEntity(user, passwordHash));
-		return mapper.toDomain(saved);
+		UserJpaEntity saved = jpaRepository.save(mapper.map(user, passwordHash));
+		return mapper.map(saved);
 	}
 
 	@Override
@@ -46,12 +46,12 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 
 	@Override
 	public Optional<User> findById(UserId userId) {
-		return jpaRepository.findById(userId.value()).map(mapper::toDomain);
+		return jpaRepository.findById(userId.value()).map(mapper::map);
 	}
 
 	@Override
 	public Optional<User> findByEmail(String email) {
-		return jpaRepository.findByEmail(email).map(mapper::toDomain);
+		return jpaRepository.findByEmail(email).map(mapper::map);
 	}
 
 	@Override

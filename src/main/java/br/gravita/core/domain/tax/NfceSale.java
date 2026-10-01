@@ -26,7 +26,7 @@ public final class NfceSale {
 	private final String sefazProtocol;
 	private final boolean contingencyMode;
 
-	private NfceSale(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
+	public NfceSale(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
 			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
 			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
 			boolean contingencyMode) {

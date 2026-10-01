@@ -26,15 +26,15 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 
 	@Override
 	public NfeDocument save(NfeDocument document) {
-		NfeJpaEntity entity = mapper.toEntity(document);
+		NfeJpaEntity entity = mapper.map(document);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		NfeJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<NfeDocument> findById(NfeDocumentId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
@@ -42,7 +42,7 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 		return jpaRepository
 				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						NfeDocumentStatus.AUTHORIZED, from, to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -50,7 +50,7 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 		return jpaRepository
 				.findByIssuerCompanyIdAndStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						companyId.value(), NfeDocumentStatus.AUTHORIZED, from, to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -60,6 +60,6 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 				.findByIssuerCompanyIdAndStatusInAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						companyId.value(), List.of(NfeDocumentStatus.AUTHORIZED, NfeDocumentStatus.CANCELLED), from,
 						to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 }

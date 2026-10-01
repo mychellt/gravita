@@ -4,37 +4,24 @@ import br.gravita.adapters.outbound.persistence.entities.tax.VoidedNumberRangeJp
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.VoidedNumberRange;
 import br.gravita.core.domain.tax.VoidedNumberRangeId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface VoidedNumberRangePersistenceMapper {
 
-	default VoidedNumberRange toDomain(final VoidedNumberRangeJpaEntity entity) {
-		return VoidedNumberRange.of(
-				VoidedNumberRangeId.of(entity.getId()),
-				CompanyId.of(entity.getCompanyId()),
-				entity.getDocumentType(),
-				entity.getSeries(),
-				entity.getStartNumber(),
-				entity.getEndNumber(),
-				entity.getJustification(),
-				entity.getSefazProtocol(),
-				entity.getVoidedAt());
-	}
+	VoidedNumberRange map(final VoidedNumberRangeJpaEntity entity);
 
-	default VoidedNumberRangeJpaEntity toEntity(final VoidedNumberRange domain) {
-		return VoidedNumberRangeJpaEntity.builder()
-				.id(domain.getId().value())
-				.companyId(domain.getCompanyId().value())
-				.documentType(domain.getDocumentType())
-				.series(domain.getSeries())
-				.startNumber(domain.getStartNumber())
-				.endNumber(domain.getEndNumber())
-				.justification(domain.getJustification())
-				.sefazProtocol(domain.getSefazProtocol())
-				.voidedAt(domain.getVoidedAt())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "companyId", source = "companyId.value")
+	VoidedNumberRangeJpaEntity map(final VoidedNumberRange domain);
+
+	@Mapping(target = "value", source = "id")
+	VoidedNumberRangeId mapVoidedNumberRangeId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	CompanyId mapCompanyId(final UUID id);
 }

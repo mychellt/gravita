@@ -4,23 +4,26 @@ import br.gravita.adapters.outbound.persistence.entities.tax.DiscriminationTempl
 import br.gravita.core.domain.tax.DiscriminationTemplate;
 import br.gravita.core.domain.tax.DiscriminationTemplateId;
 import br.gravita.core.domain.tax.ServiceCode;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface DiscriminationTemplatePersistenceMapper {
 
-	default DiscriminationTemplate toDomain(final DiscriminationTemplateJpaEntity entity) {
-		return DiscriminationTemplate.of(DiscriminationTemplateId.of(entity.getId()),
-				ServiceCode.of(entity.getServiceCode()), entity.getTemplateText());
-	}
+	DiscriminationTemplate map(final DiscriminationTemplateJpaEntity entity);
 
-	default DiscriminationTemplateJpaEntity toEntity(final DiscriminationTemplate domain) {
-		return DiscriminationTemplateJpaEntity.builder()
-				.id(domain.getId().value())
-				.serviceCode(domain.getServiceCode().value())
-				.templateText(domain.getTemplateText())
-				.build();
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "serviceCode", source = "serviceCode.value")
+	DiscriminationTemplateJpaEntity map(final DiscriminationTemplate domain);
+
+	@Mapping(target = "value", source = "id")
+	DiscriminationTemplateId mapDiscriminationTemplateId(final UUID id);
+
+	// Goes through ServiceCode.of so the stored code is validated and normalised to the II.SS form.
+	static ServiceCode mapServiceCode(final String raw) {
+		return raw == null ? null : ServiceCode.of(raw);
 	}
 }

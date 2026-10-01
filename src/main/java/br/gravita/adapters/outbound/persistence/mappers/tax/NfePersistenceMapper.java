@@ -10,7 +10,6 @@ import br.gravita.core.domain.shared.PersonRef;
 import br.gravita.core.domain.tax.Cfop;
 import br.gravita.core.domain.tax.CorrectionLetter;
 import br.gravita.core.domain.tax.ItemTaxBreakdown;
-import br.gravita.core.domain.tax.NaturezaOperacao;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.domain.tax.NfeItem;
@@ -21,119 +20,90 @@ import br.gravita.core.domain.tax.TaxLineBreakdown;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface NfePersistenceMapper {
 
-	default NfeDocument toDomain(final NfeJpaEntity entity) {
-		List<NfeItem> items = toItems(entity.getItems(), entity.getTaxLines());
-		TaxCalculationTotals totals = TaxCalculationTotals.from(items.stream().map(NfeItem::taxBreakdown).toList());
-		return NfeDocument.of(
-				NfeDocumentId.of(entity.getId()),
-				CompanyId.of(entity.getIssuerCompanyId()),
-				entity.getOriginSalesOrderId(),
-				NaturezaOperacao.valueOf(entity.getNaturezaOperacao()),
-				new Cfop(entity.getCfop()),
-				toRecipient(entity),
-				items,
-				entity.getFreight(),
-				entity.getInsurance(),
-				entity.getOtherExpenses(),
-				toTransport(entity),
-				entity.getReferencedAccessKey(),
-				entity.getAdditionalInfo(),
-				totals,
-				entity.getStatus(),
-				entity.getDocumentCreatedAt(),
-				entity.getDocumentSeries(),
-				entity.getDocumentNumber(),
-				entity.getAccessKey(),
-				entity.getSefazProtocol(),
-				entity.isContingencyMode(),
-				entity.getRejectionReason(),
-				entity.getXmlStorageRef(),
-				entity.getDanfeStorageRef(),
-				toCorrectionLetters(entity.getCorrectionLetters()),
-				entity.getAuthorizedAt(),
-				entity.getCancellationJustification(),
-				entity.getCancelledAt());
-	}
+	@Mapping(target = "recipient", source = "entity")
+	@Mapping(target = "items", source = "entity", qualifiedByName = "toItems")
+	@Mapping(target = "transport", source = "entity",
+			conditionExpression = "java(entity.getTransportModality() != null || entity.getTransportCarrier() != null"
+					+ " || entity.getTransportVolume() != null || entity.getTransportGrossWeight() != null"
+					+ " || entity.getTransportNetWeight() != null || entity.getTransportRntrc() != null)")
+	@Mapping(target = "taxTotals", source = "entity", qualifiedByName = "toTaxTotals")
+	@Mapping(target = "createdAt", source = "documentCreatedAt")
+	@Mapping(target = "correctionLetters", source = "correctionLetters", qualifiedByName = "toCorrectionLetters")
+	NfeDocument map(final NfeJpaEntity entity);
 
-	default NfeJpaEntity toEntity(final NfeDocument domain) {
-		NfeRecipient recipient = domain.getRecipient();
-		NfeTransportInfo transport = domain.getTransport();
-		return NfeJpaEntity.builder()
-				.id(domain.getId() == null ? null : domain.getId().value())
-				.issuerCompanyId(domain.getIssuerCompanyId().value())
-				.originSalesOrderId(domain.getOriginSalesOrderId())
-				.naturezaOperacao(domain.getNaturezaOperacao().name())
-				.cfop(domain.getCfop().code())
-				.recipientPersonId(recipient.personRef() == null ? null : recipient.personRef().id())
-				.recipientDocument(recipient.document().number())
-				.recipientPersonType(recipient.document().personType())
-				.recipientName(recipient.name())
-				.recipientStateRegistration(recipient.stateRegistration())
-				.recipientState(recipient.state())
-				.freight(domain.getFreight())
-				.insurance(domain.getInsurance())
-				.otherExpenses(domain.getOtherExpenses())
-				.transportModality(transport == null ? null : transport.modality())
-				.transportCarrier(transport == null ? null : transport.carrier())
-				.transportVolume(transport == null ? null : transport.volume())
-				.transportGrossWeight(transport == null ? null : transport.grossWeight())
-				.transportNetWeight(transport == null ? null : transport.netWeight())
-				.transportRntrc(transport == null ? null : transport.rntrc())
-				.referencedAccessKey(domain.getReferencedAccessKey())
-				.additionalInfo(domain.getAdditionalInfo())
-				.status(domain.getStatus())
-				.documentCreatedAt(domain.getCreatedAt())
-				.documentSeries(domain.getDocumentSeries())
-				.documentNumber(domain.getDocumentNumber())
-				.accessKey(domain.getAccessKey())
-				.sefazProtocol(domain.getSefazProtocol())
-				.contingencyMode(domain.isContingencyMode())
-				.rejectionReason(domain.getRejectionReason())
-				.xmlStorageRef(domain.getXmlStorageRef())
-				.danfeStorageRef(domain.getDanfeStorageRef())
-				.authorizedAt(domain.getAuthorizedAt())
-				.cancellationJustification(domain.getCancellationJustification())
-				.cancelledAt(domain.getCancelledAt())
-				.items(toItemEmbeddables(domain.getItems()))
-				.taxLines(toTaxLineEmbeddables(domain.getItems()))
-				.correctionLetters(toCorrectionLetterEmbeddables(domain.getCorrectionLetters()))
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "issuerCompanyId", source = "issuerCompanyId.value")
+	@Mapping(target = "cfop", source = "cfop.code")
+	@Mapping(target = "recipientPersonId", source = "recipient.personRef.id")
+	@Mapping(target = "recipientDocument", source = "recipient.document.number")
+	@Mapping(target = "recipientPersonType", source = "recipient.document.personType")
+	@Mapping(target = "recipientName", source = "recipient.name")
+	@Mapping(target = "recipientStateRegistration", source = "recipient.stateRegistration")
+	@Mapping(target = "recipientState", source = "recipient.state")
+	@Mapping(target = "transportModality", source = "transport.modality")
+	@Mapping(target = "transportCarrier", source = "transport.carrier")
+	@Mapping(target = "transportVolume", source = "transport.volume")
+	@Mapping(target = "transportGrossWeight", source = "transport.grossWeight")
+	@Mapping(target = "transportNetWeight", source = "transport.netWeight")
+	@Mapping(target = "transportRntrc", source = "transport.rntrc")
+	@Mapping(target = "documentCreatedAt", source = "createdAt")
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "items", source = "items", qualifiedByName = "toItemEmbeddables")
+	@Mapping(target = "taxLines", source = "items", qualifiedByName = "toTaxLineEmbeddables")
+	NfeJpaEntity map(final NfeDocument domain);
 
-	private NfeRecipient toRecipient(NfeJpaEntity entity) {
-		PersonRef personRef = entity.getRecipientPersonId() == null ? null : new PersonRef(entity.getRecipientPersonId());
-		Document document = new Document(entity.getRecipientDocument(), entity.getRecipientPersonType());
-		return new NfeRecipient(personRef, document, entity.getRecipientName(), entity.getRecipientStateRegistration(),
-				entity.getRecipientState());
-	}
+	@Mapping(target = "personRef", source = "recipientPersonId")
+	@Mapping(target = "document", source = "entity")
+	@Mapping(target = "name", source = "recipientName")
+	@Mapping(target = "stateRegistration", source = "recipientStateRegistration")
+	@Mapping(target = "state", source = "recipientState")
+	NfeRecipient mapRecipient(final NfeJpaEntity entity);
 
-	// Absence of transport data is represented as every transport_* column
-	// being null, rather than a separate "has transport" flag.
-	private NfeTransportInfo toTransport(NfeJpaEntity entity) {
-		if (entity.getTransportModality() == null && entity.getTransportCarrier() == null
-				&& entity.getTransportVolume() == null && entity.getTransportGrossWeight() == null
-				&& entity.getTransportNetWeight() == null && entity.getTransportRntrc() == null) {
-			return null;
-		}
-		return new NfeTransportInfo(entity.getTransportModality(), entity.getTransportCarrier(),
-				entity.getTransportVolume(), entity.getTransportGrossWeight(), entity.getTransportNetWeight(),
-				entity.getTransportRntrc());
-	}
+	@Mapping(target = "number", source = "recipientDocument")
+	@Mapping(target = "personType", source = "recipientPersonType")
+	Document mapRecipientDocument(final NfeJpaEntity entity);
 
-	// TaxCalculationTotals is not persisted separately - it's rebuilt from the
-	// item tax lines below via TaxCalculationTotals.from(...).
-	private List<NfeItem> toItems(List<NfeItemEmbeddable> items, List<NfeItemTaxLineEmbeddable> taxLines) {
-		if (items == null) {
+	@Mapping(target = "modality", source = "transportModality")
+	@Mapping(target = "carrier", source = "transportCarrier")
+	@Mapping(target = "volume", source = "transportVolume")
+	@Mapping(target = "grossWeight", source = "transportGrossWeight")
+	@Mapping(target = "netWeight", source = "transportNetWeight")
+	@Mapping(target = "rntrc", source = "transportRntrc")
+	NfeTransportInfo mapTransport(final NfeJpaEntity entity);
+
+	NfeCorrectionLetterEmbeddable map(final CorrectionLetter letter);
+
+	@Mapping(target = "value", source = "id")
+	NfeDocumentId mapNfeDocumentId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	CompanyId mapCompanyId(final UUID id);
+
+	@Mapping(target = "id", source = "id")
+	PersonRef mapPersonRef(final UUID id);
+
+	@Mapping(target = "code", source = "cfop")
+	Cfop mapCfop(final String cfop);
+
+	// The items and their tax lines are persisted as two flat collections joined by itemIndex, so they are rebuilt
+	// together, in item order.
+	@Named("toItems")
+	static List<NfeItem> toItems(final NfeJpaEntity entity) {
+		if (entity.getItems() == null) {
 			return List.of();
 		}
-		return items.stream()
+		List<NfeItemTaxLineEmbeddable> taxLines = entity.getTaxLines();
+		return entity.getItems().stream()
 				.sorted(Comparator.comparing(NfeItemEmbeddable::getItemIndex))
 				.map(item -> {
 					List<TaxLineBreakdown> lines = taxLines == null ? List.of()
@@ -150,9 +120,28 @@ public interface NfePersistenceMapper {
 				.toList();
 	}
 
-	// Hibernate merges a detached entity's collections in place (clear + addAll), so
-	// these must stay mutable rather than an immutable Stream.toList().
-	private List<NfeItemEmbeddable> toItemEmbeddables(List<NfeItem> items) {
+	// TaxCalculationTotals is not persisted separately - it's rebuilt from the item tax lines.
+	@Named("toTaxTotals")
+	static TaxCalculationTotals toTaxTotals(final NfeJpaEntity entity) {
+		return TaxCalculationTotals.from(toItems(entity).stream().map(NfeItem::taxBreakdown).toList());
+	}
+
+	@Named("toCorrectionLetters")
+	static List<CorrectionLetter> toCorrectionLetters(final List<NfeCorrectionLetterEmbeddable> letters) {
+		if (letters == null) {
+			return List.of();
+		}
+		return letters.stream()
+				.sorted(Comparator.comparing(NfeCorrectionLetterEmbeddable::getSequenceNumber))
+				.map(letter -> new CorrectionLetter(letter.getSequenceNumber(), letter.getText(), letter.getProtocol(),
+						letter.getIssuedAt()))
+				.toList();
+	}
+
+	// Hibernate merges a detached entity's collections in place (clear + addAll), so the
+	// embeddable lists below must stay mutable rather than an immutable Stream.toList().
+	@Named("toItemEmbeddables")
+	static List<NfeItemEmbeddable> toItemEmbeddables(final List<NfeItem> items) {
 		List<NfeItemEmbeddable> result = new ArrayList<>();
 		for (int index = 0; index < items.size(); index++) {
 			NfeItem item = items.get(index);
@@ -168,7 +157,8 @@ public interface NfePersistenceMapper {
 		return result;
 	}
 
-	private List<NfeItemTaxLineEmbeddable> toTaxLineEmbeddables(List<NfeItem> items) {
+	@Named("toTaxLineEmbeddables")
+	static List<NfeItemTaxLineEmbeddable> toTaxLineEmbeddables(final List<NfeItem> items) {
 		List<NfeItemTaxLineEmbeddable> result = new ArrayList<>();
 		for (int index = 0; index < items.size(); index++) {
 			for (TaxLineBreakdown line : items.get(index).taxBreakdown().taxLines()) {
@@ -183,31 +173,6 @@ public interface NfePersistenceMapper {
 						.overrideJustification(line.overrideJustification())
 						.build());
 			}
-		}
-		return result;
-	}
-
-	private List<CorrectionLetter> toCorrectionLetters(List<NfeCorrectionLetterEmbeddable> correctionLetters) {
-		if (correctionLetters == null) {
-			return List.of();
-		}
-		return correctionLetters.stream()
-				.sorted(Comparator.comparing(NfeCorrectionLetterEmbeddable::getSequenceNumber))
-				.map(letter -> new CorrectionLetter(letter.getSequenceNumber(), letter.getText(), letter.getProtocol(),
-						letter.getIssuedAt()))
-				.toList();
-	}
-
-	// Same mutability note as toItemEmbeddables above.
-	private List<NfeCorrectionLetterEmbeddable> toCorrectionLetterEmbeddables(List<CorrectionLetter> correctionLetters) {
-		List<NfeCorrectionLetterEmbeddable> result = new ArrayList<>();
-		for (CorrectionLetter letter : correctionLetters) {
-			result.add(NfeCorrectionLetterEmbeddable.builder()
-					.sequenceNumber(letter.sequenceNumber())
-					.text(letter.text())
-					.protocol(letter.protocol())
-					.issuedAt(letter.issuedAt())
-					.build());
 		}
 		return result;
 	}

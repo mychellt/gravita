@@ -26,7 +26,7 @@ public final class InboundManifestation {
 	private final String sefazProtocol;
 	private final Instant manifestedAt;
 
-	private InboundManifestation(InboundManifestationId id, String accessKey, ManifestationType type,
+	public InboundManifestation(InboundManifestationId id, String accessKey, ManifestationType type,
 			InboundNfeId inboundNfeId, String sefazProtocol, Instant manifestedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.accessKey = requireAccessKey(accessKey);

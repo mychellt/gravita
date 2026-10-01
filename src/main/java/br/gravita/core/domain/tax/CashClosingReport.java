@@ -26,7 +26,7 @@ public final class CashClosingReport {
 	private final Instant openedAt;
 	private final Instant closedAt;
 
-	private CashClosingReport(CashClosingReportId id, PosSessionId sessionId, UUID registerId, UUID operatorId,
+	public CashClosingReport(CashClosingReportId id, PosSessionId sessionId, UUID registerId, UUID operatorId,
 			BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
 			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
 			BigDecimal totalSuprimentoAmount, int saleCount, Instant openedAt, Instant closedAt) {

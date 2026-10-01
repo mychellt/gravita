@@ -26,25 +26,25 @@ class NfceRepositoryAdapter implements NfceRepositoryPort {
 
 	@Override
 	public NfceSale save(NfceSale sale) {
-		NfceSaleJpaEntity entity = mapper.toEntity(sale);
+		NfceSaleJpaEntity entity = mapper.map(sale);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		NfceSaleJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<NfceSale> findById(NfceSaleId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public Optional<NfceSale> findMostRecent() {
-		return jpaRepository.findFirstByOrderByRegisteredAtDesc().map(mapper::toDomain);
+		return jpaRepository.findFirstByOrderByRegisteredAtDesc().map(mapper::map);
 	}
 
 	@Override
 	public List<NfceSale> findBySessionId(PosSessionId sessionId) {
-		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -52,6 +52,6 @@ class NfceRepositoryAdapter implements NfceRepositoryPort {
 		return jpaRepository
 				.findByStatusAndRegisteredAtGreaterThanEqualAndRegisteredAtLessThanOrderByRegisteredAt(
 						NfceSaleStatus.AUTHORIZED, from, to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 }

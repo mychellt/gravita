@@ -21,11 +21,11 @@ class CashMovementRepositoryAdapter implements CashMovementRepositoryPort {
 
 	@Override
 	public CashMovement save(CashMovement cashMovement) {
-		return mapper.toDomain(jpaRepository.save(mapper.toEntity(cashMovement)));
+		return mapper.map(jpaRepository.save(mapper.map(cashMovement)));
 	}
 
 	@Override
 	public List<CashMovement> findBySessionId(PosSessionId sessionId) {
-		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::map).toList();
 	}
 }

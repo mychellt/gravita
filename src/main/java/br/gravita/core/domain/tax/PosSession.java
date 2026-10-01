@@ -21,7 +21,7 @@ public final class PosSession {
 	private final Instant openedAt;
 	private final Instant closedAt;
 
-	private PosSession(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
+	public PosSession(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
 			BigDecimal openingChangeAmount, PosSessionStatus status, Instant openedAt, Instant closedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.registerId = Objects.requireNonNull(registerId, "registerId is required");

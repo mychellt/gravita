@@ -29,14 +29,14 @@ class IntegrationCredentialRepositoryAdapter implements IntegrationCredentialRep
 	@Override
 	public IntegrationCredential save(IntegrationCredential credential) {
 		String encryptedPayload = cipher.encrypt(credential.getCredentialPayload());
-		IntegrationCredentialJpaEntity saved = jpaRepository.save(mapper.toEntity(credential, encryptedPayload));
-		return mapper.toDomain(saved, credential.getCredentialPayload());
+		IntegrationCredentialJpaEntity saved = jpaRepository.save(mapper.map(credential, encryptedPayload));
+		return mapper.map(saved, credential.getCredentialPayload());
 	}
 
 	@Override
 	public Optional<IntegrationCredential> findByIntegrationNameAndEnvironment(IntegrationName integrationName,
 			IntegrationEnvironment environment) {
 		return jpaRepository.findByIntegrationNameAndEnvironment(integrationName, environment)
-				.map(entity -> mapper.toDomain(entity, cipher.decrypt(entity.getEncryptedCredentialPayload())));
+				.map(entity -> mapper.map(entity, cipher.decrypt(entity.getEncryptedCredentialPayload())));
 	}
 }
