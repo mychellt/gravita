@@ -37,7 +37,7 @@ const CURRENT_USER = 'Ricardo Lima';
   templateUrl: './platform-settings.component.html'
 })
 export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
-  readonly draftScope = '/admin/configuracoes/';
+  readonly draftScope = '/admin/settings/';
   readonly minimums = PLATFORM_MINIMUMS;
 
   readonly sections: Section[] = [
@@ -78,7 +78,7 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
     { key: 'urlLgpd',         label: 'LGPD' },
   ];
 
-  readonly secaoAtiva = signal<SectionKey>('planos');
+  readonly activeSection = signal<SectionKey>('planos');
   readonly selectedPlanId = signal('');
   readonly previewAnual = signal(false);
   readonly saving = signal(false);
@@ -98,12 +98,12 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
     this.selectedPlanId.set(this.draft.plans.find(p => p.featured)?.id ?? this.draft.plans[0]?.id ?? '');
   }
 
-  /** Vinculado ao parâmetro de rota `:secao` (withComponentInputBinding). */
-  @Input() set secao(value: string) {
+  /** Bound to the route param `:section` (withComponentInputBinding). */
+  @Input() set section(value: string) {
     if (this.sections.some(s => s.key === value)) {
-      this.secaoAtiva.set(value as SectionKey);
+      this.activeSection.set(value as SectionKey);
     } else {
-      this.router.navigate(['/admin/configuracoes/planos'], { replaceUrl: true });
+      this.router.navigate(['/admin/settings/planos'], { replaceUrl: true });
     }
   }
 
@@ -129,7 +129,7 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
   // ── Estado geral ──
 
   hasUnsavedChanges(): boolean { return this.dirty; }
-  get section(): Section { return this.sections.find(s => s.key === this.secaoAtiva())!; }
+  get currentSection(): Section { return this.sections.find(s => s.key === this.activeSection())!; }
   get errorTotal(): number { return Object.keys(this.errors).length; }
   isSectionDirty(key: SectionKey): boolean { return this.dirtySections.has(key); }
   sectionErrors(key: SectionKey): number { return this.errorCounts[key] ?? 0; }
@@ -153,7 +153,7 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
     if (this.errorTotal > 0) {
       const first = this.sections.find(s => this.sectionErrors(s.key) > 0);
       this.toast.danger(`Corrija ${this.errorTotal} ${this.errorTotal === 1 ? 'campo' : 'campos'} antes de salvar.`);
-      if (first && first.key !== this.secaoAtiva()) this.router.navigate(['/admin/configuracoes', first.key]);
+      if (first && first.key !== this.activeSection()) this.router.navigate(['/admin/settings', first.key]);
       return;
     }
     this.saving.set(true);

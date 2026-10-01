@@ -10,7 +10,7 @@ import { BrlPipe } from '../../../shared/pipes/brl.pipe';
   selector: 'app-platform-customer-payments',
   standalone: true,
   imports: [DatePipe, RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: '../../settings/clientes/cliente-pagamentos.component.scss',
+  styleUrl: '../../settings/customers/customer-payments.component.scss',
   templateUrl: './platform-customer-payments.component.html'
 })
 export class PlatformCustomerPaymentsComponent {

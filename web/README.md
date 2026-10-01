@@ -84,14 +84,14 @@ src/
 | M2     | NF-e Form        | `/nfe/nova`    | Emissão completa com steps, itens, tributos |
 | M3     | PDV / NFC-e      | `/pdv`         | Carrinho, modal de pagamento, troco, NFC-e |
 | M4     | NFS-e            | `/nfse`        | Listagem RPS/NFS-e, padrões ABRASF/Nacional |
-| M5     | Estoque          | `/estoque`     | Movimentações, alertas críticos, filtros |
-| M6     | Compras          | `/compras`     | Pedidos, aprovação, recebimento |
+| M5     | Estoque          | `/inventory`   | Movimentações, alertas críticos, filtros |
+| M6     | Compras          | `/purchasing`  | Pedidos, aprovação, recebimento |
 | M7     | Vendas & CRM     | `/crm`         | Funil Kanban, clientes, metas |
-| M8     | Financeiro       | `/financeiro`  | CR/CP, fluxo de caixa, conciliação |
-| M9     | Relatórios & BI  | `/relatorios`  | Curva ABC, DRE gerencial, cards de relatório |
+| M8     | Financeiro       | `/finance`     | CR/CP, fluxo de caixa, conciliação |
+| M9     | Relatórios & BI  | `/reports`     | Curva ABC, DRE gerencial, cards de relatório |
 | M10    | Configurações    | `/settings`    | Empresa, usuários, integrações, toggles |
 | —      | Dashboard        | `/dashboard`   | KPIs, gráfico, atividade recente |
-| Admin  | Configurações gerais | `/admin/configuracoes/:secao` | Área administrativa da plataforma: planos e preços, assinatura/teste, suporte & SLA, catálogo de integrações, segurança, dados institucionais e conteúdo do site — comum a todos os clientes |
+| Admin  | Configurações gerais | `/admin/settings/:section` | Área administrativa da plataforma: planos e preços, assinatura/teste, suporte & SLA, catálogo de integrações, segurança, dados institucionais e conteúdo do site — comum a todos os clientes |
 
 ## Arquitetura
 

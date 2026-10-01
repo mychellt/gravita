@@ -68,11 +68,11 @@ it's been a while:
 | `/pdv` | `pdv/` | M3 — [m3-fiscal-nfce-pdv.md](../../../docs/specs/m3-fiscal-nfce-pdv.md) |
 | `/nfe`, `/nfe/nova` | `nfe/`, `nfe/nfe-form/` | M2 — [m2-fiscal-nfe.md](../../../docs/specs/m2-fiscal-nfe.md) |
 | `/nfse` | `nfse/` | M4 — [m4-fiscal-nfse.md](../../../docs/specs/m4-fiscal-nfse.md) |
-| `/estoque` | `estoque/` | M5 — [m5-estoque.md](../../../docs/specs/m5-estoque.md) |
-| `/compras` | `compras/` | M6 — [m6-compras.md](../../../docs/specs/m6-compras.md) |
+| `/inventory` | `inventory/` | M5 — [m5-estoque.md](../../../docs/specs/m5-estoque.md) |
+| `/purchasing` | `purchasing/` | M6 — [m6-compras.md](../../../docs/specs/m6-compras.md) |
 | `/crm` | `crm/` | M7 — [m7-vendas-crm.md](../../../docs/specs/m7-vendas-crm.md) |
-| `/financeiro` | `financeiro/` | M8 — [m8-financeiro.md](../../../docs/specs/m8-financeiro.md) |
-| `/relatorios` | `relatorios/` | M9 — [m9-relatorios-bi.md](../../../docs/specs/m9-relatorios-bi.md) |
+| `/finance` | `finance/` | M8 — [m8-financeiro.md](../../../docs/specs/m8-financeiro.md) |
+| `/reports` | `reports/` | M9 — [m9-relatorios-bi.md](../../../docs/specs/m9-relatorios-bi.md) |
 | `/settings` | `settings/` | M10 — [m10-sistema.md](../../../docs/specs/m10-sistema.md) |
 | — (no route yet) | — | M1 — [m1-cadastros-base.md](../../../docs/specs/m1-cadastros-base.md): the frontend has `Cliente`/`Fornecedor`/`Empresa` models but no dedicated cadastro screens visible in the route list; check `settings/` and each module's forms before assuming it's entirely missing. |
 

@@ -8,13 +8,13 @@ interface ReportCard {
 }
 
 @Component({
-  selector: 'app-relatorios',
+  selector: 'app-reports',
   standalone: true,
   imports: [PageHeaderComponent, BrlPipe],
-  styleUrl: './relatorios.component.scss',
-  templateUrl: './relatorios.component.html'
+  styleUrl: './reports.component.scss',
+  templateUrl: './reports.component.html'
 })
-export class RelatoriosComponent {
+export class ReportsComponent {
   constructor(private toast: ToastService) {}
 
   readonly reportCards: ReportCard[] = [

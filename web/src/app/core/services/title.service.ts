@@ -8,14 +8,14 @@ const ROUTE_TITLES: Record<string, string> = {
   '/nfe':        'NF-e Modelo 55',
   '/nfe/nova':   'Nova NF-e',
   '/nfse':       'NFS-e',
-  '/estoque':    'Estoque',
-  '/compras':    'Compras',
+  '/inventory':   'Estoque',
+  '/purchasing': 'Compras',
   '/crm':        'Vendas & CRM',
-  '/financeiro': 'Financeiro',
-  '/relatorios': 'Relatórios & BI',
+  '/finance':    'Financeiro',
+  '/reports':    'Relatórios & BI',
   '/settings':   'Configurações',
-  '/admin/configuracoes': 'Configurações gerais da plataforma',
-  '/admin/clientes': 'Clientes Gravita',
+  '/admin/settings': 'Configurações gerais da plataforma',
+  '/admin/customers': 'Clientes Gravita',
 };
 
 function titleFor(url: string): string {

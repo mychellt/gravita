@@ -7,37 +7,37 @@
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-arrow-down-right"></i></div>
     <div class="kpi-label">A receber (abertos)</div>
-    <div class="kpi-value text-success">{{ totalReceber() | brl }}</div>
-    <div class="kpi-sub">{{ receber().length }} títulos</div>
+    <div class="kpi-value text-success">{{ totalReceivable() | brl }}</div>
+    <div class="kpi-sub">{{ receivables().length }} títulos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon red"><i class="ti ti-arrow-up-right"></i></div>
     <div class="kpi-label">A pagar (abertos)</div>
-    <div class="kpi-value text-danger">{{ totalPagar() | brl }}</div>
-    <div class="kpi-sub">{{ pagar().length }} títulos</div>
+    <div class="kpi-value text-danger">{{ totalPayable() | brl }}</div>
+    <div class="kpi-sub">{{ payables().length }} títulos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon blue"><i class="ti ti-building-bank"></i></div>
     <div class="kpi-label">Saldo bancário</div>
-    <div class="kpi-value">{{ saldoBancario | brl }}</div>
+    <div class="kpi-value">{{ bankBalance | brl }}</div>
     <div class="kpi-sub">Bradesco + Caixa interno</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon amber"><i class="ti ti-alert-circle"></i></div>
     <div class="kpi-label">Inadimplência</div>
-    <div class="kpi-value text-warn">{{ totalVencido() | brl }}</div>
-    <div class="kpi-sub">{{ vencidosCount() }} títulos vencidos</div>
+    <div class="kpi-value text-warn">{{ totalOverdue() | brl }}</div>
+    <div class="kpi-sub">{{ overdueCount() }} títulos vencidos</div>
   </div>
 </div>
 
 <div class="tabs">
-  <div class="tab" [class.active]="activeTab() === 'receber'"     (click)="activeTab.set('receber')">Contas a Receber</div>
-  <div class="tab" [class.active]="activeTab() === 'pagar'"       (click)="activeTab.set('pagar')">Contas a Pagar</div>
-  <div class="tab" [class.active]="activeTab() === 'fluxo'"       (click)="activeTab.set('fluxo')">Fluxo de Caixa</div>
-  <div class="tab" [class.active]="activeTab() === 'conciliacao'" (click)="activeTab.set('conciliacao')">Conciliação</div>
+  <div class="tab" [class.active]="activeTab() === 'receivable'"     (click)="activeTab.set('receivable')">Contas a Receber</div>
+  <div class="tab" [class.active]="activeTab() === 'payable'"       (click)="activeTab.set('payable')">Contas a Pagar</div>
+  <div class="tab" [class.active]="activeTab() === 'cashFlow'"       (click)="activeTab.set('cashFlow')">Fluxo de Caixa</div>
+  <div class="tab" [class.active]="activeTab() === 'reconciliation'" (click)="activeTab.set('reconciliation')">Conciliação</div>
 </div>
 
-@if (activeTab() === 'receber') {
+@if (activeTab() === 'receivable') {
   <div class="card">
     <div class="card-head">
       <span class="card-title">Contas a Receber</span>
@@ -56,7 +56,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (t of receber(); track t.id) {
+        @for (t of receivables(); track t.id) {
           <tr>
             <td class="td-name">{{ t.descricao }}</td>
             <td>{{ t.parceiro }}</td>
@@ -69,7 +69,7 @@
             <td><app-badge [value]="t.status" /></td>
             <td class="td-actions">
               @if (t.status !== 'pago') {
-                <button class="action-btn success" (click)="baixarTitulo(t.id)">Baixar</button>
+                <button class="action-btn success" (click)="settleTitle(t.id)">Baixar</button>
               }
               <button class="action-btn">Ver</button>
             </td>
@@ -80,7 +80,7 @@
   </div>
 }
 
-@if (activeTab() === 'pagar') {
+@if (activeTab() === 'payable') {
   <div class="card">
     <div class="card-head">
       <span class="card-title">Contas a Pagar</span>
@@ -99,7 +99,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (t of pagar(); track t.id) {
+        @for (t of payables(); track t.id) {
           <tr>
             <td class="td-name">{{ t.descricao }}</td>
             <td>{{ t.parceiro }}</td>
@@ -111,7 +111,7 @@
             <td><app-badge [value]="t.status" /></td>
             <td class="td-actions">
               @if (t.status !== 'pago') {
-                <button class="action-btn danger" (click)="baixarTitulo(t.id)">Pagar</button>
+                <button class="action-btn danger" (click)="settleTitle(t.id)">Pagar</button>
               }
               <button class="action-btn">Ver</button>
             </td>
@@ -122,7 +122,7 @@
   </div>
 }
 
-@if (activeTab() === 'fluxo') {
+@if (activeTab() === 'cashFlow') {
   <div class="card">
     <div class="card-head">
       <span class="card-title">Fluxo de Caixa — Próximos 7 dias</span>
@@ -151,7 +151,7 @@
   </div>
 }
 
-@if (activeTab() === 'conciliacao') {
+@if (activeTab() === 'reconciliation') {
   <div class="card">
     <div class="card-head">
       <span class="card-title">Conciliação Bancária</span>

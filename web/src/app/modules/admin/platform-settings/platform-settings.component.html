@@ -29,9 +29,9 @@
   <nav class="settings-menu card" aria-label="Seções de configuração">
     @for (s of sections; track s.key) {
       <a class="settings-menu-item"
-         [routerLink]="['/admin/configuracoes', s.key]"
-         [class.active]="secaoAtiva() === s.key"
-         [attr.aria-current]="secaoAtiva() === s.key ? 'page' : null">
+         [routerLink]="['/admin/settings', s.key]"
+         [class.active]="activeSection() === s.key"
+         [attr.aria-current]="activeSection() === s.key ? 'page' : null">
         <i class="ti {{ s.icon }}"></i>
         <span class="menu-label">{{ s.label }}</span>
         @if (sectionErrors(s.key)) {
@@ -45,12 +45,12 @@
 
   <section class="settings-panel card" [attr.aria-labelledby]="'sec-title'">
     <div class="settings-panel-head">
-      <h3 class="settings-panel-title" id="sec-title">{{ section.title }}</h3>
-      <div class="settings-panel-sub">{{ section.desc }}</div>
+      <h3 class="settings-panel-title" id="sec-title">{{ currentSection.title }}</h3>
+      <div class="settings-panel-sub">{{ currentSection.desc }}</div>
     </div>
 
     <!-- ═══════════════ PLANOS ═══════════════ -->
-    @if (secaoAtiva() === 'planos') {
+    @if (activeSection() === 'planos') {
       @if (err('planos.geral'); as m) {
         <div class="alert danger" role="alert"><i class="ti ti-alert-triangle"></i>{{ m }}</div>
       }
@@ -274,7 +274,7 @@
     }
 
     <!-- ═══════════════ ASSINATURA & COBRANÇA ═══════════════ -->
-    @if (secaoAtiva() === 'cobranca') {
+    @if (activeSection() === 'cobranca') {
       <div class="block">
         <div class="block-title">Período de teste</div>
         <div class="form-row cols-2">
@@ -358,7 +358,7 @@
     }
 
     <!-- ═══════════════ SUPORTE & SLA ═══════════════ -->
-    @if (secaoAtiva() === 'suporte') {
+    @if (activeSection() === 'suporte') {
       <div class="block">
         <div class="block-title">Atendimento por plano</div>
         <div class="table-wrap">
@@ -413,7 +413,7 @@
     }
 
     <!-- ═══════════════ INTEGRAÇÕES ═══════════════ -->
-    @if (secaoAtiva() === 'integracoes') {
+    @if (activeSection() === 'integracoes') {
       @for (c of categorias; track c.key) {
         <div class="block">
           <div class="block-title">{{ c.label }}</div>
@@ -439,7 +439,7 @@
     }
 
     <!-- ═══════════════ SEGURANÇA & CONFORMIDADE ═══════════════ -->
-    @if (secaoAtiva() === 'conformidade') {
+    @if (activeSection() === 'conformidade') {
       <div class="block">
         <div class="block-title">Retenção e backup</div>
         <div class="form-row cols-3">
@@ -500,7 +500,7 @@
     }
 
     <!-- ═══════════════ INSTITUCIONAL ═══════════════ -->
-    @if (secaoAtiva() === 'institucional') {
+    @if (activeSection() === 'institucional') {
       <div class="block">
         <div class="block-title">Identificação</div>
         <div class="form-row cols-2">
@@ -552,7 +552,7 @@
     }
 
     <!-- ═══════════════ SITE PÚBLICO ═══════════════ -->
-    @if (secaoAtiva() === 'site') {
+    @if (activeSection() === 'site') {
       <div class="block">
         <div class="block-title">
           Números de destaque

@@ -1,7 +1,7 @@
 @if (customer(); as c) {
   <app-page-header [title]="c.nomeFantasia || c.razaoSocial" subtitle="Informações do cliente · somente leitura">
-    <a routerLink="/admin/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
-    <a [routerLink]="['/admin/clientes', c.id, 'pagamentos']" class="btn btn-ghost"><i class="ti ti-cash"></i> Histórico de pagamentos</a>
+    <a routerLink="/admin/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/admin/customers', c.id, 'payments']" class="btn btn-ghost"><i class="ti ti-cash"></i> Histórico de pagamentos</a>
   </app-page-header>
 
   <div class="form-section">
@@ -42,6 +42,6 @@
   </div>
 } @else {
   <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
-    <a routerLink="/admin/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a routerLink="/admin/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
   </app-page-header>
 }

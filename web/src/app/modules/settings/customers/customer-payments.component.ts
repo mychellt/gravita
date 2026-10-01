@@ -7,7 +7,7 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../../shared/pipes/brl.pipe';
 
-const ORIGEM_LABELS: Record<RecebivelOrigem, string> = {
+const ORIGIN_LABELS: Record<RecebivelOrigem, string> = {
   faturamento: 'Faturamento',
   manual: 'Manual',
   renegociacao: 'Renegociação',
@@ -20,21 +20,21 @@ const isOutstanding = (r: Recebivel) => r.status === 'aberto' || r.status === 'p
 const isOverdue = (r: Recebivel, today: Date) => isOutstanding(r) && r.vencimento < today;
 
 @Component({
-  selector: 'app-cliente-pagamentos',
+  selector: 'app-customer-payments',
   standalone: true,
   imports: [DatePipe, RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: './cliente-pagamentos.component.scss',
-  templateUrl: './cliente-pagamentos.component.html'
+  styleUrl: './customer-payments.component.scss',
+  templateUrl: './customer-payments.component.html'
 })
-export class ClientePagamentosComponent {
+export class CustomerPaymentsComponent {
   private data = inject(DataService);
 
   /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
-  readonly cliente = computed(() => this.data.clientes().find(c => c.id === this.id()));
+  readonly customer = computed(() => this.data.clientes().find(c => c.id === this.id()));
 
-  readonly titulos = computed(() => {
+  readonly receivables = computed(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return this.data.recebiveis()
@@ -42,12 +42,12 @@ export class ClientePagamentosComponent {
       .sort((a, b) => a.vencimento.getTime() - b.vencimento.getTime())
       .map(r => ({
         ...r,
-        origemLabel: ORIGEM_LABELS[r.origem] ?? r.origem,
-        parcelaLabel: r.parcela != null && r.totalParcelas != null ? `${r.parcela}/${r.totalParcelas}` : '--',
-        vencido: isOverdue(r, today),
+        originLabel: ORIGIN_LABELS[r.origem] ?? r.origem,
+        installmentLabel: r.parcela != null && r.totalParcelas != null ? `${r.parcela}/${r.totalParcelas}` : '--',
+        overdue: isOverdue(r, today),
       }));
   });
 
-  readonly vencidos = computed(() => this.titulos().filter(t => t.vencido));
-  readonly totalVencido = computed(() => this.vencidos().reduce((s, t) => s + t.valor, 0));
+  readonly overdueReceivables = computed(() => this.receivables().filter(t => t.overdue));
+  readonly totalOverdue = computed(() => this.overdueReceivables().reduce((s, t) => s + t.valor, 0));
 }

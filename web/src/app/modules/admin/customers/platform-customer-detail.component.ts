@@ -11,7 +11,7 @@ import { BrlPipe } from '../../../shared/pipes/brl.pipe';
   selector: 'app-platform-customer-detail',
   standalone: true,
   imports: [DatePipe, RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: '../../settings/clientes/cliente-detail.component.scss',
+  styleUrl: '../../settings/customers/customer-detail.component.scss',
   templateUrl: './platform-customer-detail.component.html'
 })
 export class PlatformCustomerDetailComponent {

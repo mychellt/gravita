@@ -20,7 +20,7 @@ export class AdminShellComponent {
   constructor(public titleSvc: TitleService) {}
 
   readonly nav: AdminNavItem[] = [
-    { label: 'Configurações gerais', icon: 'ti-adjustments-horizontal', route: '/admin/configuracoes' },
-    { label: 'Clientes Gravita', icon: 'ti-building-store', route: '/admin/clientes' },
+    { label: 'Configurações gerais', icon: 'ti-adjustments-horizontal', route: '/admin/settings' },
+    { label: 'Clientes Gravita', icon: 'ti-building-store', route: '/admin/customers' },
   ];
 }
