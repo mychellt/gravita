@@ -6,5 +6,10 @@ public enum TaxType {
 	IPI,
 	PIS,
 	COFINS,
-	FCP
+	FCP,
+	// Service taxes (M4 NFSe): ISS is municipal; CSLL, IRPJ and INSS only appear as withholdings at source.
+	ISS,
+	CSLL,
+	IRPJ,
+	INSS
 }
