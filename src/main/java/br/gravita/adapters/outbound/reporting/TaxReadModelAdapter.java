@@ -7,12 +7,14 @@ import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeItem;
 import br.gravita.core.domain.tax.NfceSale;
 import br.gravita.core.domain.tax.NfeDocument;
+import br.gravita.core.domain.tax.NfseDocument;
 import br.gravita.core.domain.tax.TaxType;
 import br.gravita.core.ports.outbound.persistence.sales.SalesInvoiceRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfceRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.tax.NfseRepositoryPort;
 import br.gravita.core.ports.outbound.reporting.TaxReadModelPort;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,29 +30,34 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Sales orders carry no company, so {@code companyId} cannot narrow the invoiced total yet. Neither can the fiscal
  * documents be narrowed: the NFC-e keeps no company of its own, so the books list every document of the period. A
- * document's day is the one it falls on in the server's time zone.
+ * document's day is the one it falls on in the server's time zone. The NFC-e stores no tax breakdown, so it adds
+ * nothing to the assessed taxes.
  */
 @PersistenceAdapter
 class TaxReadModelAdapter implements TaxReadModelPort {
 
 	static final String NFE = "NFE";
 	static final String NFCE = "NFCE";
+	static final String NFSE = "NFSE";
 
 	private final SalesOrderRepositoryPort salesOrderRepositoryPort;
 	private final SalesInvoiceRepositoryPort salesInvoiceRepositoryPort;
 	private final NfeRepositoryPort nfeRepositoryPort;
 	private final NfceRepositoryPort nfceRepositoryPort;
 	private final InboundNfeRepositoryPort inboundNfeRepositoryPort;
+	private final NfseRepositoryPort nfseRepositoryPort;
 	private final ZoneId zone = ZoneId.systemDefault();
 
 	TaxReadModelAdapter(SalesOrderRepositoryPort salesOrderRepositoryPort,
 			SalesInvoiceRepositoryPort salesInvoiceRepositoryPort, NfeRepositoryPort nfeRepositoryPort,
-			NfceRepositoryPort nfceRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort) {
+			NfceRepositoryPort nfceRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			NfseRepositoryPort nfseRepositoryPort) {
 		this.salesOrderRepositoryPort = salesOrderRepositoryPort;
 		this.salesInvoiceRepositoryPort = salesInvoiceRepositoryPort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.nfceRepositoryPort = nfceRepositoryPort;
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
+		this.nfseRepositoryPort = nfseRepositoryPort;
 	}
 
 	@Override
@@ -76,6 +84,33 @@ class TaxReadModelAdapter implements TaxReadModelPort {
 		nfeRepositoryPort.findAuthorizedBetween(start, end).forEach(nfe -> exits.add(toRecord(nfe)));
 		nfceRepositoryPort.findAuthorizedBetween(start, end).forEach(nfce -> exits.add(toRecord(nfce)));
 		return exits;
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<DocumentTaxRecord> authorizedDocumentTaxes(LocalDate from, LocalDate to) {
+		Instant start = startOf(from);
+		Instant end = startOfDayAfter(to);
+		List<DocumentTaxRecord> taxes = new ArrayList<>();
+		nfeRepositoryPort.findAuthorizedBetween(start, end).forEach(nfe -> taxes.add(toTaxRecord(nfe)));
+		nfseRepositoryPort.findAuthorizedBetween(start, end).forEach(nfse -> taxes.add(toTaxRecord(nfse)));
+		return taxes;
+	}
+
+	private DocumentTaxRecord toTaxRecord(NfeDocument nfe) {
+		Map<TaxType, BigDecimal> byTaxType = nfe.getTaxTotals().byTaxType();
+		return new DocumentTaxRecord(NFE, day(nfe.getAuthorizedAt()), amount(byTaxType, TaxType.ICMS),
+				amount(byTaxType, TaxType.IPI), amount(byTaxType, TaxType.PIS), amount(byTaxType, TaxType.COFINS),
+				BigDecimal.ZERO);
+	}
+
+	private DocumentTaxRecord toTaxRecord(NfseDocument nfse) {
+		return new DocumentTaxRecord(NFSE, day(nfse.getAuthorizedAt()), BigDecimal.ZERO, BigDecimal.ZERO,
+				BigDecimal.ZERO, BigDecimal.ZERO, nfse.getIssAmount());
+	}
+
+	private static BigDecimal amount(Map<TaxType, BigDecimal> byTaxType, TaxType type) {
+		return byTaxType.getOrDefault(type, BigDecimal.ZERO);
 	}
 
 	private FiscalDocumentRecord toRecord(InboundNfe nfe) {

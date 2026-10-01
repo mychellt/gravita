@@ -10,7 +10,10 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.NfseDocument;
 import br.gravita.core.domain.tax.NfseId;
 import br.gravita.core.domain.tax.NfseNumber;
+import br.gravita.core.domain.tax.NfseStatus;
 import br.gravita.core.ports.outbound.persistence.tax.NfseRepositoryPort;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Propagation;
@@ -63,5 +66,13 @@ class NfseRepositoryAdapter implements NfseRepositoryPort {
 		sequence.setNextNumber(sequence.getNextNumber() + 1);
 		sequenceJpaRepository.save(sequence);
 		return allocated;
+	}
+
+	@Override
+	public List<NfseDocument> findAuthorizedBetween(Instant from, Instant to) {
+		return jpaRepository
+				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+						NfseStatus.AUTHORIZED, from, to)
+				.stream().map(mapper::toDomain).toList();
 	}
 }
