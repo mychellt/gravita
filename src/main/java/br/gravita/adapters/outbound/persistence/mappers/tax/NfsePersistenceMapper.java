@@ -43,7 +43,12 @@ public interface NfsePersistenceMapper {
 				entity.getDocumentCreatedAt(),
 				entity.getNfseSeries(),
 				entity.getNfseNumber(),
-				entity.getDraftAt());
+				entity.getDraftAt(),
+				entity.getSentAt(),
+				entity.getProtocol(),
+				entity.getAuthorizedAt(),
+				entity.getXmlReference(),
+				entity.getLastRejectionReason());
 	}
 
 	default NfseJpaEntity toEntity(final NfseDocument domain) {
@@ -79,6 +84,11 @@ public interface NfsePersistenceMapper {
 				.nfseSeries(domain.getNfseSeries())
 				.nfseNumber(domain.getNfseNumber())
 				.draftAt(domain.getDraftAt())
+				.sentAt(domain.getSentAt())
+				.protocol(domain.getProtocol())
+				.authorizedAt(domain.getAuthorizedAt())
+				.xmlReference(domain.getXmlReference())
+				.lastRejectionReason(domain.getLastRejectionReason())
 				.withholdings(toWithholdingEmbeddables(domain.getWithholdings()))
 				.build();
 	}

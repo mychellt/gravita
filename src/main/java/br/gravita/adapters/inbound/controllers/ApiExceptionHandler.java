@@ -4,6 +4,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.exceptions.UnauthorizedException;
+import br.gravita.core.domain.tax.NfseMunicipalityUnavailableException;
 import br.gravita.core.domain.tax.TaxDomainException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,5 +49,11 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(TaxDomainException.class)
 	public ResponseEntity<String> handleTaxDomainViolation(TaxDomainException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+	}
+
+	/** The municipality did not answer: nothing was changed, so the same request can simply be repeated. */
+	@ExceptionHandler(NfseMunicipalityUnavailableException.class)
+	public ResponseEntity<String> handleNfseMunicipalityUnavailable(NfseMunicipalityUnavailableException ex) {
+		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
 	}
 }

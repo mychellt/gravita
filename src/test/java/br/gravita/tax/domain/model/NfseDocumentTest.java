@@ -145,4 +145,62 @@ class NfseDocumentTest {
 				.isInstanceOf(NullPointerException.class);
 		assertThatThrownBy(() -> rps.convertToNfse("1", 1L, null)).isInstanceOf(NullPointerException.class);
 	}
+
+	private static NfseDocument draft() {
+		return issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria")
+				.convertToNfse("1", 9L, Instant.parse("2026-10-01T10:00:00Z"));
+	}
+
+	@Test
+	void transmissionMovesADraftThroughSentToAuthorizedKeepingOnlyAnXmlReference() {
+		Instant sentAt = Instant.parse("2026-10-01T11:00:00Z");
+		Instant authorizedAt = Instant.parse("2026-10-01T11:00:02Z");
+
+		NfseDocument sent = draft().send(sentAt);
+		NfseDocument authorized = sent.authorize("PROT-1", authorizedAt, "xml/ref-1");
+
+		assertThat(sent.getStatus()).isEqualTo(NfseStatus.SENT);
+		assertThat(sent.getSentAt()).isEqualTo(sentAt);
+		assertThat(authorized.getStatus()).isEqualTo(NfseStatus.AUTHORIZED);
+		assertThat(authorized.getProtocol()).isEqualTo("PROT-1");
+		assertThat(authorized.getAuthorizedAt()).isEqualTo(authorizedAt);
+		assertThat(authorized.getXmlReference()).isEqualTo("xml/ref-1");
+		assertThat(authorized.getSentAt()).isEqualTo(sentAt);
+		assertThat(authorized.getNfseNumber()).isEqualTo(9L);
+	}
+
+	@Test
+	void aRejectedAttemptReturnsToDraftWithTheReasonAndCanBeSentAgain() {
+		NfseDocument rejected = draft().send(Instant.now()).reject("Item de servico invalido");
+
+		assertThat(rejected.getStatus()).isEqualTo(NfseStatus.DRAFT);
+		assertThat(rejected.getLastRejectionReason()).isEqualTo("Item de servico invalido");
+		assertThat(rejected.getProtocol()).isNull();
+
+		NfseDocument retried = rejected.send(Instant.now());
+		assertThat(retried.getStatus()).isEqualTo(NfseStatus.SENT);
+		assertThat(retried.getLastRejectionReason()).isNull();
+	}
+
+	@Test
+	void onlyADraftCanBeSentAndOnlyASentOneCanBeDecided() {
+		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
+		NfseDocument draft = draft();
+		NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
+
+		assertThatThrownBy(() -> rps.send(Instant.now())).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> authorized.send(Instant.now())).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> draft.authorize("P", Instant.now(), "ref"))
+				.isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> draft.reject("no")).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void anAuthorizedDocumentRequiresItsProtocolTimestampAndXmlReference() {
+		NfseDocument sent = draft().send(Instant.now());
+
+		assertThatThrownBy(() -> sent.authorize(" ", Instant.now(), "ref")).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> sent.authorize("P", null, "ref")).isInstanceOf(NullPointerException.class);
+		assertThatThrownBy(() -> sent.authorize("P", Instant.now(), null)).isInstanceOf(BusinessRuleException.class);
+	}
 }
