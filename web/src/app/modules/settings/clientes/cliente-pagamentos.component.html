@@ -1,0 +1,65 @@
+@if (cliente(); as c) {
+  <app-page-header [title]="'Pagamentos · ' + (c.nome || 'Cliente')" subtitle="Saldo em aberto e títulos a receber · somente leitura">
+    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/settings/clientes', c.id]" class="btn btn-ghost"><i class="ti ti-user"></i> Dados</a>
+    <a routerLink="/financeiro" class="btn btn-ghost"><i class="ti ti-cash"></i> Ver no Financeiro</a>
+  </app-page-header>
+
+  <div class="pag-kpis">
+    <div class="kpi">
+      <div class="kpi-icon green"><i class="ti ti-wallet"></i></div>
+      <div class="kpi-label">Saldo em aberto</div>
+      <div class="kpi-value">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</div>
+      <div class="kpi-sub">Posição atual do cliente</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon red"><i class="ti ti-alert-circle"></i></div>
+      <div class="kpi-label">Vencidos</div>
+      <div class="kpi-value" [class.text-danger]="vencidos().length > 0">{{ totalVencido() | brl }}</div>
+      <div class="kpi-sub">{{ vencidos().length }} {{ vencidos().length === 1 ? 'título vencido' : 'títulos vencidos' }}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Títulos a receber</span>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Origem</th>
+          <th>Vencimento</th>
+          <th class="td-right">Valor</th>
+          <th>Parcela</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of titulos(); track t.id) {
+          <tr>
+            <td class="td-name">{{ t.origemLabel }}</td>
+            <td style="font-size:12px" [class.overdue]="t.vencido">
+              {{ t.vencimento | date:'dd/MM/yyyy' }}
+              @if (t.vencido) { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
+            </td>
+            <td class="td-amount">{{ t.valor | brl }}</td>
+            <td style="font-size:12px">{{ t.parcelaLabel }}</td>
+            <td>
+              <app-badge [value]="t.status" />
+              @if (t.vencido) { <app-badge value="vencido" /> }
+            </td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Nenhum título encontrado</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
+    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  </app-page-header>
+}

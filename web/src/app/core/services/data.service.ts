@@ -1,9 +1,17 @@
 import { Injectable, signal, computed } from '@angular/core';
 import {
   Nfe, Nfse, Produto, Cliente, TabelaPreco, Fornecedor,
-  PedidoCompra, Titulo, Oportunidade, MovimentoEstoque,
+  PedidoCompra, Titulo, Recebivel, Oportunidade, MovimentoEstoque,
   ItemCarrinho, PedidoVenda
 } from '../models';
+
+/** Local-midnight date `n` days from today, so mock due dates stay overdue/not overdue as time passes. */
+function daysFromToday(n: number): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + n);
+  return d;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
@@ -77,6 +85,26 @@ export class DataService {
     { id:'t6', tipo:'pagar', descricao:'Internet + Telefonia', parceiro:'TIM Business', vencimento:new Date('2026-06-08'), valor:680, status:'aberto', formaPagamento:'Boleto', origem:'Manual' },
     { id:'t7', tipo:'receber', descricao:'NF-e #000230', parceiro:'Supermercado Bom Preço', vencimento:new Date('2026-06-10'), valor:5400, status:'aberto', formaPagamento:'Boleto', origem:'NF-e' },
     { id:'t8', tipo:'pagar', descricao:'Energia elétrica', parceiro:'EDP São Paulo', vencimento:new Date('2026-06-12'), valor:1240, status:'aberto', formaPagamento:'Boleto', origem:'Manual' },
+  ]);
+
+  /**
+   * Receivables per customer. Outstanding (aberto/parcial) titles of each customer add up to
+   * that customer's `saldoDevedor`, which is the single source for the open balance shown
+   * on both the list/detail and the Pagamentos views. c5 has no receivables on purpose.
+   */
+  readonly recebiveis = signal<Recebivel[]>([
+    { id:'r1',  clienteId:'c1', origem:'faturamento',  valor:12800, vencimento:daysFromToday(-12), parcela:1, totalParcelas:3, status:'aberto' },
+    { id:'r2',  clienteId:'c1', origem:'faturamento',  valor:12800, vencimento:daysFromToday(18),  parcela:2, totalParcelas:3, status:'aberto' },
+    { id:'r3',  clienteId:'c1', origem:'faturamento',  valor:12800, vencimento:daysFromToday(48),  parcela:3, totalParcelas:3, status:'aberto' },
+    { id:'r4',  clienteId:'c1', origem:'faturamento',  valor:9600,  vencimento:daysFromToday(-40), parcela:1, totalParcelas:1, status:'liquidado' },
+    { id:'r5',  clienteId:'c2', origem:'faturamento',  valor:7100,  vencimento:daysFromToday(-5),  parcela:1, totalParcelas:2, status:'parcial' },
+    { id:'r6',  clienteId:'c2', origem:'faturamento',  valor:7100,  vencimento:daysFromToday(25),  parcela:2, totalParcelas:2, status:'aberto' },
+    { id:'r7',  clienteId:'c2', origem:'renegociacao', valor:7900,  vencimento:daysFromToday(10),  parcela:1, totalParcelas:1, status:'aberto' },
+    { id:'r8',  clienteId:'c2', origem:'faturamento',  valor:4300,  vencimento:daysFromToday(-60), parcela:1, totalParcelas:1, status:'renegociado' },
+    { id:'r9',  clienteId:'c3', origem:'manual',       valor:850,   vencimento:daysFromToday(-20), status:'aberto' },
+    { id:'r10', clienteId:'c3', origem:'manual',       valor:300,   vencimento:daysFromToday(-90), status:'cancelado' },
+    { id:'r11', clienteId:'c4', origem:'faturamento',  valor:6000,  vencimento:daysFromToday(7),   parcela:1, totalParcelas:2, status:'aberto' },
+    { id:'r12', clienteId:'c4', origem:'faturamento',  valor:6000,  vencimento:daysFromToday(37),  parcela:2, totalParcelas:2, status:'aberto' },
   ]);
 
   readonly oportunidades = signal<Oportunidade[]>([

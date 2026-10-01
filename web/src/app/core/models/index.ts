@@ -238,6 +238,22 @@ export interface Titulo {
   centoCusto?: string;
 }
 
+export type RecebivelStatus = 'aberto' | 'parcial' | 'liquidado' | 'renegociado' | 'cancelado';
+export type RecebivelOrigem = 'faturamento' | 'manual' | 'renegociacao';
+
+/** Customer receivable (backend `Receivable`: origin, amount, dueDate, installmentNumber/installments, status). */
+export interface Recebivel {
+  id: string;
+  clienteId: string;
+  origem: RecebivelOrigem;
+  valor: number;
+  vencimento: Date;
+  /** Position of this title among the installments (1-based); absent for manual titles. */
+  parcela?: number;
+  totalParcelas?: number;
+  status: RecebivelStatus;
+}
+
 export interface ItemCarrinho {
   produto: Produto;
   quantidade: number;
