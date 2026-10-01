@@ -54,12 +54,12 @@ class RegisterCompanyServiceTest {
 		assertThat(savedCompany.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
 
 		ArgumentCaptor<DocumentSeries> savedSeries = ArgumentCaptor.forClass(DocumentSeries.class);
-		verify(documentSeriesRepositoryPort, times(3)).save(savedSeries.capture());
+		verify(documentSeriesRepositoryPort, times(4)).save(savedSeries.capture());
 		Set<FiscalDocumentType> createdTypes = savedSeries.getAllValues().stream()
 				.map(DocumentSeries::getDocumentType)
 				.collect(java.util.stream.Collectors.toSet());
 		assertThat(createdTypes).containsExactlyInAnyOrder(FiscalDocumentType.NFE, FiscalDocumentType.NFCE,
-				FiscalDocumentType.NFSE);
+				FiscalDocumentType.NFSE, FiscalDocumentType.RPS);
 	}
 
 	@Test
