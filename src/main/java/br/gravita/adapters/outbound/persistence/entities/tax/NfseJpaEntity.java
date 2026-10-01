@@ -34,8 +34,11 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "nfse_documents",
-		uniqueConstraints = @UniqueConstraint(name = "uk_nfse_documents_rps_number",
-				columnNames = { "provider_company_id", "rps_series", "rps_number" }))
+		uniqueConstraints = { @UniqueConstraint(name = "uk_nfse_documents_rps_number",
+				columnNames = { "provider_company_id", "rps_series", "rps_number" }),
+				@UniqueConstraint(name = "uk_nfse_documents_nfse_number",
+						columnNames = { "provider_company_id", "provider_municipality_ibge", "nfse_series",
+								"nfse_number" }) })
 public class NfseJpaEntity extends AbstractEntity<UUID> {
 
 	@Id
@@ -118,6 +121,16 @@ public class NfseJpaEntity extends AbstractEntity<UUID> {
 
 	@Column(name = "document_created_at", nullable = false)
 	private Instant documentCreatedAt;
+
+	/** Assigned by the RPS -> NFSe conversion (M4-03); {@code null} while the row is still an RPS. */
+	@Column(name = "nfse_series", length = 10)
+	private String nfseSeries;
+
+	@Column(name = "nfse_number")
+	private Long nfseNumber;
+
+	@Column(name = "draft_at")
+	private Instant draftAt;
 
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "nfse_withholdings", joinColumns = @JoinColumn(name = "nfse_document_id"))

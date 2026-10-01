@@ -40,7 +40,10 @@ public interface NfsePersistenceMapper {
 				entity.getDiscrimination(),
 				entity.getRpsSeries(),
 				entity.getRpsNumber(),
-				entity.getDocumentCreatedAt());
+				entity.getDocumentCreatedAt(),
+				entity.getNfseSeries(),
+				entity.getNfseNumber(),
+				entity.getDraftAt());
 	}
 
 	default NfseJpaEntity toEntity(final NfseDocument domain) {
@@ -73,6 +76,9 @@ public interface NfsePersistenceMapper {
 				.rpsSeries(domain.getRpsSeries())
 				.rpsNumber(domain.getRpsNumber())
 				.documentCreatedAt(domain.getCreatedAt())
+				.nfseSeries(domain.getNfseSeries())
+				.nfseNumber(domain.getNfseNumber())
+				.draftAt(domain.getDraftAt())
 				.withholdings(toWithholdingEmbeddables(domain.getWithholdings()))
 				.build();
 	}

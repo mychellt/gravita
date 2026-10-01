@@ -45,3 +45,14 @@ public interface ConvertRpsToNfseUseCase {
 
 - **Depends on:** UC-M4-02 (`issue-rps`).
 - **Blocks:** UC-M4-04 (`transmit-nfse`).
+
+## Implementation notes
+
+- `POST /api/nfse/rps/convert` takes `{"rpsIds": ["<uuid>", ...]}` (one id = individual, several = batch) and answers `200` with `{"ids": [...]}` - the `NfseId`s in the order requested. An empty/missing list is `400`; an unknown RPS is `404` and, since the command runs in one transaction, fails the whole batch without consuming any number.
+- **Same aggregate.** The RPS is the `NfseDocument` row with `status = RPS` (M4-02), so conversion updates that row in place: `NfseDocument.convertToNfse(series, number, at)` sets `status = DRAFT`, `nfseSeries`, `nfseNumber` and `draftAt` (the timestamp). The RPS series/number stay as they were. Nothing is transmitted (M4-04).
+- **Numbering (AC2).** `NfseRepositoryPort.allocateNextNumber(company, municipality)` draws from a new `nfse_number_sequences` table keyed by `(company, municipality)` - the provider's municipality - so it never touches `document_series` (NFe/NFCe/RPS). The row is read with a pessimistic write lock, so concurrent conversions get distinct numbers; the lock and the increment roll back with the transaction. A unique constraint on `(company, municipality, nfse_series, nfse_number)` backs this up. Spec deviation: the ticket lists `NfseRepositoryPort` as the only outbound port, so the sequence lives behind it rather than behind `AllocateDocumentNumberUseCase` (whose series is per company, not per municipality).
+- **Series.** The sequence is created lazily on a municipality's first conversion with series `"1"` and next number `1`. There is no API to configure a municipality-specific series yet.
+- **Idempotency (AC4).** The document is loaded with `findByIdForUpdate`; anything not in `RPS` status (already `DRAFT` or later) is returned as-is - same id, no new number, no second document. A repeated id inside one batch is converted once. Locking in a stable id order keeps overlapping batches from deadlocking.
+- **Known edge.** Two transactions creating the *first* sequence row of the same `(company, municipality)` at the same moment can collide on its unique constraint; the loser fails and the request can be retried.
+- Migration `V73` adds `nfse_series`, `nfse_number`, `draft_at` to `nfse_documents` and creates `nfse_number_sequences`.
+

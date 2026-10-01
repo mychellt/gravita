@@ -13,6 +13,7 @@ import br.gravita.core.domain.shared.PersonRef;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NfseDocument;
 import br.gravita.core.domain.tax.NfseId;
+import br.gravita.core.domain.tax.NfseNumber;
 import br.gravita.core.domain.tax.NfseStatus;
 import br.gravita.core.domain.tax.NfseTomador;
 import br.gravita.core.domain.tax.NfseWithholding;
@@ -87,6 +88,36 @@ class NfseRepositoryAdapterTest {
 		assertThat(found.getWithholdings()).extracting(NfseWithholding::taxType)
 				.containsExactlyInAnyOrder(TaxType.ISS, TaxType.CSLL);
 		assertThat(found.getCreatedAt()).isEqualTo(Instant.parse("2026-10-01T10:00:00Z"));
+	}
+
+	@Test
+	void roundTripsTheNfseSeriesNumberAndDraftTimestampOfAConvertedDocument() {
+		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
+		NfseDocument rps = nfseRepositoryAdapter.save(rps(tomador, List.of(), null));
+		nfseJpaRepository.flush();
+
+		nfseRepositoryAdapter.save(rps.convertToNfse("1", 9L, Instant.parse("2026-10-01T12:00:00Z")));
+		nfseJpaRepository.flush();
+
+		NfseDocument found = nfseRepositoryAdapter.findByIdForUpdate(rps.getId()).orElseThrow();
+		assertThat(found.getStatus()).isEqualTo(NfseStatus.DRAFT);
+		assertThat(found.getNfseSeries()).isEqualTo("1");
+		assertThat(found.getNfseNumber()).isEqualTo(9L);
+		assertThat(found.getDraftAt()).isEqualTo(Instant.parse("2026-10-01T12:00:00Z"));
+		assertThat(found.getRpsNumber()).isEqualTo(42L);
+		assertThat(nfseRepositoryAdapter.findByIdForUpdate(NfseId.of(UUID.randomUUID()))).isEmpty();
+	}
+
+	@Test
+	void nfseNumbersAreSequentialPerCompanyAndMunicipality() {
+		CompanyId a = CompanyId.of(UUID.randomUUID());
+		CompanyId b = CompanyId.of(UUID.randomUUID());
+
+		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 1L));
+		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 2L));
+		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3304557")).isEqualTo(new NfseNumber("1", 1L));
+		assertThat(nfseRepositoryAdapter.allocateNextNumber(b, "3550308")).isEqualTo(new NfseNumber("1", 1L));
+		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 3L));
 	}
 
 	@Test
