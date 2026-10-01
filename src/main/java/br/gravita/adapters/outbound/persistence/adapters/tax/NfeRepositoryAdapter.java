@@ -52,4 +52,14 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 						companyId.value(), NfeDocumentStatus.AUTHORIZED, from, to)
 				.stream().map(mapper::toDomain).toList();
 	}
+
+	@Override
+	public List<NfeDocument> findAuthorizedOrCancelledByCompanyBetween(CompanyId companyId, Instant from,
+			Instant to) {
+		return jpaRepository
+				.findByIssuerCompanyIdAndStatusInAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+						companyId.value(), List.of(NfeDocumentStatus.AUTHORIZED, NfeDocumentStatus.CANCELLED), from,
+						to)
+				.stream().map(mapper::toDomain).toList();
+	}
 }

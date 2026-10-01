@@ -7,6 +7,9 @@ import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.exceptions.UnauthorizedException;
 import br.gravita.core.domain.tax.NfseMunicipalityUnavailableException;
 import br.gravita.core.domain.tax.TaxDomainException;
+import br.gravita.core.ports.inbound.tax.SpedValidationException;
+import br.gravita.core.ports.inbound.tax.SpedValidationReport;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -40,6 +43,14 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(DuplicateResourceException.class)
 	public ResponseEntity<String> handleDuplicate(DuplicateResourceException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+	}
+
+	/** UC-M2-11: the EFD's mandatory records could not be populated; the body lists each one missing or invalid. */
+	@ExceptionHandler(SpedValidationException.class)
+	public ResponseEntity<Map<String, Object>> handleSpedValidation(SpedValidationException ex) {
+		SpedValidationReport report = ex.report();
+		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+				.body(Map.of("message", ex.getMessage(), "errors", report.errors(), "warnings", report.warnings()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
