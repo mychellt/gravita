@@ -7,6 +7,7 @@ import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ class RegisterProductAdapterTest {
 	@Mock
 	private ProductRepositoryPort productRepositoryPort;
 
+	@DisplayName("Registering a product assigns an id and sets its status to active")
 	@Test
 	void shouldAssignIdAndActivateStatusOnRegister() {
 		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
@@ -46,6 +48,7 @@ class RegisterProductAdapterTest {
 		assertThat(captor.getValue().getInternalCode()).isEqualTo("SKU-1");
 	}
 
+	@DisplayName("Rejects registering a product whose barcode is already taken")
 	@Test
 	void shouldRejectDuplicateBarcode() {
 		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
@@ -62,6 +65,7 @@ class RegisterProductAdapterTest {
 		verify(productRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("Rejects a kit that is composed of a product that does not exist")
 	@Test
 	void shouldRejectKitComposingUnknownProduct() {
 		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
@@ -79,6 +83,7 @@ class RegisterProductAdapterTest {
 		verify(productRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("Registers a kit when all of its component products exist")
 	@Test
 	void shouldRegisterKitWhenAllComponentsExist() {
 		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
@@ -98,6 +103,7 @@ class RegisterProductAdapterTest {
 		verify(productRepositoryPort).save(any());
 	}
 
+	@DisplayName("Rejects registering a product with more than five images")
 	@Test
 	void shouldRejectMoreThanFiveImages() {
 		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);

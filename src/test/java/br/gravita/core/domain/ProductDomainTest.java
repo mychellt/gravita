@@ -1,6 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ProductDomainTest {
 
+	@DisplayName("Rejects a product with more than five images")
 	@Test
 	void shouldRejectMoreThanFiveImages() {
 		ProductDomain product = simpleProductBuilder()
@@ -23,6 +25,7 @@ class ProductDomainTest {
 				.hasMessageContaining("5 images");
 	}
 
+	@DisplayName("Accepts a product with exactly five images")
 	@Test
 	void shouldAcceptExactlyFiveImages() {
 		ProductDomain product = simpleProductBuilder()
@@ -32,6 +35,7 @@ class ProductDomainTest {
 		assertThatCode(product::validate).doesNotThrowAnyException();
 	}
 
+	@DisplayName("Rejects a barcode with an invalid format")
 	@Test
 	void shouldRejectInvalidBarcodeFormat() {
 		ProductDomain product = simpleProductBuilder()
@@ -41,6 +45,7 @@ class ProductDomainTest {
 		assertThatThrownBy(product::validate).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Accepts EAN-13 and DUN-14 barcodes")
 	@Test
 	void shouldAcceptEan13AndDun14Barcodes() {
 		ProductDomain product = simpleProductBuilder()
@@ -50,6 +55,7 @@ class ProductDomainTest {
 		assertThatCode(product::validate).doesNotThrowAnyException();
 	}
 
+	@DisplayName("Rejects a service that carries stock fields")
 	@Test
 	void shouldRejectServiceWithStockFields() {
 		ProductDomain service = ProductDomain.builder()
@@ -63,6 +69,7 @@ class ProductDomainTest {
 				.hasMessageContaining("stock");
 	}
 
+	@DisplayName("Rejects a service that carries units of measure")
 	@Test
 	void shouldRejectServiceWithUnits() {
 		ProductDomain service = ProductDomain.builder()
@@ -74,6 +81,7 @@ class ProductDomainTest {
 		assertThatThrownBy(service::validate).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Accepts a service without stock fields or units")
 	@Test
 	void shouldAcceptServiceWithoutStockOrUnits() {
 		ProductDomain service = ProductDomain.builder()
@@ -84,6 +92,7 @@ class ProductDomainTest {
 		assertThatCode(service::validate).doesNotThrowAnyException();
 	}
 
+	@DisplayName("A kit requires at least one component")
 	@Test
 	void shouldRequireAtLeastOneComponentForKit() {
 		ProductDomain kit = ProductDomain.builder()
@@ -95,6 +104,7 @@ class ProductDomainTest {
 		assertThatThrownBy(kit::validate).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Accepts a kit that has components")
 	@Test
 	void shouldAcceptKitWithComponents() {
 		ProductDomain kit = ProductDomain.builder()
@@ -106,6 +116,7 @@ class ProductDomainTest {
 		assertThatCode(kit::validate).doesNotThrowAnyException();
 	}
 
+	@DisplayName("A variant product requires a variant grid")
 	@Test
 	void shouldRequireVariantGridForVariantType() {
 		ProductDomain variant = ProductDomain.builder()
@@ -117,6 +128,7 @@ class ProductDomainTest {
 		assertThatThrownBy(variant::validate).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Accepts a variant product with a color and size grid")
 	@Test
 	void shouldAcceptVariantWithColorSizeGrid() {
 		ProductDomain variant = ProductDomain.builder()

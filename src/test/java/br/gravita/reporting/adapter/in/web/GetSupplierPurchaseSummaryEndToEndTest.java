@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,6 +93,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 		entityManager.clear();
 	}
 
+	@DisplayName("Summarizes the month per supplier, ranked by value")
 	@Test
 	void summarisesTheMonthPerSupplierRankedByValue() throws Exception {
 		mockMvc.perform(get("/api/reports/purchases-by-supplier").param("period", "2019-03")
@@ -108,6 +110,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 				.andExpect(jsonPath("$[1].averageLeadTimeDays").value(5.5));
 	}
 
+	@DisplayName("Reports only the orders placed in the requested month")
 	@Test
 	void onlyReportsTheOrdersPlacedInTheRequestedMonth() throws Exception {
 		// The 2019-04-01 order is the only one placed in April, and nothing was received for it.
@@ -120,6 +123,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 				.andExpect(jsonPath("$[0].averageLeadTimeDays").value(nullValue()));
 	}
 
+	@DisplayName("Returns an empty list for a month without purchases")
 	@Test
 	void answersAnEmptyListForAMonthWithoutPurchases() throws Exception {
 		mockMvc.perform(get("/api/reports/purchases-by-supplier").param("period", "2019-02")
@@ -128,6 +132,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 				.andExpect(jsonPath("$.length()").value(0));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/purchases-by-supplier").header("Authorization", "Bearer valid-token"))
@@ -136,6 +141,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 				.header("Authorization", "Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the report")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheReport() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -144,6 +150,7 @@ class GetSupplierPurchaseSummaryEndToEndTest {
 				.header("Authorization", "Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/purchases-by-supplier").param("period", "2019-03"))

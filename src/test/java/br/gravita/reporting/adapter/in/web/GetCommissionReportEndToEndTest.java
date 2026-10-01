@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -80,6 +81,7 @@ class GetCommissionReportEndToEndTest {
 		commission(ana, rice, lateOrder, "0.0500", "99.0000");
 	}
 
+	@DisplayName("Lists the period's commissions per salesperson and product")
 	@Test
 	void listsTheCommissionsOfThePeriodPerSalespersonAndProduct() throws Exception {
 		mockMvc.perform(get("/api/reports/commissions").param("period", "2018-03").header("Authorization",
@@ -95,6 +97,7 @@ class GetCommissionReportEndToEndTest {
 				.andExpect(jsonPath("$[2].amount").value(18.0));
 	}
 
+	@DisplayName("Narrows the report to the requested salesperson")
 	@Test
 	void narrowsTheReportToTheRequestedSalesperson() throws Exception {
 		mockMvc.perform(get("/api/reports/commissions").param("salesperson", ana.toString())
@@ -105,12 +108,14 @@ class GetCommissionReportEndToEndTest {
 				.andExpect(jsonPath("$[1].salespersonId").value(ana.toString()));
 	}
 
+	@DisplayName("Returns an empty report for a period without commissions")
 	@Test
 	void answersAnEmptyReportForAPeriodWithoutCommissions() throws Exception {
 		mockMvc.perform(get("/api/reports/commissions").param("period", "2018-02").header("Authorization",
 				"Bearer valid-token")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/commissions").header("Authorization", "Bearer valid-token"))
@@ -121,6 +126,7 @@ class GetCommissionReportEndToEndTest {
 				.header("Authorization", "Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the report")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheReport() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -129,6 +135,7 @@ class GetCommissionReportEndToEndTest {
 				"Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/commissions").param("period", "2018-03"))

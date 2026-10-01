@@ -4,10 +4,12 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import org.junit.jupiter.api.DisplayName;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 @AnalyzeClasses(packages = "br.gravita", importOptions = ImportOption.DoNotIncludeTests.class)
+@DisplayName("Hexagonal architecture rules: domain and application layers stay independent of adapters and frameworks")
 class HexagonalArchitectureTest {
 
 	@ArchTest

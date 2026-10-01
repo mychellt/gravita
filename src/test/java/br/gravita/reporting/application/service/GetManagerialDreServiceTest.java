@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetManagerialDreServiceTest {
@@ -60,6 +61,7 @@ class GetManagerialDreServiceTest {
 		when(finance.expensesByCostCenter(any(), any(), any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -71,6 +73,7 @@ class GetManagerialDreServiceTest {
 		verifyNoInteractions(sales, tax, inventory, finance);
 	}
 
+	@DisplayName("Composes the month's DRE and reconciles the net result")
 	@Test
 	void composesTheDreOfTheMonthAndReconcilesTheNetResult() {
 		UUID product = UUID.randomUUID();
@@ -102,6 +105,7 @@ class GetManagerialDreServiceTest {
 				.subtract(dre.cmv()).subtract(dre.totalExpenses()));
 	}
 
+	@DisplayName("Lists expenses biggest first, with those without a cost center last")
 	@Test
 	void listsTheExpensesBiggestFirstWithThoseOfNoCostCenterLast() {
 		when(finance.expensesByCostCenter(any(), any(), any(), any())).thenReturn(List.of(
@@ -115,6 +119,7 @@ class GetManagerialDreServiceTest {
 		assertThat(dre.totalExpenses()).isEqualByComparingTo("1100.00");
 	}
 
+	@DisplayName("Narrows the expenses to the requested cost center and leaves the other figures untouched")
 	@Test
 	void narrowsTheExpensesToTheRequestedCostCenterAndLeavesTheRestUntouched() {
 		when(sales.dailyRevenue(any(), any(), any())).thenReturn(Map.of(FROM, new BigDecimal("1000.00")));
@@ -131,6 +136,7 @@ class GetManagerialDreServiceTest {
 		assertThat(dre.netResult()).isEqualByComparingTo("880.00");
 	}
 
+	@DisplayName("Reports a zero DRE for a period without activity")
 	@Test
 	void reportsAZeroDreForAPeriodWithoutActivity() {
 		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
@@ -142,6 +148,7 @@ class GetManagerialDreServiceTest {
 		assertThat(dre.netResult()).isEqualByComparingTo("0");
 	}
 
+	@DisplayName("Reports a loss when costs exceed revenue")
 	@Test
 	void reportsALossWhenTheCostsExceedTheRevenue() {
 		when(sales.dailyRevenue(any(), any(), any())).thenReturn(Map.of(FROM, new BigDecimal("100.00")));

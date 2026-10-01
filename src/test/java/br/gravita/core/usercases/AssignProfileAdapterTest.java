@@ -7,6 +7,7 @@ import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.SaveCustomProfilePort;
 import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +34,7 @@ class AssignProfileAdapterTest {
 	@Mock
 	private SaveCustomProfilePort saveCustomProfilePort;
 
+	@DisplayName("Assigning to an existing profile replaces its permissions")
 	@Test
 	void shouldReplacePermissionsWhenProfileExists() {
 		AssignProfileAdapter adapter = new AssignProfileAdapter(profileRepositoryPort, saveCustomProfilePort);
@@ -58,6 +60,7 @@ class AssignProfileAdapterTest {
 		verifyNoInteractions(saveCustomProfilePort);
 	}
 
+	@DisplayName("Fails when the profile does not exist and no name was given to create one")
 	@Test
 	void shouldFailWhenProfileNotFoundAndNoNameProvided() {
 		AssignProfileAdapter adapter = new AssignProfileAdapter(profileRepositoryPort, saveCustomProfilePort);
@@ -70,6 +73,7 @@ class AssignProfileAdapterTest {
 		verify(saveCustomProfilePort, never()).execute(org.mockito.ArgumentMatchers.any());
 	}
 
+	@DisplayName("Creates a custom profile when the id is unknown and a name was provided")
 	@Test
 	void shouldDelegateToSaveCustomProfileWhenIdNotFoundAndNameProvided() {
 		AssignProfileAdapter adapter = new AssignProfileAdapter(profileRepositoryPort, saveCustomProfilePort);

@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetAssessedTaxesServiceTest {
@@ -40,6 +41,7 @@ class GetAssessedTaxesServiceTest {
 		when(tax.authorizedDocumentTaxes(any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the summary, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheSummaryWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -51,6 +53,7 @@ class GetAssessedTaxesServiceTest {
 		verifyNoInteractions(tax);
 	}
 
+	@DisplayName("Reads the whole requested month from the tax module")
 	@Test
 	void readsTheWholeRequestedMonthFromTax() {
 		service.execute(new AssessedTaxesQuery(user, PERIOD));
@@ -58,6 +61,7 @@ class GetAssessedTaxesServiceTest {
 		verify(tax).authorizedDocumentTaxes(LocalDate.of(2028, 2, 1), LocalDate.of(2028, 2, 29));
 	}
 
+	@DisplayName("Sums each tax over the authorized NF-e and NFS-e")
 	@Test
 	void sumsEachTaxOverTheAuthorizedNfeAndNfse() {
 		when(tax.authorizedDocumentTaxes(any(), any())).thenReturn(List.of(
@@ -75,6 +79,7 @@ class GetAssessedTaxesServiceTest {
 		assertThat(summary.iss()).isEqualByComparingTo("30.00");
 	}
 
+	@DisplayName("Totals zero for every tax when the period has no authorized document")
 	@Test
 	void totalsZeroForEveryTaxWhenThePeriodHasNoAuthorizedDocument() {
 		AssessedTaxSummary summary = service.execute(new AssessedTaxesQuery(user, PERIOD));

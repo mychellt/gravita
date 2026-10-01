@@ -10,6 +10,7 @@ import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.ports.inbound.masterdata.UpdateCustomerCommand;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +50,7 @@ class UpdateCustomerServiceTest {
 				.build();
 	}
 
+	@DisplayName("A partial update keeps the customer fields that were not specified")
 	@Test
 	void shouldKeepUnspecifiedFieldsOnPartialUpdate() {
 		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
@@ -72,6 +74,7 @@ class UpdateCustomerServiceTest {
 		assertThat(updated.getVersion()).isEqualTo(3L);
 	}
 
+	@DisplayName("Re-validates the fiscal document when the update changes it")
 	@Test
 	void shouldReValidateDocumentWhenChanged() {
 		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
@@ -85,6 +88,7 @@ class UpdateCustomerServiceTest {
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Leaves the credit status and balance untouched when the update omits them")
 	@Test
 	void shouldNotClobberStatusOrBalanceLeftUnspecified() {
 		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
@@ -103,6 +107,7 @@ class UpdateCustomerServiceTest {
 		assertThat(saved.getValue().getCurrentBalance()).isEqualByComparingTo("250.00");
 	}
 
+	@DisplayName("Throws not found when updating a customer that does not exist")
 	@Test
 	void shouldThrowWhenCustomerDoesNotExist() {
 		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);

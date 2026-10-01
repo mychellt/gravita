@@ -6,6 +6,7 @@ import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,6 +26,7 @@ class FindProfileAdapterTest {
 	@Mock
 	private ProfileRepositoryPort profileRepositoryPort;
 
+	@DisplayName("Returns the profile when it exists")
 	@Test
 	void shouldReturnProfileWhenFound() {
 		FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);
@@ -40,6 +42,7 @@ class FindProfileAdapterTest {
 		assertThat(found).isEqualTo(profile);
 	}
 
+	@DisplayName("Fails with not found when the profile does not exist")
 	@Test
 	void shouldFailWhenProfileNotFound() {
 		FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);

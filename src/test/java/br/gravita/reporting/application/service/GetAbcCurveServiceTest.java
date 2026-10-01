@@ -27,6 +27,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetAbcCurveServiceTest {
@@ -50,6 +51,7 @@ class GetAbcCurveServiceTest {
 		when(sales.customerSales(any(), any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -61,6 +63,7 @@ class GetAbcCurveServiceTest {
 		verifyNoInteractions(sales);
 	}
 
+	@DisplayName("Ranks products by revenue and classes them by the cumulative share before each")
 	@Test
 	void ranksProductsByRevenueAndClassesThemByTheCumulativeShareBeforeEach() {
 		UUID p1 = UUID.randomUUID();
@@ -86,6 +89,7 @@ class GetAbcCurveServiceTest {
 		assertThat(curve.get(0).revenue()).isEqualByComparingTo("50");
 	}
 
+	@DisplayName("Classifies customers when the requested type is customer")
 	@Test
 	void classifiesCustomersWhenTheTypeIsCustomer() {
 		UUID big = UUID.randomUUID();
@@ -101,6 +105,7 @@ class GetAbcCurveServiceTest {
 		verify(sales, never()).productSales(any(), any(), any());
 	}
 
+	@DisplayName("Keeps the top entry in class A even when it alone exceeds the threshold")
 	@Test
 	void keepsTheTopEntryInClassAEvenWhenItAloneIsAboveTheThreshold() {
 		UUID top = UUID.randomUUID();
@@ -114,6 +119,7 @@ class GetAbcCurveServiceTest {
 		});
 	}
 
+	@DisplayName("Scopes the read to the whole requested month")
 	@Test
 	void scopesTheReadToTheWholeRequestedMonth() {
 		service.execute(new AbcCurveQuery(user, AbcCurveType.PRODUCT, YearMonth.of(2028, 2), null));
@@ -121,6 +127,7 @@ class GetAbcCurveServiceTest {
 		verify(sales).productSales(eq(LocalDate.of(2028, 2, 1)), eq(LocalDate.of(2028, 2, 29)), eq(null));
 	}
 
+	@DisplayName("Leaves out entries without positive revenue and breaks ties by entity id")
 	@Test
 	void leavesOutEntriesWithoutPositiveRevenueAndBreaksTiesByEntityId() {
 		UUID low = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -134,6 +141,7 @@ class GetAbcCurveServiceTest {
 		assertThat(curve.get(0).revenueShare()).isEqualByComparingTo("50");
 	}
 
+	@DisplayName("Decides the class on exact amounts, not on rounded shares")
 	@Test
 	void decidesTheClassOnExactAmountsNotRoundedShares() {
 		UUID a = UUID.randomUUID();
@@ -150,6 +158,7 @@ class GetAbcCurveServiceTest {
 		assertThat(curve).extracting(AbcCurveEntry::abcClass).containsExactly(AbcClass.A, AbcClass.A, AbcClass.B);
 	}
 
+	@DisplayName("Returns an empty curve when nothing was invoiced in the period")
 	@Test
 	void answersAnEmptyCurveWhenNothingWasInvoicedInThePeriod() {
 		assertThat(service.execute(query(user, AbcCurveType.PRODUCT))).isEmpty();

@@ -2,6 +2,7 @@ package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LookupPersonByDocumentQueryTest {
 
+	@DisplayName("Builds a query from a document alone")
 	@Test
 	void shouldBuildDocumentQuery() {
 		Document cnpj = Document.cnpj("11444777000161");
@@ -19,6 +21,7 @@ class LookupPersonByDocumentQueryTest {
 		assertThat(query.document()).isEqualTo(cnpj);
 	}
 
+	@DisplayName("Builds a query from a CEP alone")
 	@Test
 	void shouldBuildCepQuery() {
 		LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byCep("20000000");
@@ -27,12 +30,14 @@ class LookupPersonByDocumentQueryTest {
 		assertThat(query.cep()).isEqualTo("20000000");
 	}
 
+	@DisplayName("Rejects a query that has neither a document nor a CEP")
 	@Test
 	void shouldRejectNeitherDocumentNorCep() {
 		assertThatThrownBy(() -> new LookupPersonByDocumentQuery(null, null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Rejects a query that has both a document and a CEP")
 	@Test
 	void shouldRejectBothDocumentAndCep() {
 		Document cnpj = Document.cnpj("11444777000161");

@@ -7,6 +7,7 @@ import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.ports.integration.CepLookupPort;
 import br.gravita.core.ports.integration.CnpjLookupPort;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,6 +28,7 @@ class LookupPersonByDocumentAdapterTest {
 	@Mock
 	private CepLookupPort cepLookupPort;
 
+	@DisplayName("A CNPJ lookup returns the company name and address")
 	@Test
 	void shouldReturnNameAndAddressForCnpjQuery() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
@@ -43,6 +45,7 @@ class LookupPersonByDocumentAdapterTest {
 		verifyNoInteractions(cepLookupPort);
 	}
 
+	@DisplayName("A CEP lookup returns the address only")
 	@Test
 	void shouldReturnAddressOnlyForCepQuery() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
@@ -58,6 +61,7 @@ class LookupPersonByDocumentAdapterTest {
 		verifyNoInteractions(cnpjLookupPort);
 	}
 
+	@DisplayName("Degrades to an empty result when the CNPJ lookup provider fails")
 	@Test
 	void shouldDegradeToEmptyResultWhenCnpjLookupFails() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
@@ -70,6 +74,7 @@ class LookupPersonByDocumentAdapterTest {
 		assertThat(result.address()).isNull();
 	}
 
+	@DisplayName("Degrades to an empty result when the CEP lookup provider fails")
 	@Test
 	void shouldDegradeToEmptyResultWhenCepLookupFails() {
 		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);

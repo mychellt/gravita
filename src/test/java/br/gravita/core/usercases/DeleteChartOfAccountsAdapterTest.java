@@ -6,6 +6,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.ChartOfAccountsRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.FinanceUsageQueryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -29,6 +30,7 @@ class DeleteChartOfAccountsAdapterTest {
 	@Mock
 	private FinanceUsageQueryPort financeUsageQueryPort;
 
+	@DisplayName("Fails with not found when the chart-of-accounts entry to delete does not exist")
 	@Test
 	void shouldFailWhenAccountNotFound() {
 		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
@@ -39,6 +41,7 @@ class DeleteChartOfAccountsAdapterTest {
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
+	@DisplayName("Rejects deleting an account that still has child accounts")
 	@Test
 	void shouldRejectDeletionWhenAccountHasChildren() {
 		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
@@ -52,6 +55,7 @@ class DeleteChartOfAccountsAdapterTest {
 		verify(chartOfAccountsRepositoryPort, never()).deleteById(id);
 	}
 
+	@DisplayName("Rejects deleting an account that Finance reports as in use")
 	@Test
 	void shouldRejectDeletionWhenInUseByFinance() {
 		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
@@ -66,6 +70,7 @@ class DeleteChartOfAccountsAdapterTest {
 		verify(chartOfAccountsRepositoryPort, never()).deleteById(id);
 	}
 
+	@DisplayName("Deletes a leaf account that is not in use by Finance")
 	@Test
 	void shouldDeleteWhenLeafAndNotInUse() {
 		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);

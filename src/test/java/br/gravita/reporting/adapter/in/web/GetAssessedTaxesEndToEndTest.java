@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -96,6 +97,7 @@ class GetAssessedTaxesEndToEndTest {
 		nfseRepositoryPort.save(nfse(true, at(4, 2, 9, 0), "999.00"));
 	}
 
+	@DisplayName("Sums the taxes of the period's authorized NF-e and NFS-e")
 	@Test
 	void sumsTheTaxesOfTheAuthorizedNfeAndNfseOfThePeriod() throws Exception {
 		mockMvc.perform(get("/api/reports/assessed-taxes").param("period", "2017-03").header("Authorization",
@@ -109,6 +111,7 @@ class GetAssessedTaxesEndToEndTest {
 				.andExpect(jsonPath("$.iss").value(42.5));
 	}
 
+	@DisplayName("Returns zero totals for a period without authorized documents")
 	@Test
 	void answersZeroTotalsForAPeriodWithoutAuthorizedDocuments() throws Exception {
 		mockMvc.perform(get("/api/reports/assessed-taxes").param("period", "2017-01").header("Authorization",
@@ -121,6 +124,7 @@ class GetAssessedTaxesEndToEndTest {
 				.andExpect(jsonPath("$.iss").value(0));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/assessed-taxes").header("Authorization", "Bearer valid-token"))
@@ -129,6 +133,7 @@ class GetAssessedTaxesEndToEndTest {
 				"Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the tax summary")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheSummary() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -137,6 +142,7 @@ class GetAssessedTaxesEndToEndTest {
 				"Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/assessed-taxes").param("period", "2017-03"))

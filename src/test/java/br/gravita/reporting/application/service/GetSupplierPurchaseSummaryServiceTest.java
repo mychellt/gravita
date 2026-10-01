@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetSupplierPurchaseSummaryServiceTest {
@@ -45,6 +46,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -56,6 +58,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 		verifyNoInteractions(purchasing);
 	}
 
+	@DisplayName("Reads the whole month of the requested period")
 	@Test
 	void readsTheWholeMonthOfTheRequestedPeriod() {
 		service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, company));
@@ -63,11 +66,13 @@ class GetSupplierPurchaseSummaryServiceTest {
 		verify(purchasing).purchasedOrders(FROM, TO, company);
 	}
 
+	@DisplayName("Reports nothing when nothing was bought in the period")
 	@Test
 	void reportsNothingWhenNothingWasBoughtInThePeriod() {
 		assertThat(service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null))).isEmpty();
 	}
 
+	@DisplayName("Sums the volume and value of a supplier's orders")
 	@Test
 	void sumsTheVolumeAndValueOfASuppliersOrders() {
 		UUID supplier = UUID.randomUUID();
@@ -83,6 +88,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 		});
 	}
 
+	@DisplayName("Averages the days from order to every confirmed delivery")
 	@Test
 	void averagesTheDaysFromTheOrderToEveryConfirmedDelivery() {
 		UUID supplier = UUID.randomUUID();
@@ -98,6 +104,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 				.satisfies(summary -> assertThat(summary.averageLeadTimeDays()).isEqualByComparingTo("7"));
 	}
 
+	@DisplayName("Rounds the average lead time to two decimal places")
 	@Test
 	void roundsTheAverageLeadTimeToTwoDecimals() {
 		UUID supplier = UUID.randomUUID();
@@ -112,6 +119,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 				.satisfies(summary -> assertThat(summary.averageLeadTimeDays()).isEqualByComparingTo("1.33"));
 	}
 
+	@DisplayName("Leaves the lead time empty for a supplier whose orders were not received yet")
 	@Test
 	void leavesTheLeadTimeEmptyForASupplierWhoseOrdersWereNotReceivedYet() {
 		UUID supplier = UUID.randomUUID();
@@ -126,6 +134,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 		});
 	}
 
+	@DisplayName("Ignores other suppliers' orders when averaging a supplier's lead time")
 	@Test
 	void ignoresTheOrdersOfOtherSuppliersWhenAveragingTheLeadTime() {
 		UUID fast = UUID.fromString("00000000-0000-0000-0000-000000000001");
@@ -141,6 +150,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 						days -> assertThat(days).isEqualByComparingTo("20"));
 	}
 
+	@DisplayName("Ranks the suppliers by value bought, largest first")
 	@Test
 	void ranksTheSuppliersByValueBoughtLargestFirst() {
 		UUID small = UUID.fromString("00000000-0000-0000-0000-000000000001");

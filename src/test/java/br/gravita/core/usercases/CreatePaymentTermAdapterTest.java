@@ -4,6 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PaymentTermDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.PaymentTermRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -21,6 +22,7 @@ class CreatePaymentTermAdapterTest {
 	@Mock
 	private PaymentTermRepositoryPort paymentTermRepositoryPort;
 
+	@DisplayName("Supports any number of installments with custom intervals")
 	@Test
 	void shouldSupportAFreeNumberOfInstallmentsWithCustomIntervals() {
 		CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);
@@ -35,6 +37,7 @@ class CreatePaymentTermAdapterTest {
 		assertThat(result.getInstallmentIntervalsDays()).containsExactlyElementsOf(intervals);
 	}
 
+	@DisplayName("Rejects a payment term that has no installments")
 	@Test
 	void shouldRejectPaymentTermWithNoInstallments() {
 		CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);

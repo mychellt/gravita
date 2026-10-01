@@ -6,6 +6,7 @@ import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,6 +28,7 @@ class SaveCustomProfileAdapterTest {
 	@Mock
 	private ProfileRepositoryPort profileRepositoryPort;
 
+	@DisplayName("Creates a custom profile when its name is unique")
 	@Test
 	void shouldCreateCustomProfileWithUniqueName() {
 		SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);
@@ -44,6 +46,7 @@ class SaveCustomProfileAdapterTest {
 		assertThat(result.getPermissions()).isEqualTo(permissions);
 	}
 
+	@DisplayName("Fails when the custom profile name is already in use")
 	@Test
 	void shouldFailWhenNameAlreadyInUse() {
 		SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);

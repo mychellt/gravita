@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,6 +74,7 @@ class GetAbcCurveEndToEndTest {
 		invoicedOrder(smallCustomer, beans, "50", "100.00", LocalDate.of(2019, 2, 28));
 	}
 
+	@DisplayName("Classifies the period's products by their share of revenue")
 	@Test
 	void classifiesProductsOfThePeriodByRevenueShare() throws Exception {
 		mockMvc.perform(get("/api/reports/abc-curve").param("type", "product").param("period", "2019-03")
@@ -89,6 +91,7 @@ class GetAbcCurveEndToEndTest {
 				.andExpect(jsonPath("$[1].abcClass").value("B"));
 	}
 
+	@DisplayName("Classifies the period's customers and accepts the type in any letter case")
 	@Test
 	void classifiesCustomersOfThePeriodAndAcceptsTheTypeInAnyCase() throws Exception {
 		mockMvc.perform(get("/api/reports/abc-curve").param("type", "CUSTOMER").param("period", "2019-03")
@@ -100,12 +103,14 @@ class GetAbcCurveEndToEndTest {
 				.andExpect(jsonPath("$[1].revenueShare").value(10.0));
 	}
 
+	@DisplayName("Returns 400 for an unknown curve type")
 	@Test
 	void answersBadRequestForAnUnknownType() throws Exception {
 		mockMvc.perform(get("/api/reports/abc-curve").param("type", "supplier").param("period", "2019-03")
 				.header("Authorization", "Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/abc-curve").param("type", "product")
@@ -114,6 +119,7 @@ class GetAbcCurveEndToEndTest {
 				.header("Authorization", "Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the report")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheReport() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -122,6 +128,7 @@ class GetAbcCurveEndToEndTest {
 				.header("Authorization", "Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/abc-curve").param("type", "product").param("period", "2019-03"))

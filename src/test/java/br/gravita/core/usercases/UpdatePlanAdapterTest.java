@@ -5,6 +5,7 @@ import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,6 +26,7 @@ class UpdatePlanAdapterTest {
 	@Mock
 	private PlanRepositoryPort planRepositoryPort;
 
+	@DisplayName("Saves the changes when the plan exists")
 	@Test
 	void shouldSaveWhenPlanExists() {
 		UpdatePlanAdapter adapter = new UpdatePlanAdapter(planRepositoryPort);
@@ -41,6 +43,7 @@ class UpdatePlanAdapterTest {
 		assertThat(result.getName()).isEqualTo("Silver Plus");
 	}
 
+	@DisplayName("Fails with not found when the plan to update does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
 		UpdatePlanAdapter adapter = new UpdatePlanAdapter(planRepositoryPort);

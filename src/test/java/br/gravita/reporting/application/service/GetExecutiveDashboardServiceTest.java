@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetExecutiveDashboardServiceTest {
@@ -68,6 +69,7 @@ class GetExecutiveDashboardServiceTest {
 		when(tax.invoicedTotal(any(), any(), any())).thenReturn(BigDecimal.ZERO);
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the dashboard, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheDashboardWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -79,6 +81,7 @@ class GetExecutiveDashboardServiceTest {
 		verifyNoInteractions(sales, inventory, finance, tax);
 	}
 
+	@DisplayName("Compares day, week and month revenue with the same span of the prior period")
 	@Test
 	void comparesDayWeekAndMonthRevenueToTheSameSpanOfThePriorPeriod() {
 		when(sales.dailyRevenue(eq(LocalDate.of(2026, 8, 1)), eq(TODAY), any())).thenReturn(Map.of(
@@ -104,6 +107,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.revenue().month().variationPercent()).isEqualByComparingTo("74.90");
 	}
 
+	@DisplayName("Leaves the variation empty when the prior period had no revenue")
 	@Test
 	void leavesTheVariationEmptyWhenThePriorPeriodHadNoRevenue() {
 		when(sales.dailyRevenue(any(), any(), any())).thenReturn(Map.of(TODAY, new BigDecimal("100")));
@@ -114,6 +118,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.revenue().day().variationPercent()).isNull();
 	}
 
+	@DisplayName("Computes CMV and gross margin for the selected period and reconciles with the invoiced total")
 	@Test
 	void computesCmvAndGrossMarginForTheSelectedPeriodAndReconcilesWithInvoicedTotal() {
 		UUID product = UUID.randomUUID();
@@ -137,6 +142,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.revenue().reconciliationDifference()).isEqualByComparingTo("100");
 	}
 
+	@DisplayName("Leaves the margin percentage empty when there is no revenue")
 	@Test
 	void leavesTheMarginPercentEmptyWithoutRevenue() {
 		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.DAY, null));
@@ -144,6 +150,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.margin().grossMarginPercent()).isNull();
 	}
 
+	@DisplayName("Splits overdue balances into aging buckets and ignores titles not yet past due")
 	@Test
 	void splitsOverdueBalancesIntoAgingBucketsAndIgnoresTitlesNotPastDue() {
 		when(finance.overdueReceivables(eq(TODAY), any())).thenReturn(List.of(
@@ -165,6 +172,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.delinquency().aging().over60Days()).isEqualByComparingTo("110");
 	}
 
+	@DisplayName("Lists below-minimum products before near-expiry lots, ordered by expiry")
 	@Test
 	void listsBelowMinimumProductsBeforeNearExpiryLotsOrderedByExpiry() {
 		UUID low = UUID.randomUUID();
@@ -186,6 +194,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.criticalStock().get(1).lotCode()).isEqualTo("L1");
 	}
 
+	@DisplayName("Ranks the top ten products by quantity and by value separately")
 	@Test
 	void ranksTheTopTenProductsByQuantityAndByValueSeparately() {
 		List<ProductSales> products = new ArrayList<>();
@@ -206,6 +215,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.topProducts().byValue().get(9).productId()).isEqualTo(new UUID(0, 10));
 	}
 
+	@DisplayName("Reports target progress per salesperson and for the company")
 	@Test
 	void reportsTargetProgressPerSalespersonAndForTheCompany() {
 		UUID ana = UUID.randomUUID();
@@ -228,6 +238,7 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.targets().salespeople().get(2).target().percentComplete()).isNull();
 	}
 
+	@DisplayName("Passes the company to every read port")
 	@Test
 	void passesTheCompanyToEveryReadPort() {
 		UUID company = UUID.randomUUID();
@@ -242,6 +253,7 @@ class GetExecutiveDashboardServiceTest {
 		verify(inventory).criticalStock(any(), anyInt(), eq(company));
 	}
 
+	@DisplayName("Serves repeated requests from cache but still checks permission every time")
 	@Test
 	void servesRepeatedRequestsFromCacheButStillChecksPermissionEachTime() {
 		DashboardQuery query = new DashboardQuery(user, DashboardPeriod.MONTH, null);
@@ -254,6 +266,7 @@ class GetExecutiveDashboardServiceTest {
 		verify(permissions, times(2)).canView(user, "dashboard");
 	}
 
+	@DisplayName("Recomposes the dashboard once the cache entry expires")
 	@Test
 	void recomposesOnceTheCacheEntryExpires() {
 		var clock = new MutableClock(NOW);
