@@ -23,7 +23,7 @@ public final class Renegotiation {
 	private final List<ReceivableId> newReceivableIds;
 	private final Instant createdAt;
 
-	private Renegotiation(RenegotiationId id, UUID customerId, List<ReceivableId> originalReceivableIds,
+	public Renegotiation(RenegotiationId id, UUID customerId, List<ReceivableId> originalReceivableIds,
 			List<ReceivableId> newReceivableIds, Instant createdAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");

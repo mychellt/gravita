@@ -6,44 +6,30 @@ import br.gravita.core.domain.finance.CostCenterShare;
 import br.gravita.core.domain.finance.LedgerScope;
 import br.gravita.core.domain.finance.Payable;
 import br.gravita.core.domain.finance.PayableId;
-import java.util.ArrayList;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface PayablePersistenceMapper {
 
-	default Payable toDomain(final PayableJpaEntity entity) {
-		return Payable.of(PayableId.of(entity.getId()), entity.getSupplierId(), entity.getOrigin(),
-				entity.getAmount(), entity.getDueDate(),
-				entity.getCostCenterSplit().stream()
-						.map(share -> new CostCenterShare(share.getCostCenterId(), share.getPercent())).toList(),
-				entity.getStatus(), entity.getPurchaseReceiptRef(), entity.getInstallmentNumber(),
-				entity.getInstallments(),
-				new LedgerScope(entity.getCompanyId(), entity.getBranchId(), entity.getBankAccountId()),
-				entity.getApprovedBy(), entity.getAttachments());
-	}
+	@Mapping(target = "scope", source = "entity")
+	Payable map(final PayableJpaEntity entity);
 
-	default PayableJpaEntity toEntity(final Payable domain) {
-		return PayableJpaEntity.builder()
-				.id(domain.getId() == null ? null : domain.getId().value())
-				.supplierId(domain.getSupplierId())
-				.origin(domain.getOrigin())
-				.amount(domain.getAmount())
-				.dueDate(domain.getDueDate())
-				.costCenterSplit(new ArrayList<>(domain.getCostCenterSplit().stream()
-						.map(share -> new CostCenterShareEmbeddable(share.costCenterId(), share.percent()))
-						.toList()))
-				.status(domain.getStatus())
-				.purchaseReceiptRef(domain.getPurchaseReceiptRef())
-				.installmentNumber(domain.getInstallmentNumber())
-				.installments(domain.getInstallments())
-				.companyId(domain.getScope().companyId())
-				.branchId(domain.getScope().branchId())
-				.bankAccountId(domain.getScope().bankAccountId())
-				.approvedBy(domain.getApprovedBy())
-				.attachments(new ArrayList<>(domain.getAttachments()))
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "companyId", source = "scope.companyId")
+	@Mapping(target = "branchId", source = "scope.branchId")
+	@Mapping(target = "bankAccountId", source = "scope.bankAccountId")
+	PayableJpaEntity map(final Payable domain);
+
+	LedgerScope mapScope(final PayableJpaEntity entity);
+
+	CostCenterShare map(final CostCenterShareEmbeddable embeddable);
+
+	CostCenterShareEmbeddable map(final CostCenterShare share);
+
+	@Mapping(target = "value", source = "id")
+	PayableId mapPayableId(final UUID id);
 }

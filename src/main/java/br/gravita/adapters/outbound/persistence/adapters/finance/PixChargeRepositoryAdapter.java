@@ -26,25 +26,25 @@ class PixChargeRepositoryAdapter implements PixChargeRepositoryPort {
 
 	@Override
 	public PixCharge save(PixCharge pixCharge) {
-		PixChargeJpaEntity entity = mapper.toEntity(pixCharge);
+		PixChargeJpaEntity entity = mapper.map(pixCharge);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<PixCharge> findById(PixChargeId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<PixCharge> findByReceivableId(ReceivableId receivableId) {
 		return jpaRepository.findByReceivableIdOrderByCreatedAt(receivableId.value()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
 	public List<PixCharge> findPendingExpiredBefore(Instant now) {
 		return jpaRepository.findByStatusAndExpiresAtBefore(PixChargeStatus.PENDING, now).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 }

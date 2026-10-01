@@ -29,7 +29,7 @@ public final class Payable {
 	private final UUID approvedBy;
 	private final List<String> attachments;
 
-	private Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
+	public Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
 			List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
 			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy,
 			List<String> attachments) {

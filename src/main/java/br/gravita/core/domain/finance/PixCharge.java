@@ -27,7 +27,7 @@ public final class PixCharge {
 	private final Instant expiresAt;
 	private final PixChargeStatus status;
 
-	private PixCharge(PixChargeId id, ReceivableId receivableId, String dynamicQrPayload, BigDecimal amount,
+	public PixCharge(PixChargeId id, ReceivableId receivableId, String dynamicQrPayload, BigDecimal amount,
 			LocalDate dueDate, Instant expiresAt, PixChargeStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.receivableId = Objects.requireNonNull(receivableId, "receivableId is required");

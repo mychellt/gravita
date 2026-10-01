@@ -31,26 +31,26 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 
 	@Override
 	public Receivable save(Receivable receivable) {
-		ReceivableJpaEntity entity = mapper.toEntity(receivable);
+		ReceivableJpaEntity entity = mapper.map(receivable);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		ReceivableJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Receivable> findById(ReceivableId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<Receivable> findByOriginDocumentRef(UUID originDocumentRef) {
 		return jpaRepository.findByOriginDocumentRefOrderByInstallmentNumber(originDocumentRef).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Receivable> findByCustomerId(UUID customerId) {
-		return jpaRepository.findByCustomerId(customerId).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByCustomerId(customerId).stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -58,7 +58,7 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 		return jpaRepository
 				.findByCustomerIdAndStatusIn(customerId,
 						List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED))
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -66,7 +66,7 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 		if (filter.costCenterId() != null) {
 			return List.of();
 		}
-		return cashFlowQueryRepository.findOutstandingReceivables(until, filter).stream().map(mapper::toDomain)
+		return cashFlowQueryRepository.findOutstandingReceivables(until, filter).stream().map(mapper::map)
 				.toList();
 	}
 
@@ -77,6 +77,6 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 				? jpaRepository.findByStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(outstanding, until)
 				: jpaRepository.findByCustomerIdAndStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(customerId,
 						outstanding, until);
-		return entities.stream().map(mapper::toDomain).toList();
+		return entities.stream().map(mapper::map).toList();
 	}
 }

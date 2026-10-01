@@ -22,7 +22,7 @@ public final class Receivable {
 	private final Integer installmentNumber;
 	private final LedgerScope scope;
 
-	private Receivable(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
+	public Receivable(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
 			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
 			Integer installmentNumber, LedgerScope scope) {
 		this.id = Objects.requireNonNull(id, "id is required");

@@ -6,37 +6,29 @@ import br.gravita.core.domain.finance.CashMovement;
 import br.gravita.core.domain.finance.CashMovementId;
 import br.gravita.core.domain.finance.InternalCashBox;
 import br.gravita.core.domain.finance.InternalCashBoxId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface InternalCashBoxPersistenceMapper {
 
-	default InternalCashBox toDomain(final InternalCashBoxJpaEntity entity) {
-		return InternalCashBox.of(InternalCashBoxId.of(entity.getId()), entity.getBalance());
-	}
+	InternalCashBox map(final InternalCashBoxJpaEntity entity);
 
-	default InternalCashBoxJpaEntity toEntity(final InternalCashBox domain) {
-		return InternalCashBoxJpaEntity.builder()
-				.id(domain.getId().value())
-				.balance(domain.getBalance())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	InternalCashBoxJpaEntity map(final InternalCashBox domain);
 
-	default CashMovement toDomain(final InternalCashMovementJpaEntity entity) {
-		return CashMovement.of(CashMovementId.of(entity.getId()), InternalCashBoxId.of(entity.getCashBoxId()),
-				entity.getDirection(), entity.getAmount(), entity.getJustification(), entity.getTimestamp());
-	}
+	CashMovement map(final InternalCashMovementJpaEntity entity);
 
-	default InternalCashMovementJpaEntity toEntity(final CashMovement domain) {
-		return InternalCashMovementJpaEntity.builder()
-				.id(domain.getId().value())
-				.cashBoxId(domain.getCashBoxId().value())
-				.direction(domain.getDirection())
-				.amount(domain.getAmount())
-				.justification(domain.getJustification())
-				.timestamp(domain.getTimestamp())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "cashBoxId", source = "cashBoxId.value")
+	InternalCashMovementJpaEntity map(final CashMovement domain);
+
+	@Mapping(target = "value", source = "id")
+	InternalCashBoxId mapInternalCashBoxId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	CashMovementId mapCashMovementId(final UUID id);
 }

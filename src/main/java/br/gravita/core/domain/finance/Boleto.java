@@ -15,7 +15,7 @@ public final class Boleto {
 	private final String barcodeLine;
 	private final BoletoStatus status;
 
-	private Boleto(BoletoId id, ReceivableId receivableId, BankIntegration bankIntegration, String barcodeLine,
+	public Boleto(BoletoId id, ReceivableId receivableId, BankIntegration bankIntegration, String barcodeLine,
 			BoletoStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.receivableId = Objects.requireNonNull(receivableId, "receivableId is required");
