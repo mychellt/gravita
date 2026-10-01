@@ -5,17 +5,24 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.StockParametersDomain;
 import br.gravita.core.domain.inventory.Lot;
 import br.gravita.core.domain.inventory.StockBalance;
+import br.gravita.core.domain.inventory.StockMovement;
+import br.gravita.core.domain.inventory.StockMovementType;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.LotRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.inventory.StockMovementRepositoryPort;
 import br.gravita.core.ports.outbound.reporting.InventoryReadModelPort;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +33,12 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 	private final StockBalanceRepositoryPort stockBalanceRepositoryPort;
 	private final LotRepositoryPort lotRepositoryPort;
 	private final ProductRepositoryPort productRepositoryPort;
+	private final StockMovementRepositoryPort stockMovementRepositoryPort;
 
 	InventoryReadModelAdapter(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			LotRepositoryPort lotRepositoryPort, ProductRepositoryPort productRepositoryPort) {
+			LotRepositoryPort lotRepositoryPort, ProductRepositoryPort productRepositoryPort,
+			StockMovementRepositoryPort stockMovementRepositoryPort) {
+		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.lotRepositoryPort = lotRepositoryPort;
 		this.productRepositoryPort = productRepositoryPort;
@@ -74,6 +84,55 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 			}
 		}
 		return alerts;
+	}
+
+	/**
+	 * Levels are rebuilt backwards from today's balances: what came in or out after the period is undone to get the
+	 * closing level, and what moved within it to get the opening one. An entry adds, an exit takes away, an
+	 * adjustment carries its own signed delta; a transfer only moves stock between warehouses, so it changes
+	 * neither the total on hand nor what was issued.
+	 */
+	@Override
+	@Transactional(readOnly = true)
+	public List<StockFlow> stockFlows(LocalDate from, LocalDate to, UUID companyId) {
+		Instant start = from.atStartOfDay(ZoneOffset.UTC).toInstant();
+		Instant end = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+		Map<UUID, BigDecimal> onHandNow = new HashMap<>();
+		for (StockBalance balance : stockBalanceRepositoryPort.findAll()) {
+			onHandNow.merge(balance.getProductId(), balance.getOnHand(), BigDecimal::add);
+		}
+		Map<UUID, BigDecimal> issued = new HashMap<>();
+		Map<UUID, BigDecimal> netInPeriod = new HashMap<>();
+		Map<UUID, BigDecimal> netAfterPeriod = new HashMap<>();
+		for (StockMovement movement : stockMovementRepositoryPort.findByTimestampGreaterThanEqual(start)) {
+			BigDecimal change = stockChange(movement);
+			if (movement.getTimestamp().isBefore(end)) {
+				netInPeriod.merge(movement.getProductId(), change, BigDecimal::add);
+				if (movement.getType() == StockMovementType.EXIT) {
+					issued.merge(movement.getProductId(), change.negate(), BigDecimal::add);
+				}
+			} else {
+				netAfterPeriod.merge(movement.getProductId(), change, BigDecimal::add);
+			}
+		}
+		Set<UUID> products = new TreeSet<>(onHandNow.keySet());
+		products.addAll(netInPeriod.keySet());
+		List<StockFlow> flows = new ArrayList<>(products.size());
+		for (UUID productId : products) {
+			BigDecimal closing = onHandNow.getOrDefault(productId, BigDecimal.ZERO)
+					.subtract(netAfterPeriod.getOrDefault(productId, BigDecimal.ZERO));
+			BigDecimal opening = closing.subtract(netInPeriod.getOrDefault(productId, BigDecimal.ZERO));
+			flows.add(new StockFlow(productId, issued.getOrDefault(productId, BigDecimal.ZERO), opening, closing));
+		}
+		return flows;
+	}
+
+	private BigDecimal stockChange(StockMovement movement) {
+		return switch (movement.getType()) {
+			case ENTRY, ADJUSTMENT -> movement.getQuantity();
+			case EXIT -> movement.getQuantity().negate();
+			case TRANSFER -> BigDecimal.ZERO;
+		};
 	}
 
 	private BigDecimal unitCost(UUID productId, Map<UUID, List<StockBalance>> balancesByProduct) {

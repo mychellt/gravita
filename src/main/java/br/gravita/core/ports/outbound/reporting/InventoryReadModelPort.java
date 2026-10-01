@@ -16,7 +16,16 @@ public interface InventoryReadModelPort {
 	 */
 	List<StockAlert> criticalStock(LocalDate today, int nearExpiryDays, UUID companyId);
 
+	/**
+	 * For every product that has stock or moved in {@code [from, to]}: what was issued in it, and the quantity on
+	 * hand (summed over warehouses) at the start of {@code from} and at the end of {@code to}.
+	 */
+	List<StockFlow> stockFlows(LocalDate from, LocalDate to, UUID companyId);
+
 	record SoldQuantity(UUID productId, BigDecimal quantity) {
+	}
+
+	record StockFlow(UUID productId, BigDecimal issued, BigDecimal openingOnHand, BigDecimal closingOnHand) {
 	}
 
 	/** Exactly one of the below-minimum fields ({@code available}, {@code minimum}) or lot fields is set. */

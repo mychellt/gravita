@@ -5,6 +5,8 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.StockMove
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.StockMovement;
 import br.gravita.core.ports.outbound.persistence.inventory.StockMovementRepositoryPort;
+import java.time.Instant;
+import java.util.List;
 
 @PersistenceAdapter
 class StockMovementRepositoryAdapter implements StockMovementRepositoryPort {
@@ -20,5 +22,10 @@ class StockMovementRepositoryAdapter implements StockMovementRepositoryPort {
 	@Override
 	public StockMovement save(StockMovement movement) {
 		return mapper.toDomain(jpaRepository.save(mapper.toEntity(movement)));
+	}
+
+	@Override
+	public List<StockMovement> findByTimestampGreaterThanEqual(Instant from) {
+		return jpaRepository.findByTimestampGreaterThanEqual(from).stream().map(mapper::toDomain).toList();
 	}
 }
