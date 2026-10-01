@@ -30,7 +30,7 @@ public final class InboundNfe {
 	private final Instant importedAt;
 	private final List<InboundNfeConferenceItem> conferenceResult;
 
-	private InboundNfe(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
+	public InboundNfe(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
 			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
 			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
 			List<InboundNfeConferenceItem> conferenceResult) {

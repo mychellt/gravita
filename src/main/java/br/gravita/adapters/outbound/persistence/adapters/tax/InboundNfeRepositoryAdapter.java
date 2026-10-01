@@ -28,11 +28,11 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 
 	@Override
 	public InboundNfe save(InboundNfe inboundNfe) {
-		InboundNfeJpaEntity entity = mapper.toEntity(inboundNfe);
+		InboundNfeJpaEntity entity = mapper.map(inboundNfe);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		try {
 			InboundNfeJpaEntity saved = jpaRepository.saveAndFlush(entity);
-			return mapper.toDomain(saved);
+			return mapper.map(saved);
 		} catch (DataIntegrityViolationException e) {
 			if (violatesAccessKeyUniqueness(e)) {
 				throw new DuplicateResourceException(
@@ -44,12 +44,12 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 
 	@Override
 	public Optional<InboundNfe> findById(InboundNfeId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public Optional<InboundNfe> findByAccessKey(String accessKey) {
-		return jpaRepository.findByAccessKey(accessKey).map(mapper::toDomain);
+		return jpaRepository.findByAccessKey(accessKey).map(mapper::map);
 	}
 
 	private boolean violatesAccessKeyUniqueness(DataIntegrityViolationException e) {
@@ -60,7 +60,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	@Override
 	public List<InboundNfe> findIssuedBetween(Instant from, Instant to) {
 		return jpaRepository.findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(from, to).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
@@ -68,7 +68,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 		return jpaRepository
 				.findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(companyId.value(), from,
 						to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -76,6 +76,6 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 		return jpaRepository
 				.findByCompanyIdAndStatusAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
 						companyId.value(), InboundNfeStatus.CONFIRMED, from, to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 }

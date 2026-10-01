@@ -24,15 +24,15 @@ class PosSessionRepositoryAdapter implements PosSessionRepositoryPort {
 
 	@Override
 	public PosSession save(PosSession posSession) {
-		PosSessionJpaEntity entity = mapper.toEntity(posSession);
+		PosSessionJpaEntity entity = mapper.map(posSession);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PosSessionJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PosSession> findById(PosSessionId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override

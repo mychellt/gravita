@@ -32,24 +32,24 @@ class DiscriminationTemplateRepositoryAdapter implements DiscriminationTemplateR
 					existing.setTemplateText(template.getTemplateText());
 					return existing;
 				})
-				.orElseGet(() -> mapper.toEntity(template));
-		return mapper.toDomain(jpaRepository.save(entity));
+				.orElseGet(() -> mapper.map(template));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<DiscriminationTemplate> findById(DiscriminationTemplateId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<DiscriminationTemplate> findAll() {
-		return jpaRepository.findAllByOrderByServiceCodeAscCreatedAtAsc().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAllByOrderByServiceCodeAscCreatedAtAsc().stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<DiscriminationTemplate> findByServiceCode(ServiceCode serviceCode) {
 		return jpaRepository.findByServiceCodeOrderByCreatedAtAsc(serviceCode.value()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override

@@ -23,19 +23,19 @@ class VoidedNumberRangeRepositoryAdapter implements VoidedNumberRangeRepositoryP
 
 	@Override
 	public VoidedNumberRange save(VoidedNumberRange voidedNumberRange) {
-		return mapper.toDomain(jpaRepository.save(mapper.toEntity(voidedNumberRange)));
+		return mapper.map(jpaRepository.save(mapper.map(voidedNumberRange)));
 	}
 
 	@Override
 	public List<VoidedNumberRange> findByCompanyId(CompanyId companyId) {
-		return jpaRepository.findByCompanyId(companyId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByCompanyId(companyId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<VoidedNumberRange> findByCompanyIdAndSeriesAndVoidedAtBetween(CompanyId companyId, String series,
 			Instant voidedFrom, Instant voidedTo) {
 		return jpaRepository.findByCompanyIdAndSeriesAndVoidedAtBetween(companyId.value(), series, voidedFrom, voidedTo)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
@@ -44,6 +44,6 @@ class VoidedNumberRangeRepositoryAdapter implements VoidedNumberRangeRepositoryP
 		return jpaRepository
 				.findByCompanyIdAndVoidedAtGreaterThanEqualAndVoidedAtLessThanOrderByVoidedAtAscSeriesAscStartNumberAsc(
 						companyId.value(), voidedFrom, voidedTo)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 }

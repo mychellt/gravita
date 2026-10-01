@@ -25,7 +25,7 @@ public final class MunicipalityIntegration {
 	private List<String> requiredFields;
 	private boolean homologated;
 
-	private MunicipalityIntegration(MunicipalityIntegrationId id, String ibgeCode, NfseStandard standard,
+	public MunicipalityIntegration(MunicipalityIntegrationId id, String ibgeCode, NfseStandard standard,
 			String version, String webserviceUrl, CertificateType requiredCertificateType,
 			List<String> requiredFields, boolean homologated) {
 		this.id = Objects.requireNonNull(id, "id is required");

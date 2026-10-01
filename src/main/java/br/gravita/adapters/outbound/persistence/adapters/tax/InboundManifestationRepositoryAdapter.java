@@ -21,11 +21,11 @@ class InboundManifestationRepositoryAdapter implements InboundManifestationRepos
 
 	@Override
 	public InboundManifestation save(InboundManifestation manifestation) {
-		return mapper.toDomain(jpaRepository.save(mapper.toEntity(manifestation)));
+		return mapper.map(jpaRepository.save(mapper.map(manifestation)));
 	}
 
 	@Override
 	public List<InboundManifestation> findByAccessKey(String accessKey) {
-		return jpaRepository.findByAccessKey(accessKey).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByAccessKey(accessKey).stream().map(mapper::map).toList();
 	}
 }

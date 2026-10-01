@@ -17,7 +17,7 @@ public final class CashMovement {
 	private final String justification;
 	private final Instant timestamp;
 
-	private CashMovement(CashMovementId id, PosSessionId sessionId, CashMovementType type, BigDecimal amount,
+	public CashMovement(CashMovementId id, PosSessionId sessionId, CashMovementType type, BigDecimal amount,
 			String justification, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.sessionId = Objects.requireNonNull(sessionId, "sessionId is required");

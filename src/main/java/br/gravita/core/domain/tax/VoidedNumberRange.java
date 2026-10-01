@@ -20,7 +20,7 @@ public final class VoidedNumberRange {
 	private final String sefazProtocol;
 	private final Instant voidedAt;
 
-	private VoidedNumberRange(VoidedNumberRangeId id, CompanyId companyId, FiscalDocumentType documentType,
+	public VoidedNumberRange(VoidedNumberRangeId id, CompanyId companyId, FiscalDocumentType documentType,
 			String series, Long startNumber, Long endNumber, String justification, String sefazProtocol,
 			Instant voidedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");

@@ -38,20 +38,20 @@ class NfseRepositoryAdapter implements NfseRepositoryPort {
 
 	@Override
 	public NfseDocument save(NfseDocument document) {
-		NfseJpaEntity entity = mapper.toEntity(document);
+		NfseJpaEntity entity = mapper.map(document);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<NfseDocument> findById(NfseId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.MANDATORY)
 	public Optional<NfseDocument> findByIdForUpdate(NfseId id) {
-		return jpaRepository.findByIdForUpdate(id.value()).map(mapper::toDomain);
+		return jpaRepository.findByIdForUpdate(id.value()).map(mapper::map);
 	}
 
 	@Override
@@ -73,6 +73,6 @@ class NfseRepositoryAdapter implements NfseRepositoryPort {
 		return jpaRepository
 				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						NfseStatus.AUTHORIZED, from, to)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 }

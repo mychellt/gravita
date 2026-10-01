@@ -26,7 +26,7 @@ class MunicipalityIntegrationRepositoryAdapter implements MunicipalityIntegratio
 		MunicipalityIntegrationJpaEntity entity = jpaRepository.findById(integration.getId().value())
 				.map(existing -> {
 					// Update the managed row so audit columns (created_at) are preserved.
-					MunicipalityIntegrationJpaEntity fresh = mapper.toEntity(integration);
+					MunicipalityIntegrationJpaEntity fresh = mapper.map(integration);
 					existing.setStandard(fresh.getStandard());
 					existing.setVersion(fresh.getVersion());
 					existing.setWebserviceUrl(fresh.getWebserviceUrl());
@@ -35,12 +35,12 @@ class MunicipalityIntegrationRepositoryAdapter implements MunicipalityIntegratio
 					existing.setHomologated(fresh.isHomologated());
 					return existing;
 				})
-				.orElseGet(() -> mapper.toEntity(integration));
-		return mapper.toDomain(jpaRepository.save(entity));
+				.orElseGet(() -> mapper.map(integration));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<MunicipalityIntegration> findByIbgeCode(String ibgeCode) {
-		return jpaRepository.findByIbgeCode(ibgeCode).map(mapper::toDomain);
+		return jpaRepository.findByIbgeCode(ibgeCode).map(mapper::map);
 	}
 }

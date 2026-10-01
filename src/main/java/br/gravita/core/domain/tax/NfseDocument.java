@@ -59,7 +59,7 @@ public final class NfseDocument {
 	private final String cancellationJustification;
 	private final Instant cancelledAt;
 
-	private NfseDocument(NfseId id, NfseStatus status, CompanyId providerCompanyId,
+	public NfseDocument(NfseId id, NfseStatus status, CompanyId providerCompanyId,
 			String providerMunicipalityIbgeCode, NfseTomador tomador, String serviceCode,
 			PlaceOfProvision placeOfProvision, String issMunicipalityIbgeCode, BigDecimal serviceAmount,
 			BigDecimal issRate, BigDecimal issAmount, String issRateOverrideJustification,

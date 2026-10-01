@@ -52,7 +52,7 @@ public final class NfeDocument {
 	private final String cancellationJustification;
 	private final Instant cancelledAt;
 
-	private NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
+	public NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
 			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
 			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
 			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,

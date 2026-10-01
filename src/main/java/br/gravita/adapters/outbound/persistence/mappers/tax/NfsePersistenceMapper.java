@@ -10,109 +10,70 @@ import br.gravita.core.domain.tax.NfseId;
 import br.gravita.core.domain.tax.NfseTomador;
 import br.gravita.core.domain.tax.NfseWithholding;
 import br.gravita.core.domain.tax.TomadorAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface NfsePersistenceMapper {
 
-	default NfseDocument toDomain(final NfseJpaEntity entity) {
-		return NfseDocument.of(
-				NfseId.of(entity.getId()),
-				entity.getStatus(),
-				CompanyId.of(entity.getProviderCompanyId()),
-				entity.getProviderMunicipalityIbge(),
-				toTomador(entity),
-				entity.getServiceCode(),
-				entity.getPlaceOfProvision(),
-				entity.getIssMunicipalityIbge(),
-				entity.getServiceAmount(),
-				entity.getIssRate(),
-				entity.getIssAmount(),
-				entity.getIssRateOverrideJustification(),
-				entity.getWithholdings().stream()
-						.map(w -> new NfseWithholding(w.getTaxType(), w.getBase(), w.getRatePercentage(),
-								w.getAmount()))
-						.toList(),
-				entity.getDiscrimination(),
-				entity.getRpsSeries(),
-				entity.getRpsNumber(),
-				entity.getDocumentCreatedAt(),
-				entity.getNfseSeries(),
-				entity.getNfseNumber(),
-				entity.getDraftAt(),
-				entity.getSentAt(),
-				entity.getProtocol(),
-				entity.getAuthorizedAt(),
-				entity.getXmlReference(),
-				entity.getLastRejectionReason(),
-				entity.getCancellationJustification(),
-				entity.getCancelledAt());
-	}
+	@Mapping(target = "providerMunicipalityIbgeCode", source = "providerMunicipalityIbge")
+	@Mapping(target = "tomador", source = "entity")
+	@Mapping(target = "issMunicipalityIbgeCode", source = "issMunicipalityIbge")
+	@Mapping(target = "createdAt", source = "documentCreatedAt")
+	NfseDocument map(final NfseJpaEntity entity);
 
-	default NfseJpaEntity toEntity(final NfseDocument domain) {
-		NfseTomador tomador = domain.getTomador();
-		TomadorAddress address = tomador.address();
-		return NfseJpaEntity.builder()
-				.id(domain.getId().value())
-				.status(domain.getStatus())
-				.providerCompanyId(domain.getProviderCompanyId().value())
-				.providerMunicipalityIbge(domain.getProviderMunicipalityIbgeCode())
-				.tomadorPersonId(tomador.personRef() == null ? null : tomador.personRef().id())
-				.tomadorDocument(tomador.document().number())
-				.tomadorPersonType(tomador.document().personType())
-				.tomadorName(tomador.name())
-				.tomadorMunicipalityIbge(tomador.municipalityIbgeCode())
-				.tomadorStreet(address == null ? null : address.street())
-				.tomadorNumber(address == null ? null : address.number())
-				.tomadorComplement(address == null ? null : address.complement())
-				.tomadorNeighborhood(address == null ? null : address.neighborhood())
-				.tomadorZipCode(address == null ? null : address.zipCode())
-				.tomadorState(address == null ? null : address.state())
-				.serviceCode(domain.getServiceCode())
-				.placeOfProvision(domain.getPlaceOfProvision())
-				.issMunicipalityIbge(domain.getIssMunicipalityIbgeCode())
-				.serviceAmount(domain.getServiceAmount())
-				.issRate(domain.getIssRate())
-				.issAmount(domain.getIssAmount())
-				.issRateOverrideJustification(domain.getIssRateOverrideJustification())
-				.discrimination(domain.getDiscrimination())
-				.rpsSeries(domain.getRpsSeries())
-				.rpsNumber(domain.getRpsNumber())
-				.documentCreatedAt(domain.getCreatedAt())
-				.nfseSeries(domain.getNfseSeries())
-				.nfseNumber(domain.getNfseNumber())
-				.draftAt(domain.getDraftAt())
-				.sentAt(domain.getSentAt())
-				.protocol(domain.getProtocol())
-				.authorizedAt(domain.getAuthorizedAt())
-				.xmlReference(domain.getXmlReference())
-				.lastRejectionReason(domain.getLastRejectionReason())
-				.cancellationJustification(domain.getCancellationJustification())
-				.cancelledAt(domain.getCancelledAt())
-				.withholdings(toWithholdingEmbeddables(domain.getWithholdings()))
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "providerCompanyId", source = "providerCompanyId.value")
+	@Mapping(target = "providerMunicipalityIbge", source = "providerMunicipalityIbgeCode")
+	@Mapping(target = "tomadorPersonId", source = "tomador.personRef.id")
+	@Mapping(target = "tomadorDocument", source = "tomador.document.number")
+	@Mapping(target = "tomadorPersonType", source = "tomador.document.personType")
+	@Mapping(target = "tomadorName", source = "tomador.name")
+	@Mapping(target = "tomadorMunicipalityIbge", source = "tomador.municipalityIbgeCode")
+	@Mapping(target = "tomadorStreet", source = "tomador.address.street")
+	@Mapping(target = "tomadorNumber", source = "tomador.address.number")
+	@Mapping(target = "tomadorComplement", source = "tomador.address.complement")
+	@Mapping(target = "tomadorNeighborhood", source = "tomador.address.neighborhood")
+	@Mapping(target = "tomadorZipCode", source = "tomador.address.zipCode")
+	@Mapping(target = "tomadorState", source = "tomador.address.state")
+	@Mapping(target = "issMunicipalityIbge", source = "issMunicipalityIbgeCode")
+	@Mapping(target = "documentCreatedAt", source = "createdAt")
+	@Mapping(target = "createdAt", ignore = true)
+	NfseJpaEntity map(final NfseDocument domain);
 
-	private NfseTomador toTomador(NfseJpaEntity entity) {
-		TomadorAddress address = entity.getTomadorStreet() == null ? null
-				: new TomadorAddress(entity.getTomadorStreet(), entity.getTomadorNumber(),
-						entity.getTomadorComplement(), entity.getTomadorNeighborhood(), entity.getTomadorZipCode(),
-						entity.getTomadorState());
-		return new NfseTomador(PersonRef.of(entity.getTomadorPersonId()),
-				new Document(entity.getTomadorDocument(), entity.getTomadorPersonType()), entity.getTomadorName(),
-				entity.getTomadorMunicipalityIbge(), address);
-	}
+	@Mapping(target = "personRef", source = "tomadorPersonId")
+	@Mapping(target = "document", source = "entity")
+	@Mapping(target = "name", source = "tomadorName")
+	@Mapping(target = "municipalityIbgeCode", source = "tomadorMunicipalityIbge")
+	// An absent address is stored as a null street.
+	@Mapping(target = "address", source = "entity", conditionExpression = "java(entity.getTomadorStreet() != null)")
+	NfseTomador mapTomador(final NfseJpaEntity entity);
 
-	private List<NfseWithholdingEmbeddable> toWithholdingEmbeddables(List<NfseWithholding> withholdings) {
-		List<NfseWithholdingEmbeddable> result = new ArrayList<>();
-		for (NfseWithholding w : withholdings) {
-			result.add(NfseWithholdingEmbeddable.builder().taxType(w.taxType()).base(w.base())
-					.ratePercentage(w.ratePercentage()).amount(w.amount()).build());
-		}
-		return result;
-	}
+	@Mapping(target = "number", source = "tomadorDocument")
+	@Mapping(target = "personType", source = "tomadorPersonType")
+	Document mapTomadorDocument(final NfseJpaEntity entity);
+
+	@Mapping(target = "street", source = "tomadorStreet")
+	@Mapping(target = "number", source = "tomadorNumber")
+	@Mapping(target = "complement", source = "tomadorComplement")
+	@Mapping(target = "neighborhood", source = "tomadorNeighborhood")
+	@Mapping(target = "zipCode", source = "tomadorZipCode")
+	@Mapping(target = "state", source = "tomadorState")
+	TomadorAddress mapTomadorAddress(final NfseJpaEntity entity);
+
+	NfseWithholding map(final NfseWithholdingEmbeddable embeddable);
+
+	NfseWithholdingEmbeddable map(final NfseWithholding withholding);
+
+	@Mapping(target = "value", source = "id")
+	NfseId mapNfseId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	CompanyId mapCompanyId(final UUID id);
+
+	@Mapping(target = "id", source = "id")
+	PersonRef mapPersonRef(final UUID id);
 }

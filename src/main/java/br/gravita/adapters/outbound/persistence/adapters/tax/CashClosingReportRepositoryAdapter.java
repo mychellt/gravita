@@ -23,14 +23,14 @@ class CashClosingReportRepositoryAdapter implements CashClosingReportRepositoryP
 
 	@Override
 	public CashClosingReport save(CashClosingReport report) {
-		CashClosingReportJpaEntity entity = mapper.toEntity(report);
+		CashClosingReportJpaEntity entity = mapper.map(report);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		CashClosingReportJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<CashClosingReport> findBySessionId(PosSessionId sessionId) {
-		return jpaRepository.findBySessionId(sessionId.value()).map(mapper::toDomain);
+		return jpaRepository.findBySessionId(sessionId.value()).map(mapper::map);
 	}
 }
