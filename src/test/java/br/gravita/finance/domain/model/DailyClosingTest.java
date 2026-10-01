@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class DailyClosingTest {
@@ -24,6 +25,7 @@ class DailyClosingTest {
 	}
 
 	@Test
+	@DisplayName("Computes totals equal to the sum of the day's movements")
 	void totalsMatchTheSumOfTheDaysMovements() {
 		DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("100.00"), List.of(
 				movement(CashMovementDirection.FROM_BANK, "50.00"),
@@ -38,6 +40,7 @@ class DailyClosingTest {
 	}
 
 	@Test
+	@DisplayName("Closes a day without movements at the opening balance")
 	void aDayWithoutMovementsClosesAtTheOpeningBalance() {
 		DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("80.00"), List.of());
 

@@ -29,6 +29,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -84,6 +85,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates an automatic CNAB settlement linked to the payable and pays it for a confirmed line")
 	void aConfirmedLineCreatesAnAutomaticCnabSettlementLinkedToThePayableAndPaysIt() {
 		Payable payable = payable(PayableStatus.APPROVED);
 		returnLines(new BankReturnLine(1, payable.getId().value().toString(), true, new BigDecimal("100.00"),
@@ -112,6 +114,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Counts a discount toward clearing the payable")
 	void aDiscountCountsTowardsClearingThePayable() {
 		Payable payable = payable(PayableStatus.APPROVED);
 		returnLines(new BankReturnLine(1, payable.getId().value().toString(), true, new BigDecimal("90.00"), null,
@@ -127,6 +130,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the payable approved and reports the line as rejected when the bank rejected it")
 	void aLineTheBankRejectedLeavesThePayableApprovedAndIsReportedAsRejected() {
 		Payable payable = payable(PayableStatus.APPROVED);
 		returnLines(new BankReturnLine(4, payable.getId().value().toString(), false, null, null, null, null, null,
@@ -147,6 +151,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps processing the remaining lines when one line is rejected")
 	void aRejectionDoesNotStopTheOtherLinesOfTheFile() {
 		Payable rejected = payable(PayableStatus.APPROVED);
 		Payable confirmed = payable(PayableStatus.APPROVED);
@@ -166,6 +171,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Skips lines that are neither paid nor rejected without reporting them")
 	void linesThatAreNeitherPaidNorRejectedAreSkippedNotReported() {
 		returnLines(new BankReturnLine(1, "any", false, null, null, null, null, null, null));
 
@@ -179,6 +185,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line with no matching payable instead of dropping it")
 	void aLineWithNoMatchingPayableIsReportedNotDropped() {
 		UUID unknown = UUID.randomUUID();
 		returnLines(paidLine(7, unknown.toString(), "100.00"));
@@ -197,6 +204,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line whose title identifier is not a payable id")
 	void aTitleIdentifierThatIsNotAPayableIdIsReported() {
 		returnLines(paidLine(3, "NOSSO-123", "100.00"));
 
@@ -208,6 +216,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a payment for a payable that is not approved and changes nothing")
 	void aPaymentForAPayableThatIsNotApprovedIsReportedAndChangesNothing() {
 		for (PayableStatus status : new PayableStatus[] { PayableStatus.OPEN, PayableStatus.PAID,
 				PayableStatus.CANCELLED }) {
@@ -226,6 +235,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Settles nothing the second time the same file is imported")
 	void importingTheSameFileAgainSettlesNothingTwice() {
 		Payable payable = payable(PayableStatus.PAID);
 		returnLines(paidLine(1, payable, "100.00"));
@@ -241,6 +251,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a payment that does not clear the payable and leaves it approved")
 	void aPaymentThatDoesNotClearThePayableIsReportedAndLeavesItApproved() {
 		for (String amount : new String[] { "40.00", "150.00" }) {
 			Payable payable = payable(PayableStatus.APPROVED);
@@ -258,6 +269,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line with an invalid amount without stopping the other lines")
 	void aLineWithAnInvalidAmountIsReportedAndDoesNotStopTheRest() {
 		Payable bad = payable(PayableStatus.APPROVED);
 		Payable good = payable(PayableStatus.APPROVED);
@@ -276,6 +288,7 @@ class ConfirmBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails the import when the bank is unavailable")
 	void anUnavailableBankFailsTheImport() {
 		when(bankIntegrationPort.parseReturnFile(BankIntegration.ITAU, "cnab"))
 				.thenThrow(new BankIntegrationUnavailableException("not configured"));

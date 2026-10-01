@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -67,6 +68,7 @@ class SettleTitleManuallyIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists manual settlements and the receivable status across partial and full payments")
 	void persistsTheManualSettlementsAndTheReceivableStatusAcrossPartialAndFullBaixas() {
 		Receivable receivable = savedReceivable(UUID.randomUUID(), LocalDate.now().plusDays(30));
 
@@ -87,6 +89,7 @@ class SettleTitleManuallyIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the customer's credit status in masterdata up to date after a manual settlement")
 	void keepsTheCustomersCreditStatusInMasterdataCurrent() {
 		CustomerDomain customer = savedCustomer();
 		Receivable overdue = savedReceivable(customer.getId(), LocalDate.now().minusDays(10));

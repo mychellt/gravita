@@ -28,6 +28,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -83,6 +84,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates an automatic CNAB settlement and settles the receivable for a line paid in full")
 	void aPaidLineForTheFullAmountCreatesAnAutomaticCnabSettlementAndSettlesTheReceivable() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		returnLines(new BankReturnLine(1, receivable.getId().value().toString(), true, new BigDecimal("100.00"),
@@ -108,6 +110,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Partially settles the receivable for a line paid below the amount")
 	void aPaidLineBelowTheAmountPartiallySettlesTheReceivable() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		returnLines(paidLine(1, receivable, "40.00"));
@@ -122,6 +125,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Settles a partially settled receivable with the remainder, counting a discount toward the amount")
 	void theRemainderOfAPartiallySettledReceivableSettlesItAndADiscountCountsTowardTheAmount() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		returnLines(new BankReturnLine(1, receivable.getId().value().toString(), true, new BigDecimal("50.00"), null,
@@ -136,6 +140,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Skips lines that are not payments without reporting them")
 	void linesThatAreNotPaymentsAreSkippedNotReported() {
 		returnLines(new BankReturnLine(1, "any", false, null, null, null, null, null, null));
 
@@ -148,6 +153,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line with no matching receivable instead of dropping it")
 	void aLineWithNoMatchingReceivableIsReportedNotDropped() {
 		UUID unknown = UUID.randomUUID();
 		returnLines(paidLine(7, unknown.toString(), "100.00"));
@@ -166,6 +172,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line whose title identifier is not a receivable id")
 	void aTitleIdentifierThatIsNotAReceivableIdIsReported() {
 		returnLines(paidLine(3, "NOSSO-123", "100.00"));
 
@@ -177,6 +184,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a payment for a receivable that is not open and changes nothing")
 	void aPaymentForAReceivableThatIsNotOpenIsReportedAndChangesNothing() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
 				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
@@ -195,6 +203,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Settles nothing the second time the same file is imported")
 	void importingTheSameFileAgainSettlesNothingTwice() {
 		Receivable receivable = receivable(ReceivableStatus.SETTLED);
 		returnLines(paidLine(1, receivable, "100.00"));
@@ -210,6 +219,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line with an invalid amount without stopping the other lines")
 	void aLineWithAnInvalidAmountIsReportedAndDoesNotStopTheRest() {
 		Receivable bad = receivable(ReceivableStatus.OPEN);
 		Receivable good = receivable(ReceivableStatus.OPEN);
@@ -228,6 +238,7 @@ class ImportBankReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails the import when the bank is unavailable")
 	void anUnavailableBankFailsTheImport() {
 		when(bankIntegrationPort.parseReturnFile(BankIntegration.ITAU, "cnab"))
 				.thenThrow(new BankIntegrationUnavailableException("not configured"));

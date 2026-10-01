@@ -10,6 +10,7 @@ import br.gravita.core.ports.inbound.finance.RecordInternalCashMovementCommand;
 import br.gravita.core.ports.inbound.finance.RecordInternalCashMovementUseCase;
 import br.gravita.core.ports.outbound.persistence.finance.InternalCashBoxRepositoryPort;
 import java.math.BigDecimal;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ class RecordInternalCashMovementIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the cash box balance after each recorded movement")
 	void persistsTheBalanceOfTheCashBoxAfterEachMovement() {
 		givenCashBoxWithBalance("100.00");
 

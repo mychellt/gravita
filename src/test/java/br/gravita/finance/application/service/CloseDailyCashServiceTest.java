@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -62,6 +63,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Summarises the entries, exits and balances of the day")
 	void summarisesEntriesExitsAndBalancesOfTheDay() {
 		// opening 100 + 60 - 25 = 135 at the end of the day
 		boxWithBalance("135.00",
@@ -78,6 +80,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Ignores movements of later days in the closing even though they change the current balance")
 	void movementsOfLaterDaysMoveTheCurrentBalanceButNotThisClosing() {
 		// end of 28th: 100 + 40 = 140; on the 29th 30 more went to the bank, so the box holds 110 now
 		boxWithBalance("110.00",
@@ -94,6 +97,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Uses the prior day's closing balance as the opening balance")
 	void openingBalanceEqualsThePriorDaysClosingBalance() {
 		// Box moves: 27th: +50 (opening 20, closing 70); 28th: -10 (opening 70, closing 60)
 		CashMovement dayBefore = movement(CashMovementDirection.FROM_BANK, "50.00", "2026-09-27T10:00:00Z");
@@ -114,6 +118,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the balance unchanged on a day without movements")
 	void aDayWithoutMovementsKeepsTheBalance() {
 		boxWithBalance("80.00");
 
@@ -125,6 +130,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects closing the cash for a date in the future")
 	void rejectsADateInTheFuture() {
 		assertThatThrownBy(() -> service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN,
 				LocalDate.of(2026, 10, 1)))).isInstanceOf(BusinessRuleException.class);
@@ -133,6 +139,7 @@ class CloseDailyCashServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the cash box does not exist")
 	void failsWhenTheCashBoxDoesNotExist() {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN)).thenReturn(Optional.empty());
 

@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -103,6 +104,7 @@ class ReconcileBankStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Matches statement lines with settlements and cash movements and reports the unmatched ones")
 	void matchesAStatementAgainstSettlementsAndCashMovementsAndReportsTheRest() throws Exception {
 		Settlement received = receivedInto(bankAccount, "100.00");
 		Settlement paid = paidFrom(bankAccount, "80.00");
@@ -135,6 +137,7 @@ class ReconcileBankStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Reconciles a bank statement supplied in OFX format")
 	void matchesAnOfxStatement() throws Exception {
 		Settlement received = receivedInto(bankAccount, "100.00");
 		String ofx = "<OFX><BANKTRANLIST><STMTTRN><DTPOSTED>20310314</DTPOSTED><TRNAMT>100.00</TRNAMT>"
@@ -146,6 +149,7 @@ class ReconcileBankStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Gives the same reconciliation result when the same statement is imported twice")
 	void importingTheSameStatementTwiceGivesTheSameResult() throws Exception {
 		receivedInto(bankAccount, "100.00");
 		String csv = "date,amount\n2031-03-14,100.00\n";
@@ -155,12 +159,14 @@ class ReconcileBankStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the statement content is invalid")
 	void anInvalidStatementIsRejectedWith400() throws Exception {
 		importStatement(bankAccount, "date,description\n2031-03-14,x").andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.message").exists());
 	}
 
 	@Test
+	@DisplayName("Rejects a reconciliation request missing the bank account or the statement content")
 	void aRequestWithoutABankAccountOrContentIsRejected() throws Exception {
 		importStatement(null, "date,amount\n2031-03-14,1.00").andExpect(status().isBadRequest());
 		importStatement(bankAccount, "  ").andExpect(status().isBadRequest());

@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,7 @@ class ExpirePixChargesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Expires every pending charge that is past its expiry")
 	void expiresEveryPendingChargePastItsExpiry() {
 		when(pixChargeRepositoryPort.findPendingExpiredBefore(any()))
 				.thenReturn(List.of(pendingCharge(), pendingCharge()));
@@ -54,6 +56,7 @@ class ExpirePixChargesServiceTest {
 	}
 
 	@Test
+	@DisplayName("Does nothing when no charge is due to expire")
 	void doesNothingWhenNothingIsDue() {
 		when(pixChargeRepositoryPort.findPendingExpiredBefore(any())).thenReturn(List.of());
 

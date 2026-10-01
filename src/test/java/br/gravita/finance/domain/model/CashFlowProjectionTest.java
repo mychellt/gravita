@@ -11,6 +11,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CashFlowProjectionTest {
@@ -23,6 +24,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Creates daily buckets for every day of the range, including empty ones")
 	void dailyBucketsCoverEveryDayOfTheRangeIncludingEmptyOnes() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY,
 				MONDAY.plusDays(2), null, List.of(CashFlowEntry.realizedInflow(MONDAY.plusDays(2), money("10"))));
@@ -35,6 +37,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Keeps realized and projected movements apart and accumulates the balance from the opening balance")
 	void keepsRealizedAndProjectedMovementsApartAndAccumulatesTheBalanceFromTheOpeningBalance() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY,
 				MONDAY.plusDays(1), money("100"),
@@ -57,6 +60,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Runs weekly buckets Monday to Sunday, the first starting on the Monday of the range start")
 	void weeklyBucketsRunMondayToSundayAndTheFirstOneStartsOnTheMondayOfTheRangeStart() {
 		LocalDate wednesday = MONDAY.plusDays(2);
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.WEEKLY, wednesday,
@@ -72,6 +76,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Runs monthly buckets from the first to the last day of the month")
 	void monthlyBucketsRunFirstToLastDayOfTheMonth() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.MONTHLY, LocalDate.of(2026, 1, 31),
 				LocalDate.of(2026, 3, 1), null,
@@ -84,6 +89,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Leaves out entries dated outside the range")
 	void leavesOutEntriesDatedOutsideTheRange() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY, MONDAY, null,
 				List.of(CashFlowEntry.realizedInflow(MONDAY.minusDays(1), money("10")),
@@ -93,6 +99,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Ignores periods that are already over when finding the first negative bucket")
 	void theFirstNegativeBucketIgnoresPeriodsThatAreAlreadyOver() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY,
 				MONDAY.plusDays(3), null,
@@ -109,6 +116,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Does not treat a balance of exactly zero as negative")
 	void aBalanceOfExactlyZeroIsNotNegative() {
 		CashFlowProjection projection = CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY, MONDAY,
 				money("10"), List.of(CashFlowEntry.projectedOutflow(MONDAY, money("10"))));
@@ -117,6 +125,7 @@ class CashFlowProjectionTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a range that ends before it starts")
 	void rejectsARangeThatEndsBeforeItStarts() {
 		assertThatThrownBy(() -> CashFlowProjection.of(CashFlowGranularity.DAILY, MONDAY, MONDAY.minusDays(1), null,
 				List.of())).isInstanceOf(BusinessRuleException.class);

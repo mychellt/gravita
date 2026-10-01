@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -63,6 +64,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Generates a single remittance covering every selected payable")
 	void generatesASingleRemittanceCoveringEverySelectedPayable() {
 		Payable first = payable(PayableStatus.APPROVED, "100.00");
 		Payable second = payable(PayableStatus.APPROVED, "250.50");
@@ -88,6 +90,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Neither saves nor changes the payables when generating the remittance")
 	void doesNotSaveOrChangeThePayables() {
 		Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		found(approved);
@@ -101,6 +104,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a batch containing a payable that is not approved and names it in the error")
 	void rejectsABatchContainingAPayableThatIsNotApprovedAndNamesIt() {
 		Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		Payable open = payable(PayableStatus.OPEN, "50.00");
@@ -117,6 +121,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a cancelled payable in the batch")
 	void rejectsACancelledPayable() {
 		Payable cancelled = payable(PayableStatus.CANCELLED, "100.00");
 		found(cancelled);
@@ -127,6 +132,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown payable in the batch")
 	void rejectsAnUnknownPayable() {
 		Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		UUID unknown = UUID.randomUUID();
@@ -140,6 +146,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a batch with no payables selected")
 	void rejectsAnEmptySelection() {
 		assertThatThrownBy(() -> service.execute(new BatchPayCommand(List.of(), BankIntegration.ITAU)))
 				.isInstanceOf(BusinessRuleException.class);
@@ -148,6 +155,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a batch that selects the same payable twice")
 	void rejectsAPayableSelectedTwice() {
 		UUID id = UUID.randomUUID();
 
@@ -158,6 +166,7 @@ class BatchPayServiceTest {
 	}
 
 	@Test
+	@DisplayName("Propagates the failure when the bank cannot accept the remittance")
 	void propagatesABankThatCannotTakeTheRemittance() {
 		Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		found(approved);

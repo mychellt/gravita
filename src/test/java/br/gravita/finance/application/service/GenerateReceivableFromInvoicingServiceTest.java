@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	private GenerateReceivableFromInvoicingService service;
 
 	@Test
+	@DisplayName("Creates one open receivable per installment referencing the fiscal document")
 	void createsOneOpenInvoicingReceivablePerInstallmentReferencingTheFiscalDocument() {
 		UUID customerId = UUID.randomUUID();
 		UUID documentId = UUID.randomUUID();
@@ -70,6 +72,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Is idempotent per origin document and returns the receivables that already exist")
 	void isIdempotentPerOriginDocumentAndReturnsTheExistingReceivables() {
 		UUID customerId = UUID.randomUUID();
 		UUID documentId = UUID.randomUUID();
@@ -85,6 +88,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a command without installments and saves nothing")
 	void rejectsACommandWithoutInstallmentsWithoutSavingAnything() {
 		UUID documentId = UUID.randomUUID();
 
@@ -96,6 +100,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
 		UUID documentId = UUID.randomUUID();
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of());
@@ -108,6 +113,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves each receivable with its own id")
 	void savesEachReceivableWithItsOwnId() {
 		UUID documentId = UUID.randomUUID();
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of());

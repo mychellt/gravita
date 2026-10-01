@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,6 +52,7 @@ class PixChargePersistenceIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the PIX charge as paid and the linked receivable as settled when a payment is confirmed")
 	void confirmingAPaymentPersistsThePaidChargeAndTheSettledReceivable() {
 		Receivable receivable = savedReceivable();
 		PixCharge charge = savedCharge(receivable, Instant.now().plusSeconds(3600));
@@ -64,6 +66,7 @@ class PixChargePersistenceIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Expires only the pending PIX charges whose expiry has passed when the expiry job runs")
 	void expiryJobExpiresOnlyPendingChargesPastTheirExpiry() {
 		Receivable receivable = savedReceivable();
 		PixCharge overdue = savedCharge(receivable, Instant.now().minusSeconds(60));

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,7 @@ class GeneratePayableFromReceiptIntegrationTest {
 	private PayableRepositoryPort payableRepositoryPort;
 
 	@Test
+	@DisplayName("Persists one payable per installment and does not duplicate them when the receipt is reconfirmed")
 	void persistsOnePayablePerInstallmentAndDoesNotDuplicateOnReconfirmation() {
 		UUID supplierId = UUID.randomUUID();
 		UUID receiptId = UUID.randomUUID();

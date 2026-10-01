@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ class GenerateReceivableFromInvoicingIntegrationTest {
 	private ReceivableRepositoryPort receivableRepositoryPort;
 
 	@Test
+	@DisplayName("Persists one receivable per installment and does not duplicate them when invoicing again")
 	void persistsOneReceivablePerInstallmentAndDoesNotDuplicateOnReinvoicing() {
 		UUID documentId = UUID.randomUUID();
 		GenerateReceivableFromInvoicingCommand command = new GenerateReceivableFromInvoicingCommand(

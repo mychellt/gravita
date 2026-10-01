@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -57,6 +58,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves the payable with the new cost center split")
 	void savesThePayableWithTheNewSplit() {
 		Payable payable = existingPayable();
 		UUID a = UUID.randomUUID();
@@ -77,6 +79,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown payable")
 	void rejectsAnUnknownPayable() {
 		PayableId id = PayableId.of(UUID.randomUUID());
 		when(payableRepositoryPort.findById(id)).thenReturn(Optional.empty());
@@ -88,6 +91,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown cost center without saving")
 	void rejectsAnUnknownCostCenterWithoutSaving() {
 		Payable payable = existingPayable();
 		UUID unknown = UUID.randomUUID();
@@ -101,6 +105,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects percentages that do not sum to 100% without saving")
 	void rejectsPercentagesNotSummingTo100WithoutSaving() {
 		Payable payable = existingPayable();
 
@@ -112,6 +117,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty split without saving")
 	void rejectsAnEmptySplitWithoutSaving() {
 		Payable payable = existingPayable();
 
@@ -122,6 +128,7 @@ class SplitPayableByCostCenterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires both a payable id and a split on the command")
 	void theCommandRequiresPayableIdAndSplit() {
 		assertThatThrownBy(() -> new SplitPayableByCostCenterCommand(null, List.of()))
 				.isInstanceOf(NullPointerException.class).hasMessageContaining("payableId");

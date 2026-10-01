@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -60,6 +61,7 @@ class GeneratePixChargeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a pending charge with the receivable's amount and due date")
 	void createsAPendingChargeMatchingTheReceivablesAmountAndDueDate() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		Instant expiresAt = Instant.now().plus(31, ChronoUnit.DAYS);
@@ -87,6 +89,7 @@ class GeneratePixChargeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a receivable that is not open without contacting the bank")
 	void rejectsAReceivableThatIsNotOpenWithoutContactingTheBank() {
 		Receivable settled = receivable(ReceivableStatus.SETTLED);
 		when(receivableRepositoryPort.findById(settled.getId())).thenReturn(Optional.of(settled));
@@ -98,6 +101,7 @@ class GeneratePixChargeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the receivable does not exist")
 	void failsWhenTheReceivableDoesNotExist() {
 		UUID missing = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(missing))).thenReturn(Optional.empty());
@@ -109,6 +113,7 @@ class GeneratePixChargeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves nothing when the bank fails")
 	void savesNothingWhenTheBankFails() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
@@ -122,6 +127,7 @@ class GeneratePixChargeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves nothing when the bank returns an invalid payload")
 	void savesNothingWhenTheBankReturnsAnInvalidPayload() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));

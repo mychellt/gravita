@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -76,6 +77,7 @@ class RenegotiateTitleIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the renegotiated original titles, the new open titles and the link between them")
 	void persistsTheRenegotiatedOriginalsTheNewOpenTitlesAndTheLinkBetweenThem() {
 		CustomerDomain customer = savedCustomer(CustomerStatus.DELINQUENT);
 		Receivable original = savedOverdue(customer.getId(), "100.00");
@@ -100,6 +102,7 @@ class RenegotiateTitleIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Removes a renegotiated title from the set of outstanding titles")
 	void theRenegotiatedTitleLeavesTheOutstandingSet() {
 		CustomerDomain customer = savedCustomer(CustomerStatus.DELINQUENT);
 		Receivable original = savedOverdue(customer.getId(), "100.00");
@@ -111,6 +114,7 @@ class RenegotiateTitleIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Clears the customer's delinquency and updates its balance after renegotiation")
 	void clearsTheCustomersDelinquencyAndUpdatesItsBalance() {
 		CustomerDomain customer = savedCustomer(CustomerStatus.DELINQUENT);
 		Receivable original = savedOverdue(customer.getId(), "100.00");
@@ -123,6 +127,7 @@ class RenegotiateTitleIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects renegotiating a title that was already renegotiated")
 	void aTitleCanOnlyBeRenegotiatedOnce() {
 		CustomerDomain customer = savedCustomer(CustomerStatus.DELINQUENT);
 		Receivable original = savedOverdue(customer.getId(), "100.00");

@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,6 +66,7 @@ class ConfirmBatchPaymentIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the payable settlement and paid status, and leaves rejected lines unpaid")
 	void persistsThePayableSettlementAndPaidStatusAndRejectsWithoutPaying() {
 		Payable confirmed = savedApproved();
 		Payable refused = savedApproved();
@@ -87,6 +89,7 @@ class ConfirmBatchPaymentIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Reports a re-imported batch payment file instead of settling it twice")
 	void reimportingTheSameFileIsReportedNotSettledTwice() {
 		Payable payable = savedApproved();
 		confirm(paid(1, payable));

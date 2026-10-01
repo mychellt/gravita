@@ -33,6 +33,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -71,6 +72,7 @@ class GenerateBoletoServiceTest {
 	}
 
 	@Test
+	@DisplayName("Generates a boleto linked to the receivable from the chosen bank and emails it")
 	void generatesALinkedBoletoFromTheChosenBankAndEmailsIt() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
@@ -100,6 +102,7 @@ class GenerateBoletoServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a receivable that is not open without contacting the bank")
 	void rejectsAReceivableThatIsNotOpenWithoutContactingTheBank() {
 		Receivable settled = receivable(ReceivableStatus.SETTLED);
 		when(receivableRepositoryPort.findById(settled.getId())).thenReturn(Optional.of(settled));
@@ -112,6 +115,7 @@ class GenerateBoletoServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the receivable does not exist")
 	void failsWhenTheReceivableDoesNotExist() {
 		UUID missing = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(missing))).thenReturn(Optional.empty());
@@ -123,6 +127,7 @@ class GenerateBoletoServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves and sends nothing when the bank fails")
 	void savesNothingAndSendsNothingWhenTheBankFails() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
@@ -137,6 +142,7 @@ class GenerateBoletoServiceTest {
 	}
 
 	@Test
+	@DisplayName("Still generates the boleto when the customer has no email")
 	void stillGeneratesTheBoletoWhenTheCustomerHasNoEmail() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));

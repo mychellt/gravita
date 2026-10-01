@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class RenegotiationTest {
@@ -31,6 +32,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Allows renegotiating an overdue receivable that is open or partially settled")
 	void anOverdueOpenOrPartiallySettledReceivableCanBeRenegotiated() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
@@ -46,6 +48,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Does not treat a receivable due today or later as overdue")
 	void aReceivableDueTodayOrLaterIsNotOverdue() {
 		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN, TODAY).renegotiate(TODAY))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("not overdue");
@@ -54,6 +57,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects renegotiating a title that is not outstanding even if its due date has passed")
 	void aTitleThatIsNotOutstandingCannotBeRenegotiatedEvenIfItsDueDateHasPassed() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
 				ReceivableStatus.RENEGOTIATED, ReceivableStatus.CANCELLED }) {
@@ -63,6 +67,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Creates each installment of a renegotiation plan as an open receivable with the renegotiation origin")
 	void anInstallmentOfARenegotiationPlanIsAnOpenRenegotiationOriginTitle() {
 		UUID customerId = UUID.randomUUID();
 
@@ -77,12 +82,14 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment number outside the plan")
 	void anInstallmentNumberOutsideThePlanIsRejected() {
 		assertThatThrownBy(() -> Receivable.createFromRenegotiation(id(), UUID.randomUUID(), BigDecimal.TEN,
 				TODAY.plusDays(1), 4, 3)).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Keeps the link from the original titles to the new ones")
 	void keepsTheLinkFromTheOriginalTitlesToTheNewOnes() {
 		List<ReceivableId> originals = List.of(id(), id());
 		List<ReceivableId> created = List.of(id(), id(), id());
@@ -95,6 +102,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Requires both original and new titles")
 	void requiresOriginalsAndNewTitles() {
 		assertThatThrownBy(() -> Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), UUID.randomUUID(),
 				List.of(), List.of(id()), Instant.now())).isInstanceOf(BusinessRuleException.class);
@@ -103,6 +111,7 @@ class RenegotiationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a title that is both replaced and created")
 	void aTitleCannotBeBothReplacedAndCreated() {
 		ReceivableId shared = id();
 

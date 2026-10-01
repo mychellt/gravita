@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -78,6 +79,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a manual settlement with the entered adjustments and settles the receivable on a full payment")
 	void aFullSettlementCreatesAManualSettlementWithTheEnteredAdjustmentsAndSettlesTheReceivable() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -99,6 +101,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the receivable partially settled after a partial payment")
 	void aPartialSettlementLeavesTheReceivablePartiallySettled() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -113,6 +116,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Settles a partially settled receivable once the payment covers only what is left")
 	void aFullSettlementOfAPartiallySettledReceivableOnlyHasToCoverWhatIsLeft() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
@@ -126,6 +130,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the receivable partially settled after a second partial payment that does not clear it")
 	void aSecondPartialSettlementCanStillLeaveTheReceivablePartiallySettled() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
@@ -139,6 +144,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a settlement for a receivable that does not exist")
 	void rejectsAnUnknownReceivable() {
 		UUID id = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(id))).thenReturn(Optional.empty());
@@ -150,6 +156,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a settlement for a receivable that is not open")
 	void rejectsAReceivableThatIsNotOpen() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
 				ReceivableStatus.RENEGOTIATED }) {
@@ -164,6 +171,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a settlement that would clear more than what is still owed")
 	void rejectsASettlementThatWouldClearMoreThanIsLeft() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
@@ -176,6 +184,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a partial settlement that covers the whole balance and a full one that does not")
 	void rejectsAPartialSettlementThatCoversTheWholeBalanceAndAFullOneThatDoesNot() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -189,6 +198,7 @@ class SettleTitleManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects negative adjustments on a settlement")
 	void rejectsNegativeAdjustments() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));

@@ -27,6 +27,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -82,6 +83,7 @@ class GetCustomerStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lists titles, settlements and renegotiations in chronological order")
 	void listsTitlesSettlementsAndRenegotiationsInChronologicalOrder() {
 		Receivable late = receivable("100.00", "2026-03-10", ReceivableStatus.OPEN);
 		Receivable early = receivable("50.00", "2026-01-10", ReceivableStatus.SETTLED);
@@ -100,6 +102,7 @@ class GetCustomerStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Computes the open balance from what is still owed on outstanding titles only")
 	void theOpenBalanceIsWhatIsStillOwedOnTheOutstandingTitlesOnly() {
 		Receivable open = receivable("100.00", "2026-03-10", ReceivableStatus.OPEN);
 		Receivable partial = receivable("200.00", "2026-03-11", ReceivableStatus.PARTIALLY_SETTLED);
@@ -115,6 +118,7 @@ class GetCustomerStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives a customer without titles an empty statement and a zero balance")
 	void aCustomerWithoutTitlesHasAnEmptyStatementAndZeroBalance() {
 		given(List.of(), List.of(), List.of());
 
@@ -127,6 +131,7 @@ class GetCustomerStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Limits the lists to the period, inclusive of its ends, without affecting the open balance")
 	void thePeriodLimitsTheListsInclusivelyButNotTheOpenBalance() {
 		Receivable before = receivable("10.00", "2026-01-31", ReceivableStatus.OPEN);
 		Receivable first = receivable("20.00", "2026-02-01", ReceivableStatus.OPEN);
@@ -149,6 +154,7 @@ class GetCustomerStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a period that ends before it starts")
 	void aPeriodThatEndsBeforeItStartsIsRejected() {
 		assertThatThrownBy(() -> statement(LocalDate.of(2026, 3, 1), LocalDate.of(2026, 2, 1)))
 				.isInstanceOf(BusinessRuleException.class);

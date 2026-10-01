@@ -17,6 +17,7 @@ import br.gravita.core.ports.outbound.persistence.finance.PayableRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,7 @@ class AttachPayableDocumentEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Stores the uploaded file and persists its reference on the payable")
 	void storesTheFileAndPersistsItsReferenceOnThePayable() throws Exception {
 		Payable payable = persistOpen();
 		when(documentAttachmentStoragePort.store(any())).thenReturn("https://files.example.com/boleto.pdf");
@@ -67,6 +69,7 @@ class AttachPayableDocumentEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Allows a payable to carry multiple attachments")
 	void aPayableCanCarryMultipleAttachments() throws Exception {
 		Payable payable = persistOpen();
 		when(documentAttachmentStoragePort.store(any())).thenReturn("https://files.example.com/boleto.pdf")
@@ -81,6 +84,7 @@ class AttachPayableDocumentEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 Not Found when the payable does not exist")
 	void anUnknownPayableIsRejectedWith404() throws Exception {
 		upload(UUID.randomUUID(), pdf("boleto.pdf", (byte) 1)).andExpect(status().isNotFound());
 
@@ -88,6 +92,7 @@ class AttachPayableDocumentEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the uploaded file is empty")
 	void anEmptyFileIsRejectedWith400() throws Exception {
 		Payable payable = persistOpen();
 
@@ -97,6 +102,7 @@ class AttachPayableDocumentEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 502 Bad Gateway on a storage failure and attaches nothing")
 	void aStorageFailureIsReportedAs502AndAttachesNothing() throws Exception {
 		Payable payable = persistOpen();
 		when(documentAttachmentStoragePort.store(any()))

@@ -12,6 +12,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class InternalCashBoxTest {
@@ -23,6 +24,7 @@ class InternalCashBoxTest {
 	}
 
 	@Test
+	@DisplayName("Records a movement with its direction, amount and justification")
 	void aMovementRecordsItsDirectionAmountAndJustification() {
 		CashMovement movement = movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "150.00",
 				"Deposit of the day's cash");
@@ -34,6 +36,7 @@ class InternalCashBoxTest {
 	}
 
 	@Test
+	@DisplayName("Requires a movement to have a positive amount")
 	void aMovementRequiresAPositiveAmount() {
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "0", "x"))
 				.isInstanceOf(BusinessRuleException.class);
@@ -42,6 +45,7 @@ class InternalCashBoxTest {
 	}
 
 	@Test
+	@DisplayName("Requires a movement to have a non-blank justification")
 	void aMovementRequiresANonBlankJustification() {
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "10", " "))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("justification");
@@ -50,6 +54,7 @@ class InternalCashBoxTest {
 	}
 
 	@Test
+	@DisplayName("Adds to the balance on a movement from the bank and subtracts on a movement to the bank")
 	void fromBankAddsToTheBalanceAndToBankSubtractsFromIt() {
 		InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal("100.00"));
 
@@ -64,6 +69,7 @@ class InternalCashBoxTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a movement that belongs to another cash box")
 	void rejectsAMovementOfAnotherCashBox() {
 		InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, BigDecimal.ZERO);
 		CashMovement other = movement(InternalCashBoxId.of(UUID.randomUUID()), CashMovementDirection.FROM_BANK,

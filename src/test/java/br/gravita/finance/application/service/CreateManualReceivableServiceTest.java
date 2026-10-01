@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -41,6 +42,7 @@ class CreateManualReceivableServiceTest {
 	private CreateManualReceivableService service;
 
 	@Test
+	@DisplayName("Creates an open manual receivable for a registered customer")
 	void createsAnOpenManualReceivableForARegisteredCustomer() {
 		UUID customerId = UUID.randomUUID();
 		LocalDate dueDate = LocalDate.now().plusDays(30);
@@ -59,6 +61,7 @@ class CreateManualReceivableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves the created receivable")
 	void savesTheCreatedReceivable() {
 		UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));
@@ -74,6 +77,7 @@ class CreateManualReceivableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unregistered customer without saving anything")
 	void rejectsAnUnregisteredCustomerWithoutSavingAnything() {
 		UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.empty());
@@ -86,6 +90,7 @@ class CreateManualReceivableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a zero amount without saving anything")
 	void rejectsAZeroAmountWithoutSavingAnything() {
 		UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));

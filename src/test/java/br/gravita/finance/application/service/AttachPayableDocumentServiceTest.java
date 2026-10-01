@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,6 +69,7 @@ class AttachPayableDocumentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Stores the file and appends its reference to the payable")
 	void storesTheFileAndAppendsItsReferenceToThePayable() {
 		Payable payable = found(PayableStatus.OPEN, null);
 		when(documentAttachmentStoragePort.store(any())).thenReturn(URL);
@@ -85,6 +87,7 @@ class AttachPayableDocumentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the attachments already linked to the payable")
 	void keepsTheAttachmentsAlreadyLinked() {
 		Payable payable = found(PayableStatus.PAID, List.of("https://files.example.com/boleto.pdf"));
 		when(documentAttachmentStoragePort.store(any())).thenReturn(URL);
@@ -96,6 +99,7 @@ class AttachPayableDocumentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown payable without storing the file")
 	void anUnknownPayableIsRejectedWithoutStoringTheFile() {
 		UUID id = UUID.randomUUID();
 		when(payableRepositoryPort.findById(PayableId.of(id))).thenReturn(Optional.empty());
@@ -109,6 +113,7 @@ class AttachPayableDocumentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the payable untouched when storing the file fails")
 	void aStorageFailureLeavesThePayableUntouched() {
 		Payable payable = found(PayableStatus.OPEN, null);
 		when(documentAttachmentStoragePort.store(any()))
@@ -121,6 +126,7 @@ class AttachPayableDocumentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a command carrying an empty file")
 	void theCommandRejectsAnEmptyFile() {
 		assertThatThrownBy(() -> new AttachPayableDocumentCommand.File("a.pdf", "application/pdf", new byte[0]))
 				.isInstanceOf(BusinessRuleException.class);

@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -79,6 +80,7 @@ class GetCustomerStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns the customer's titles, settlements and renegotiations together with the open balance")
 	void returnsTheCustomersTitlesSettlementsAndRenegotiationsWithTheOpenBalance() throws Exception {
 		mockMvc.perform(get("/api/finance/customers/{id}/statement", customerId)).andExpect(status().isOk())
 				.andExpect(jsonPath("$.customerId").value(customerId.toString()))
@@ -95,6 +97,7 @@ class GetCustomerStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Narrows the lists to the requested period without changing the open balance")
 	void thePeriodNarrowsTheListsButNotTheOpenBalance() throws Exception {
 		mockMvc.perform(get("/api/finance/customers/{id}/statement", customerId).param("from", "2026-02-01")
 				.param("to", "2026-03-31")).andExpect(status().isOk())
@@ -105,12 +108,14 @@ class GetCustomerStatementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty statement for a customer without titles")
 	void aCustomerWithoutTitlesGetsAnEmptyStatement() throws Exception {
 		mockMvc.perform(get("/api/finance/customers/{id}/statement", UUID.randomUUID())).andExpect(status().isOk())
 				.andExpect(jsonPath("$.titles.length()").value(0)).andExpect(jsonPath("$.openBalance").value(0.0));
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the period ends before it starts")
 	void aPeriodThatEndsBeforeItStartsIsA400() throws Exception {
 		mockMvc.perform(get("/api/finance/customers/{id}/statement", customerId).param("from", "2026-03-01")
 				.param("to", "2026-02-01")).andExpect(status().isBadRequest());

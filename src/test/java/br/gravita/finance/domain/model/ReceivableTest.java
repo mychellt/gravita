@@ -16,11 +16,13 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class ReceivableTest {
 
 	@Test
+	@DisplayName("Starts a manually created receivable as open with the manual origin")
 	void aManuallyCreatedReceivableStartsOpenWithManualOrigin() {
 		UUID customerId = UUID.randomUUID();
 		LocalDate dueDate = LocalDate.now().plusDays(30);
@@ -37,6 +39,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a missing amount")
 	void rejectsAMissingAmount() {
 		assertThatThrownBy(() -> Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), null,
 				LocalDate.now().plusDays(1), null))
@@ -45,6 +48,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an amount that is zero or negative")
 	void rejectsAZeroOrNegativeAmount() {
 		assertThatThrownBy(() -> Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 				BigDecimal.ZERO, LocalDate.now().plusDays(1), null))
@@ -53,6 +57,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a missing due date")
 	void rejectsAMissingDueDate() {
 		assertThatThrownBy(() -> Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 				BigDecimal.TEN, null, null))
@@ -60,6 +65,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects fewer than one installment")
 	void rejectsFewerThanOneInstallment() {
 		assertThatThrownBy(() -> Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 				BigDecimal.TEN, LocalDate.now().plusDays(1), 0))
@@ -68,6 +74,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Passes the open check for an open receivable and fails for any other status")
 	void requireOpenPassesForAnOpenReceivableAndFailsOtherwise() {
 		ReceivableId id = ReceivableId.of(UUID.randomUUID());
 		Receivable open = Receivable.createManual(id, UUID.randomUUID(), BigDecimal.TEN,
@@ -81,6 +88,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Moves an open or partially settled receivable to settled")
 	void settleMovesAnOpenOrPartiallySettledReceivableToSettled() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
@@ -96,6 +104,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects settling a receivable that cannot be settled")
 	void settleRejectsAReceivableThatCannotBeSettled() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
 				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
@@ -113,6 +122,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Settles the receivable when the credited total fully covers it")
 	void applyCreditedTotalSettlesWhenTheTitleIsFullyCovered() {
 		assertThat(receivable(ReceivableStatus.OPEN).applyCreditedTotal(new BigDecimal("100.00")).getStatus())
 				.isEqualTo(ReceivableStatus.SETTLED);
@@ -121,6 +131,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Partially settles the receivable when the credited total does not cover it")
 	void applyCreditedTotalPartiallySettlesWhenTheTitleIsNotCovered() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
@@ -130,6 +141,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a credited total on a receivable that cannot take a payment")
 	void applyCreditedTotalRejectsAReceivableThatCannotTakeAPayment() {
 		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
 				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
@@ -143,12 +155,14 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a credited total that is zero or negative")
 	void applyCreditedTotalRejectsANonPositiveTotal() {
 		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN).applyCreditedTotal(BigDecimal.ZERO))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Computes the remaining balance as the amount minus what the settlements credited")
 	void remainingBalanceIsTheAmountLessWhatTheSettlementsCredited() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		Settlement first = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
@@ -161,6 +175,7 @@ class ReceivableTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the scope through every status transition")
 	void theScopeSurvivesEveryStatusTransition() {
 		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 		Receivable open = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),

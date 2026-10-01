@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,6 +61,7 @@ class ImportBankReturnIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the settlements and the receivable status across partial and final payments")
 	void persistsTheSettlementsAndTheReceivableStatusAcrossPartialAndFinalPayments() {
 		Receivable receivable = savedReceivable();
 
@@ -82,6 +84,7 @@ class ImportBankReturnIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Reports a re-imported bank return file instead of settling it twice")
 	void reimportingTheSameFileIsReportedNotSettledTwice() {
 		Receivable receivable = savedReceivable();
 		importLines(paid(1, receivable, "100.00"));

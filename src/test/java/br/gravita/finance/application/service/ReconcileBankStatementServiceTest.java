@@ -33,6 +33,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -93,6 +94,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches a credit line to the receivable settlement of the same value and date")
 	void aCreditMatchesTheReceivableSettlementOfTheSameValueAndDate() {
 		Settlement received = receivableSettlement("100.00", NOON);
 		statement(line(1, DAY, "100.00"));
@@ -110,6 +112,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches a debit line to the payable settlement of the same value and date")
 	void aDebitMatchesThePayableSettlementOfTheSameValueAndDate() {
 		Settlement paid = payableSettlement("80.00", NOON);
 		statement(line(1, DAY, "-80.00"));
@@ -123,6 +126,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires the line's sign to agree with the direction of the settlement")
 	void theSignOfTheLineMustAgreeWithTheDirectionOfTheSettlement() {
 		statement(line(1, DAY, "-100.00"), line(2, DAY, "80.00"));
 		settlements(receivableSettlement("100.00", NOON), payableSettlement("80.00", NOON));
@@ -135,6 +139,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Counts what was paid on top of the principal toward the matching value")
 	void whatWasPaidOnTopOfThePrincipalCountsTowardsTheValue() {
 		Settlement withInterest = Settlement.manual(SettlementId.of(UUID.randomUUID()),
 				ReceivableId.of(UUID.randomUUID()), new BigDecimal("100.00"), new BigDecimal("2.50"),
@@ -147,6 +152,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches a deposit to a to-bank movement and a withdrawal to a from-bank movement")
 	void aDepositMatchesAToBankMovementAndAWithdrawalAFromBankMovement() {
 		CashMovement deposit = movement(CashMovementDirection.TO_BANK, "300.00", NOON);
 		CashMovement withdrawal = movement(CashMovementDirection.FROM_BANK, "50.00", NOON);
@@ -163,6 +169,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a line without a counterpart as unmatched instead of dropping it")
 	void aLineWithoutACounterpartIsReportedAsUnmatchedNotDropped() {
 		statement(line(1, DAY, "100.00"), line(2, DAY, "999.99"), line(3, DAY.plusDays(1), "100.00"));
 		settlements(receivableSettlement("100.00", NOON));
@@ -176,6 +183,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lets a counterpart be taken by at most one line")
 	void aCounterpartIsTakenByAtMostOneLine() {
 		Settlement only = receivableSettlement("100.00", NOON);
 		statement(line(1, DAY, "100.00"), line(2, DAY, "100.00"));
@@ -189,6 +197,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Matches identical lines to the oldest counterparts in order")
 	void identicalLinesAreMatchedToTheOldestCounterpartsInOrder() {
 		Settlement first = receivableSettlement("100.00", NOON);
 		Settlement second = receivableSettlement("100.00", NOON.plusSeconds(60));
@@ -203,6 +212,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Prefers a settlement over a cash movement of the same value and date")
 	void aSettlementIsPreferredOverACashMovementOfTheSameValueAndDate() {
 		Settlement settlement = receivableSettlement("100.00", NOON);
 		CashMovement deposit = movement(CashMovementDirection.TO_BANK, "100.00", NOON);
@@ -218,6 +228,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Compares dates on the UTC calendar day")
 	void datesAreComparedOnTheUtcCalendarDay() {
 		Settlement lateEvening = receivableSettlement("10.00", Instant.parse("2026-09-25T23:59:59Z"));
 		Settlement justAfterMidnight = receivableSettlement("20.00", Instant.parse("2026-09-26T00:00:00Z"));
@@ -232,6 +243,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Looks up the bank account's settlements across the whole statement period")
 	void looksUpTheSettlementsOfTheBankAccountAcrossTheWholeStatementPeriod() {
 		statement(line(1, DAY, "1.00"), line(2, DAY.plusDays(4), "2.00"), line(3, DAY.plusDays(2), "3.00"));
 		settlements();
@@ -248,6 +260,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reconciles nothing for an empty statement without querying the ledger")
 	void anEmptyStatementReconcilesNothingWithoutQueryingTheLedger() {
 		statement();
 
@@ -259,6 +272,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid statement before querying anything")
 	void anInvalidStatementIsRejectedBeforeAnythingIsQueried() {
 		when(importBankStatementPort.parse("statement")).thenThrow(new BusinessRuleException("not a statement"));
 
@@ -269,6 +283,7 @@ class ReconcileBankStatementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Never writes anything while reconciling")
 	void reconcilingNeverWritesAnything() {
 		statement(line(1, DAY, "100.00"));
 		settlements(receivableSettlement("100.00", NOON));

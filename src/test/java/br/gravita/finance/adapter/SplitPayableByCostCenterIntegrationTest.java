@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,7 @@ class SplitPayableByCostCenterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Replaces the persisted cost center split and preserves its order")
 	void replacesThePersistedSplitPreservingOrder() {
 		UUID first = costCenter("CC-A" + UUID.randomUUID().toString().substring(0, 6));
 		UUID second = costCenter("CC-B" + UUID.randomUUID().toString().substring(0, 6));

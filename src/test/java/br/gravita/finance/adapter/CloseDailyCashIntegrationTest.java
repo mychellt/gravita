@@ -13,6 +13,7 @@ import br.gravita.core.ports.inbound.finance.RecordInternalCashMovementUseCase;
 import br.gravita.core.ports.outbound.persistence.finance.InternalCashBoxRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,7 @@ class CloseDailyCashIntegrationTest {
 	private InternalCashBoxRepositoryPort internalCashBoxRepositoryPort;
 
 	@Test
+	@DisplayName("Closes today's cash from the persisted movements")
 	void closesTodayFromThePersistedMovements() {
 		internalCashBoxRepositoryPort.save(InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal("100.00")));
 		recordInternalCashMovementUseCase.execute(new RecordInternalCashMovementCommand(
