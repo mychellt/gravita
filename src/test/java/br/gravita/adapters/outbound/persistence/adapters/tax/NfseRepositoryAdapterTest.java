@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -59,6 +60,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Round-trips an RPS with its tomador address and withholdings")
 	void roundTripsAnRpsWithItsTomadorAddressAndWithholdings() {
 		NfseTomador tomador = NfseTomador.of(PersonRef.of(UUID.randomUUID()), "11222333000181", PersonType.COMPANY,
 				"Tomador SA", "3304557", new TomadorAddress("Rua A", "10", "Sala 2", "Centro", "20000000", "RJ"));
@@ -91,6 +93,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Round-trips the series, number and draft timestamp of a converted NFS-e")
 	void roundTripsTheNfseSeriesNumberAndDraftTimestampOfAConvertedDocument() {
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 		NfseDocument rps = nfseRepositoryAdapter.save(rps(tomador, List.of(), null));
@@ -109,6 +112,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Numbers NFS-e sequentially per company and municipality")
 	void nfseNumbersAreSequentialPerCompanyAndMunicipality() {
 		CompanyId a = CompanyId.of(UUID.randomUUID());
 		CompanyId b = CompanyId.of(UUID.randomUUID());
@@ -121,6 +125,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Round-trips an individual tomador without address or withholdings")
 	void roundTripsAPfTomadorWithoutAddressOrWithholdings() {
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 		NfseDocument saved = nfseRepositoryAdapter.save(rps(tomador, List.of(), null));
@@ -137,6 +142,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Round-trips the NFS-e transmission lifecycle")
 	void roundTripsTheTransmissionLifecycle() {
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 		NfseDocument draft = nfseRepositoryAdapter.save(rps(tomador, List.of(), null)
@@ -169,6 +175,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns the municipality's rules and the wildcard ones of that service only when finding candidates")
 	void findCandidatesReturnsTheMunicipalityRowsAndTheWildcardOnesOfThatServiceOnly() {
 		saveRule("01.05", "3550308", TaxRegime.LUCRO_PRESUMIDO, TaxType.ISS, "5.0000", WithholdingMode.TOMADOR_COMPANY);
 		saveRule("01.05", null, null, TaxType.PIS, "0.6500", WithholdingMode.ALWAYS);
@@ -187,6 +194,7 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Answers municipal service code list lookups for listed and unlisted municipalities and codes")
 	void municipalServiceListLookups() {
 		MunicipalServiceCodeJpaEntity entity = MunicipalServiceCodeJpaEntity.builder().id(UUID.randomUUID())
 				.municipalityIbge("3550308").serviceCode("01.05").build();

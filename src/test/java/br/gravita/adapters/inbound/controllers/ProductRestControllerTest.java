@@ -7,6 +7,7 @@ import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.ports.business.RegisterProductPort;
 import br.gravita.core.ports.business.UpdateProductPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -45,6 +46,7 @@ class ProductRestControllerTest {
 			List.of("http://example.com/1.png"), null, null);
 
 	@Test
+	@DisplayName("Returns 201 Created when a product is registered")
 	void shouldReturn201WhenRegisteringProduct() throws Exception {
 		ProductDomain created = request.toDomain(UUID.randomUUID());
 		created.setStatus(ProductStatus.ACTIVE);
@@ -59,6 +61,7 @@ class ProductRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when more than five images are submitted")
 	void shouldReturn400WhenMoreThanFiveImagesAreSubmitted() throws Exception {
 		RegisterProductRequest tooManyImages = new RegisterProductRequest(
 				"SKU-1", List.of("7891234567895"), ProductType.SIMPLE, "12345678", "0100", 0,
@@ -72,6 +75,7 @@ class ProductRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 Bad Request when the product type is missing")
 	void shouldReturn400WhenTypeIsMissing() throws Exception {
 		RegisterProductRequest missingType = new RegisterProductRequest(
 				"SKU-1", null, null, null, null, null,
@@ -85,6 +89,7 @@ class ProductRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 200 OK when a product is partially updated")
 	void shouldReturn200WhenPartiallyUpdatingProduct() throws Exception {
 		UUID id = UUID.randomUUID();
 		UpdateProductRequest partialUpdate = new UpdateProductRequest(

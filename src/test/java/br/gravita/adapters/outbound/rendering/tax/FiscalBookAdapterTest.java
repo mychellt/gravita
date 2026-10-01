@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class FiscalBookAdapterTest {
@@ -32,6 +33,7 @@ class FiscalBookAdapterTest {
 	private final FiscalBookAdapter adapter = new FiscalBookAdapter(new PdfBoxReportAdapter());
 
 	@Test
+	@DisplayName("Renders the PDF and the TXT with the same books, totals and voided ranges")
 	void rendersThePdfAndTheTxtWithTheSameBooksTotalsAndVoidedRanges() throws IOException {
 		FiscalBookFiles files = adapter.generate(books());
 
@@ -52,6 +54,7 @@ class FiscalBookAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Prints the TXT as fixed-width columns with amounts flush right")
 	void printsTheTxtAsFixedWidthColumnsWithAmountsFlushRight() {
 		String txt = new String(adapter.generate(books()).txt(), StandardCharsets.UTF_8);
 
@@ -63,6 +66,7 @@ class FiscalBookAdapterTest {
 	}
 
 	@Test
+	@DisplayName("States that a book has no documents when none exist in the period")
 	void saysSoWhereABookHasNoDocumentsInThePeriod() throws IOException {
 		LivrosFiscaisBooks empty = new LivrosFiscaisBooks(CompanyId.of(UUID.randomUUID()), "11222333000181", null,
 				YearMonth.of(2028, 3), new Book(List.of(), List.of(), BigDecimal.ZERO),

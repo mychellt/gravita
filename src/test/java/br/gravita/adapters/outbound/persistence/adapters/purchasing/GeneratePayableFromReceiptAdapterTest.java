@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +39,7 @@ class GeneratePayableFromReceiptAdapterTest {
 					new Installment(new BigDecimal("20.00"), LocalDate.of(2026, 11, 30))));
 
 	@Test
+	@DisplayName("Delegates the receipt's installments in order")
 	void delegatesTheReceiptsInstallmentsInOrder() {
 		adapter.generatePayables(command);
 
@@ -56,6 +58,7 @@ class GeneratePayableFromReceiptAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Propagates a failure, leaving the receipt unconfirmed instead of swallowing it")
 	void aFailureLeavesTheReceiptUnconfirmedInsteadOfBeingSwallowed() {
 		when(useCase.execute(any())).thenThrow(new IllegalStateException("db down"));
 

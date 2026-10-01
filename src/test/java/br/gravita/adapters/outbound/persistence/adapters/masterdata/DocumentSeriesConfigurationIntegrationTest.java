@@ -13,6 +13,7 @@ import br.gravita.core.ports.inbound.masterdata.RegisterCompanyCommand;
 import br.gravita.core.usercases.ConfigureDocumentSeriesService;
 import br.gravita.core.usercases.RegisterCompanyService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -46,6 +47,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Seeds an unconfigured placeholder per fiscal document type when a company is registered")
 	void registeringACompanySeedsAnUnconfiguredPlaceholderPerFiscalDocumentType() {
 		CompanyId companyId = registerCompany();
 		flushAndClear();
@@ -59,6 +61,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Configuring one document type does not affect the others of the same company")
 	void configuringOneDocumentTypeDoesNotAffectTheOthersForTheSameCompany() {
 		CompanyId companyId = registerCompany();
 		flushAndClear();
@@ -79,6 +82,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Allows the next number to move forward once the series is configured")
 	void nextNumberCanMoveForwardOnceTheSeriesIsConfigured() {
 		CompanyId companyId = registerCompany();
 		flushAndClear();
@@ -93,6 +97,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects decreasing the next number once the series is configured")
 	void nextNumberCannotBeDecreasedOnceTheSeriesIsConfigured() {
 		CompanyId companyId = registerCompany();
 		flushAndClear();
@@ -110,6 +115,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Throws not found when configuring a series for an unregistered company")
 	void configuringSeriesForAnUnregisteredCompanyThrowsNotFound() {
 		CompanyId unregistered = CompanyId.of(java.util.UUID.randomUUID());
 

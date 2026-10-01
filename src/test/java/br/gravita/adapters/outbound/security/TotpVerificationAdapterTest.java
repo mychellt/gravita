@@ -4,6 +4,7 @@ import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -39,6 +40,7 @@ class TotpVerificationAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Accepts the code matching the current time window")
 	void shouldAcceptTheCodeMatchingTheCurrentTimeWindow() {
 		UUID userId = seedUserWithSecret(RFC4226_SECRET_BASE32);
 		Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(59), ZoneOffset.UTC);
@@ -48,6 +50,7 @@ class TotpVerificationAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an incorrect code")
 	void shouldRejectAnIncorrectCode() {
 		UUID userId = seedUserWithSecret(RFC4226_SECRET_BASE32);
 		Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(59), ZoneOffset.UTC);
@@ -57,6 +60,7 @@ class TotpVerificationAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects verification when no secret is provisioned")
 	void shouldRejectWhenNoSecretIsProvisioned() {
 		UUID userId = seedUserWithSecret(null);
 		Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(59), ZoneOffset.UTC);
@@ -66,6 +70,7 @@ class TotpVerificationAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects verification when the user is unknown")
 	void shouldRejectWhenUserIsUnknown() {
 		Clock fixedClock = Clock.fixed(Instant.ofEpochSecond(59), ZoneOffset.UTC);
 		TotpVerificationAdapter adapter = new TotpVerificationAdapter(userJpaRepository, fixedClock);

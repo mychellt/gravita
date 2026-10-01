@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +54,7 @@ class IssueFiscalDocumentAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Issues an NF-e for product items using the default issuer company and the customer's address")
 	void issuesAnNfeForProductItemsUsingTheDefaultIssuerCompanyAndTheCustomersAddress() {
 		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
 		UUID customerId = UUID.randomUUID();
@@ -84,6 +86,7 @@ class IssueFiscalDocumentAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Reports that NFS-e issuance is not yet available")
 	void nfseIssuanceIsNotYetAvailable() {
 		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
 		IssueFiscalDocumentCommand command = new IssueFiscalDocumentCommand(UUID.randomUUID(), UUID.randomUUID(),
@@ -94,6 +97,7 @@ class IssueFiscalDocumentAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Issues a return NF-e referencing the original document's access key")
 	void issuesAReturnNfeReferencingTheOriginalDocumentsAccessKey() {
 		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
 		UUID customerId = UUID.randomUUID();

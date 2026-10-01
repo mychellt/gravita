@@ -32,6 +32,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -82,6 +83,7 @@ class ReturnToSupplierIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a full return of a confirmed receipt as total and reverses the stock and payable")
 	void returningAConfirmedReceiptInFullPersistsItAsTotalAndReversesStockAndPayable() {
 		when(issuePurchaseReturnNfePort.issueReturnNfe(any())).thenReturn("nfe-ref-123");
 

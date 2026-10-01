@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -28,6 +29,7 @@ class InboundNfeRepositoryAdapterTest {
 	private InboundNfeRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Persists an inbound NF-e with its supplier, items and totals")
 	void savingAnInboundNfePersistsSupplierItemsAndTotals() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		InboundNfe inboundNfe = InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), companyId,
@@ -53,6 +55,7 @@ class InboundNfeRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Finds only the company's confirmed NF-e issued within the window, oldest first")
 	void findsOnlyTheConfirmedNfeOfTheCompanyIssuedWithinTheWindowOldestFirst() {
 		CompanyId company = CompanyId.of(UUID.randomUUID());
 		Instant from = Instant.parse("2028-02-01T00:00:00Z");

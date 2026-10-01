@@ -7,6 +7,7 @@ import br.gravita.adapters.outbound.security.CredentialCipher;
 import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.core.domain.system.IntegrationEnvironment;
 import br.gravita.core.domain.system.IntegrationName;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -27,6 +28,7 @@ class IntegrationCredentialRepositoryAdapterTest {
 	private IntegrationCredentialJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Saves an integration credential and retrieves it with the payload decrypted")
 	void shouldSaveAndRetrieveCredentialWithDecryptedPayload() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.BANK, null,
 				"https://bank.example.com/api", "top-secret-api-key");
@@ -41,6 +43,7 @@ class IntegrationCredentialRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Never persists the credential payload in plaintext")
 	void shouldNeverPersistThePlaintextPayload() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.WHATSAPP_BUSINESS_API, null,
 				"https://graph.facebook.com", "plain-token-value");
@@ -52,6 +55,7 @@ class IntegrationCredentialRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps production and homologation SEFAZ credentials independent")
 	void shouldKeepProductionAndHomologationSefazCredentialsIndependent() {
 		IntegrationCredential production = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.PRODUCTION, "https://nfe.fazenda.example.com", "prod-cert");
@@ -70,6 +74,7 @@ class IntegrationCredentialRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Reflects a rotated credential on the next read right after saving it again")
 	void rotatingAndSavingAgainImmediatelyReflectsTheNewValueOnNextRead() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.ECOMMERCE, null,
 				"https://old.example.com", "old-token");

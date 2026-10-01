@@ -8,6 +8,7 @@ import br.gravita.core.domain.sales.FollowUpTask;
 import br.gravita.core.domain.sales.FollowUpTaskId;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -21,6 +22,7 @@ class FollowUpTaskRepositoryAdapterTest {
 	private FollowUpTaskRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Matches a previously saved opportunity task when checking existence for a target on a date")
 	void existsForTargetOnDateMatchesAPreviouslySavedOpportunityTask() {
 		UUID opportunityId = UUID.randomUUID();
 		LocalDate dueDate = LocalDate.now();
@@ -33,6 +35,7 @@ class FollowUpTaskRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Matches a previously saved customer task when checking existence for a target on a date")
 	void existsForTargetOnDateMatchesAPreviouslySavedCustomerTask() {
 		UUID customerId = UUID.randomUUID();
 		LocalDate dueDate = LocalDate.now();

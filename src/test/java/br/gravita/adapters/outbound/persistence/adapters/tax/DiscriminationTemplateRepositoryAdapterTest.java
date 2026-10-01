@@ -8,6 +8,7 @@ import br.gravita.core.domain.tax.DiscriminationTemplate;
 import br.gravita.core.domain.tax.DiscriminationTemplateId;
 import br.gravita.core.domain.tax.ServiceCode;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -29,6 +30,7 @@ class DiscriminationTemplateRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Saves a discrimination template and finds it by id")
 	void savesAndFindsById() {
 		DiscriminationTemplate saved = save("01.05", "Licenciamento de software");
 
@@ -40,6 +42,7 @@ class DiscriminationTemplateRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns only the templates of the requested service code")
 	void ac2_findByServiceCodeReturnsOnlyThatServiceType() {
 		save("01.05", "a");
 		save("01.05", "b");
@@ -52,6 +55,7 @@ class DiscriminationTemplateRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps a single row when an updated template is saved again")
 	void savingAnUpdatedTemplateKeepsASingleRow() {
 		DiscriminationTemplate saved = save("01.05", "old");
 
@@ -67,6 +71,7 @@ class DiscriminationTemplateRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Removes only the template that was deleted by id")
 	void deleteByIdRemovesTheTemplate() {
 		DiscriminationTemplate keep = save("01.05", "keep");
 		DiscriminationTemplate drop = save("01.05", "drop");

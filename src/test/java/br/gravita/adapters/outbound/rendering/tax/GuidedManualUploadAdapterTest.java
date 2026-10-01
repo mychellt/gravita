@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.NodeList;
 
@@ -81,6 +82,7 @@ class GuidedManualUploadAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Renders a well-formed ABRASF XML with the provider, tomador and service data")
 	void rendersAWellFormedAbrasfXmlWithTheProviderTomadorAndServiceData() throws Exception {
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Maria & Filhos <ME>", SP,
 				new TomadorAddress("Rua A", "10", null, "Centro", "01001000", "SP"));
@@ -107,6 +109,7 @@ class GuidedManualUploadAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Identifies a company tomador by CNPJ and flags withheld ISS")
 	void aCompanyTomadorIsIdentifiedByCnpjAndWithheldIssIsFlagged() throws Exception {
 		NfseTomador tomador = NfseTomador.of(null, "11222333000181", PersonType.COMPANY, "Tomador SA", SP,
 				new TomadorAddress("Rua A", "10", "Sala 2", "Centro", "01001000", "SP"));
@@ -123,6 +126,7 @@ class GuidedManualUploadAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Produces guided instructions for every standard, naming the standard certificate and required fields")
 	void producesGuidedInstructionsForEveryStandardNamingTheStandardCertificateAndRequiredFields() {
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 		NfseDocument draft = draft(tomador, List.of(), "Servico");
@@ -138,6 +142,7 @@ class GuidedManualUploadAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown provider company as a business rule violation")
 	void anUnknownProviderCompanyIsABusinessRuleViolation() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);

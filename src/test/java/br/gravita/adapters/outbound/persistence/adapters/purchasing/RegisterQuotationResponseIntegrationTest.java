@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -48,6 +49,7 @@ class RegisterQuotationResponseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a quotation response with its item prices and deadline")
 	void registeringAResponsePersistsItsItemPricesAndDeadline() {
 		QuotationId quotationId = seedQuotation();
 		LocalDate deadline = LocalDate.now().plusDays(10);
@@ -65,6 +67,7 @@ class RegisterQuotationResponseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Replaces the prior response when a supplier resubmits instead of duplicating it")
 	void reSubmittingAResponseReplacesThePriorOneInsteadOfDuplicatingIt() {
 		QuotationId quotationId = seedQuotation();
 		service.execute(new RegisterQuotationResponseCommand(quotationId, supplierOne,
@@ -85,6 +88,7 @@ class RegisterQuotationResponseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists responses from different suppliers for comparison")
 	void responsesFromDifferentSuppliersAreBothPersistedForComparison() {
 		QuotationId quotationId = seedQuotation();
 		service.execute(new RegisterQuotationResponseCommand(quotationId, supplierOne,
@@ -104,6 +108,7 @@ class RegisterQuotationResponseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response that is missing an item before anything is persisted")
 	void aResponseMissingAnItemIsRejectedBeforeAnythingIsPersisted() {
 		QuotationId quotationId = seedQuotation();
 
@@ -113,6 +118,7 @@ class RegisterQuotationResponseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response for a quotation that does not exist")
 	void registeringAResponseForAMissingQuotationIsRejected() {
 		assertThatThrownBy(() -> service.execute(new RegisterQuotationResponseCommand(
 				QuotationId.of(UUID.randomUUID()), supplierOne,

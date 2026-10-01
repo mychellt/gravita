@@ -11,6 +11,7 @@ import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.ports.inbound.masterdata.AllocateDocumentNumberCommand;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.usercases.AllocateDocumentNumberService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -33,6 +34,7 @@ class AllocateDocumentNumberConcurrentIntegrationTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Retries against a fresh read when a stale write loses the race, instead of failing")
 	void aStaleWriteLosingTheRaceRetriesAgainstAFreshReadInsteadOfFailing() {
 		CompanyId companyId = persistCompany();
 		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE).reconfigure("001", 500L));

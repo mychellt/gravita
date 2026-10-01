@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.security;
 
 import br.gravita.core.domain.shared.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,6 +21,7 @@ class Pkcs12CertificateReaderTest {
 	private final Pkcs12CertificateReader reader = new Pkcs12CertificateReader();
 
 	@Test
+	@DisplayName("Extracts the expiry date from a valid PFX certificate")
 	void shouldExtractExpiryDateFromValidPfx() throws Exception {
 		byte[] pfxFile = loadFixture();
 
@@ -29,6 +31,7 @@ class Pkcs12CertificateReaderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a PFX certificate opened with the wrong password")
 	void shouldRejectWrongPassword() throws Exception {
 		byte[] pfxFile = loadFixture();
 
@@ -37,6 +40,7 @@ class Pkcs12CertificateReaderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a corrupt certificate file")
 	void shouldRejectCorruptFile() {
 		byte[] garbage = {1, 2, 3, 4, 5};
 
@@ -45,6 +49,7 @@ class Pkcs12CertificateReaderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty certificate file")
 	void shouldRejectEmptyFile() {
 		assertThatThrownBy(() -> reader.readExpiryDate(new byte[0], CORRECT_PASSWORD))
 				.isInstanceOf(BusinessRuleException.class)

@@ -6,6 +6,7 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -23,6 +24,7 @@ class CompanyRepositoryAdapterTest {
 	private CompanyRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Persists a new company using the application-assigned id")
 	void shouldPersistNewCompanyWithApplicationAssignedId() {
 		Company company = newCompany(CompanyId.of(UUID.randomUUID()));
 
@@ -33,6 +35,7 @@ class CompanyRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Updates an existing company without losing its creation timestamp")
 	void shouldUpdateExistingCompanyWithoutLosingCreatedAt() {
 		Company company = newCompany(CompanyId.of(UUID.randomUUID()));
 		Company saved = repositoryAdapter.save(company);

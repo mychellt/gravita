@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class AccountingFileAdapterTest {
@@ -16,6 +17,7 @@ class AccountingFileAdapterTest {
 	private final AccountingFileAdapter adapter = new AccountingFileAdapter();
 
 	@Test
+	@DisplayName("Writes the CSV with a header and one semicolon-separated row per entry")
 	void writesTheCsvWithAHeaderAndOneSemicolonSeparatedRowPerEntry() {
 		String csv = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.CSV));
 
@@ -27,6 +29,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Writes only the header for an empty period")
 	void writesOnlyTheHeaderForAnEmptyPeriod() {
 		String csv = text(adapter.export(List.of(), AccountingExportFormat.CSV));
 
@@ -35,6 +38,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Quotes a CSV cell that holds a separator, a quote or a line break")
 	void quotesACsvCellThatHoldsASeparatorAQuoteOrALineBreak() {
 		AccountingEntry tricky = withName("Alfa; \"Beta\"\nLtda");
 
@@ -44,6 +48,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps a CSV cell that looks like a formula from being evaluated as one")
 	void keepsACsvCellThatLooksLikeAFormulaFromBeingOne() {
 		for (String name : List.of("=HYPERLINK(\"http://x\")", "+1", "-1", "@SUM(A1)")) {
 			String csv = text(adapter.export(List.of(withName(name)), AccountingExportFormat.CSV));
@@ -54,6 +59,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Writes the TXT as fixed-width lines without a header")
 	void writesTheTxtAsFixedWidthLinesWithoutAHeader() {
 		String txt = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.TXT));
 
@@ -67,6 +73,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Cuts a long name to its field width in the TXT but not in the CSV")
 	void cutsALongNameToItsFieldInTheTxtButNotInTheCsv() {
 		String name = "Distribuidora de Materiais de ConstruçãoXYZ Ltda";
 		AccountingEntry longName = withName(name);
@@ -80,6 +87,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Prints absent values as empty and keeps an absent CFOP from shifting the TXT columns")
 	void printsAbsentValuesAsEmptyAndKeepsAnAbsentCfopFromShiftingTheTxt() {
 		AccountingEntry bare = new AccountingEntry(Flow.ENTRY, LocalDate.of(2028, 2, 5), null, null, null, null, null,
 				null, new BigDecimal("1"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
@@ -92,6 +100,7 @@ class AccountingFileAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the accents of names encoded as UTF-8")
 	void keepsTheAccentsOfTheNamesAsUtf8() {
 		byte[] csv = adapter.export(List.of(withName("Indústria Açúcar")), AccountingExportFormat.CSV);
 

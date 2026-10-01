@@ -2,6 +2,7 @@ package br.gravita.adapters.outbound.integration;
 
 import br.gravita.core.domain.AddressDomain;
 import br.gravita.core.domain.Context;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class ViaCepLookupAdapterTest {
 
 	@Test
+	@DisplayName("Returns the address when the ViaCEP lookup succeeds")
 	void shouldReturnAddressOnSuccess() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
 		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -39,6 +41,7 @@ class ViaCepLookupAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Degrades to an empty result when the CEP is not found")
 	void shouldDegradeToEmptyWhenCepNotFound() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
 		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -54,6 +57,7 @@ class ViaCepLookupAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Degrades to an empty result when the ViaCEP service fails")
 	void shouldDegradeToEmptyWhenServiceFails() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
 		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();

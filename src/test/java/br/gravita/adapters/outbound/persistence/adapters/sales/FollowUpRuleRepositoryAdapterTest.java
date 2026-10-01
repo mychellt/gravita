@@ -8,6 +8,7 @@ import br.gravita.core.domain.sales.FollowUpRuleId;
 import br.gravita.core.domain.sales.FollowUpTarget;
 import jakarta.persistence.EntityManager;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -24,6 +25,7 @@ class FollowUpRuleRepositoryAdapterTest {
 	private EntityManager entityManager;
 
 	@Test
+	@DisplayName("Persists a follow-up rule and reloads it intact")
 	void shouldPersistAndReloadAFollowUpRule() {
 		FollowUpRule rule =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 7, FollowUpTarget.CUSTOMER, true, true);
@@ -39,6 +41,7 @@ class FollowUpRuleRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Excludes inactive rules when finding all active rules")
 	void findAllActiveExcludesInactiveRules() {
 		FollowUpRule active =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 7, FollowUpTarget.CUSTOMER, true, true);
@@ -53,6 +56,7 @@ class FollowUpRuleRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Removes the rule when deleting by id")
 	void deleteByIdRemovesTheRule() {
 		FollowUpRule rule =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 7, FollowUpTarget.CUSTOMER, true, true);

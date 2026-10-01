@@ -3,6 +3,7 @@ package br.gravita.adapters.outbound.persistence.adapters;
 import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapperImpl;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -22,6 +23,7 @@ class PlanRepositoryAdapterTest {
 	private PlanRepositoryAdapter repositoryAdapter;
 
 	@Test
+	@DisplayName("Saves a plan and retrieves it by id")
 	void shouldSaveAndRetrievePlan() {
 		PlanDomain plan = PlanDomain.builder()
 				.name("Bronze")
@@ -45,6 +47,7 @@ class PlanRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Lists all saved plans")
 	void shouldListAllPlans() {
 		repositoryAdapter.save(planWithName("Silver"));
 		repositoryAdapter.save(planWithName("Gold"));
@@ -53,6 +56,7 @@ class PlanRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Deletes a saved plan")
 	void shouldDeletePlan() {
 		PlanDomain saved = repositoryAdapter.save(planWithName("Bronze"));
 

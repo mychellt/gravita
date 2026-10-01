@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import br.gravita.core.ports.inbound.inventory.ReleaseStockReservationCommand;
 import br.gravita.core.ports.inbound.inventory.ReleaseStockReservationUseCase;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,6 +20,7 @@ class ReleaseStockReservationAdapterTest {
 	private ReleaseStockReservationUseCase releaseStockReservationUseCase;
 
 	@Test
+	@DisplayName("Delegates to the real use case by order reference")
 	void delegatesToTheRealUseCaseByOrderRef() {
 		ReleaseStockReservationAdapter adapter = new ReleaseStockReservationAdapter(releaseStockReservationUseCase);
 		UUID orderId = UUID.randomUUID();

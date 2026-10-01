@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -65,6 +66,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Reschedules the entry with exponential backoff on a timeout instead of failing it immediately")
 	void ac2_aTimeoutReschedulesTheEntryWithExponentialBackoffInsteadOfFailingItImmediately() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
@@ -78,6 +80,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Grows the backoff delay exponentially with each attempt up to the configured cap")
 	void ac2_theBackoffDelayGrowsExponentiallyWithEachAttemptUpToTheConfiguredCap() {
 		assertThat(TransmissionQueueConsumer.backoff(1)).isEqualTo(TransmissionQueueConsumer.BASE_BACKOFF);
 		assertThat(TransmissionQueueConsumer.backoff(2)).isEqualTo(TransmissionQueueConsumer.BASE_BACKOFF.multipliedBy(2));
@@ -86,6 +89,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Switches to SVC contingency automatically once the attempt threshold is reached")
 	void ac3_switchesToSvcContingencyAutomaticallyOnceTheAttemptThresholdIsReached() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
@@ -101,6 +105,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Does not switch to contingency before the attempt threshold is reached")
 	void ac3_doesNotSwitchToContingencyBeforeTheAttemptThresholdIsReached() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
@@ -114,6 +119,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Does not switch again a document that is already in contingency mode")
 	void ac3_aDocumentAlreadyInContingencyModeIsNotSwitchedAgain() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(true)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
@@ -126,6 +132,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Neither reschedules nor changes contingency mode after a successful transmission")
 	void aSuccessfulTransmissionNeitherReschedulesNorTouchesContingencyMode() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());
@@ -138,6 +145,7 @@ class TransmissionQueueConsumerTest {
 	}
 
 	@Test
+	@DisplayName("Silently leaves for the other consumer an entry that does not resolve to an NF-e document")
 	void anEntryThatDoesNotResolveToAnNfeDocumentIsSilentlyLeftForTheOtherConsumer() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());

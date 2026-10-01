@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -39,6 +40,7 @@ class CreatePurchaseRequestIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a manual request with its items and starts it open")
 	void creatingAManualRequestPersistsItsItemsAndStartsOpen() {
 		UUID requestedBy = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();
@@ -56,6 +58,7 @@ class CreatePurchaseRequestIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a minimum-stock triggered request without a requester")
 	void creatingAMinStockTriggeredRequestPersistsWithoutARequester() {
 		var id = service.execute(new CreatePurchaseRequestCommand(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)), null));
@@ -67,6 +70,7 @@ class CreatePurchaseRequestIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a sales-order demand request without a requester")
 	void creatingASalesOrderDemandRequestPersistsWithoutARequester() {
 		var id = service.execute(new CreatePurchaseRequestCommand(PurchaseRequestOrigin.SALES_ORDER_DEMAND,
 				List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)), null));
@@ -77,6 +81,7 @@ class CreatePurchaseRequestIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty item list before anything is persisted")
 	void anEmptyItemListIsRejectedBeforeAnythingIsPersisted() {
 		assertThatThrownBy(() -> service.execute(
 				new CreatePurchaseRequestCommand(PurchaseRequestOrigin.USER, List.of(), UUID.randomUUID())))

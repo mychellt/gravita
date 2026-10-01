@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.io.InputStream;
 import java.time.Duration;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
@@ -17,6 +18,7 @@ class SefazHttpClientFactoryTest {
 	private final SefazHttpClientFactory factory = new SefazHttpClientFactory();
 
 	@Test
+	@DisplayName("Builds a mutual-TLS REST client from a valid certificate")
 	void buildsAMutualTlsRestClientFromAValidCertificate() throws Exception {
 		RestClient client = factory.build(loadFixture(), CORRECT_PASSWORD, "https://localhost:0", Duration.ofSeconds(1));
 
@@ -24,6 +26,7 @@ class SefazHttpClientFactoryTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the client build when the certificate password is wrong")
 	void rejectsTheWrongCertificatePassword() throws Exception {
 		byte[] pfxFile = loadFixture();
 
@@ -32,6 +35,7 @@ class SefazHttpClientFactoryTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the client build when the certificate file is corrupt")
 	void rejectsACorruptCertificateFile() {
 		byte[] garbage = {1, 2, 3, 4, 5};
 

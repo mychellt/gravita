@@ -9,6 +9,7 @@ import br.gravita.core.domain.inventory.StockReservationStatus;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -26,6 +27,7 @@ class StockReservationRepositoryAdapterIntegrationTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Saves a new reservation traceable by its order reference")
 	void savesANewReservationTraceableByOrderRef() {
 		StockReservationId id = StockReservationId.of(UUID.randomUUID());
 		UUID orderRef = UUID.randomUUID();
@@ -45,6 +47,7 @@ class StockReservationRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when no reservation exists for the given id")
 	void returnsEmptyWhenNoReservationExistsForThatId() {
 		Optional<StockReservation> found = stockReservationRepositoryAdapter.findById(
 				StockReservationId.of(UUID.randomUUID()));
@@ -53,6 +56,7 @@ class StockReservationRepositoryAdapterIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Finds only the active reservations for a given order reference")
 	void findsOnlyTheActiveReservationsForAGivenOrderRef() {
 		UUID orderRef = UUID.randomUUID();
 		StockReservation active = StockReservation.create(StockReservationId.of(UUID.randomUUID()), orderRef,

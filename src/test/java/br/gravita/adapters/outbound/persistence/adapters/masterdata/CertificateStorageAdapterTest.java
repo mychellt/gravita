@@ -7,6 +7,7 @@ import br.gravita.adapters.outbound.security.CertificateCipher;
 import br.gravita.core.domain.masterdata.CertificateType;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DigitalCertificate;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -35,6 +36,7 @@ class CertificateStorageAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Saves a certificate and retrieves it with the payload decrypted")
 	void shouldSaveAndRetrieveCertificateWithDecryptedPayload() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		DigitalCertificate certificate = certificateFor(companyId, new byte[] {10, 20, 30}, "top-secret");
@@ -49,6 +51,7 @@ class CertificateStorageAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Never persists the certificate payload or password in plaintext")
 	void shouldNeverPersistThePlaintextPayloadOrPassword() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		byte[] plainPayload = "plain-pfx-bytes".getBytes();
@@ -62,6 +65,7 @@ class CertificateStorageAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Replaces the previous certificate when a new one is uploaded for the same company")
 	void uploadingNewCertificateReplacesThePreviousOneForTheSameCompany() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		repositoryAdapter.save(certificateFor(companyId, new byte[] {1}, "old-password"));
@@ -75,6 +79,7 @@ class CertificateStorageAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Returns empty when the company has no certificate")
 	void shouldReturnEmptyWhenCompanyHasNoCertificate() {
 		assertThat(repositoryAdapter.findByCompanyId(CompanyId.of(UUID.randomUUID()))).isEmpty();
 	}

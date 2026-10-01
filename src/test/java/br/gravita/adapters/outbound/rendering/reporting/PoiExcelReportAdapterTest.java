@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PoiExcelReportAdapterTest {
@@ -21,6 +22,7 @@ class PoiExcelReportAdapterTest {
 	private final PoiExcelReportAdapter adapter = new PoiExcelReportAdapter();
 
 	@Test
+	@DisplayName("Writes the title, header lines, column headers, rows and footers of each sheet")
 	void writesTheTitleHeaderLinesColumnHeadersRowsAndFootersOfEachSheet() throws IOException {
 		byte[] xlsx = adapter.render(new ExcelWorkbook("Livros Fiscais - 02/2028",
 				List.of("Período: 01/02/2028 a 29/02/2028"),
@@ -39,6 +41,7 @@ class PoiExcelReportAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Keeps amounts and dates as real cells so the spreadsheet can be summed")
 	void keepsAmountsAndDatesAsRealCellsSoTheSpreadsheetCanBeSummed() throws IOException {
 		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S",
 				List.of("Data", "Valor", "Qtd", "Vazio", "Texto"),
@@ -58,6 +61,7 @@ class PoiExcelReportAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Writes text that looks like a formula as plain text, never evaluating it")
 	void writesTextThatLooksLikeAFormulaAsTextNeverEvaluatingIt() throws IOException {
 		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S", List.of("Nome"),
 				List.of(row("=1+1")), List.of()))));
@@ -69,6 +73,7 @@ class PoiExcelReportAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Makes sheet names valid and unique so no input fails the render")
 	void makesSheetNamesValidAndUniqueSoNoInputFailsTheRender() throws IOException {
 		String longName = "Livro de Apuração do ICMS com um nome muito longo";
 		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(
@@ -90,6 +95,7 @@ class PoiExcelReportAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Renders a workbook without sheets as one empty sheet")
 	void rendersAWorkbookWithoutSheetsAsOneEmptySheet() throws IOException {
 		byte[] xlsx = adapter.render(new ExcelWorkbook("Vazio", List.of(), List.of()));
 

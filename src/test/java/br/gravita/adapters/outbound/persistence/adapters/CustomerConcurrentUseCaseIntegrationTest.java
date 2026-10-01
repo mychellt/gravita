@@ -11,6 +11,7 @@ import br.gravita.core.ports.inbound.masterdata.UpdateCustomerCommand;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import br.gravita.core.usercases.SetCustomerCreditStatusAdapter;
 import br.gravita.core.usercases.UpdateCustomerService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -37,6 +38,7 @@ class CustomerConcurrentUseCaseIntegrationTest {
 	private TestEntityManager entityManager;
 
 	@Test
+	@DisplayName("Rejects a stale patch write when a credit status change won the race")
 	void patchShouldRejectStaleWriteWhenCreditStatusChangeWonTheRace() {
 		UUID id = repositoryAdapter.save(customer()).getId();
 		entityManager.flush();
@@ -68,6 +70,7 @@ class CustomerConcurrentUseCaseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a stale credit status change when a patch won the race")
 	void creditStatusChangeShouldRejectStaleWriteWhenPatchWonTheRace() {
 		UUID id = repositoryAdapter.save(customer()).getId();
 		entityManager.flush();
@@ -99,6 +102,7 @@ class CustomerConcurrentUseCaseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Leaves status and balance untouched when a single-writer patch omits them")
 	void normalSingleWriterPatchLeavesStatusAndBalanceUntouchedWhenOmitted() {
 		UUID id = repositoryAdapter.save(customer()).getId();
 		entityManager.flush();
@@ -119,6 +123,7 @@ class CustomerConcurrentUseCaseIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists a patch with a new valid document and formats it correctly on read")
 	void patchWithNewValidDocumentIsPersistedAndFormattedCorrectlyOnRead() {
 		UUID id = repositoryAdapter.save(customer()).getId();
 		entityManager.flush();

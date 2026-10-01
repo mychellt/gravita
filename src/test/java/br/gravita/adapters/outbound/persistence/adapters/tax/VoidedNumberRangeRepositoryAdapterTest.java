@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -28,6 +29,7 @@ class VoidedNumberRangeRepositoryAdapterTest {
 	private VoidedNumberRangeJpaRepository jpaRepository;
 
 	@Test
+	@DisplayName("Finds voided ranges by company, series and date range")
 	void ac3_findsVoidedRangesByCompanySeriesAndDateRange() {
 		UUID companyId = UUID.randomUUID();
 		Instant now = Instant.now();
@@ -45,6 +47,7 @@ class VoidedNumberRangeRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Finds the voided ranges of every series within a half-open period, oldest first")
 	void findsTheRangesOfEverySeriesVoidedInAHalfOpenPeriodOldestFirst() {
 		UUID companyId = UUID.randomUUID();
 		Instant from = Instant.parse("2028-02-01T00:00:00Z");

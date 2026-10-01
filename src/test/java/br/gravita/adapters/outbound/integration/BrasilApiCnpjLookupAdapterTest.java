@@ -3,6 +3,7 @@ package br.gravita.adapters.outbound.integration;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PersonLookupResult;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -20,6 +21,7 @@ class BrasilApiCnpjLookupAdapterTest {
 	private static final Document CNPJ = Document.cnpj("11444777000161");
 
 	@Test
+	@DisplayName("Returns the company name and address when the BrasilAPI lookup succeeds")
 	void shouldReturnNameAndAddressOnSuccess() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
 		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
@@ -46,6 +48,7 @@ class BrasilApiCnpjLookupAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Degrades to an empty result when the BrasilAPI service fails")
 	void shouldDegradeToEmptyWhenServiceFails() {
 		RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
 		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
