@@ -132,6 +132,22 @@ public class NfseJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "draft_at")
 	private Instant draftAt;
 
+	/** Transmission (M4-04): when it was last sent, the municipality's protocol, and the stored XML's reference. */
+	@Column(name = "sent_at")
+	private Instant sentAt;
+
+	@Column(length = 100)
+	private String protocol;
+
+	@Column(name = "authorized_at")
+	private Instant authorizedAt;
+
+	@Column(name = "xml_reference", length = 500)
+	private String xmlReference;
+
+	@Column(name = "last_rejection_reason", length = 1000)
+	private String lastRejectionReason;
+
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "nfse_withholdings", joinColumns = @JoinColumn(name = "nfse_document_id"))
 	@lombok.Builder.Default

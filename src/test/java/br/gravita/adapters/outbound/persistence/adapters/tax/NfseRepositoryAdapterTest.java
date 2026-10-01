@@ -137,6 +137,29 @@ class NfseRepositoryAdapterTest {
 	}
 
 	@Test
+	void roundTripsTheTransmissionLifecycle() {
+		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
+		NfseDocument draft = nfseRepositoryAdapter.save(rps(tomador, List.of(), null)
+				.convertToNfse("1", 3L, Instant.parse("2026-10-01T10:30:00Z")));
+		NfseDocument sent = draft.send(Instant.parse("2026-10-01T11:00:00Z"));
+
+		NfseDocument rejected = nfseRepositoryAdapter.save(sent.reject("Dados do tomador invalidos"));
+		assertThat(rejected.getStatus()).isEqualTo(NfseStatus.DRAFT);
+		assertThat(rejected.getLastRejectionReason()).isEqualTo("Dados do tomador invalidos");
+		assertThat(rejected.getSentAt()).isEqualTo(Instant.parse("2026-10-01T11:00:00Z"));
+
+		NfseDocument authorized = nfseRepositoryAdapter.save(rejected.send(Instant.parse("2026-10-01T12:00:00Z"))
+				.authorize("PROT-77", Instant.parse("2026-10-01T12:00:03Z"), "xml/nfse-3"));
+		NfseDocument found = nfseRepositoryAdapter.findById(authorized.getId()).orElseThrow();
+
+		assertThat(found.getStatus()).isEqualTo(NfseStatus.AUTHORIZED);
+		assertThat(found.getProtocol()).isEqualTo("PROT-77");
+		assertThat(found.getAuthorizedAt()).isEqualTo(Instant.parse("2026-10-01T12:00:03Z"));
+		assertThat(found.getXmlReference()).isEqualTo("xml/nfse-3");
+		assertThat(found.getLastRejectionReason()).isNull();
+	}
+
+	@Test
 	void findCandidatesReturnsTheMunicipalityRowsAndTheWildcardOnesOfThatServiceOnly() {
 		saveRule("01.05", "3550308", TaxRegime.LUCRO_PRESUMIDO, TaxType.ISS, "5.0000", WithholdingMode.TOMADOR_COMPANY);
 		saveRule("01.05", null, null, TaxType.PIS, "0.6500", WithholdingMode.ALWAYS);
