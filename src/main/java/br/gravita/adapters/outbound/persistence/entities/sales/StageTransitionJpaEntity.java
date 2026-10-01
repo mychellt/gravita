@@ -13,12 +13,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Append-only log row: rows are only ever inserted, never updated, so this does not
  * extend {@code AbstractEntity} (no created_at/modified_at/active bookkeeping needed).
  */
 @Getter
+@Setter
 @Entity
 @Builder
 @NoArgsConstructor

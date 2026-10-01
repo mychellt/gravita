@@ -26,30 +26,30 @@ class OpportunityRepositoryAdapter implements OpportunityRepositoryPort {
 
 	@Override
 	public Opportunity save(Opportunity opportunity) {
-		OpportunityJpaEntity entity = mapper.toEntity(opportunity);
+		OpportunityJpaEntity entity = mapper.map(opportunity);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		OpportunityJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Opportunity> findById(OpportunityId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<Opportunity> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Opportunity> findByStage(OpportunityStage stage) {
-		return jpaRepository.findByStage(stage).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByStage(stage).stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Opportunity> findByIds(Collection<OpportunityId> ids) {
 		List<UUID> uuids = ids.stream().map(OpportunityId::value).toList();
-		return jpaRepository.findAllById(uuids).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAllById(uuids).stream().map(mapper::map).toList();
 	}
 }

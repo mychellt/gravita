@@ -23,10 +23,10 @@ class CommissionRepositoryAdapter implements CommissionRepositoryPort {
 
 	@Override
 	public Commission save(Commission commission) {
-		CommissionJpaEntity entity = mapper.toEntity(commission);
+		CommissionJpaEntity entity = mapper.map(commission);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		CommissionJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
@@ -35,6 +35,6 @@ class CommissionRepositoryAdapter implements CommissionRepositoryPort {
 			return List.of();
 		}
 		return jpaRepository.findBySalesOrderIdIn(orderIds.stream().map(SalesOrderId::value).toList()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 }

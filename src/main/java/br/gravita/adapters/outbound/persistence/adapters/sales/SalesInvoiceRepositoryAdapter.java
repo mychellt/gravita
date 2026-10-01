@@ -23,19 +23,19 @@ class SalesInvoiceRepositoryAdapter implements SalesInvoiceRepositoryPort {
 
 	@Override
 	public SalesInvoice save(SalesInvoice invoice) {
-		SalesInvoiceJpaEntity entity = mapper.toEntity(invoice);
+		SalesInvoiceJpaEntity entity = mapper.map(invoice);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		SalesInvoiceJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<SalesInvoice> findById(SalesInvoiceId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public Optional<SalesInvoice> findByOrderId(SalesOrderId orderId) {
-		return jpaRepository.findBySalesOrderId(orderId.value()).map(mapper::toDomain);
+		return jpaRepository.findBySalesOrderId(orderId.value()).map(mapper::map);
 	}
 }

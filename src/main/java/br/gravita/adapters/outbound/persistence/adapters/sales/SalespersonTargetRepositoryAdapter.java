@@ -30,19 +30,19 @@ class SalespersonTargetRepositoryAdapter implements SalespersonTargetRepositoryP
 				.map(SalespersonTargetJpaEntity::getId)
 				.orElseGet(UUID::randomUUID);
 
-		SalespersonTargetJpaEntity entity = mapper.toEntity(target, id);
+		SalespersonTargetJpaEntity entity = mapper.map(target, id);
 		entity.setNew(!jpaRepository.existsById(id));
 		SalespersonTargetJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<SalespersonTarget> findBySalespersonAndMonth(UUID salespersonId, YearMonth month) {
-		return jpaRepository.findBySalespersonIdAndMonth(salespersonId, month.toString()).map(mapper::toDomain);
+		return jpaRepository.findBySalespersonIdAndMonth(salespersonId, month.toString()).map(mapper::map);
 	}
 
 	@Override
 	public List<SalespersonTarget> findByMonth(YearMonth month) {
-		return jpaRepository.findByMonth(month.toString()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByMonth(month.toString()).stream().map(mapper::map).toList();
 	}
 }

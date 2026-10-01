@@ -18,7 +18,7 @@ public final class Opportunity {
 	private final UUID owner;
 	private final OpportunityStage stage;
 
-	private Opportunity(OpportunityId id, UUID customerId, BigDecimal estimatedValue, Integer probability,
+	public Opportunity(OpportunityId id, UUID customerId, BigDecimal estimatedValue, Integer probability,
 			LocalDate expectedCloseDate, UUID owner, OpportunityStage stage) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");

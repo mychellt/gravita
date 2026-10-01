@@ -22,10 +22,10 @@ class FollowUpTaskRepositoryAdapter implements FollowUpTaskRepositoryPort {
 
 	@Override
 	public FollowUpTask save(FollowUpTask task) {
-		FollowUpTaskJpaEntity entity = mapper.toEntity(task);
+		FollowUpTaskJpaEntity entity = mapper.map(task);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		FollowUpTaskJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override

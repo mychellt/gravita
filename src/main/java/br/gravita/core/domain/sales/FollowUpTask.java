@@ -16,7 +16,7 @@ public final class FollowUpTask {
 	private final UUID owner;
 	private final AlertChannel alertChannel;
 
-	private FollowUpTask(FollowUpTaskId id, UUID opportunityId, UUID customerId, LocalDate dueDate, UUID owner,
+	public FollowUpTask(FollowUpTaskId id, UUID opportunityId, UUID customerId, LocalDate dueDate, UUID owner,
 			AlertChannel alertChannel) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.opportunityId = opportunityId;
