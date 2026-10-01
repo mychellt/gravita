@@ -49,3 +49,7 @@ public interface GenerateSpedFiscalUseCase {
 ## Notes
 
 Although SPED is documented under M2 §3.4 (alongside the rest of the module's fiscal obligations), the roadmap (doc §14) places SPED export in **Phase 7 — Visibilidade**, together with M9's dashboard and reports — not in Phase 2's fiscal core. Don't schedule this ticket before Phase 7 even though it lives in the M2 spec.
+
+## Implementation notes
+
+- **`GenerateSpedFilePort` already exists.** It shipped with [UC-M2-12](uc-12-generate-sped-contribuicoes.md) (`core.ports.outbound.tax.GenerateSpedFilePort`, adapter `SpedFileAdapter`). It writes the shape both EFDs share - `|REG|field|` lines, CR LF, ISO-8859-1, the `X001`/`X990` pair of every block and Block 9 - from the registers the use case supplies (`SpedLayout` of `SpedBlock`s of `SpedRecord`s). This ticket should lay out the EFD ICMS/IPI registers (`0000`, `E100`, `C100`, ...) and hand them to that port, not add a second writer.
