@@ -203,4 +203,43 @@ class NfseDocumentTest {
 		assertThatThrownBy(() -> sent.authorize("P", null, "ref")).isInstanceOf(NullPointerException.class);
 		assertThatThrownBy(() -> sent.authorize("P", Instant.now(), null)).isInstanceOf(BusinessRuleException.class);
 	}
+
+	@Test
+	void cancellingAnAuthorizedDocumentKeepsItsFiscalDataAndRecordsTheJustification() {
+		Instant cancelledAt = Instant.parse("2026-10-02T09:00:00Z");
+		NfseDocument authorized = draft().send(Instant.now()).authorize("PROT-1", Instant.now(), "xml/ref-1");
+
+		NfseDocument cancelled = authorized.cancel("Servico nao prestado", cancelledAt);
+
+		assertThat(cancelled.getStatus()).isEqualTo(NfseStatus.CANCELLED);
+		assertThat(cancelled.getId()).isEqualTo(authorized.getId());
+		assertThat(cancelled.getCancellationJustification()).isEqualTo("Servico nao prestado");
+		assertThat(cancelled.getCancelledAt()).isEqualTo(cancelledAt);
+		assertThat(cancelled.getProtocol()).isEqualTo("PROT-1");
+		assertThat(cancelled.getXmlReference()).isEqualTo("xml/ref-1");
+		assertThat(cancelled.getNfseNumber()).isEqualTo(authorized.getNfseNumber());
+		assertThat(authorized.getStatus()).isEqualTo(NfseStatus.AUTHORIZED);
+	}
+
+	@Test
+	void onlyAnAuthorizedDocumentCanBeCancelledAndOnlyOnce() {
+		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
+		NfseDocument draft = draft();
+		NfseDocument sent = draft.send(Instant.now());
+		NfseDocument cancelled = sent.authorize("P", Instant.now(), "ref").cancel("motivo", Instant.now());
+
+		for (NfseDocument document : List.of(rps, draft, sent, cancelled)) {
+			assertThatThrownBy(() -> document.cancel("motivo", Instant.now()))
+					.isInstanceOf(BusinessRuleException.class).hasMessageContaining(document.getStatus().name());
+		}
+	}
+
+	@Test
+	void cancellationRequiresAJustificationAndATimestamp() {
+		NfseDocument authorized = draft().send(Instant.now()).authorize("P", Instant.now(), "ref");
+
+		assertThatThrownBy(() -> authorized.cancel(null, Instant.now())).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> authorized.cancel("  ", Instant.now())).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> authorized.cancel("motivo", null)).isInstanceOf(NullPointerException.class);
+	}
 }

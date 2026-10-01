@@ -148,6 +148,13 @@ public class NfseJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "last_rejection_reason", length = 1000)
 	private String lastRejectionReason;
 
+	/** Cancellation (M4-05): the mandatory justification and when the municipality confirmed it. */
+	@Column(name = "cancellation_justification", length = 1000)
+	private String cancellationJustification;
+
+	@Column(name = "cancelled_at")
+	private Instant cancelledAt;
+
 	@ElementCollection(fetch = FetchType.EAGER)
 	@CollectionTable(name = "nfse_withholdings", joinColumns = @JoinColumn(name = "nfse_document_id"))
 	@lombok.Builder.Default

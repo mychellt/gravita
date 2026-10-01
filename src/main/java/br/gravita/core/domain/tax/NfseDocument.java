@@ -15,7 +15,8 @@ import lombok.Getter;
  * {@link NfseStatus#DRAFT} NFSe by assigning the NFSe {@code nfseSeries}/{@code nfseNumber} (scoped per company and
  * municipality, independent of the RPS and NFe series). UC-M4-04 transmits a DRAFT: {@link #send} moves it to
  * {@link NfseStatus#SENT} for the duration of the attempt, then {@link #authorize} records the municipality's protocol
- * or {@link #reject} returns it to DRAFT so it can be transmitted again. Cancellation is added by UC-M4-05.
+ * or {@link #reject} returns it to DRAFT so it can be transmitted again. UC-M4-05 cancels an AUTHORIZED document
+ * ({@link #cancel}): it moves to {@link NfseStatus#CANCELLED} carrying the justification, and is never deleted.
  */
 @Getter
 public final class NfseDocument {
@@ -54,6 +55,9 @@ public final class NfseDocument {
 	private final String xmlReference;
 	/** Why the municipality refused the latest attempt; kept while the document is back in DRAFT, cleared on resend. */
 	private final String lastRejectionReason;
+	/** Why and when the municipality confirmed the cancellation; {@code null} unless {@link NfseStatus#CANCELLED}. */
+	private final String cancellationJustification;
+	private final Instant cancelledAt;
 
 	private NfseDocument(NfseId id, NfseStatus status, CompanyId providerCompanyId,
 			String providerMunicipalityIbgeCode, NfseTomador tomador, String serviceCode,
@@ -61,7 +65,8 @@ public final class NfseDocument {
 			BigDecimal issRate, BigDecimal issAmount, String issRateOverrideJustification,
 			List<NfseWithholding> withholdings, String discrimination, String rpsSeries, Long rpsNumber,
 			Instant createdAt, String nfseSeries, Long nfseNumber, Instant draftAt, Instant sentAt, String protocol,
-			Instant authorizedAt, String xmlReference, String lastRejectionReason) {
+			Instant authorizedAt, String xmlReference, String lastRejectionReason, String cancellationJustification,
+			Instant cancelledAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.providerCompanyId = Objects.requireNonNull(providerCompanyId, "providerCompanyId is required");
@@ -87,7 +92,7 @@ public final class NfseDocument {
 		this.nfseSeries = nfseSeries;
 		this.nfseNumber = nfseNumber;
 		this.draftAt = draftAt;
-		if (status == NfseStatus.AUTHORIZED) {
+		if (status == NfseStatus.AUTHORIZED || status == NfseStatus.CANCELLED) {
 			requireText(protocol, "protocol");
 			Objects.requireNonNull(authorizedAt, "authorizedAt is required");
 			requireText(xmlReference, "xmlReference");
@@ -97,6 +102,12 @@ public final class NfseDocument {
 		this.authorizedAt = authorizedAt;
 		this.xmlReference = xmlReference;
 		this.lastRejectionReason = lastRejectionReason;
+		if (status == NfseStatus.CANCELLED) {
+			requireText(cancellationJustification, "cancellationJustification");
+			Objects.requireNonNull(cancelledAt, "cancelledAt is required");
+		}
+		this.cancellationJustification = cancellationJustification;
+		this.cancelledAt = cancelledAt;
 	}
 
 	/**
@@ -112,7 +123,7 @@ public final class NfseDocument {
 		return new NfseDocument(id, NfseStatus.RPS, providerCompanyId, providerMunicipalityIbgeCode, tomador,
 				serviceCode.value(), placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
 				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt, null, null,
-				null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -126,7 +137,7 @@ public final class NfseDocument {
 		return new NfseDocument(id, NfseStatus.DRAFT, providerCompanyId, providerMunicipalityIbgeCode, tomador,
 				serviceCode, placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
 				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt,
-				nfseSeries, nfseNumber, draftAt, null, null, null, null, null);
+				nfseSeries, nfseNumber, draftAt, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -137,13 +148,13 @@ public final class NfseDocument {
 		if (status != NfseStatus.DRAFT) {
 			throw new BusinessRuleException("Only a DRAFT NFSe can be transmitted, but the document is " + status);
 		}
-		return withLifecycle(NfseStatus.SENT, sentAt, null, null, null, null);
+		return withLifecycle(NfseStatus.SENT, sentAt, null, null, null, null, null, null);
 	}
 
 	/** The municipality accepted the NFSe: {@link NfseStatus#SENT} to {@link NfseStatus#AUTHORIZED}. */
 	public NfseDocument authorize(String protocol, Instant authorizedAt, String xmlReference) {
 		requireSent("authorized");
-		return withLifecycle(NfseStatus.AUTHORIZED, sentAt, protocol, authorizedAt, xmlReference, null);
+		return withLifecycle(NfseStatus.AUTHORIZED, sentAt, protocol, authorizedAt, xmlReference, null, null, null);
 	}
 
 	/**
@@ -152,7 +163,20 @@ public final class NfseDocument {
 	 */
 	public NfseDocument reject(String reason) {
 		requireSent("rejected");
-		return withLifecycle(NfseStatus.DRAFT, sentAt, null, null, null, requireText(reason, "reason"));
+		return withLifecycle(NfseStatus.DRAFT, sentAt, null, null, null, requireText(reason, "reason"), null, null);
+	}
+
+	/**
+	 * The municipality confirmed the cancellation: {@link NfseStatus#AUTHORIZED} to {@link NfseStatus#CANCELLED}. The
+	 * justification is mandatory and kept with the document, which retains its protocol and XML reference - a
+	 * cancelled NFSe is still a fiscal record and is never deleted.
+	 */
+	public NfseDocument cancel(String justification, Instant cancelledAt) {
+		if (status != NfseStatus.AUTHORIZED) {
+			throw new BusinessRuleException("Only an AUTHORIZED NFSe can be cancelled, but the document is " + status);
+		}
+		return withLifecycle(NfseStatus.CANCELLED, sentAt, protocol, authorizedAt, xmlReference, null,
+				requireText(justification, "justification"), cancelledAt);
 	}
 
 	private void requireSent(String outcome) {
@@ -162,11 +186,12 @@ public final class NfseDocument {
 	}
 
 	private NfseDocument withLifecycle(NfseStatus newStatus, Instant sentAt, String protocol, Instant authorizedAt,
-			String xmlReference, String lastRejectionReason) {
+			String xmlReference, String lastRejectionReason, String cancellationJustification, Instant cancelledAt) {
 		return new NfseDocument(id, newStatus, providerCompanyId, providerMunicipalityIbgeCode, tomador, serviceCode,
 				placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
 				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt,
-				nfseSeries, nfseNumber, draftAt, sentAt, protocol, authorizedAt, xmlReference, lastRejectionReason);
+				nfseSeries, nfseNumber, draftAt, sentAt, protocol, authorizedAt, xmlReference, lastRejectionReason,
+				cancellationJustification, cancelledAt);
 	}
 
 	public boolean isRps() {
@@ -191,11 +216,13 @@ public final class NfseDocument {
 			BigDecimal issRate, BigDecimal issAmount, String issRateOverrideJustification,
 			List<NfseWithholding> withholdings, String discrimination, String rpsSeries, Long rpsNumber,
 			Instant createdAt, String nfseSeries, Long nfseNumber, Instant draftAt, Instant sentAt, String protocol,
-			Instant authorizedAt, String xmlReference, String lastRejectionReason) {
+			Instant authorizedAt, String xmlReference, String lastRejectionReason, String cancellationJustification,
+			Instant cancelledAt) {
 		return new NfseDocument(id, status, providerCompanyId, providerMunicipalityIbgeCode, tomador, serviceCode,
 				placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
 				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt,
-				nfseSeries, nfseNumber, draftAt, sentAt, protocol, authorizedAt, xmlReference, lastRejectionReason);
+				nfseSeries, nfseNumber, draftAt, sentAt, protocol, authorizedAt, xmlReference, lastRejectionReason,
+				cancellationJustification, cancelledAt);
 	}
 
 	public RpsId getRpsId() {

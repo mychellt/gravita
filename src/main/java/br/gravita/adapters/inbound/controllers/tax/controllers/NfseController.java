@@ -1,11 +1,13 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.CancelNfseRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ConvertRpsToNfseRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ConvertRpsToNfseResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.TransmitNfseResponse;
 import br.gravita.core.domain.tax.NfseId;
+import br.gravita.core.ports.inbound.tax.CancelNfseUseCase;
 import br.gravita.core.ports.inbound.tax.ConvertRpsToNfseUseCase;
 import br.gravita.core.ports.inbound.tax.IssueRpsUseCase;
 import br.gravita.core.ports.inbound.tax.TransmitNfseCommand;
@@ -29,6 +31,7 @@ public class NfseController {
 	private final IssueRpsUseCase issueRpsUseCase;
 	private final ConvertRpsToNfseUseCase convertRpsToNfseUseCase;
 	private final TransmitNfseUseCase transmitNfseUseCase;
+	private final CancelNfseUseCase cancelNfseUseCase;
 
 	@PostMapping("/rps")
 	public ResponseEntity<IssueRpsResponse> issueRps(@Valid @RequestBody IssueRpsRequest request) {
@@ -46,5 +49,12 @@ public class NfseController {
 	public ResponseEntity<TransmitNfseResponse> transmit(@PathVariable UUID id) {
 		return ResponseEntity.ok(TransmitNfseResponse
 				.from(transmitNfseUseCase.execute(new TransmitNfseCommand(NfseId.of(id)))));
+	}
+
+	/** Cancels an {@code AUTHORIZED} NFSe; the record stays, as {@code CANCELLED}. */
+	@PostMapping("/{id}/cancel")
+	public ResponseEntity<Void> cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfseRequest request) {
+		cancelNfseUseCase.execute(request.toCommand(id));
+		return ResponseEntity.noContent().build();
 	}
 }

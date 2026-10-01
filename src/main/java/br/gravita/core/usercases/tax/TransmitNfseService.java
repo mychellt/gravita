@@ -18,7 +18,6 @@ import br.gravita.core.ports.outbound.tax.IssueNfsePort;
 import br.gravita.core.ports.outbound.tax.NfseIssueRequest;
 import br.gravita.core.ports.outbound.tax.NfseIssueResult;
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
@@ -47,7 +46,7 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 	private final MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort;
 	private final GenerateGuidedManualUploadPort generateGuidedManualUploadPort;
 	private final XmlObjectStoragePort xmlObjectStoragePort;
-	private final Map<NfseStandard, IssueNfsePort> issuersByStandard = new EnumMap<>(NfseStandard.class);
+	private final Map<NfseStandard, IssueNfsePort> issuersByStandard;
 
 	@Autowired
 	public TransmitNfseService(NfseRepositoryPort nfseRepositoryPort,
@@ -67,13 +66,7 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 		this.municipalityIntegrationRepositoryPort = municipalityIntegrationRepositoryPort;
 		this.generateGuidedManualUploadPort = generateGuidedManualUploadPort;
 		this.xmlObjectStoragePort = xmlObjectStoragePort;
-		for (IssueNfsePort issuer : issuers) {
-			IssueNfsePort previous = issuersByStandard.put(issuer.standard(), issuer);
-			if (previous != null) {
-				throw new IllegalStateException("More than one IssueNfsePort for standard " + issuer.standard() + ": "
-						+ previous.getClass().getName() + " and " + issuer.getClass().getName());
-			}
-		}
+		this.issuersByStandard = IssueNfsePortRegistry.byStandard(issuers);
 	}
 
 	@Override

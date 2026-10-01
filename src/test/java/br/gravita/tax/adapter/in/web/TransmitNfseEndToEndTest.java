@@ -30,6 +30,8 @@ import br.gravita.core.ports.outbound.persistence.XmlObjectStoragePort;
 import br.gravita.core.ports.outbound.persistence.tax.MunicipalityIntegrationRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.NfseRepositoryPort;
 import br.gravita.core.ports.outbound.tax.IssueNfsePort;
+import br.gravita.core.ports.outbound.tax.NfseCancellationRequest;
+import br.gravita.core.ports.outbound.tax.NfseCancellationResult;
 import br.gravita.core.ports.outbound.tax.NfseIssueRequest;
 import br.gravita.core.ports.outbound.tax.NfseIssueResult;
 import java.math.BigDecimal;
@@ -82,6 +84,11 @@ class TransmitNfseEndToEndTest {
 		public NfseIssueResult issue(NfseIssueRequest request) {
 			lastRequest = request;
 			return answer.get();
+		}
+
+		@Override
+		public NfseCancellationResult cancel(NfseCancellationRequest request) {
+			throw new UnsupportedOperationException("not exercised by the transmission tests");
 		}
 	}
 
