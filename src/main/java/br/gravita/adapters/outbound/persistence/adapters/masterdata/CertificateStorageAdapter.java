@@ -30,19 +30,19 @@ class CertificateStorageAdapter implements CertificateStoragePort {
 		byte[] encryptedPfxPayload = cipher.encrypt(certificate.getPfxPayload());
 		String encryptedPassword = cipher.encryptText(certificate.getPassword());
 
-		DigitalCertificateJpaEntity entity = mapper.toEntity(certificate, encryptedPfxPayload, encryptedPassword);
+		DigitalCertificateJpaEntity entity = mapper.map(certificate, encryptedPfxPayload, encryptedPassword);
 		jpaRepository.findByCompanyId(certificate.getCompanyId().value())
 				.ifPresent(existing -> entity.setId(existing.getId()));
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 
 		DigitalCertificateJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved, certificate.getPfxPayload(), certificate.getPassword());
+		return mapper.map(saved, certificate.getPfxPayload(), certificate.getPassword());
 	}
 
 	@Override
 	public Optional<DigitalCertificate> findByCompanyId(CompanyId companyId) {
 		return jpaRepository.findByCompanyId(companyId.value())
-				.map(entity -> mapper.toDomain(entity, cipher.decrypt(entity.getEncryptedPfxPayload()),
+				.map(entity -> mapper.map(entity, cipher.decrypt(entity.getEncryptedPfxPayload()),
 						cipher.decryptText(entity.getEncryptedPassword())));
 	}
 }

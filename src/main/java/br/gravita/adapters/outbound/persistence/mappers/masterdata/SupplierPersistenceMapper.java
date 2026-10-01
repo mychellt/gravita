@@ -13,93 +13,55 @@ import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.shared.PersonType;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface SupplierPersistenceMapper {
 
-    default Supplier toDomain(final SupplierJpaEntity entity) {
-        Document document = entity.getPersonType() == PersonType.INDIVIDUAL
+    @Mapping(target = "document", source = "entity", qualifiedByName = "toDocument")
+    @Mapping(target = "bankAccount", source = "entity", qualifiedByName = "toBankAccount",
+            conditionExpression = "java(entity.getBankCode() != null)")
+    @Mapping(target = "pixKey", source = "pixKey", qualifiedByName = "toPixKey")
+    Supplier map(final SupplierJpaEntity entity);
+
+    @Mapping(target = "id", source = "id.value")
+    @Mapping(target = "document", source = "document.number")
+    @Mapping(target = "personType", source = "document.personType")
+    @Mapping(target = "bankCode", source = "bankAccount.bankCode")
+    @Mapping(target = "bankAgency", source = "bankAccount.agency")
+    @Mapping(target = "bankAccountNumber", source = "bankAccount.accountNumber")
+    @Mapping(target = "pixKey", source = "pixKey.value")
+    SupplierJpaEntity map(final Supplier domain);
+
+    Address map(final SupplierAddressEmbeddable embeddable);
+
+    SupplierAddressEmbeddable map(final Address domain);
+
+    Contact map(final SupplierContactEmbeddable embeddable);
+
+    SupplierContactEmbeddable map(final Contact domain);
+
+    @Mapping(target = "value", source = "id")
+    SupplierId map(final UUID id);
+
+    @Named("toBankAccount")
+    @Mapping(target = "agency", source = "bankAgency")
+    @Mapping(target = "accountNumber", source = "bankAccountNumber")
+    BankAccount toBankAccount(final SupplierJpaEntity entity);
+
+    @Named("toDocument")
+    static Document toDocument(final SupplierJpaEntity entity) {
+        return entity.getPersonType() == PersonType.INDIVIDUAL
                 ? Document.cpf(entity.getDocument())
                 : Document.cnpj(entity.getDocument());
-
-        return Supplier.of(
-                SupplierId.of(entity.getId()),
-                document,
-                entity.getName(),
-                toAddresses(entity.getAddresses()),
-                toContacts(entity.getContacts()),
-                toBankAccount(entity),
-                entity.getPixKey() == null ? null : PixKey.of(entity.getPixKey()),
-                entity.getAverageLeadTimeDays(),
-                entity.getDefaultPurchaseCfop());
     }
 
-    default SupplierJpaEntity toEntity(final Supplier domain) {
-        BankAccount bankAccount = domain.getBankAccount();
-        PixKey pixKey = domain.getPixKey();
-
-        return SupplierJpaEntity.builder()
-                .id(domain.getId() == null ? null : domain.getId().value())
-                .document(domain.getDocument().number())
-                .personType(domain.getDocument().personType())
-                .name(domain.getName())
-                .addresses(toAddressEmbeddables(domain.getAddresses()))
-                .contacts(toContactEmbeddables(domain.getContacts()))
-                .bankCode(bankAccount == null ? null : bankAccount.bankCode())
-                .bankAgency(bankAccount == null ? null : bankAccount.agency())
-                .bankAccountNumber(bankAccount == null ? null : bankAccount.accountNumber())
-                .pixKey(pixKey == null ? null : pixKey.value())
-                .averageLeadTimeDays(domain.getAverageLeadTimeDays())
-                .defaultPurchaseCfop(domain.getDefaultPurchaseCfop())
-                .build();
-    }
-
-    private BankAccount toBankAccount(final SupplierJpaEntity entity) {
-        if (entity.getBankCode() == null) {
-            return null;
-        }
-        return new BankAccount(entity.getBankCode(), entity.getBankAgency(), entity.getBankAccountNumber());
-    }
-
-    private List<Address> toAddresses(final List<SupplierAddressEmbeddable> embeddables) {
-        if (embeddables == null) {
-            return List.of();
-        }
-        return embeddables.stream()
-                .map(e -> new Address(e.getStreet(), e.getNumber(), e.getComplement(), e.getNeighborhood(),
-                        e.getCity(), e.getState(), e.getZipCode()))
-                .toList();
-    }
-
-    private List<Contact> toContacts(final List<SupplierContactEmbeddable> embeddables) {
-        if (embeddables == null) {
-            return List.of();
-        }
-        return embeddables.stream().map(e -> new Contact(e.getType(), e.getValue())).toList();
-    }
-
-    private List<SupplierAddressEmbeddable> toAddressEmbeddables(final List<Address> addresses) {
-        return addresses.stream()
-                .map(address -> SupplierAddressEmbeddable.builder()
-                        .street(address.street())
-                        .number(address.number())
-                        .complement(address.complement())
-                        .neighborhood(address.neighborhood())
-                        .city(address.city())
-                        .state(address.state())
-                        .zipCode(address.zipCode())
-                        .build())
-                .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private List<SupplierContactEmbeddable> toContactEmbeddables(final List<Contact> contacts) {
-        return contacts.stream()
-                .map(contact -> SupplierContactEmbeddable.builder().type(contact.type()).value(contact.value()).build())
-                .collect(Collectors.toCollection(ArrayList::new));
+    @Named("toPixKey")
+    static PixKey toPixKey(final String pixKey) {
+        return PixKey.of(pixKey);
     }
 }

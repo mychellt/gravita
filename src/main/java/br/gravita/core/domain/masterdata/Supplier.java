@@ -23,7 +23,7 @@ public final class Supplier {
 	private final Integer averageLeadTimeDays;
 	private final String defaultPurchaseCfop;
 
-	private Supplier(SupplierId id, Document document, String name, List<Address> addresses, List<Contact> contacts,
+	public Supplier(SupplierId id, Document document, String name, List<Address> addresses, List<Contact> contacts,
 			BankAccount bankAccount, PixKey pixKey, Integer averageLeadTimeDays, String defaultPurchaseCfop) {
 		this.id = Objects.requireNonNull(id, "SupplierId is required");
 		this.document = requireDocument(document);

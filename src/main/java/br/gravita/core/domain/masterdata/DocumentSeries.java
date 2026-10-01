@@ -15,7 +15,7 @@ public final class DocumentSeries {
 	private final Long nextNumber;
 	private final Long version;
 
-	private DocumentSeries(UUID id, CompanyId companyId, FiscalDocumentType documentType, String series, Long nextNumber, Long version) {
+	public DocumentSeries(UUID id, CompanyId companyId, FiscalDocumentType documentType, String series, Long nextNumber, Long version) {
 		this.id = id;
 		this.companyId = companyId;
 		this.documentType = documentType;

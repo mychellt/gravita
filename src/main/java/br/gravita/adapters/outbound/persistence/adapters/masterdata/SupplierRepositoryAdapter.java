@@ -22,14 +22,14 @@ class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 
 	@Override
 	public Supplier save(Supplier supplier) {
-		SupplierJpaEntity entity = mapper.toEntity(supplier);
+		SupplierJpaEntity entity = mapper.map(supplier);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		SupplierJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Supplier> findById(SupplierId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 }

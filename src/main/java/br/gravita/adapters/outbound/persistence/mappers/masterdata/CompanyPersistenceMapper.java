@@ -6,45 +6,28 @@ import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.Document;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
+
+import java.util.UUID;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface CompanyPersistenceMapper {
 
-    default Company toDomain(final CompanyJpaEntity entity) {
-        return Company.of(
-                CompanyId.of(entity.getId()),
-                Document.cnpj(entity.getCnpj()),
-                entity.getIe(),
-                entity.getIm(),
-                entity.getCnae(),
-                entity.getTaxRegime(),
-                entity.isSimplesOptante(),
-                entity.getSefazEnvironment(),
-                entity.getAddress(),
-                entity.getState(),
-                entity.getIssuingEmail(),
-                entity.getPhone(),
-                entity.getLogoUrl(),
-                entity.getParentCompanyId() == null ? null : CompanyId.of(entity.getParentCompanyId()));
-    }
+    @Mapping(target = "cnpj", source = "cnpj", qualifiedByName = "toCnpj")
+    Company map(final CompanyJpaEntity entity);
 
-    default CompanyJpaEntity toEntity(final Company domain) {
-        return CompanyJpaEntity.builder()
-                .id(domain.getId() == null ? null : domain.getId().value())
-                .cnpj(domain.getCnpj().number())
-                .ie(domain.getIe())
-                .im(domain.getIm())
-                .cnae(domain.getCnae())
-                .taxRegime(domain.getTaxRegime())
-                .simplesOptante(domain.isSimplesOptante())
-                .sefazEnvironment(domain.getSefazEnvironment())
-                .address(domain.getAddress())
-                .state(domain.getState())
-                .issuingEmail(domain.getIssuingEmail())
-                .phone(domain.getPhone())
-                .logoUrl(domain.getLogoUrl())
-                .parentCompanyId(domain.getParentCompanyId() == null ? null : domain.getParentCompanyId().value())
-                .build();
+    @Mapping(target = "id", source = "id.value")
+    @Mapping(target = "cnpj", source = "cnpj.number")
+    @Mapping(target = "parentCompanyId", source = "parentCompanyId.value")
+    CompanyJpaEntity map(final Company domain);
+
+    @Mapping(target = "value", source = "id")
+    CompanyId map(final UUID id);
+
+    @Named("toCnpj")
+    static Document toCnpj(final String cnpj) {
+        return Document.cnpj(cnpj);
     }
 }
