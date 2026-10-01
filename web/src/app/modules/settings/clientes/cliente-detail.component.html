@@ -1,0 +1,74 @@
+@if (cliente(); as c) {
+  <app-page-header [title]="c.nome || 'Cliente'" subtitle="Dados cadastrais · somente leitura">
+    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/settings/clientes', c.id, 'pagamentos']" class="btn btn-ghost"><i class="ti ti-cash"></i> Pagamentos</a>
+  </app-page-header>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-user form-section-icon"></i><span class="form-section-title">Identificação</span>
+    </div>
+    <div class="form-body detail-grid">
+      <div><span class="form-label">Nome</span><div class="detail-value">{{ c.nome || '--' }}</div></div>
+      <div><span class="form-label">{{ c.tipo === 'pf' ? 'CPF' : 'CNPJ' }}</span><div class="detail-value td-mono">{{ c.documento || '--' }}</div></div>
+      <div><span class="form-label">Status</span><div class="detail-value">@if (c.status) { <app-badge [value]="c.status" /> } @else { -- }</div></div>
+      <div><span class="form-label">Inscrição Estadual</span><div class="detail-value">{{ c.ie || '--' }}</div></div>
+      <div><span class="form-label">Indicador de IE</span><div class="detail-value">{{ ieLabel() }}</div></div>
+      <div><span class="form-label">Consumidor final</span><div class="detail-value">{{ c.consumidorFinal == null ? '--' : (c.consumidorFinal ? 'Sim' : 'Não') }}</div></div>
+      <div><span class="form-label">E-mail</span><div class="detail-value">{{ c.email || '--' }}</div></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-credit-card form-section-icon"></i><span class="form-section-title">Crédito</span>
+    </div>
+    <div class="form-body detail-grid">
+      <div><span class="form-label">Limite de crédito</span><div class="detail-value">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</div></div>
+      <div><span class="form-label">Saldo devedor</span><div class="detail-value">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</div></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-map-pin form-section-icon"></i><span class="form-section-title">Endereços</span>
+    </div>
+    <div class="form-body">
+      @for (e of c.enderecos; track $index) {
+        <div class="detail-list-item">{{ formatEndereco(e) }}</div>
+      } @empty {
+        <div class="detail-empty">--</div>
+      }
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-phone form-section-icon"></i><span class="form-section-title">Contatos</span>
+    </div>
+    <div class="form-body">
+      @for (ct of contatos(); track $index) {
+        <div class="detail-list-item"><span class="detail-list-tag">{{ ct.tipo }}</span>{{ ct.valor }}</div>
+      } @empty {
+        <div class="detail-empty">--</div>
+      }
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-tag form-section-icon"></i><span class="form-section-title">Tabelas de preço</span>
+    </div>
+    <div class="form-body">
+      @for (t of tabelasPreco(); track $index) {
+        <div class="detail-list-item"><span class="detail-list-tag">Prioridade {{ t.prioridade }}</span>{{ t.nome }}</div>
+      } @empty {
+        <div class="detail-empty">--</div>
+      }
+    </div>
+  </div>
+} @else {
+  <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
+    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  </app-page-header>
+}

@@ -31,6 +31,21 @@ export interface Endereco {
   codigoIbge?: string;
 }
 
+export interface ContatoCliente {
+  tipo: 'telefone' | 'whatsapp' | 'email' | 'outro';
+  valor: string;
+}
+
+export interface TabelaPreco {
+  id: string;
+  nome: string;
+}
+
+export interface TabelaPrecoVinculo {
+  tabelaPrecoId: string;
+  prioridade: number;
+}
+
 export interface Cliente {
   id: string;
   tipo: 'pf' | 'pj';
@@ -47,6 +62,8 @@ export interface Cliente {
   saldoDevedor: number;
   status: 'regular' | 'bloqueado' | 'inadimplente';
   tabelaPrecoId?: string;
+  contatos?: ContatoCliente[];
+  tabelasPreco?: TabelaPrecoVinculo[];
 }
 
 export interface Fornecedor {

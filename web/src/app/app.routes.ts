@@ -64,6 +64,18 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent)
       },
+      {
+        path: 'settings/clientes',
+        loadComponent: () => import('./modules/settings/clientes/clientes-list.component').then(m => m.ClientesListComponent)
+      },
+      {
+        path: 'settings/clientes/:id',
+        loadComponent: () => import('./modules/settings/clientes/cliente-detail.component').then(m => m.ClienteDetailComponent)
+      },
+      {
+        path: 'settings/clientes/:id/pagamentos',
+        loadComponent: () => import('./modules/settings/clientes/cliente-pagamentos.component').then(m => m.ClientePagamentosComponent)
+      },
     ]
   },
   { path: '**', redirectTo: '' }

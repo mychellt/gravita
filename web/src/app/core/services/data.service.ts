@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import {
-  Nfe, Nfse, Produto, Cliente, Fornecedor,
+  Nfe, Nfse, Produto, Cliente, TabelaPreco, Fornecedor,
   PedidoCompra, Titulo, Oportunidade, MovimentoEstoque,
   ItemCarrinho, PedidoVenda
 } from '../models';
@@ -21,10 +21,16 @@ export class DataService {
   ]);
 
   readonly clientes = signal<Cliente[]>([
-    { id:'c1', tipo:'pj', documento:'12.345.678/0001-90', nome:'Maria Distribuidora Ltda', ie:'123.456.789.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'01310-100', logradouro:'Av. Paulista', numero:'1000', bairro:'Bela Vista', municipio:'São Paulo', uf:'SP' }], email:'nf@mariadist.com.br', telefone:'(11) 3333-4444', whatsapp:'(11) 91234-5678', limiteCredito:120000, saldoDevedor:38400, status:'regular' },
-    { id:'c2', tipo:'pj', documento:'98.765.432/0001-10', nome:'Atacadão SP Ltda', ie:'987.654.321.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'04578-000', logradouro:'Av. dos Bandeirantes', numero:'2000', bairro:'Vila Olímpia', municipio:'São Paulo', uf:'SP' }], email:'nfe@atacadao.com.br', telefone:'(11) 2222-3333', whatsapp:'(11) 98765-4321', limiteCredito:80000, saldoDevedor:22100, status:'regular' },
-    { id:'c3', tipo:'pf', documento:'123.456.789-00', nome:'João Pedro Silva', indicadorIe:'nao_contribuinte', consumidorFinal:true, enderecos:[{ cep:'02040-000', logradouro:'Rua das Flores', numero:'45', bairro:'Vila Guilherme', municipio:'São Paulo', uf:'SP' }], email:'joao@email.com', telefone:'(11) 99999-8888', limiteCredito:5000, saldoDevedor:850, status:'inadimplente' },
-    { id:'c4', tipo:'pj', documento:'45.678.901/0001-23', nome:'Supermercado Bom Preço', ie:'456.789.012.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'08040-000', logradouro:'Av. Aricanduva', numero:'500', bairro:'Aricanduva', municipio:'São Paulo', uf:'SP' }], email:'compras@bompreco.com.br', telefone:'(11) 4444-5555', limiteCredito:50000, saldoDevedor:12000, status:'regular' },
+    { id:'c1', tipo:'pj', documento:'12.345.678/0001-90', nome:'Maria Distribuidora Ltda', ie:'123.456.789.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'01310-100', logradouro:'Av. Paulista', numero:'1000', bairro:'Bela Vista', municipio:'São Paulo', uf:'SP' }], email:'nf@mariadist.com.br', telefone:'(11) 3333-4444', whatsapp:'(11) 91234-5678', limiteCredito:120000, saldoDevedor:38400, status:'regular', contatos:[{ tipo:'telefone', valor:'(11) 3333-4444' }, { tipo:'whatsapp', valor:'(11) 91234-5678' }], tabelasPreco:[{ tabelaPrecoId:'tp1', prioridade:1 }, { tabelaPrecoId:'tp2', prioridade:2 }] },
+    { id:'c2', tipo:'pj', documento:'98.765.432/0001-10', nome:'Atacadão SP Ltda', ie:'987.654.321.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'04578-000', logradouro:'Av. dos Bandeirantes', numero:'2000', bairro:'Vila Olímpia', municipio:'São Paulo', uf:'SP' }], email:'nfe@atacadao.com.br', telefone:'(11) 2222-3333', whatsapp:'(11) 98765-4321', limiteCredito:80000, saldoDevedor:22100, status:'regular', contatos:[{ tipo:'telefone', valor:'(11) 2222-3333' }, { tipo:'whatsapp', valor:'(11) 98765-4321' }], tabelasPreco:[{ tabelaPrecoId:'tp1', prioridade:1 }] },
+    { id:'c3', tipo:'pf', documento:'123.456.789-00', nome:'João Pedro Silva', indicadorIe:'nao_contribuinte', consumidorFinal:true, enderecos:[{ cep:'02040-000', logradouro:'Rua das Flores', numero:'45', bairro:'Vila Guilherme', municipio:'São Paulo', uf:'SP' }], email:'joao@email.com', telefone:'(11) 99999-8888', limiteCredito:5000, saldoDevedor:850, status:'inadimplente', contatos:[{ tipo:'telefone', valor:'(11) 99999-8888' }] },
+    { id:'c4', tipo:'pj', documento:'45.678.901/0001-23', nome:'Supermercado Bom Preço', ie:'456.789.012.000', indicadorIe:'contribuinte', consumidorFinal:false, enderecos:[{ cep:'08040-000', logradouro:'Av. Aricanduva', numero:'500', bairro:'Aricanduva', municipio:'São Paulo', uf:'SP' }], email:'compras@bompreco.com.br', telefone:'(11) 4444-5555', limiteCredito:50000, saldoDevedor:12000, status:'regular', contatos:[{ tipo:'telefone', valor:'(11) 4444-5555' }], tabelasPreco:[{ tabelaPrecoId:'tp2', prioridade:1 }] },
+    { id:'c5', tipo:'pf', documento:'987.654.321-00', nome:'Ana Beatriz Souza', indicadorIe:'nao_contribuinte', consumidorFinal:true, enderecos:[{ cep:'03030-000', logradouro:'Rua do Comércio', numero:'12', bairro:'Brás', municipio:'São Paulo', uf:'SP' }], limiteCredito:2000, saldoDevedor:0, status:'bloqueado' },
+  ]);
+
+  readonly tabelasPreco = signal<TabelaPreco[]>([
+    { id:'tp1', nome:'Atacado' },
+    { id:'tp2', nome:'Varejo' },
   ]);
 
   readonly fornecedores = signal<Fornecedor[]>([
@@ -120,5 +126,9 @@ export class DataService {
 
   getClienteById(id: string): Cliente | undefined {
     return this.clientes().find(c => c.id === id);
+  }
+
+  getTabelaPrecoNome(id: string): string | undefined {
+    return this.tabelasPreco().find(t => t.id === id)?.nome;
   }
 }
