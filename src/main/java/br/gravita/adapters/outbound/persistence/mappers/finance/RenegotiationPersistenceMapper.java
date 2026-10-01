@@ -4,29 +4,30 @@ import br.gravita.adapters.outbound.persistence.entities.finance.RenegotiationJp
 import br.gravita.core.domain.finance.ReceivableId;
 import br.gravita.core.domain.finance.Renegotiation;
 import br.gravita.core.domain.finance.RenegotiationId;
-import java.util.ArrayList;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface RenegotiationPersistenceMapper {
 
-	default Renegotiation toDomain(final RenegotiationJpaEntity entity) {
-		return Renegotiation.of(RenegotiationId.of(entity.getId()), entity.getCustomerId(),
-				entity.getOriginalReceivableIds().stream().map(ReceivableId::of).toList(),
-				entity.getNewReceivableIds().stream().map(ReceivableId::of).toList(), entity.getRenegotiatedAt());
-	}
+	@Mapping(target = "createdAt", source = "renegotiatedAt")
+	Renegotiation map(final RenegotiationJpaEntity entity);
 
-	default RenegotiationJpaEntity toEntity(final Renegotiation domain) {
-		return RenegotiationJpaEntity.builder()
-				.id(domain.getId().value())
-				.customerId(domain.getCustomerId())
-				.renegotiatedAt(domain.getCreatedAt())
-				.originalReceivableIds(new ArrayList<>(domain.getOriginalReceivableIds().stream()
-						.map(ReceivableId::value).toList()))
-				.newReceivableIds(new ArrayList<>(domain.getNewReceivableIds().stream()
-						.map(ReceivableId::value).toList()))
-				.build();
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "renegotiatedAt", source = "createdAt")
+	@Mapping(target = "createdAt", ignore = true)
+	RenegotiationJpaEntity map(final Renegotiation domain);
+
+	@Mapping(target = "value", source = "id")
+	RenegotiationId mapRenegotiationId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	ReceivableId mapReceivableId(final UUID id);
+
+	static UUID unwrap(final ReceivableId id) {
+		return id.value();
 	}
 }

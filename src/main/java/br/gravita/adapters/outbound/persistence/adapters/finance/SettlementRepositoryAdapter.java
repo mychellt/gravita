@@ -30,21 +30,21 @@ class SettlementRepositoryAdapter implements SettlementRepositoryPort {
 
 	@Override
 	public Settlement save(Settlement settlement) {
-		SettlementJpaEntity entity = mapper.toEntity(settlement);
+		SettlementJpaEntity entity = mapper.map(settlement);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public List<Settlement> findByReceivableId(ReceivableId receivableId) {
 		return jpaRepository.findByReceivableIdOrderByTimestampAscCreatedAtAsc(receivableId.value()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Settlement> findByPayableId(PayableId payableId) {
 		return jpaRepository.findByPayableIdOrderByTimestampAscCreatedAtAsc(payableId.value()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
@@ -55,12 +55,12 @@ class SettlementRepositoryAdapter implements SettlementRepositoryPort {
 		return jpaRepository
 				.findByReceivableIdInOrderByTimestampAscCreatedAtAsc(
 						receivableIds.stream().map(ReceivableId::value).toList())
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Settlement> findRealizedBetween(Instant from, Instant until, CashFlowFilter filter) {
-		return cashFlowQueryRepository.findRealizedSettlements(from, until, filter).stream().map(mapper::toDomain)
+		return cashFlowQueryRepository.findRealizedSettlements(from, until, filter).stream().map(mapper::map)
 				.toList();
 	}
 }

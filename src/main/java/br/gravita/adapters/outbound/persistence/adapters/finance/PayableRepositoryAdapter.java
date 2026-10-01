@@ -31,21 +31,21 @@ class PayableRepositoryAdapter implements PayableRepositoryPort {
 
 	@Override
 	public Payable save(Payable payable) {
-		PayableJpaEntity entity = mapper.toEntity(payable);
+		PayableJpaEntity entity = mapper.map(payable);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PayableJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Payable> findById(PayableId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<Payable> findByPurchaseReceiptRef(UUID purchaseReceiptRef) {
 		return jpaRepository.findByPurchaseReceiptRefOrderByInstallmentNumber(purchaseReceiptRef).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
@@ -54,18 +54,18 @@ class PayableRepositoryAdapter implements PayableRepositoryPort {
 			return List.of();
 		}
 		return jpaRepository.findAllById(ids.stream().map(PayableId::value).toList()).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Payable> findOutstandingDueUntil(LocalDate until, CashFlowFilter filter) {
-		return cashFlowQueryRepository.findOutstandingPayables(until, filter).stream().map(mapper::toDomain)
+		return cashFlowQueryRepository.findOutstandingPayables(until, filter).stream().map(mapper::map)
 				.toList();
 	}
 
 	@Override
 	public List<Payable> findNotCancelledDueBetween(LocalDate from, LocalDate to, CashFlowFilter filter) {
 		return cashFlowQueryRepository.findNotCancelledPayablesDueBetween(from, to, filter).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 }

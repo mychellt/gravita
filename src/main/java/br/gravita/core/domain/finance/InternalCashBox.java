@@ -16,7 +16,7 @@ public final class InternalCashBox {
 	private final InternalCashBoxId id;
 	private final BigDecimal balance;
 
-	private InternalCashBox(InternalCashBoxId id, BigDecimal balance) {
+	public InternalCashBox(InternalCashBoxId id, BigDecimal balance) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.balance = Objects.requireNonNull(balance, "balance is required");
 	}

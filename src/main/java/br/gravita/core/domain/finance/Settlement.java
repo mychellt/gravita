@@ -28,7 +28,7 @@ public final class Settlement {
 	private final SettlementMethod method;
 	private final Instant timestamp;
 
-	private Settlement(SettlementId id, ReceivableId receivableId, PayableId payableId, BigDecimal amount,
+	public Settlement(SettlementId id, ReceivableId receivableId, PayableId payableId, BigDecimal amount,
 			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge,
 			SettlementMethod method, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");

@@ -4,25 +4,24 @@ import br.gravita.adapters.outbound.persistence.entities.finance.BoletoJpaEntity
 import br.gravita.core.domain.finance.Boleto;
 import br.gravita.core.domain.finance.BoletoId;
 import br.gravita.core.domain.finance.ReceivableId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface BoletoPersistenceMapper {
 
-	default Boleto toDomain(final BoletoJpaEntity entity) {
-		return Boleto.of(BoletoId.of(entity.getId()), ReceivableId.of(entity.getReceivableId()),
-				entity.getBankIntegration(), entity.getBarcodeLine(), entity.getStatus());
-	}
+	Boleto map(final BoletoJpaEntity entity);
 
-	default BoletoJpaEntity toEntity(final Boleto domain) {
-		return BoletoJpaEntity.builder()
-				.id(domain.getId().value())
-				.receivableId(domain.getReceivableId().value())
-				.bankIntegration(domain.getBankIntegration())
-				.barcodeLine(domain.getBarcodeLine())
-				.status(domain.getStatus())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "receivableId", source = "receivableId.value")
+	BoletoJpaEntity map(final Boleto domain);
+
+	@Mapping(target = "value", source = "id")
+	BoletoId mapBoletoId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	ReceivableId mapReceivableId(final UUID id);
 }

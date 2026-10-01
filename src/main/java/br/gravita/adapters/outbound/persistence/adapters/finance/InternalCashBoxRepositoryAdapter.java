@@ -30,39 +30,39 @@ class InternalCashBoxRepositoryAdapter implements InternalCashBoxRepositoryPort 
 
 	@Override
 	public Optional<InternalCashBox> findById(InternalCashBoxId id) {
-		return cashBoxJpaRepository.findById(id.value()).map(mapper::toDomain);
+		return cashBoxJpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public Optional<InternalCashBox> findByIdForUpdate(InternalCashBoxId id) {
-		return cashBoxJpaRepository.findByIdForUpdate(id.value()).map(mapper::toDomain);
+		return cashBoxJpaRepository.findByIdForUpdate(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public InternalCashBox save(InternalCashBox cashBox) {
-		InternalCashBoxJpaEntity entity = mapper.toEntity(cashBox);
+		InternalCashBoxJpaEntity entity = mapper.map(cashBox);
 		entity.setNew(!cashBoxJpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(cashBoxJpaRepository.save(entity));
+		return mapper.map(cashBoxJpaRepository.save(entity));
 	}
 
 	@Override
 	public CashMovement saveMovement(CashMovement movement) {
-		InternalCashMovementJpaEntity entity = mapper.toEntity(movement);
+		InternalCashMovementJpaEntity entity = mapper.map(movement);
 		entity.setNew(!movementJpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(movementJpaRepository.save(entity));
+		return mapper.map(movementJpaRepository.save(entity));
 	}
 
 	@Override
 	public List<CashMovement> findMovementsFrom(InternalCashBoxId cashBoxId, Instant from) {
 		return movementJpaRepository
 				.findByCashBoxIdAndTimestampGreaterThanEqualOrderByTimestampAsc(cashBoxId.value(), from)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<CashMovement> findMovementsBetween(Instant from, Instant until) {
 		return movementJpaRepository
 				.findByTimestampGreaterThanEqualAndTimestampLessThanOrderByTimestampAscIdAsc(from, until).stream()
-				.map(mapper::toDomain).toList();
+				.map(mapper::map).toList();
 	}
 }
