@@ -59,6 +59,16 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
+	public List<CustomerSales> customerSales(LocalDate from, LocalDate to, UUID companyId) {
+		Map<UUID, BigDecimal> values = new HashMap<>();
+		for (SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
+			values.merge(order.getCustomerId(), order.totalValue(), BigDecimal::add);
+		}
+		return values.entrySet().stream().map(entry -> new CustomerSales(entry.getKey(), entry.getValue())).toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<SalespersonAchievement> targetAchievement(YearMonth month, UUID companyId) {
 		Map<UUID, BigDecimal> targets = new HashMap<>();
 		for (SalespersonTarget target : salespersonTargetRepositoryPort.findByMonth(month)) {

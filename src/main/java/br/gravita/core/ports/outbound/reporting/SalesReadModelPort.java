@@ -16,6 +16,9 @@ public interface SalesReadModelPort {
 	/** Quantity and value sold per product over {@code [from, to]} (inclusive), in no particular order. */
 	List<ProductSales> productSales(LocalDate from, LocalDate to, UUID companyId);
 
+	/** Value invoiced per customer over {@code [from, to]} (inclusive), in no particular order. */
+	List<CustomerSales> customerSales(LocalDate from, LocalDate to, UUID companyId);
+
 	/**
 	 * Per salesperson with a target or invoiced orders in {@code month}: what was targeted (zero when none was set)
 	 * and what was invoiced.
@@ -23,6 +26,9 @@ public interface SalesReadModelPort {
 	List<SalespersonAchievement> targetAchievement(YearMonth month, UUID companyId);
 
 	record ProductSales(UUID productId, BigDecimal quantity, BigDecimal value) {
+	}
+
+	record CustomerSales(UUID customerId, BigDecimal value) {
 	}
 
 	record SalespersonAchievement(UUID salespersonId, BigDecimal valueTarget, BigDecimal valueAchieved) {
