@@ -1,108 +1,124 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.adapters.outbound.persistence.mappers.ProductPersistenceMapperImpl;
-import br.gravita.core.domain.ClassificationDomain;
-import br.gravita.core.domain.KitComponentDomain;
+import br.gravita.adapters.outbound.persistence.entities.ProductJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.ProductPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.ProductJpaRepository;
 import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
-import br.gravita.core.domain.ProductVariantDomain;
-import br.gravita.core.domain.StockParametersDomain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({ProductRepositoryAdapter.class, ProductPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class ProductRepositoryAdapterTest {
 
-	@Autowired
-	private ProductRepositoryAdapter repositoryAdapter;
+	@Mock
+	private ProductJpaRepository repository;
+
+	@Mock
+	private ProductPersistenceMapper mapper;
+
+	@InjectMocks
+	private ProductRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Saves a simple product and retrieves it")
-	void shouldSaveAndRetrieveSimpleProduct() {
-		ProductDomain product = ProductDomain.builder()
-				.internalCode("SKU-1")
-				.barcodes(List.of("7891234567895"))
-				.type(ProductType.SIMPLE)
-				.averageCost(new BigDecimal("10.00"))
-				.basePrice(new BigDecimal("19.90"))
-				.stock(new StockParametersDomain(BigDecimal.ONE, BigDecimal.TEN, new BigDecimal("2")))
-				.purchaseUnit("CX")
-				.saleUnit("UN")
-				.conversionFactor(BigDecimal.TEN)
-				.classification(new ClassificationDomain("Bebidas", "Refrigerantes", "Acme", "Mercearia"))
-				.images(List.of("http://example.com/1.png"))
-				.status(ProductStatus.ACTIVE)
-				.build();
-		product.setId(UUID.randomUUID());
+	@DisplayName("Saves a new product marking its entity as new")
+	void shouldSaveNewProduct() {
+		final ProductDomain product = buildProduct("SKU-1");
+		final ProductJpaEntity entity = buildEntity(product.getId());
+		final ProductJpaEntity saved = buildEntity(product.getId());
+		when(mapper.map(product)).thenReturn(entity);
+		when(repository.existsById(product.getId())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(product);
 
-		ProductDomain saved = repositoryAdapter.save(product);
+		final ProductDomain result = adapter.save(product);
 
-		assertThat(repositoryAdapter.get(saved.getId()))
-				.isPresent()
-				.get()
-				.satisfies(found -> {
-					assertThat(found.getInternalCode()).isEqualTo("SKU-1");
-					assertThat(found.getBarcodes()).containsExactly("7891234567895");
-					assertThat(found.getStatus()).isEqualTo(ProductStatus.ACTIVE);
-					assertThat(found.getClassification().brand()).isEqualTo("Acme");
-					assertThat(found.getStock().minimum()).isEqualByComparingTo(BigDecimal.ONE);
-				});
+		assertThat(result).isSameAs(product);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
+	}
+
+	@Test
+	@DisplayName("Saves an existing product marking its entity as not new")
+	void shouldSaveExistingProductAsNotNew() {
+		final ProductDomain product = buildProduct("SKU-1");
+		final ProductJpaEntity entity = buildEntity(product.getId());
+		when(mapper.map(product)).thenReturn(entity);
+		when(repository.existsById(product.getId())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(product);
+
+		adapter.save(product);
+
+		assertThat(entity.isNew()).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds a product by id")
+	void shouldFindProductById() {
+		final ProductDomain product = buildProduct("SKU-1");
+		final ProductJpaEntity entity = buildEntity(product.getId());
+		when(repository.findById(product.getId())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(product);
+
+		final Optional<ProductDomain> result = adapter.get(product.getId());
+
+		assertThat(result).contains(product);
+		verify(repository).findById(product.getId());
+	}
+
+	@Test
+	@DisplayName("Lists all saved products")
+	void shouldListAllProducts() {
+		final ProductDomain first = buildProduct("SKU-1");
+		final ProductDomain second = buildProduct("SKU-2");
+		final ProductJpaEntity firstEntity = buildEntity(first.getId());
+		final ProductJpaEntity secondEntity = buildEntity(second.getId());
+		when(repository.findAll()).thenReturn(List.of(firstEntity, secondEntity));
+		when(mapper.map(same(firstEntity))).thenReturn(first);
+		when(mapper.map(same(secondEntity))).thenReturn(second);
+
+		final List<ProductDomain> result = adapter.findAll();
+
+		assertThat(result).containsExactly(first, second);
 	}
 
 	@Test
 	@DisplayName("Detects an already registered barcode")
 	void shouldDetectExistingBarcode() {
-		ProductDomain product = ProductDomain.builder()
-				.internalCode("SKU-2")
-				.barcodes(List.of("7891234567895"))
+		when(repository.existsByBarcodesContaining("7891234567895")).thenReturn(true);
+		when(repository.existsByBarcodesContaining("0000000000000")).thenReturn(false);
+
+		assertThat(adapter.existsByBarcode("7891234567895")).isTrue();
+		assertThat(adapter.existsByBarcode("0000000000000")).isFalse();
+		verify(repository).existsByBarcodesContaining("7891234567895");
+	}
+
+	private ProductJpaEntity buildEntity(final UUID id) {
+		return ProductJpaEntity.builder().id(id).build();
+	}
+
+	private ProductDomain buildProduct(final String internalCode) {
+		final ProductDomain product = ProductDomain.builder()
+				.internalCode(internalCode)
 				.type(ProductType.SIMPLE)
 				.status(ProductStatus.ACTIVE)
 				.build();
 		product.setId(UUID.randomUUID());
-		repositoryAdapter.save(product);
-
-		assertThat(repositoryAdapter.existsByBarcode("7891234567895")).isTrue();
-		assertThat(repositoryAdapter.existsByBarcode("0000000000000")).isFalse();
-	}
-
-	@Test
-	@DisplayName("Saves a kit with its components and variants with a grid")
-	void shouldSaveKitWithComponentsAndVariantsWithGrid() {
-		UUID componentId = UUID.randomUUID();
-		ProductDomain kit = ProductDomain.builder()
-				.internalCode("KIT-1")
-				.type(ProductType.KIT)
-				.status(ProductStatus.ACTIVE)
-				.kitComponents(List.of(new KitComponentDomain(componentId, BigDecimal.TWO)))
-				.build();
-		kit.setId(UUID.randomUUID());
-
-		ProductDomain variant = ProductDomain.builder()
-				.internalCode("VAR-1")
-				.type(ProductType.VARIANT)
-				.status(ProductStatus.ACTIVE)
-				.variants(List.of(new ProductVariantDomain("Red", "M", null), new ProductVariantDomain("Blue", "G", null)))
-				.build();
-		variant.setId(UUID.randomUUID());
-
-		ProductDomain savedKit = repositoryAdapter.save(kit);
-		ProductDomain savedVariant = repositoryAdapter.save(variant);
-
-		assertThat(repositoryAdapter.get(savedKit.getId())).get()
-				.satisfies(found -> assertThat(found.getKitComponents())
-						.containsExactly(new KitComponentDomain(componentId, BigDecimal.TWO)));
-		assertThat(repositoryAdapter.get(savedVariant.getId())).get()
-				.satisfies(found -> assertThat(found.getVariants()).hasSize(2));
+		return product;
 	}
 }

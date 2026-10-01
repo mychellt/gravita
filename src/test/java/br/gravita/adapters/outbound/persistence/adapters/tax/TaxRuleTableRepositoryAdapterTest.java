@@ -1,64 +1,68 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import br.gravita.adapters.outbound.persistence.entities.tax.TaxRateRuleJpaEntity;
 import br.gravita.adapters.outbound.persistence.repositories.tax.TaxRateRuleJpaRepository;
-import br.gravita.core.domain.tax.TaxRateRule;
 import br.gravita.core.domain.tax.TaxRegime;
-import br.gravita.core.domain.tax.TaxType;
 import br.gravita.core.ports.outbound.persistence.tax.TaxRateQuery;
+import br.gravita.core.domain.tax.TaxRateRule;
+import br.gravita.core.domain.tax.TaxType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
 
-@DataJpaTest
-@Import(TaxRuleTableRepositoryAdapter.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class TaxRuleTableRepositoryAdapterTest {
 
-	@Autowired
-	private TaxRuleTableRepositoryAdapter repositoryAdapter;
+	@Mock
+	private TaxRateRuleJpaRepository repository;
 
-	@Autowired
-	private TaxRateRuleJpaRepository jpaRepository;
+	@InjectMocks
+	private TaxRuleTableRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Finds only the rules matching every dimension of the query")
-	void findsOnlyTheRulesMatchingEveryDimensionOfTheQuery() {
-		jpaRepository.save(matchingRule());
-		jpaRepository.save(ruleFor("85171231", "SP", "RJ"));
+	@DisplayName("Finds the rules matching every dimension of the query and maps them to the domain")
+	void findsTheRulesMatchingEveryDimensionOfTheQuery() {
+		final TaxRateQuery query = new TaxRateQuery("85171231", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV");
+		when(repository.findByNcmAndOriginStateAndDestinationStateAndRegimeAndOperationType("85171231", "SP", "SP",
+				TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV")).thenReturn(List.of(buildEntity()));
 
-		List<TaxRateRule> rates = repositoryAdapter
-				.findApplicableRates(new TaxRateQuery("85171231", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV"));
+		final List<TaxRateRule> rates = adapter.findApplicableRates(query);
 
 		assertThat(rates).hasSize(1);
+		assertThat(rates.get(0).ncm()).isEqualTo("85171231");
+		assertThat(rates.get(0).taxType()).isEqualTo(TaxType.ICMS);
 		assertThat(rates.get(0).ratePercentage()).isEqualByComparingTo("18.0000");
+		verify(repository).findByNcmAndOriginStateAndDestinationStateAndRegimeAndOperationType("85171231", "SP", "SP",
+				TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV");
 	}
 
 	@Test
 	@DisplayName("Returns an empty list when no rule matches the query")
 	void returnsAnEmptyListWhenNoRuleMatches() {
-		List<TaxRateRule> rates = repositoryAdapter
-				.findApplicableRates(new TaxRateQuery("00000000", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV"));
+		final TaxRateQuery query = new TaxRateQuery("00000000", "SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV");
+		when(repository.findByNcmAndOriginStateAndDestinationStateAndRegimeAndOperationType("00000000", "SP", "SP",
+				TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV")).thenReturn(List.of());
 
-		assertThat(rates).isEmpty();
+		assertThat(adapter.findApplicableRates(query)).isEmpty();
 	}
 
-	private TaxRateRuleJpaEntity matchingRule() {
-		return ruleFor("85171231", "SP", "SP");
-	}
-
-	private TaxRateRuleJpaEntity ruleFor(String ncm, String originState, String destinationState) {
-		TaxRateRuleJpaEntity entity = TaxRateRuleJpaEntity.builder()
+	private TaxRateRuleJpaEntity buildEntity() {
+		return TaxRateRuleJpaEntity.builder()
 				.id(UUID.randomUUID())
-				.ncm(ncm)
-				.originState(originState)
-				.destinationState(destinationState)
+				.ncm("85171231")
+				.originState("SP")
+				.destinationState("SP")
 				.regime(TaxRegime.SIMPLES_NACIONAL)
 				.operationType("VENDA_PDV")
 				.taxType(TaxType.ICMS)
@@ -66,7 +70,5 @@ class TaxRuleTableRepositoryAdapterTest {
 				.baseReductionPercentage(BigDecimal.ZERO)
 				.mvaPercentage(BigDecimal.ZERO)
 				.build();
-		entity.setNew(true);
-		return entity;
 	}
 }

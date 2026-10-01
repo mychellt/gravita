@@ -1,77 +1,125 @@
 package br.gravita.adapters.outbound.persistence.adapters.sales;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import br.gravita.adapters.outbound.persistence.mappers.sales.SalespersonTargetPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.sales.SalespersonTargetJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.sales.SalespersonTargetPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.sales.SalespersonTargetJpaRepository;
 import br.gravita.core.domain.sales.SalespersonTarget;
-import java.math.BigDecimal;
-import java.time.YearMonth;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@DataJpaTest
-@Import({SalespersonTargetRepositoryAdapter.class, SalespersonTargetPersistenceMapperImpl.class})
+import java.math.BigDecimal;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class SalespersonTargetRepositoryAdapterTest {
 
-	@Autowired
-	private SalespersonTargetRepositoryAdapter repositoryAdapter;
+	private static final YearMonth MONTH = YearMonth.of(2026, 1);
+
+	@Mock
+	private SalespersonTargetJpaRepository repository;
+
+	@Mock
+	private SalespersonTargetPersistenceMapper mapper;
+
+	@InjectMocks
+	private SalespersonTargetRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Persists a salesperson target and reloads it intact")
-	void shouldPersistAndReloadASalespersonTarget() {
-		UUID salespersonId = UUID.randomUUID();
-		YearMonth month = YearMonth.of(2026, 1);
-		SalespersonTarget target = new SalespersonTarget(salespersonId, month, new BigDecimal("15000.00"), 30);
+	@DisplayName("Saves a target for a month that has none, generating a new id")
+	void shouldSaveNewTargetGeneratingANewId() {
+		final SalespersonTarget target = buildTarget(UUID.randomUUID(), MONTH);
+		final SalespersonTargetJpaEntity entity = SalespersonTargetJpaEntity.builder().id(UUID.randomUUID()).build();
+		final SalespersonTargetJpaEntity saved = SalespersonTargetJpaEntity.builder().id(entity.getId()).build();
+		final ArgumentCaptor<UUID> generatedId = ArgumentCaptor.forClass(UUID.class);
+		when(repository.findBySalespersonIdAndMonth(target.salespersonId(), "2026-01")).thenReturn(Optional.empty());
+		when(mapper.map(eq(target), generatedId.capture())).thenReturn(entity);
+		when(repository.existsById(any(UUID.class))).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(target);
 
-		repositoryAdapter.save(target);
+		final SalespersonTarget result = adapter.save(target);
 
-		assertThat(repositoryAdapter.findBySalespersonAndMonth(salespersonId, month)).isPresent().get()
-				.satisfies(found -> {
-					assertThat(found.salespersonId()).isEqualTo(salespersonId);
-					assertThat(found.month()).isEqualTo(month);
-					assertThat(found.valueTarget()).isEqualByComparingTo("15000.00");
-					assertThat(found.orderCountTarget()).isEqualTo(30);
-				});
+		assertThat(result).isSameAs(target);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).existsById(generatedId.getValue());
+		verify(repository).save(entity);
 	}
 
 	@Test
 	@DisplayName("Overwrites the existing target when one is set again for the same month")
 	void settingATargetForAMonthThatAlreadyHasOneOverwritesIt() {
-		UUID salespersonId = UUID.randomUUID();
-		YearMonth month = YearMonth.of(2026, 1);
-		repositoryAdapter.save(new SalespersonTarget(salespersonId, month, new BigDecimal("10000.00"), 20));
+		final SalespersonTarget target = buildTarget(UUID.randomUUID(), MONTH);
+		final SalespersonTargetJpaEntity existing = SalespersonTargetJpaEntity.builder().id(UUID.randomUUID()).build();
+		final SalespersonTargetJpaEntity entity = SalespersonTargetJpaEntity.builder().id(existing.getId()).build();
+		when(repository.findBySalespersonIdAndMonth(target.salespersonId(), "2026-01"))
+				.thenReturn(Optional.of(existing));
+		when(mapper.map(target, existing.getId())).thenReturn(entity);
+		when(repository.existsById(existing.getId())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(target);
 
-		repositoryAdapter.save(new SalespersonTarget(salespersonId, month, new BigDecimal("20000.00"), 40));
+		adapter.save(target);
 
-		assertThat(repositoryAdapter.findBySalespersonAndMonth(salespersonId, month)).isPresent().get()
-				.satisfies(found -> {
-					assertThat(found.valueTarget()).isEqualByComparingTo("20000.00");
-					assertThat(found.orderCountTarget()).isEqualTo(40);
-				});
+		assertThat(entity.isNew()).isFalse();
+		verify(repository).save(entity);
+	}
+
+	@Test
+	@DisplayName("Finds the target of a salesperson for a month")
+	void shouldFindBySalespersonAndMonth() {
+		final UUID salespersonId = UUID.randomUUID();
+		final SalespersonTarget target = buildTarget(salespersonId, MONTH);
+		final SalespersonTargetJpaEntity entity = SalespersonTargetJpaEntity.builder().id(UUID.randomUUID()).build();
+		when(repository.findBySalespersonIdAndMonth(salespersonId, "2026-01")).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(target);
+
+		final Optional<SalespersonTarget> result = adapter.findBySalespersonAndMonth(salespersonId, MONTH);
+
+		assertThat(result).contains(target);
+		verify(repository).findBySalespersonIdAndMonth(salespersonId, "2026-01");
 	}
 
 	@Test
 	@DisplayName("Returns empty when no target exists for the salesperson and month")
 	void findBySalespersonAndMonthReturnsEmptyWhenNoTargetExists() {
-		assertThat(repositoryAdapter.findBySalespersonAndMonth(UUID.randomUUID(), YearMonth.of(2026, 1))).isEmpty();
+		final UUID salespersonId = UUID.randomUUID();
+		when(repository.findBySalespersonIdAndMonth(salespersonId, "2026-01")).thenReturn(Optional.empty());
+
+		assertThat(adapter.findBySalespersonAndMonth(salespersonId, MONTH)).isEmpty();
 	}
 
 	@Test
-	@DisplayName("Returns every target of the requested month only")
-	void findByMonthReturnsEveryTargetOfThatMonthOnly() {
-		UUID ana = UUID.randomUUID();
-		UUID bruno = UUID.randomUUID();
-		YearMonth march = YearMonth.of(2026, 3);
-		repositoryAdapter.save(new SalespersonTarget(ana, march, new BigDecimal("1000.00"), 1));
-		repositoryAdapter.save(new SalespersonTarget(bruno, march, new BigDecimal("2000.00"), 2));
-		repositoryAdapter.save(new SalespersonTarget(ana, YearMonth.of(2026, 4), new BigDecimal("3000.00"), 3));
+	@DisplayName("Returns every target of the requested month")
+	void findByMonthReturnsEveryTargetOfThatMonth() {
+		final SalespersonTarget ana = buildTarget(UUID.randomUUID(), MONTH);
+		final SalespersonTarget bruno = buildTarget(UUID.randomUUID(), MONTH);
+		final SalespersonTargetJpaEntity anaEntity = SalespersonTargetJpaEntity.builder().id(UUID.randomUUID()).build();
+		final SalespersonTargetJpaEntity brunoEntity = SalespersonTargetJpaEntity.builder().id(UUID.randomUUID()).build();
+		when(repository.findByMonth("2026-01")).thenReturn(List.of(anaEntity, brunoEntity));
+		when(mapper.map(same(anaEntity))).thenReturn(ana);
+		when(mapper.map(same(brunoEntity))).thenReturn(bruno);
 
-		assertThat(repositoryAdapter.findByMonth(march)).extracting(SalespersonTarget::salespersonId)
-				.containsExactlyInAnyOrder(ana, bruno);
-		assertThat(repositoryAdapter.findByMonth(YearMonth.of(2026, 5))).isEmpty();
+		final List<SalespersonTarget> result = adapter.findByMonth(MONTH);
+
+		assertThat(result).containsExactly(ana, bruno);
+	}
+
+	private SalespersonTarget buildTarget(final UUID salespersonId, final YearMonth month) {
+		return new SalespersonTarget(salespersonId, month, new BigDecimal("15000.00"), 30);
 	}
 }

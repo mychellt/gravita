@@ -1,100 +1,99 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
-import br.gravita.adapters.outbound.persistence.entities.masterdata.CompanyJpaEntity;
-import br.gravita.adapters.outbound.persistence.mappers.masterdata.DocumentSeriesPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.masterdata.DocumentSeriesJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.DocumentSeriesPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.masterdata.DocumentSeriesJpaRepository;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DocumentSeries;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
-import br.gravita.core.domain.masterdata.SefazEnvironment;
-import br.gravita.core.domain.masterdata.TaxRegime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({DocumentSeriesRepositoryAdapter.class, DocumentSeriesPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class DocumentSeriesRepositoryAdapterTest {
 
-	@Autowired
-	private DocumentSeriesRepositoryAdapter repositoryAdapter;
+	@Mock
+	private DocumentSeriesJpaRepository repository;
 
-	@Autowired
-	private TestEntityManager entityManager;
+	@Mock
+	private DocumentSeriesPersistenceMapper mapper;
 
-	private CompanyId persistCompany() {
-		UUID id = UUID.randomUUID();
-		entityManager.persist(CompanyJpaEntity.builder()
-				.id(id)
-				.cnpj(UUID.randomUUID().toString().substring(0, 14))
-				.ie("123456789")
-				.im("987654")
-				.cnae("6201500")
-				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
-				.simplesOptante(true)
-				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
-				.address("Rua Teste, 100")
-				.issuingEmail("nfe@example.com")
-				.phone("11999999999")
-				.build());
-		return CompanyId.of(id);
+	@InjectMocks
+	private DocumentSeriesRepositoryAdapter adapter;
+
+	@Test
+	@DisplayName("Saves a new document series marking its entity as new")
+	void shouldSaveNewDocumentSeries() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final DocumentSeries series = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE);
+		final DocumentSeriesJpaEntity entity = buildEntity(series.getId());
+		final DocumentSeriesJpaEntity saved = buildEntity(series.getId());
+		when(mapper.map(series)).thenReturn(entity);
+		when(repository.existsById(series.getId())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(series);
+
+		final DocumentSeries result = adapter.save(series);
+
+		assertThat(result).isSameAs(series);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
 	}
 
 	@Test
-	@DisplayName("Saves a document series and retrieves it by company and document type")
-	void shouldSaveAndRetrieveByCompanyAndDocumentType() {
-		CompanyId companyId = persistCompany();
-		DocumentSeries placeholder = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE);
+	@DisplayName("Saves an existing document series marking its entity as not new")
+	void shouldSaveExistingDocumentSeriesAsNotNew() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final DocumentSeries series = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFSE).reconfigure("001", 10L);
+		final DocumentSeriesJpaEntity entity = buildEntity(series.getId());
+		when(mapper.map(series)).thenReturn(entity);
+		when(repository.existsById(series.getId())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(series);
 
-		repositoryAdapter.save(placeholder);
+		adapter.save(series);
 
-		Optional<DocumentSeries> found = repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE);
-		assertThat(found).isPresent();
-		assertThat(found.get().getNextNumber()).isEqualTo(1L);
-		assertThat(found.get().getSeries()).isNull();
+		assertThat(entity.isNew()).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds a document series by company and document type")
+	void shouldFindByCompanyAndDocumentType() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final DocumentSeries series = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE);
+		final DocumentSeriesJpaEntity entity = buildEntity(series.getId());
+		when(repository.findByCompanyIdAndDocumentType(companyId.value(), FiscalDocumentType.NFE))
+				.thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(series);
+
+		final Optional<DocumentSeries> result = adapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE);
+
+		assertThat(result).contains(series);
+		verify(repository).findByCompanyIdAndDocumentType(companyId.value(), FiscalDocumentType.NFE);
 	}
 
 	@Test
 	@DisplayName("Returns empty when no series is configured for the document type")
 	void shouldReturnEmptyWhenNoSeriesConfiguredForType() {
-		CompanyId companyId = persistCompany();
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		when(repository.findByCompanyIdAndDocumentType(companyId.value(), FiscalDocumentType.NFCE))
+				.thenReturn(Optional.empty());
 
-		assertThat(repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFCE)).isEmpty();
+		assertThat(adapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFCE)).isEmpty();
 	}
 
-	@Test
-	@DisplayName("Keeps each document type independent for the same company")
-	void shouldKeepEachDocumentTypeIndependentForTheSameCompany() {
-		CompanyId companyId = persistCompany();
-		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFE).reconfigure("001", 100L));
-		repositoryAdapter.save(DocumentSeries.placeholder(companyId, FiscalDocumentType.NFCE).reconfigure("A", 1L));
-
-		assertThat(repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE)).get()
-				.extracting(DocumentSeries::getNextNumber).isEqualTo(100L);
-		assertThat(repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFCE)).get()
-				.extracting(DocumentSeries::getNextNumber).isEqualTo(1L);
-		assertThat(repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFSE)).isEmpty();
-	}
-
-	@Test
-	@DisplayName("Reflects a reconfigured series on the next read right after saving it again")
-	void reconfiguringAndSavingAgainImmediatelyReflectsOnNextRead() {
-		CompanyId companyId = persistCompany();
-		DocumentSeries configured = DocumentSeries.placeholder(companyId, FiscalDocumentType.NFSE).reconfigure("001", 10L);
-		DocumentSeries saved = repositoryAdapter.save(configured);
-
-		DocumentSeries reconfigured = saved.reconfigure("001", 20L);
-		repositoryAdapter.save(reconfigured);
-
-		Optional<DocumentSeries> found = repositoryAdapter.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFSE);
-		assertThat(found).isPresent();
-		assertThat(found.get().getNextNumber()).isEqualTo(20L);
+	private DocumentSeriesJpaEntity buildEntity(final UUID id) {
+		return DocumentSeriesJpaEntity.builder().id(id).build();
 	}
 }

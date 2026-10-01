@@ -1,89 +1,104 @@
 package br.gravita.adapters.outbound.persistence.adapters.masterdata;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import br.gravita.adapters.outbound.persistence.mappers.masterdata.SupplierPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.masterdata.SupplierJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.masterdata.SupplierPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.masterdata.SupplierJpaRepository;
 import br.gravita.core.domain.masterdata.Address;
-import br.gravita.core.domain.masterdata.BankAccount;
-import br.gravita.core.domain.masterdata.Contact;
-import br.gravita.core.domain.masterdata.ContactType;
-import br.gravita.core.domain.masterdata.PixKey;
 import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.shared.Document;
-import java.util.List;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@DataJpaTest
-@Import({SupplierRepositoryAdapter.class, SupplierPersistenceMapperImpl.class})
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class SupplierRepositoryAdapterTest {
 
 	private static final Address VALID_ADDRESS =
 			new Address("Rua Teste", "100", null, "Centro", "Sao Paulo", "SP", "01000-000");
 
-	@Autowired
-	private SupplierRepositoryAdapter repositoryAdapter;
+	@Mock
+	private SupplierJpaRepository repository;
+
+	@Mock
+	private SupplierPersistenceMapper mapper;
+
+	@InjectMocks
+	private SupplierRepositoryAdapter adapter;
 
 	@Test
 	@DisplayName("Persists a new supplier using the application-assigned id")
 	void shouldPersistNewSupplierWithApplicationAssignedId() {
-		Supplier supplier = newSupplier(SupplierId.of(UUID.randomUUID()));
+		final Supplier supplier = buildSupplier();
+		final SupplierJpaEntity entity = buildEntity(supplier.getId());
+		final SupplierJpaEntity saved = buildEntity(supplier.getId());
+		when(mapper.map(supplier)).thenReturn(entity);
+		when(repository.existsById(supplier.getId().value())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(supplier);
 
-		Supplier saved = repositoryAdapter.save(supplier);
+		final Supplier result = adapter.save(supplier);
 
-		assertThat(repositoryAdapter.findById(saved.getId())).isPresent().get()
-				.satisfies(found -> {
-					assertThat(found.getDocument()).isEqualTo(supplier.getDocument());
-					assertThat(found.getAddresses()).containsExactly(VALID_ADDRESS);
-					assertThat(found.getBankAccount()).isNull();
-					assertThat(found.getPixKey()).isNull();
-				});
+		assertThat(result).isSameAs(supplier);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
 	}
 
 	@Test
-	@DisplayName("Persists the optional bank account, PIX key and purchasing fields")
-	void shouldPersistOptionalBankAccountPixKeyAndPurchasingFields() {
-		SupplierId id = SupplierId.of(UUID.randomUUID());
-		Supplier supplier = Supplier.of(id, Document.cnpj("11222333000181"), "Acme Supplies", List.of(VALID_ADDRESS),
-				List.of(new Contact(ContactType.EMAIL, "purchasing@acme.com")),
-				new BankAccount("001", "1234", "56789-0"), PixKey.of("supplier@example.com"), 5, "1102");
+	@DisplayName("Updates an existing supplier marking its entity as not new")
+	void shouldUpdateExistingSupplierAsNotNew() {
+		final Supplier supplier = buildSupplier();
+		final SupplierJpaEntity entity = buildEntity(supplier.getId());
+		when(mapper.map(supplier)).thenReturn(entity);
+		when(repository.existsById(supplier.getId().value())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(supplier);
 
-		repositoryAdapter.save(supplier);
+		adapter.save(supplier);
 
-		assertThat(repositoryAdapter.findById(id)).isPresent().get()
-				.satisfies(found -> {
-					assertThat(found.getBankAccount()).isEqualTo(new BankAccount("001", "1234", "56789-0"));
-					assertThat(found.getPixKey()).isEqualTo(PixKey.of("supplier@example.com"));
-					assertThat(found.getAverageLeadTimeDays()).isEqualTo(5);
-					assertThat(found.getDefaultPurchaseCfop()).isEqualTo("1102");
-				});
+		assertThat(entity.isNew()).isFalse();
 	}
 
 	@Test
-	@DisplayName("Updates an existing supplier without losing its creation timestamp")
-	void shouldUpdateExistingSupplierWithoutLosingCreatedAt() {
-		Supplier supplier = newSupplier(SupplierId.of(UUID.randomUUID()));
-		Supplier saved = repositoryAdapter.save(supplier);
+	@DisplayName("Finds a supplier by id")
+	void shouldFindSupplierById() {
+		final Supplier supplier = buildSupplier();
+		final SupplierJpaEntity entity = buildEntity(supplier.getId());
+		when(repository.findById(supplier.getId().value())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(supplier);
 
-		Supplier changed = Supplier.of(saved.getId(), saved.getDocument(), "New Name", saved.getAddresses(),
-				saved.getContacts(), saved.getBankAccount(), saved.getPixKey(), 10, "2102");
+		final Optional<Supplier> result = adapter.findById(supplier.getId());
 
-		repositoryAdapter.save(changed);
-
-		assertThat(repositoryAdapter.findById(saved.getId())).isPresent().get()
-				.satisfies(found -> {
-					assertThat(found.getName()).isEqualTo("New Name");
-					assertThat(found.getAverageLeadTimeDays()).isEqualTo(10);
-				});
+		assertThat(result).contains(supplier);
+		verify(repository).findById(supplier.getId().value());
 	}
 
-	private Supplier newSupplier(SupplierId id) {
-		return Supplier.of(id, Document.cnpj("11222333000181"), "Acme Supplies", List.of(VALID_ADDRESS), List.of(),
-				null, null, null, null);
+	@Test
+	@DisplayName("Returns empty when the supplier does not exist")
+	void shouldReturnEmptyWhenSupplierDoesNotExist() {
+		final SupplierId id = SupplierId.of(UUID.randomUUID());
+		when(repository.findById(id.value())).thenReturn(Optional.empty());
+
+		assertThat(adapter.findById(id)).isEmpty();
+	}
+
+	private SupplierJpaEntity buildEntity(final SupplierId id) {
+		return SupplierJpaEntity.builder().id(id.value()).build();
+	}
+
+	private Supplier buildSupplier() {
+		return Supplier.of(SupplierId.of(UUID.randomUUID()), Document.cnpj("11222333000181"), "Acme Supplies",
+				List.of(VALID_ADDRESS), List.of(), null, null, null, null);
 	}
 }

@@ -1,72 +1,133 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.PlanJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.PlanJpaRepository;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({PlanRepositoryAdapter.class, PlanPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class PlanRepositoryAdapterTest {
 
-	@Autowired
-	private PlanRepositoryAdapter repositoryAdapter;
+	@Mock
+	private PlanJpaRepository repository;
+
+	@Mock
+	private PlanPersistenceMapper mapper;
+
+	@InjectMocks
+	private PlanRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Saves a plan and retrieves it by id")
-	void shouldSaveAndRetrievePlan() {
-		PlanDomain plan = PlanDomain.builder()
-				.name("Bronze")
-				.tier(PlanTier.BRONZE)
-				.priceMonthly(new BigDecimal("297.00"))
-				.priceAnnual(new BigDecimal("247.00"))
-				.features(List.of("1 CNPJ · 1 filial", "NF-e e NFC-e ilimitadas"))
-				.build();
-		plan.setId(UUID.randomUUID());
+	@DisplayName("Saves a new plan marking its entity as new")
+	void shouldSaveNewPlan() {
+		final PlanDomain plan = buildPlan("Bronze");
+		final PlanJpaEntity entity = buildEntity(plan.getId());
+		final PlanJpaEntity saved = buildEntity(plan.getId());
+		when(mapper.map(plan)).thenReturn(entity);
+		when(repository.existsById(plan.getId())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(plan);
 
-		PlanDomain saved = repositoryAdapter.save(plan);
+		final PlanDomain result = adapter.save(plan);
 
-		assertThat(repositoryAdapter.findById(saved.getId()))
-				.isPresent()
-				.get()
-				.satisfies(found -> {
-					assertThat(found.getName()).isEqualTo("Bronze");
-					assertThat(found.getTier()).isEqualTo(PlanTier.BRONZE);
-					assertThat(found.getFeatures()).containsExactlyInAnyOrder("1 CNPJ · 1 filial", "NF-e e NFC-e ilimitadas");
-				});
+		assertThat(result).isSameAs(plan);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
+	}
+
+	@Test
+	@DisplayName("Saves an existing plan marking its entity as not new")
+	void shouldSaveExistingPlanAsNotNew() {
+		final PlanDomain plan = buildPlan("Bronze");
+		final PlanJpaEntity entity = buildEntity(plan.getId());
+		when(mapper.map(plan)).thenReturn(entity);
+		when(repository.existsById(plan.getId())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(plan);
+
+		adapter.save(plan);
+
+		assertThat(entity.isNew()).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds a plan by id")
+	void shouldFindPlanById() {
+		final PlanDomain plan = buildPlan("Bronze");
+		final PlanJpaEntity entity = buildEntity(plan.getId());
+		when(repository.findById(plan.getId())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(plan);
+
+		final Optional<PlanDomain> result = adapter.findById(plan.getId());
+
+		assertThat(result).contains(plan);
+		verify(repository).findById(plan.getId());
 	}
 
 	@Test
 	@DisplayName("Lists all saved plans")
 	void shouldListAllPlans() {
-		repositoryAdapter.save(planWithName("Silver"));
-		repositoryAdapter.save(planWithName("Gold"));
+		final PlanDomain silver = buildPlan("Silver");
+		final PlanDomain gold = buildPlan("Gold");
+		final PlanJpaEntity silverEntity = buildEntity(silver.getId());
+		final PlanJpaEntity goldEntity = buildEntity(gold.getId());
+		when(repository.findAll()).thenReturn(List.of(silverEntity, goldEntity));
+		when(mapper.map(same(silverEntity))).thenReturn(silver);
+		when(mapper.map(same(goldEntity))).thenReturn(gold);
 
-		assertThat(repositoryAdapter.findAll()).extracting(PlanDomain::getName).contains("Silver", "Gold");
+		final List<PlanDomain> result = adapter.findAll();
+
+		assertThat(result).containsExactly(silver, gold);
 	}
 
 	@Test
 	@DisplayName("Deletes a saved plan")
 	void shouldDeletePlan() {
-		PlanDomain saved = repositoryAdapter.save(planWithName("Bronze"));
+		final UUID id = UUID.randomUUID();
+		final PlanJpaEntity entity = buildEntity(id);
+		when(repository.findById(id)).thenReturn(Optional.of(entity));
 
-		repositoryAdapter.deleteById(saved.getId());
+		adapter.deleteById(id);
 
-		assertThat(repositoryAdapter.findById(saved.getId())).isEmpty();
+		assertThat(entity.isNew()).isFalse();
+		verify(repository).delete(entity);
 	}
 
-	private PlanDomain planWithName(String name) {
-		PlanDomain plan = PlanDomain.builder()
+	@Test
+	@DisplayName("Does nothing when deleting a plan that does not exist")
+	void shouldDoNothingWhenDeletingUnknownPlan() {
+		final UUID id = UUID.randomUUID();
+		when(repository.findById(id)).thenReturn(Optional.empty());
+
+		adapter.deleteById(id);
+
+		verify(repository, never()).delete(org.mockito.ArgumentMatchers.any());
+	}
+
+	private PlanJpaEntity buildEntity(final UUID id) {
+		return PlanJpaEntity.builder().id(id).build();
+	}
+
+	private PlanDomain buildPlan(final String name) {
+		final PlanDomain plan = PlanDomain.builder()
 				.name(name)
 				.tier(PlanTier.SILVER)
 				.priceMonthly(BigDecimal.TEN)

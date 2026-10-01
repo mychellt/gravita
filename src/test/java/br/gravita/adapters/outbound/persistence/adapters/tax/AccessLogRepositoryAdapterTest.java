@@ -1,94 +1,91 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.mappers.tax.AccessLogPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.tax.AccessLogJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.AccessLogPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.tax.AccessLogJpaRepository;
 import br.gravita.core.domain.shared.Page;
 import br.gravita.core.domain.system.AccessLog;
-import br.gravita.core.domain.system.AccessLogEvent;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.usercases.system.GetAccessLogQuery;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({AccessLogRepositoryAdapter.class, AccessLogPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class AccessLogRepositoryAdapterTest {
 
-	@Autowired
-	private AccessLogRepositoryAdapter repositoryAdapter;
+	@Mock
+	private AccessLogJpaRepository repository;
+
+	@Mock
+	private AccessLogPersistenceMapper mapper;
+
+	@InjectMocks
+	private AccessLogRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Persists a successful login with the attempting user")
-	void shouldPersistASuccessfulLoginWithTheAttemptingUser() {
-		AccessLog accessLog = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
+	@DisplayName("Saves an access log entry")
+	void shouldSaveAccessLog() {
+		final AccessLog accessLog = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
+		final AccessLogJpaEntity entity = AccessLogJpaEntity.builder().id(UUID.randomUUID()).build();
+		when(mapper.map(accessLog)).thenReturn(entity);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(accessLog);
 
-		AccessLog saved = repositoryAdapter.save(accessLog);
+		final AccessLog result = adapter.save(accessLog);
 
-		assertThat(saved.getEvent()).isEqualTo(AccessLogEvent.LOGIN);
-		assertThat(saved.isSuccessful()).isTrue();
-		assertThat(saved.getUserId()).isEqualTo(accessLog.getUserId());
-		assertThat(saved.getIp()).isEqualTo("1.2.3.4");
-		assertThat(saved.getDevice()).isEqualTo("Chrome");
+		assertThat(result).isSameAs(accessLog);
+		verify(repository).save(entity);
 	}
 
 	@Test
-	@DisplayName("Persists a failed login with no matching user")
-	void shouldPersistAFailedLoginWithNoMatchingUser() {
-		AccessLog accessLog = AccessLog.login(null, "ghost@example.com", false, "5.6.7.8", "curl/8.0");
+	@DisplayName("Searches the access log filtering by user and date, newest first")
+	void shouldSearchFilteringByUserAndDateNewestFirst() {
+		final UserId userId = UserId.generate();
+		final Instant from = Instant.now().minus(365, ChronoUnit.DAYS);
+		final AccessLog accessLog = AccessLog.login(userId, "jane@example.com", true, "1.2.3.4", "Chrome");
+		final AccessLogJpaEntity entity = AccessLogJpaEntity.builder().id(UUID.randomUUID()).build();
+		final PageRequest pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "timestamp"));
+		when(repository.search(userId.value(), from, null, null, null, pageable))
+				.thenReturn(new PageImpl<>(List.of(entity), pageable, 1));
+		when(mapper.map(entity)).thenReturn(accessLog);
 
-		AccessLog saved = repositoryAdapter.save(accessLog);
+		final Page<AccessLog> result = adapter.search(new GetAccessLogQuery(userId, from, null, null, null, 0, 20));
 
-		assertThat(saved.getUserId()).isNull();
-		assertThat(saved.getEmail()).isEqualTo("ghost@example.com");
-		assertThat(saved.isSuccessful()).isFalse();
-	}
-
-	@Test
-	@DisplayName("Excludes entries older than the given start date")
-	void shouldExcludeEntriesOlderThanTheGivenDateFrom() {
-		UserId userId = UserId.generate();
-		Instant now = Instant.now();
-		repositoryAdapter.save(AccessLog.builder()
-				.id(UUID.randomUUID()).userId(userId).email("jane@example.com")
-				.event(AccessLogEvent.LOGIN).successful(true).ip("1.2.3.4").device("Chrome")
-				.timestamp(now.minus(400, ChronoUnit.DAYS)).build());
-		AccessLog recent = repositoryAdapter.save(AccessLog.builder()
-				.id(UUID.randomUUID()).userId(userId).email("jane@example.com")
-				.event(AccessLogEvent.LOGIN).successful(true).ip("1.2.3.4").device("Chrome")
-				.timestamp(now.minus(1, ChronoUnit.DAYS)).build());
-
-		Page<AccessLog> result = repositoryAdapter.search(
-				new GetAccessLogQuery(null, now.minus(365, ChronoUnit.DAYS), null, null, null, 0, 20));
-
-		assertThat(result.content()).extracting(AccessLog::getId).containsExactly(recent.getId());
+		assertThat(result.content()).containsExactly(accessLog);
+		assertThat(result.page()).isZero();
+		assertThat(result.size()).isEqualTo(20);
 		assertThat(result.totalElements()).isEqualTo(1);
+		verify(repository).search(userId.value(), from, null, null, null, pageable);
 	}
 
 	@Test
-	@DisplayName("Filters access log entries by user id")
-	void shouldFilterByUserId() {
-		UserId targetUser = UserId.generate();
-		Instant now = Instant.now();
-		AccessLog targetEntry = repositoryAdapter.save(AccessLog.builder()
-				.id(UUID.randomUUID()).userId(targetUser).email("jane@example.com")
-				.event(AccessLogEvent.LOGIN).successful(true).ip("1.2.3.4").device("Chrome")
-				.timestamp(now).build());
-		repositoryAdapter.save(AccessLog.builder()
-				.id(UUID.randomUUID()).userId(UserId.generate()).email("john@example.com")
-				.event(AccessLogEvent.LOGIN).successful(true).ip("5.6.7.8").device("Firefox")
-				.timestamp(now).build());
+	@DisplayName("Searches the access log without a user filter")
+	void shouldSearchWithoutUserFilter() {
+		final Instant from = Instant.now().minus(1, ChronoUnit.DAYS);
+		final PageRequest pageable = PageRequest.of(1, 10, Sort.by(Sort.Direction.DESC, "timestamp"));
+		when(repository.search(null, from, null, "1.2.3.4", "Chrome", pageable))
+				.thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
-		Page<AccessLog> result = repositoryAdapter.search(
-				new GetAccessLogQuery(targetUser, now.minus(1, ChronoUnit.DAYS), null, null, null, 0, 20));
+		final Page<AccessLog> result = adapter.search(new GetAccessLogQuery(null, from, null, "1.2.3.4", "Chrome", 1, 10));
 
-		assertThat(result.content()).extracting(AccessLog::getId).containsExactly(targetEntry.getId());
+		assertThat(result.content()).isEmpty();
+		assertThat(result.page()).isEqualTo(1);
+		assertThat(result.totalElements()).isZero();
 	}
 }

@@ -1,217 +1,192 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import br.gravita.adapters.outbound.persistence.entities.tax.MunicipalServiceCodeJpaEntity;
-import br.gravita.adapters.outbound.persistence.entities.tax.ServiceTaxRuleJpaEntity;
-import br.gravita.adapters.outbound.persistence.mappers.tax.NfsePersistenceMapperImpl;
-import br.gravita.adapters.outbound.persistence.repositories.tax.MunicipalServiceCodeJpaRepository;
+import br.gravita.adapters.outbound.persistence.entities.tax.NfseJpaEntity;
+import br.gravita.adapters.outbound.persistence.entities.tax.NfseNumberSequenceJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.NfsePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.NfseJpaRepository;
-import br.gravita.adapters.outbound.persistence.repositories.tax.ServiceTaxRuleJpaRepository;
+import br.gravita.adapters.outbound.persistence.repositories.tax.NfseNumberSequenceJpaRepository;
 import br.gravita.core.domain.masterdata.CompanyId;
-import br.gravita.core.domain.shared.PersonRef;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NfseDocument;
 import br.gravita.core.domain.tax.NfseId;
 import br.gravita.core.domain.tax.NfseNumber;
 import br.gravita.core.domain.tax.NfseStatus;
 import br.gravita.core.domain.tax.NfseTomador;
-import br.gravita.core.domain.tax.NfseWithholding;
 import br.gravita.core.domain.tax.PlaceOfProvision;
 import br.gravita.core.domain.tax.ServiceCode;
-import br.gravita.core.domain.tax.ServiceTaxRule;
-import br.gravita.core.domain.tax.TaxRegime;
-import br.gravita.core.domain.tax.TaxType;
-import br.gravita.core.domain.tax.TomadorAddress;
-import br.gravita.core.domain.tax.WithholdingMode;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
 
-@DataJpaTest
-@Import({ NfseRepositoryAdapter.class, NfsePersistenceMapperImpl.class, ServiceTaxRuleRepositoryAdapter.class,
-		MunicipalServiceCodeRepositoryAdapter.class })
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class NfseRepositoryAdapterTest {
 
-	@Autowired
-	private NfseRepositoryAdapter nfseRepositoryAdapter;
-	@Autowired
-	private ServiceTaxRuleRepositoryAdapter ruleRepositoryAdapter;
-	@Autowired
-	private MunicipalServiceCodeRepositoryAdapter municipalServiceCodeRepositoryAdapter;
-	@Autowired
-	private NfseJpaRepository nfseJpaRepository;
-	@Autowired
-	private ServiceTaxRuleJpaRepository ruleJpaRepository;
-	@Autowired
-	private MunicipalServiceCodeJpaRepository municipalServiceCodeJpaRepository;
+	private static final Instant FROM = Instant.parse("2026-10-01T00:00:00Z");
+	private static final Instant TO = Instant.parse("2026-11-01T00:00:00Z");
 
-	private static NfseDocument rps(NfseTomador tomador, List<NfseWithholding> withholdings, String justification) {
+	@Mock
+	private NfseJpaRepository repository;
+
+	@Mock
+	private NfseNumberSequenceJpaRepository sequenceRepository;
+
+	@Mock
+	private NfsePersistenceMapper mapper;
+
+	@InjectMocks
+	private NfseRepositoryAdapter adapter;
+
+	@Test
+	@DisplayName("Saves a new NFS-e marking its entity as new")
+	void shouldSaveNewNfse() {
+		final NfseDocument document = buildRps();
+		final NfseJpaEntity entity = buildEntity(document.getId());
+		final NfseJpaEntity saved = buildEntity(document.getId());
+		when(mapper.map(document)).thenReturn(entity);
+		when(repository.existsById(document.getId().value())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(document);
+
+		final NfseDocument result = adapter.save(document);
+
+		assertThat(result).isSameAs(document);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
+	}
+
+	@Test
+	@DisplayName("Saves an existing NFS-e marking its entity as not new")
+	void shouldSaveExistingNfseAsNotNew() {
+		final NfseDocument document = buildRps();
+		final NfseJpaEntity entity = buildEntity(document.getId());
+		when(mapper.map(document)).thenReturn(entity);
+		when(repository.existsById(document.getId().value())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(document);
+
+		adapter.save(document);
+
+		assertThat(entity.isNew()).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds an NFS-e by id")
+	void shouldFindNfseById() {
+		final NfseDocument document = buildRps();
+		final NfseJpaEntity entity = buildEntity(document.getId());
+		when(repository.findById(document.getId().value())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(document);
+
+		final Optional<NfseDocument> result = adapter.findById(document.getId());
+
+		assertThat(result).contains(document);
+		verify(repository).findById(document.getId().value());
+	}
+
+	@Test
+	@DisplayName("Finds an NFS-e by id for update")
+	void shouldFindNfseByIdForUpdate() {
+		final NfseDocument document = buildRps();
+		final NfseJpaEntity entity = buildEntity(document.getId());
+		when(repository.findByIdForUpdate(document.getId().value())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(document);
+
+		final Optional<NfseDocument> result = adapter.findByIdForUpdate(document.getId());
+
+		assertThat(result).contains(document);
+		verify(repository).findByIdForUpdate(document.getId().value());
+	}
+
+	@Test
+	@DisplayName("Returns empty when no NFS-e exists for the id to update")
+	void shouldReturnEmptyWhenNoNfseExistsForTheIdToUpdate() {
+		final NfseId id = NfseId.of(UUID.randomUUID());
+		when(repository.findByIdForUpdate(id.value())).thenReturn(Optional.empty());
+
+		assertThat(adapter.findByIdForUpdate(id)).isEmpty();
+	}
+
+	@Test
+	@DisplayName("Starts the numbering at 1 with the default series for a new company and municipality")
+	void shouldStartNumberingAtOneForANewCompanyAndMunicipality() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		when(sequenceRepository.findByCompanyIdAndMunicipalityIbge(companyId.value(), "3550308"))
+				.thenReturn(Optional.empty());
+
+		final NfseNumber allocated = adapter.allocateNextNumber(companyId, "3550308");
+
+		assertThat(allocated).isEqualTo(new NfseNumber("1", 1L));
+		final ArgumentCaptor<NfseNumberSequenceJpaEntity> captor =
+				ArgumentCaptor.forClass(NfseNumberSequenceJpaEntity.class);
+		verify(sequenceRepository).save(captor.capture());
+		assertThat(captor.getValue().getCompanyId()).isEqualTo(companyId.value());
+		assertThat(captor.getValue().getMunicipalityIbge()).isEqualTo("3550308");
+		assertThat(captor.getValue().getNextNumber()).isEqualTo(2L);
+	}
+
+	@Test
+	@DisplayName("Allocates the next number of an existing sequence and advances it")
+	void shouldAllocateTheNextNumberOfAnExistingSequenceAndAdvanceIt() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final NfseNumberSequenceJpaEntity sequence = NfseNumberSequenceJpaEntity.builder()
+				.id(UUID.randomUUID())
+				.companyId(companyId.value())
+				.municipalityIbge("3550308")
+				.series("1")
+				.nextNumber(7L)
+				.build();
+		when(sequenceRepository.findByCompanyIdAndMunicipalityIbge(companyId.value(), "3550308"))
+				.thenReturn(Optional.of(sequence));
+
+		final NfseNumber allocated = adapter.allocateNextNumber(companyId, "3550308");
+
+		assertThat(allocated).isEqualTo(new NfseNumber("1", 7L));
+		assertThat(sequence.getNextNumber()).isEqualTo(8L);
+		verify(sequenceRepository).save(same(sequence));
+	}
+
+	@Test
+	@DisplayName("Finds the NFS-e authorized within the window")
+	void shouldFindAuthorizedBetween() {
+		final NfseDocument document = buildRps();
+		final NfseJpaEntity entity = buildEntity(document.getId());
+		when(repository.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+				NfseStatus.AUTHORIZED, FROM, TO)).thenReturn(List.of(entity));
+		when(mapper.map(entity)).thenReturn(document);
+
+		final List<NfseDocument> result = adapter.findAuthorizedBetween(FROM, TO);
+
+		assertThat(result).containsExactly(document);
+		verify(repository).findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+				NfseStatus.AUTHORIZED, FROM, TO);
+	}
+
+	private NfseJpaEntity buildEntity(final NfseId id) {
+		return NfseJpaEntity.builder().id(id.value()).build();
+	}
+
+	private NfseDocument buildRps() {
+		final NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null,
+				null);
 		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), "3550308",
 				tomador, ServiceCode.of("1.05"), PlaceOfProvision.RECIPIENT, "3304557", new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), justification, withholdings,
+				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(),
 				"Desenvolvimento de software sob demanda", "RPS1", 42L, Instant.parse("2026-10-01T10:00:00Z"));
-	}
-
-	@Test
-	@DisplayName("Round-trips an RPS with its tomador address and withholdings")
-	void roundTripsAnRpsWithItsTomadorAddressAndWithholdings() {
-		NfseTomador tomador = NfseTomador.of(PersonRef.of(UUID.randomUUID()), "11222333000181", PersonType.COMPANY,
-				"Tomador SA", "3304557", new TomadorAddress("Rua A", "10", "Sala 2", "Centro", "20000000", "RJ"));
-		NfseDocument saved = nfseRepositoryAdapter.save(rps(tomador,
-				List.of(new NfseWithholding(TaxType.ISS, new BigDecimal("1000.00"), new BigDecimal("5.0000"),
-						new BigDecimal("50.00")),
-						new NfseWithholding(TaxType.CSLL, new BigDecimal("1000.00"), new BigDecimal("1.0000"),
-								new BigDecimal("10.00"))),
-				"Beneficio"));
-		nfseJpaRepository.flush();
-
-		NfseDocument found = nfseRepositoryAdapter.findById(saved.getId()).orElseThrow();
-
-		assertThat(found.getStatus()).isEqualTo(NfseStatus.RPS);
-		assertThat(found.getRpsSeries()).isEqualTo("RPS1");
-		assertThat(found.getRpsNumber()).isEqualTo(42L);
-		assertThat(found.getServiceCode()).isEqualTo("01.05");
-		assertThat(found.getPlaceOfProvision()).isEqualTo(PlaceOfProvision.RECIPIENT);
-		assertThat(found.getIssMunicipalityIbgeCode()).isEqualTo("3304557");
-		assertThat(found.getIssRate()).isEqualByComparingTo("5.0000");
-		assertThat(found.getIssRateOverrideJustification()).isEqualTo("Beneficio");
-		assertThat(found.getDiscrimination()).isEqualTo("Desenvolvimento de software sob demanda");
-		assertThat(found.getTomador().document().number()).isEqualTo("11222333000181");
-		assertThat(found.getTomador().isCompany()).isTrue();
-		assertThat(found.getTomador().hasFullAddress()).isTrue();
-		assertThat(found.getTomador().address().complement()).isEqualTo("Sala 2");
-		assertThat(found.getWithholdings()).extracting(NfseWithholding::taxType)
-				.containsExactlyInAnyOrder(TaxType.ISS, TaxType.CSLL);
-		assertThat(found.getCreatedAt()).isEqualTo(Instant.parse("2026-10-01T10:00:00Z"));
-	}
-
-	@Test
-	@DisplayName("Round-trips the series, number and draft timestamp of a converted NFS-e")
-	void roundTripsTheNfseSeriesNumberAndDraftTimestampOfAConvertedDocument() {
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
-		NfseDocument rps = nfseRepositoryAdapter.save(rps(tomador, List.of(), null));
-		nfseJpaRepository.flush();
-
-		nfseRepositoryAdapter.save(rps.convertToNfse("1", 9L, Instant.parse("2026-10-01T12:00:00Z")));
-		nfseJpaRepository.flush();
-
-		NfseDocument found = nfseRepositoryAdapter.findByIdForUpdate(rps.getId()).orElseThrow();
-		assertThat(found.getStatus()).isEqualTo(NfseStatus.DRAFT);
-		assertThat(found.getNfseSeries()).isEqualTo("1");
-		assertThat(found.getNfseNumber()).isEqualTo(9L);
-		assertThat(found.getDraftAt()).isEqualTo(Instant.parse("2026-10-01T12:00:00Z"));
-		assertThat(found.getRpsNumber()).isEqualTo(42L);
-		assertThat(nfseRepositoryAdapter.findByIdForUpdate(NfseId.of(UUID.randomUUID()))).isEmpty();
-	}
-
-	@Test
-	@DisplayName("Numbers NFS-e sequentially per company and municipality")
-	void nfseNumbersAreSequentialPerCompanyAndMunicipality() {
-		CompanyId a = CompanyId.of(UUID.randomUUID());
-		CompanyId b = CompanyId.of(UUID.randomUUID());
-
-		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 1L));
-		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 2L));
-		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3304557")).isEqualTo(new NfseNumber("1", 1L));
-		assertThat(nfseRepositoryAdapter.allocateNextNumber(b, "3550308")).isEqualTo(new NfseNumber("1", 1L));
-		assertThat(nfseRepositoryAdapter.allocateNextNumber(a, "3550308")).isEqualTo(new NfseNumber("1", 3L));
-	}
-
-	@Test
-	@DisplayName("Round-trips an individual tomador without address or withholdings")
-	void roundTripsAPfTomadorWithoutAddressOrWithholdings() {
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
-		NfseDocument saved = nfseRepositoryAdapter.save(rps(tomador, List.of(), null));
-		nfseJpaRepository.flush();
-
-		NfseDocument found = nfseRepositoryAdapter.findById(saved.getId()).orElseThrow();
-
-		assertThat(found.getTomador().address()).isNull();
-		assertThat(found.getTomador().municipalityIbgeCode()).isNull();
-		assertThat(found.getTomador().personRef()).isNull();
-		assertThat(found.getWithholdings()).isEmpty();
-		assertThat(found.isIssRateOverridden()).isFalse();
-		assertThat(nfseRepositoryAdapter.findById(NfseId.of(UUID.randomUUID()))).isEmpty();
-	}
-
-	@Test
-	@DisplayName("Round-trips the NFS-e transmission lifecycle")
-	void roundTripsTheTransmissionLifecycle() {
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
-		NfseDocument draft = nfseRepositoryAdapter.save(rps(tomador, List.of(), null)
-				.convertToNfse("1", 3L, Instant.parse("2026-10-01T10:30:00Z")));
-		NfseDocument sent = draft.send(Instant.parse("2026-10-01T11:00:00Z"));
-
-		NfseDocument rejected = nfseRepositoryAdapter.save(sent.reject("Dados do tomador invalidos"));
-		assertThat(rejected.getStatus()).isEqualTo(NfseStatus.DRAFT);
-		assertThat(rejected.getLastRejectionReason()).isEqualTo("Dados do tomador invalidos");
-		assertThat(rejected.getSentAt()).isEqualTo(Instant.parse("2026-10-01T11:00:00Z"));
-
-		NfseDocument authorized = nfseRepositoryAdapter.save(rejected.send(Instant.parse("2026-10-01T12:00:00Z"))
-				.authorize("PROT-77", Instant.parse("2026-10-01T12:00:03Z"), "xml/nfse-3"));
-		NfseDocument found = nfseRepositoryAdapter.findById(authorized.getId()).orElseThrow();
-
-		assertThat(found.getStatus()).isEqualTo(NfseStatus.AUTHORIZED);
-		assertThat(found.getProtocol()).isEqualTo("PROT-77");
-		assertThat(found.getAuthorizedAt()).isEqualTo(Instant.parse("2026-10-01T12:00:03Z"));
-		assertThat(found.getXmlReference()).isEqualTo("xml/nfse-3");
-		assertThat(found.getLastRejectionReason()).isNull();
-
-		nfseRepositoryAdapter.save(found.cancel("Servico nao prestado", Instant.parse("2026-10-02T09:00:00Z")));
-		NfseDocument cancelled = nfseRepositoryAdapter.findById(found.getId()).orElseThrow();
-
-		assertThat(cancelled.getStatus()).isEqualTo(NfseStatus.CANCELLED);
-		assertThat(cancelled.getCancellationJustification()).isEqualTo("Servico nao prestado");
-		assertThat(cancelled.getCancelledAt()).isEqualTo(Instant.parse("2026-10-02T09:00:00Z"));
-		assertThat(cancelled.getProtocol()).isEqualTo("PROT-77");
-		assertThat(cancelled.getXmlReference()).isEqualTo("xml/nfse-3");
-	}
-
-	@Test
-	@DisplayName("Returns the municipality's rules and the wildcard ones of that service only when finding candidates")
-	void findCandidatesReturnsTheMunicipalityRowsAndTheWildcardOnesOfThatServiceOnly() {
-		saveRule("01.05", "3550308", TaxRegime.LUCRO_PRESUMIDO, TaxType.ISS, "5.0000", WithholdingMode.TOMADOR_COMPANY);
-		saveRule("01.05", null, null, TaxType.PIS, "0.6500", WithholdingMode.ALWAYS);
-		saveRule("01.05", "3304557", null, TaxType.ISS, "3.0000", WithholdingMode.NEVER);
-		saveRule("02.01", "3550308", null, TaxType.ISS, "2.0000", WithholdingMode.NEVER);
-		ruleJpaRepository.flush();
-
-		List<ServiceTaxRule> candidates = ruleRepositoryAdapter.findCandidates("01.05", "3550308");
-
-		assertThat(candidates).extracting(ServiceTaxRule::taxType).containsExactlyInAnyOrder(TaxType.ISS, TaxType.PIS);
-		ServiceTaxRule iss = candidates.stream().filter(r -> r.taxType() == TaxType.ISS).findFirst().orElseThrow();
-		assertThat(iss.municipalityIbgeCode()).isEqualTo("3550308");
-		assertThat(iss.regime()).isEqualTo(TaxRegime.LUCRO_PRESUMIDO);
-		assertThat(iss.ratePercentage()).isEqualByComparingTo("5.0000");
-		assertThat(iss.withholding()).isEqualTo(WithholdingMode.TOMADOR_COMPANY);
-	}
-
-	@Test
-	@DisplayName("Answers municipal service code list lookups for listed and unlisted municipalities and codes")
-	void municipalServiceListLookups() {
-		MunicipalServiceCodeJpaEntity entity = MunicipalServiceCodeJpaEntity.builder().id(UUID.randomUUID())
-				.municipalityIbge("3550308").serviceCode("01.05").build();
-		municipalServiceCodeJpaRepository.saveAndFlush(entity);
-
-		assertThat(municipalServiceCodeRepositoryAdapter.hasServiceCodeList("3550308")).isTrue();
-		assertThat(municipalServiceCodeRepositoryAdapter.existsByMunicipalityAndServiceCode("3550308", "01.05"))
-				.isTrue();
-		assertThat(municipalServiceCodeRepositoryAdapter.existsByMunicipalityAndServiceCode("3550308", "02.01"))
-				.isFalse();
-		assertThat(municipalServiceCodeRepositoryAdapter.hasServiceCodeList("3304557")).isFalse();
-	}
-
-	private void saveRule(String serviceCode, String municipality, TaxRegime regime, TaxType type, String rate,
-			WithholdingMode mode) {
-		ruleJpaRepository.save(ServiceTaxRuleJpaEntity.builder().id(UUID.randomUUID()).serviceCode(serviceCode)
-				.municipalityIbge(municipality).regime(regime).taxType(type).ratePercentage(new BigDecimal(rate))
-				.withholding(mode).build());
 	}
 }

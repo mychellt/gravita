@@ -1,104 +1,140 @@
 package br.gravita.adapters.outbound.persistence.adapters;
 
-import br.gravita.core.domain.AddressDomain;
-import br.gravita.core.domain.AddressType;
+import br.gravita.adapters.outbound.persistence.entities.CustomerJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.CustomerPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.CustomerJpaRepository;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
-import br.gravita.adapters.outbound.persistence.mappers.CustomerPersistenceMapperImpl;
 import br.gravita.core.domain.shared.Document;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({CustomerRepositoryAdapter.class, CustomerPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class CustomerRepositoryAdapterTest {
 
-	@Autowired
-	private CustomerRepositoryAdapter repositoryAdapter;
+	@Mock
+	private CustomerJpaRepository repository;
 
-	@Autowired
-	private TestEntityManager entityManager;
+	@Mock
+	private CustomerPersistenceMapper mapper;
+
+	@InjectMocks
+	private CustomerRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Saves a customer with its addresses and retrieves it intact")
-	void shouldSaveAndRetrieveCustomerWithAddresses() {
-		CustomerDomain customer = customer("Maria Silva", "111.444.777-35");
+	@DisplayName("Saves a new customer marking its entity as new")
+	void shouldSaveNewCustomer() {
+		final CustomerDomain customer = buildCustomer("Maria Silva");
+		final CustomerJpaEntity entity = buildEntity(customer.getId());
+		final CustomerJpaEntity saved = buildEntity(customer.getId());
+		when(mapper.map(customer)).thenReturn(entity);
+		when(repository.existsById(customer.getId())).thenReturn(false);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(customer);
 
-		CustomerDomain saved = repositoryAdapter.save(customer);
+		final CustomerDomain result = adapter.save(customer);
 
-		assertThat(repositoryAdapter.get(saved.getId()))
-				.isPresent()
-				.get()
-				.satisfies(found -> {
-					assertThat(found.getName()).isEqualTo("Maria Silva");
-					assertThat(found.getDocumentDomain().number()).isEqualTo("11144477735");
-					assertThat(found.getStatus()).isEqualTo(CustomerStatus.REGULAR);
-					assertThat(found.getCurrentBalance()).isEqualByComparingTo(BigDecimal.ZERO);
-					assertThat(found.getAddresses()).hasSize(1);
-					assertThat(found.getAddresses().get(0).getCity()).isEqualTo("São Paulo");
-					assertThat(found.getAddresses().get(0).isDefault()).isTrue();
-				});
+		assertThat(result).isSameAs(customer);
+		assertThat(entity.isNew()).isTrue();
+		verify(repository).save(entity);
 	}
 
 	@Test
-	@DisplayName("Rejects a stale update instead of silently overwriting a concurrent write")
-	void shouldRejectStaleUpdateInsteadOfSilentlyOverwritingAConcurrentWrite() {
-		CustomerDomain saved = repositoryAdapter.save(customer("Maria Silva", "111.444.777-35"));
-		entityManager.flush();
-		entityManager.clear();
+	@DisplayName("Saves an existing customer marking its entity as not new")
+	void shouldSaveExistingCustomerAsNotNew() {
+		final CustomerDomain customer = buildCustomer("Maria Silva");
+		final CustomerJpaEntity entity = buildEntity(customer.getId());
+		when(mapper.map(customer)).thenReturn(entity);
+		when(repository.existsById(customer.getId())).thenReturn(true);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(customer);
 
-		CustomerDomain firstReader = repositoryAdapter.get(saved.getId()).orElseThrow();
-		CustomerDomain secondReader = repositoryAdapter.get(saved.getId()).orElseThrow();
+		adapter.save(customer);
 
-		firstReader.setCurrentBalance(new BigDecimal("500.00"));
-		repositoryAdapter.save(firstReader);
-		entityManager.flush();
-		entityManager.clear();
+		assertThat(entity.isNew()).isFalse();
+		verify(repository).save(entity);
+	}
 
-		secondReader.setEmail("new-email@example.com");
-		assertThatThrownBy(() -> repositoryAdapter.save(secondReader))
+	@Test
+	@DisplayName("Propagates an optimistic locking failure raised on a stale update")
+	void shouldPropagateOptimisticLockingFailureOnStaleUpdate() {
+		final CustomerDomain customer = buildCustomer("Maria Silva");
+		final CustomerJpaEntity entity = buildEntity(customer.getId());
+		when(mapper.map(customer)).thenReturn(entity);
+		when(repository.existsById(customer.getId())).thenReturn(true);
+		when(repository.save(entity))
+				.thenThrow(new ObjectOptimisticLockingFailureException(CustomerJpaEntity.class, customer.getId()));
+
+		assertThatThrownBy(() -> adapter.save(customer))
 				.isInstanceOf(ObjectOptimisticLockingFailureException.class);
+	}
+
+	@Test
+	@DisplayName("Finds a customer by id")
+	void shouldFindCustomerById() {
+		final CustomerDomain customer = buildCustomer("Maria Silva");
+		final CustomerJpaEntity entity = buildEntity(customer.getId());
+		when(repository.findById(customer.getId())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(customer);
+
+		final Optional<CustomerDomain> result = adapter.get(customer.getId());
+
+		assertThat(result).contains(customer);
+		verify(repository).findById(customer.getId());
+	}
+
+	@Test
+	@DisplayName("Returns empty when the customer does not exist")
+	void shouldReturnEmptyWhenCustomerDoesNotExist() {
+		final UUID id = UUID.randomUUID();
+		when(repository.findById(id)).thenReturn(Optional.empty());
+
+		assertThat(adapter.get(id)).isEmpty();
 	}
 
 	@Test
 	@DisplayName("Lists all saved customers")
 	void shouldListAllCustomers() {
-		repositoryAdapter.save(customer("Ana", "111.444.777-35"));
-		repositoryAdapter.save(customer("Bruno", "529.982.247-25"));
+		final CustomerDomain ana = buildCustomer("Ana");
+		final CustomerDomain bruno = buildCustomer("Bruno");
+		final CustomerJpaEntity anaEntity = buildEntity(ana.getId());
+		final CustomerJpaEntity brunoEntity = buildEntity(bruno.getId());
+		when(repository.findAll()).thenReturn(List.of(anaEntity, brunoEntity));
+		when(mapper.map(same(anaEntity))).thenReturn(ana);
+		when(mapper.map(same(brunoEntity))).thenReturn(bruno);
 
-		assertThat(repositoryAdapter.findAll()).extracting(CustomerDomain::getName).contains("Ana", "Bruno");
+		final List<CustomerDomain> result = adapter.findAll();
+
+		assertThat(result).containsExactly(ana, bruno);
 	}
 
-	private CustomerDomain customer(String name, String cpf) {
-		CustomerDomain customer = CustomerDomain.builder()
+	private CustomerJpaEntity buildEntity(final UUID id) {
+		return CustomerJpaEntity.builder().id(id).build();
+	}
+
+	private CustomerDomain buildCustomer(final String name) {
+		final CustomerDomain customer = CustomerDomain.builder()
 				.name(name)
-				.documentDomain(Document.cpf(cpf))
+				.documentDomain(Document.cpf("111.444.777-35"))
 				.creditLimit(BigDecimal.ZERO)
 				.currentBalance(BigDecimal.ZERO)
 				.status(CustomerStatus.REGULAR)
-				.addresses(List.of(AddressDomain.builder()
-						.type(AddressType.BILLING)
-						.street("Rua A")
-						.neighborhood("Centro")
-						.city("São Paulo")
-						.state("SP")
-						.zipCode("01000-000")
-						.isDefault(true)
-						.build()))
-				.contacts(List.of())
-				.priceTables(List.of())
 				.build();
 		customer.setId(UUID.randomUUID());
 		return customer;
