@@ -44,6 +44,24 @@ class VoidedNumberRangeRepositoryAdapterTest {
 				.containsExactly(br.gravita.core.domain.tax.VoidedNumberRangeId.of(inRange.getId()));
 	}
 
+	@Test
+	void findsTheRangesOfEverySeriesVoidedInAHalfOpenPeriodOldestFirst() {
+		UUID companyId = UUID.randomUUID();
+		Instant from = Instant.parse("2028-02-01T00:00:00Z");
+		Instant to = Instant.parse("2028-03-01T00:00:00Z");
+
+		save(companyId, "001", from.minusSeconds(1));
+		VoidedNumberRangeJpaEntity late = save(companyId, "002", to.minusSeconds(1));
+		VoidedNumberRangeJpaEntity early = save(companyId, "001", from);
+		save(companyId, "001", to);
+		save(UUID.randomUUID(), "001", from.plusSeconds(60));
+
+		List<VoidedNumberRange> result = repositoryAdapter.findByCompanyIdAndVoidedAtBetween(
+				CompanyId.of(companyId), from, to);
+
+		assertThat(result).extracting(range -> range.getId().value()).containsExactly(early.getId(), late.getId());
+	}
+
 	private VoidedNumberRangeJpaEntity save(UUID companyId, String series, Instant voidedAt) {
 		VoidedNumberRangeJpaEntity entity = VoidedNumberRangeJpaEntity.builder()
 				.id(UUID.randomUUID())

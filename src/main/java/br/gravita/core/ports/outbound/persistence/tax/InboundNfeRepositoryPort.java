@@ -1,5 +1,6 @@
 package br.gravita.core.ports.outbound.persistence.tax;
 
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
 import java.time.Instant;
@@ -20,4 +21,7 @@ public interface InboundNfeRepositoryPort {
 
 	/** The received NFe that their suppliers issued over {@code [from, to)}, oldest first. */
 	List<InboundNfe> findIssuedBetween(Instant from, Instant to);
+
+	/** The NFe {@code companyId} received that their suppliers issued over {@code [from, to)}, oldest first. */
+	List<InboundNfe> findIssuedByCompanyBetween(CompanyId companyId, Instant from, Instant to);
 }

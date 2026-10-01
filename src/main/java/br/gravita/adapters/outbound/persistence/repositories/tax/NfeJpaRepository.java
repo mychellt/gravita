@@ -11,4 +11,7 @@ public interface NfeJpaRepository extends JpaRepository<NfeJpaEntity, UUID> {
 
 	List<NfeJpaEntity> findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 			NfeDocumentStatus status, Instant from, Instant to);
+
+	List<NfeJpaEntity> findByIssuerCompanyIdAndStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+			UUID issuerCompanyId, NfeDocumentStatus status, Instant from, Instant to);
 }
