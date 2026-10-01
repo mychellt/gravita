@@ -20,7 +20,7 @@ public final class PriceTable {
 	private final MaxDiscountBehavior maxDiscountBehavior;
 	private final List<PriceTableEntry> entries;
 
-	private PriceTable(PriceTableId id, PriceFormation formation, LocalDate validFrom, LocalDate validTo,
+	public PriceTable(PriceTableId id, PriceFormation formation, LocalDate validFrom, LocalDate validTo,
 			BigDecimal maxDiscountPercent, MaxDiscountBehavior maxDiscountBehavior, List<PriceTableEntry> entries) {
 		this.id = Objects.requireNonNull(id, "PriceTableId is required");
 		this.formation = Objects.requireNonNull(formation, "Price formation is required");

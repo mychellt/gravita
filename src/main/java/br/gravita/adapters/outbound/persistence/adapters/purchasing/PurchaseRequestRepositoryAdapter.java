@@ -25,15 +25,15 @@ class PurchaseRequestRepositoryAdapter implements PurchaseRequestRepositoryPort 
 
 	@Override
 	public PurchaseRequest save(PurchaseRequest purchaseRequest) {
-		PurchaseRequestJpaEntity entity = mapper.toEntity(purchaseRequest);
+		PurchaseRequestJpaEntity entity = mapper.map(purchaseRequest);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PurchaseRequestJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PurchaseRequest> findById(PurchaseRequestId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override

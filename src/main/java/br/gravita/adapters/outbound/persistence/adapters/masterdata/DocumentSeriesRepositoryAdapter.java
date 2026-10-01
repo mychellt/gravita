@@ -24,14 +24,14 @@ class DocumentSeriesRepositoryAdapter implements DocumentSeriesRepositoryPort {
 
 	@Override
 	public DocumentSeries save(DocumentSeries documentSeries) {
-		DocumentSeriesJpaEntity entity = mapper.toEntity(documentSeries);
+		DocumentSeriesJpaEntity entity = mapper.map(documentSeries);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		DocumentSeriesJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<DocumentSeries> findByCompanyIdAndDocumentType(CompanyId companyId, FiscalDocumentType documentType) {
-		return jpaRepository.findByCompanyIdAndDocumentType(companyId.value(), documentType).map(mapper::toDomain);
+		return jpaRepository.findByCompanyIdAndDocumentType(companyId.value(), documentType).map(entity -> mapper.map(entity));
 	}
 }
