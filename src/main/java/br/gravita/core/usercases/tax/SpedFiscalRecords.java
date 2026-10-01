@@ -20,9 +20,10 @@ import br.gravita.core.ports.inbound.tax.SpedValidationReport;
 import br.gravita.core.ports.inbound.tax.SpedValidationReport.Issue;
 import br.gravita.core.ports.inbound.tax.SpedValidationReport.Severity;
 import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedBlock;
+import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedLayout;
 import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedRecord;
-import br.gravita.core.ports.outbound.tax.SpedValues;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -225,13 +226,13 @@ final class SpedFiscalRecords {
 	private static SpedRecord regular(String operation, String emitter, String participant, String series, long number,
 			String accessKey, LocalDate issued, LocalDate settled, Amounts a) {
 		return SpedRecord.of("C100", operation, emitter, participant, MODEL_NFE, REGULAR, series,
-				String.valueOf(number), accessKey, SpedValues.date(issued), SpedValues.date(settled),
-				SpedValues.money(a.total()), "2", SpedValues.money(a.discount()), SpedValues.money(BigDecimal.ZERO),
-				SpedValues.money(a.goods()), a.freightIndicator(), SpedValues.money(a.freight()),
-				SpedValues.money(a.insurance()), SpedValues.money(a.otherExpenses()),
-				SpedValues.money(a.icmsBase()), SpedValues.money(a.icms()), SpedValues.money(BigDecimal.ZERO),
-				SpedValues.money(BigDecimal.ZERO), SpedValues.money(a.ipi()), SpedValues.money(a.pis()),
-				SpedValues.money(a.cofins()), SpedValues.money(BigDecimal.ZERO), SpedValues.money(BigDecimal.ZERO));
+				String.valueOf(number), accessKey, issued, settled,
+				money(a.total()), "2", money(a.discount()), money(BigDecimal.ZERO),
+				money(a.goods()), a.freightIndicator(), money(a.freight()),
+				money(a.insurance()), money(a.otherExpenses()),
+				money(a.icmsBase()), money(a.icms()), money(BigDecimal.ZERO),
+				money(BigDecimal.ZERO), money(a.ipi()), money(a.pis()),
+				money(a.cofins()), money(BigDecimal.ZERO), money(BigDecimal.ZERO));
 	}
 
 	private void book(String operation, BigDecimal icms) {
@@ -368,12 +369,12 @@ final class SpedFiscalRecords {
 		return new SpedValidationReport(all);
 	}
 
-	/** Every block of the layout in file order; those with nothing to report are empty. */
-	List<SpedBlock> blocks() {
+	/** The 0000 and every block of the layout in file order; those with nothing to report are empty. */
+	SpedLayout layout() {
 		Taxpayer taxpayer = command.taxpayer();
 		Period period = command.period();
 		SpedRecord header = SpedRecord.of("0000", LAYOUT_VERSION, command.finality().code(),
-				SpedValues.date(period.start()), SpedValues.date(period.end()), taxpayer.legalName(),
+				period.start(), period.end(), taxpayer.legalName(),
 				company.getCnpj().number(), null, company.getState(), company.getIe(), taxpayer.municipalityCode(),
 				company.getIm(), null, taxpayer.profile().name(), taxpayer.activity().code());
 		List<SpedRecord> identification = new ArrayList<>();
@@ -387,12 +388,12 @@ final class SpedFiscalRecords {
 
 		List<SpedRecord> documents = rows.stream().sorted(ROW_ORDER).map(Row::record).toList();
 		List<SpedRecord> assessment = List.of(
-				SpedRecord.of("E100", SpedValues.date(period.start()), SpedValues.date(period.end())), icmsAssessment());
+				SpedRecord.of("E100", period.start(), period.end()), icmsAssessment());
 		List<SpedRecord> indicators = List.of(SpedRecord.of("1010", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N",
 				"N", "N", "N"));
 
 		List<SpedBlock> blocks = new ArrayList<>();
-		blocks.add(new SpedBlock('0', List.of(header), identification));
+		blocks.add(new SpedBlock('0', identification));
 		blocks.add(new SpedBlock('B', List.of()));
 		blocks.add(new SpedBlock('C', documents));
 		blocks.add(new SpedBlock('D', List.of()));
@@ -401,7 +402,7 @@ final class SpedFiscalRecords {
 		blocks.add(new SpedBlock('H', List.of()));
 		blocks.add(new SpedBlock('K', List.of()));
 		blocks.add(new SpedBlock('1', indicators));
-		return blocks;
+		return new SpedLayout(header, blocks);
 	}
 
 	/** E110: debits of the exits against credits of the entries; a negative balance is a credit to carry forward. */
@@ -410,10 +411,15 @@ final class SpedFiscalRecords {
 		BigDecimal payable = balance.max(BigDecimal.ZERO);
 		BigDecimal carried = balance.min(BigDecimal.ZERO).negate();
 		BigDecimal zero = BigDecimal.ZERO;
-		return SpedRecord.of("E110", SpedValues.money(icmsDebit), SpedValues.money(zero), SpedValues.money(zero),
-				SpedValues.money(zero), SpedValues.money(icmsCredit), SpedValues.money(zero), SpedValues.money(zero),
-				SpedValues.money(zero), SpedValues.money(zero), SpedValues.money(payable), SpedValues.money(zero),
-				SpedValues.money(payable), SpedValues.money(carried), SpedValues.money(zero));
+		return SpedRecord.of("E110", money(icmsDebit), money(zero), money(zero),
+				money(zero), money(icmsCredit), money(zero), money(zero),
+				money(zero), money(zero), money(payable), money(zero),
+				money(payable), money(carried), money(zero));
+	}
+
+	/** An amount of money as the layout writes it: two decimal places, the port adds the comma. */
+	private static BigDecimal money(BigDecimal amount) {
+		return amount == null ? null : amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
 	private static String digits(String value) {

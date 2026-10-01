@@ -36,6 +36,7 @@ import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.VoidedNumberRangeRepositoryPort;
 import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort;
 import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedBlock;
+import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedLayout;
 import br.gravita.core.ports.outbound.tax.GenerateSpedFilePort.SpedRecord;
 import br.gravita.core.usercases.tax.GenerateSpedFiscalService;
 import br.gravita.tax.LivrosFiscaisFixtures;
@@ -81,7 +82,7 @@ class GenerateSpedFiscalServiceTest {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of());
-		when(spedFile.generate(any())).thenReturn(TXT);
+		when(spedFile.generate(any(SpedLayout.class))).thenReturn(TXT);
 	}
 
 	@Test
@@ -125,9 +126,9 @@ class GenerateSpedFiscalServiceTest {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
 		List<SpedBlock> blocks = blocks();
-		assertThat(blocks).extracting(SpedBlock::letter).containsExactly('0', 'B', 'C', 'D', 'E', 'G', 'H', 'K', '1');
-		assertThat(blocks).filteredOn(block -> "BDGHK".indexOf(block.letter()) >= 0)
-				.allMatch(block -> block.records().isEmpty() && block.leading().isEmpty());
+		assertThat(blocks).extracting(SpedBlock::id).containsExactly('0', 'B', 'C', 'D', 'E', 'G', 'H', 'K', '1');
+		assertThat(blocks).filteredOn(block -> "BDGHK".indexOf(block.id()) >= 0)
+				.allMatch(block -> block.records().isEmpty());
 		assertThat(block('C').records()).isEmpty();
 	}
 
@@ -137,14 +138,13 @@ class GenerateSpedFiscalServiceTest {
 				SpedFiscalFixtures.taxpayer(), SpedFiscalFixtures.accountant()));
 
 		SpedBlock zero = block('0');
-		assertThat(zero.leading()).hasSize(1);
-		assertThat(zero.leading().get(0).register()).isEqualTo("0000");
-		assertThat(zero.leading().get(0).fields()).containsExactly("020", "1", "01022028", "29022028",
+		assertThat(layout().header().register()).isEqualTo("0000");
+		assertThat(texts(layout().header())).containsExactly("020", "1", "01022028", "29022028",
 				"Empresa Teste Ltda", "11222333000181", null, "SP", "123456789", "3550308", "987654", null, "A", "1");
 		assertThat(zero.records()).extracting(SpedRecord::register).containsExactly("0005", "0100");
-		assertThat(zero.records().get(0).fields()).containsExactly("Teste", "01310100", "Rua Teste, 100", "100", null,
+		assertThat(texts(zero.records().get(0))).containsExactly("Teste", "01310100", "Rua Teste, 100", "100", null,
 				"Bela Vista", "11999999999", null, "nfe@example.com");
-		assertThat(zero.records().get(1).fields()).containsExactly("Contador Teste", "52998224725", "SP-123456/O-0",
+		assertThat(texts(zero.records().get(1))).containsExactly("Contador Teste", "52998224725", "SP-123456/O-0",
 				null, null, null, null, null, null, null, null, "contador@example.com", null);
 	}
 
@@ -158,11 +158,11 @@ class GenerateSpedFiscalServiceTest {
 
 		SpedRecord c100 = block('C').records().get(0);
 		assertThat(c100.register()).isEqualTo("C100");
-		assertThat(c100.fields()).hasSize(28);
-		assertThat(c100.fields()).containsExactly("1", "0", "11222333000181", "55", "00", "1", "20",
-				c100.fields().get(7), "10022028", "10022028", "1015,00", "2", "0,00", "0,00", "1000,00", "9", "15,00",
+		assertThat(texts(c100)).hasSize(28);
+		assertThat(texts(c100)).containsExactly("1", "0", "11222333000181", "55", "00", "1", "20",
+				texts(c100).get(7), "10022028", "10022028", "1015,00", "2", "0,00", "0,00", "1000,00", "9", "15,00",
 				"0,00", "0,00", "100,00", "18,00", "0,00", "0,00", "5,00", "1,65", "7,60", "0,00", "0,00");
-		assertThat(c100.fields().get(7)).matches("\\d{44}");
+		assertThat(texts(c100).get(7)).matches("\\d{44}");
 	}
 
 	@Test
@@ -173,7 +173,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		assertThat(block('C').records().get(0).fields()).startsWith("0", "0");
+		assertThat(texts(block('C').records().get(0))).startsWith("0", "0");
 	}
 
 	@Test
@@ -185,9 +185,9 @@ class GenerateSpedFiscalServiceTest {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
 		SpedRecord c100 = block('C').records().get(0);
-		assertThat(c100.fields()).containsExactly("1", "0", null, "55", "02", "1", "21", cancelled.getAccessKey());
+		assertThat(texts(c100)).containsExactly("1", "0", null, "55", "02", "1", "21", cancelled.getAccessKey());
 		assertThat(block('0').records()).extracting(SpedRecord::register).doesNotContain("0150");
-		assertThat(block('E').records().get(1).fields().get(0)).isEqualTo("0,00");
+		assertThat(texts(block('E').records().get(1)).get(0)).isEqualTo("0,00");
 	}
 
 	@Test
@@ -200,10 +200,10 @@ class GenerateSpedFiscalServiceTest {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
 		SpedRecord c100 = block('C').records().get(0);
-		assertThat(c100.fields()).containsExactly("0", "1", "11222333000181", "55", "00", "1", "10",
+		assertThat(texts(c100)).containsExactly("0", "1", "11222333000181", "55", "00", "1", "10",
 				received.getAccessKey(), "20022028", "20022028", "300,00", "2", "0,00", "0,00", "300,00", "9", "0,00",
 				"0,00", "0,00", null, "36,00", "0,00", "0,00", "4,00", "0,65", "3,00", "0,00", "0,00");
-		assertThat(block('0').records().get(2).fields()).containsExactly("11222333000181", "Alfa SA", "01058",
+		assertThat(texts(block('0').records().get(2))).containsExactly("11222333000181", "Alfa SA", "01058",
 				"11222333000181", null, null, null, null, null, null, null, null);
 	}
 
@@ -215,7 +215,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		assertThat(block('C').records()).extracting(record -> record.fields().get(9))
+		assertThat(block('C').records()).extracting(record -> texts(record).get(9))
 				.containsExactlyInAnyOrder("29022028", "10022028");
 	}
 
@@ -236,7 +236,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		assertThat(block('C').records()).extracting(SpedRecord::fields).containsExactly(
+		assertThat(block('C').records()).extracting(GenerateSpedFiscalServiceTest::texts).containsExactly(
 				java.util.Arrays.asList("1", "0", null, "55", "05", "1", "101", null),
 				java.util.Arrays.asList("1", "0", null, "55", "05", "1", "102", null),
 				java.util.Arrays.asList("1", "0", null, "55", "05", "1", "103", null));
@@ -257,7 +257,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		assertThat(block('C').records()).extracting(record -> record.fields().get(0) + ":" + record.fields().get(6))
+		assertThat(block('C').records()).extracting(record -> texts(record).get(0) + ":" + texts(record).get(6))
 				.containsExactly("0:77", "1:9", "1:30", "1:2");
 	}
 
@@ -276,9 +276,9 @@ class GenerateSpedFiscalServiceTest {
 
 		SpedBlock e = block('E');
 		assertThat(e.records()).extracting(SpedRecord::register).containsExactly("E100", "E110");
-		assertThat(e.records().get(0).fields()).containsExactly("01022028", "29022028");
+		assertThat(texts(e.records().get(0))).containsExactly("01022028", "29022028");
 		// debits 18,00 (the cancelled NFe counts for nothing); credits 27,00; a 9,00 credit to carry forward
-		assertThat(e.records().get(1).fields()).containsExactly("18,00", "0,00", "0,00", "0,00", "27,00", "0,00",
+		assertThat(texts(e.records().get(1))).containsExactly("18,00", "0,00", "0,00", "0,00", "27,00", "0,00",
 				"0,00", "0,00", "0,00", "0,00", "0,00", "0,00", "9,00", "0,00");
 	}
 
@@ -290,7 +290,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		assertThat(block('E').records().get(1).fields()).containsExactly("18,00", "0,00", "0,00", "0,00", "0,00",
+		assertThat(texts(block('E').records().get(1))).containsExactly("18,00", "0,00", "0,00", "0,00", "0,00",
 				"0,00", "0,00", "0,00", "0,00", "18,00", "0,00", "18,00", "0,00", "0,00");
 	}
 
@@ -305,7 +305,7 @@ class GenerateSpedFiscalServiceTest {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
 		assertThat(block('0').records()).filteredOn(record -> record.register().equals("0150")).hasSize(1);
-		assertThat(block('0').records().get(2).fields()).containsExactly("11222333000181", "Cliente SA", "01058",
+		assertThat(texts(block('0').records().get(2))).containsExactly("11222333000181", "Cliente SA", "01058",
 				"11222333000181", null, "123456789", null, null, null, null, null, null);
 	}
 
@@ -399,14 +399,27 @@ class GenerateSpedFiscalServiceTest {
 				"formulários danificados", "protocol", Instant.parse(at));
 	}
 
-	private List<SpedBlock> blocks() {
-		@SuppressWarnings("unchecked")
-		ArgumentCaptor<List<SpedBlock>> captor = ArgumentCaptor.forClass(List.class);
+	private SpedLayout layout() {
+		ArgumentCaptor<SpedLayout> captor = ArgumentCaptor.forClass(SpedLayout.class);
 		verify(spedFile).generate(captor.capture());
 		return captor.getValue();
 	}
 
+	private List<SpedBlock> blocks() {
+		return layout().blocks();
+	}
+
 	private SpedBlock block(char letter) {
-		return blocks().stream().filter(block -> block.letter() == letter).findFirst().orElseThrow();
+		return blocks().stream().filter(block -> block.id() == letter).findFirst().orElseThrow();
+	}
+
+	/** The fields as the port writes them: amounts with a comma, dates as ddMMyyyy, empty ones as null. */
+	private static List<String> texts(SpedRecord record) {
+		return record.fields().stream().map(field -> switch (field) {
+			case null -> null;
+			case java.math.BigDecimal amount -> amount.toPlainString().replace('.', ',');
+			case LocalDate date -> java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy").format(date);
+			default -> field.toString();
+		}).toList();
 	}
 }

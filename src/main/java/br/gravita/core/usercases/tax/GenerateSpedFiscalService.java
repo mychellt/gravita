@@ -93,7 +93,7 @@ public class GenerateSpedFiscalService implements GenerateSpedFiscalUseCase {
 		if (report.hasErrors()) {
 			throw new SpedValidationException(report);
 		}
-		return new SpedFiscalFile(fileName(company, period), generateSpedFilePort.generate(records.blocks()), report);
+		return new SpedFiscalFile(fileName(company, period), generateSpedFilePort.generate(records.layout()), report);
 	}
 
 	private static String fileName(Company company, Period period) {
