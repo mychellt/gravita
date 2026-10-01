@@ -5,7 +5,10 @@ import br.gravita.adapters.outbound.persistence.mappers.sales.CommissionPersiste
 import br.gravita.adapters.outbound.persistence.repositories.sales.CommissionJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.Commission;
+import br.gravita.core.domain.sales.SalesOrderId;
 import br.gravita.core.ports.outbound.persistence.sales.CommissionRepositoryPort;
+import java.util.Collection;
+import java.util.List;
 
 @PersistenceAdapter
 class CommissionRepositoryAdapter implements CommissionRepositoryPort {
@@ -24,5 +27,14 @@ class CommissionRepositoryAdapter implements CommissionRepositoryPort {
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		CommissionJpaEntity saved = jpaRepository.save(entity);
 		return mapper.toDomain(saved);
+	}
+
+	@Override
+	public List<Commission> findByOrderIds(Collection<SalesOrderId> orderIds) {
+		if (orderIds.isEmpty()) {
+			return List.of();
+		}
+		return jpaRepository.findBySalesOrderIdIn(orderIds.stream().map(SalesOrderId::value).toList()).stream()
+				.map(mapper::toDomain).toList();
 	}
 }

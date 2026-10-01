@@ -1,9 +1,12 @@
 package br.gravita.adapters.outbound.reporting;
 
 import br.gravita.core.annotations.PersistenceAdapter;
+import br.gravita.core.domain.sales.Commission;
 import br.gravita.core.domain.sales.SalesOrder;
+import br.gravita.core.domain.sales.SalesOrderId;
 import br.gravita.core.domain.sales.SalesOrderItem;
 import br.gravita.core.domain.sales.SalespersonTarget;
+import br.gravita.core.ports.outbound.persistence.sales.CommissionRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.sales.SalesOrderRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.sales.SalespersonTargetRepositoryPort;
 import br.gravita.core.ports.outbound.reporting.SalesReadModelPort;
@@ -25,11 +28,14 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	private final SalesOrderRepositoryPort salesOrderRepositoryPort;
 	private final SalespersonTargetRepositoryPort salespersonTargetRepositoryPort;
+	private final CommissionRepositoryPort commissionRepositoryPort;
 
 	SalesReadModelAdapter(SalesOrderRepositoryPort salesOrderRepositoryPort,
-			SalespersonTargetRepositoryPort salespersonTargetRepositoryPort) {
+			SalespersonTargetRepositoryPort salespersonTargetRepositoryPort,
+			CommissionRepositoryPort commissionRepositoryPort) {
 		this.salesOrderRepositoryPort = salesOrderRepositoryPort;
 		this.salespersonTargetRepositoryPort = salespersonTargetRepositoryPort;
+		this.commissionRepositoryPort = commissionRepositoryPort;
 	}
 
 	@Override
@@ -84,5 +90,20 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 		achieved.forEach((salesperson, value) -> bySalesperson.computeIfAbsent(salesperson,
 				id -> new SalespersonAchievement(id, BigDecimal.ZERO, value)));
 		return List.copyOf(bySalesperson.values());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<CommissionRecord> commissions(LocalDate from, LocalDate to, UUID salespersonId) {
+		List<SalesOrder> orders = salespersonId == null ? salesOrderRepositoryPort.findInvoicedByPeriod(from, to)
+				: salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(from, to, salespersonId);
+		List<SalesOrderId> orderIds = orders.stream().map(SalesOrder::getId).toList();
+		return commissionRepositoryPort.findByOrderIds(orderIds).stream().map(SalesReadModelAdapter::toRecord)
+				.toList();
+	}
+
+	private static CommissionRecord toRecord(Commission commission) {
+		return new CommissionRecord(commission.salespersonId(), commission.productId(), commission.orderId().value(),
+				commission.rate(), commission.amount());
 	}
 }
