@@ -1,7 +1,7 @@
-@if (cliente(); as c) {
+@if (customer(); as c) {
   <app-page-header [title]="c.nome || 'Cliente'" subtitle="Dados cadastrais · somente leitura">
-    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
-    <a [routerLink]="['/settings/clientes', c.id, 'pagamentos']" class="btn btn-ghost"><i class="ti ti-cash"></i> Pagamentos</a>
+    <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/settings/customers', c.id, 'payments']" class="btn btn-ghost"><i class="ti ti-cash"></i> Pagamentos</a>
   </app-page-header>
 
   <div class="form-section">
@@ -35,7 +35,7 @@
     </div>
     <div class="form-body">
       @for (e of c.enderecos; track $index) {
-        <div class="detail-list-item">{{ formatEndereco(e) }}</div>
+        <div class="detail-list-item">{{ formatAddress(e) }}</div>
       } @empty {
         <div class="detail-empty">--</div>
       }
@@ -47,8 +47,8 @@
       <i class="ti ti-phone form-section-icon"></i><span class="form-section-title">Contatos</span>
     </div>
     <div class="form-body">
-      @for (ct of contatos(); track $index) {
-        <div class="detail-list-item"><span class="detail-list-tag">{{ ct.tipo }}</span>{{ ct.valor }}</div>
+      @for (ct of contacts(); track $index) {
+        <div class="detail-list-item"><span class="detail-list-tag">{{ ct.type }}</span>{{ ct.value }}</div>
       } @empty {
         <div class="detail-empty">--</div>
       }
@@ -60,8 +60,8 @@
       <i class="ti ti-tag form-section-icon"></i><span class="form-section-title">Tabelas de preço</span>
     </div>
     <div class="form-body">
-      @for (t of tabelasPreco(); track $index) {
-        <div class="detail-list-item"><span class="detail-list-tag">Prioridade {{ t.prioridade }}</span>{{ t.nome }}</div>
+      @for (t of priceTables(); track $index) {
+        <div class="detail-list-item"><span class="detail-list-tag">Prioridade {{ t.priority }}</span>{{ t.name }}</div>
       } @empty {
         <div class="detail-empty">--</div>
       }
@@ -69,6 +69,6 @@
   </div>
 } @else {
   <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
-    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
   </app-page-header>
 }

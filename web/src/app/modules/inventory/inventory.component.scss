@@ -2,7 +2,7 @@
 .stock-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r12); padding: 16px; text-align: center; }
 .stock-kpi-val   { font-size: 26px; font-weight: 700; }
 .stock-kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
-.estoque-layout { display: grid; grid-template-columns: 1fr 280px; gap: 14px; }
+.inventory-layout { display: grid; grid-template-columns: 1fr 280px; gap: 14px; }
 .filter-input, .filter-select { height: 30px; border: 1px solid var(--border2); border-radius: var(--r8); font-family: var(--font); font-size: 12px; padding: 0 10px; outline: none; background: var(--surface); color: var(--text); }
 .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
 .filter-input  { width: 180px; }

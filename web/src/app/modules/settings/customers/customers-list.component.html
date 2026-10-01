@@ -22,7 +22,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (c of clientes(); track c.id) {
+      @for (c of customers(); track c.id) {
         <tr>
           <td class="td-name">{{ c.nome || '--' }}</td>
           <td class="td-mono">{{ c.documento || '--' }}</td>
@@ -32,8 +32,8 @@
           <td class="td-right">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</td>
           <td class="td-right">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</td>
           <td class="td-actions">
-            <a class="action-btn" [routerLink]="['/settings/clientes', c.id]">Dados</a>
-            <a class="action-btn" [routerLink]="['/settings/clientes', c.id, 'pagamentos']">Pagamentos</a>
+            <a class="action-btn" [routerLink]="['/settings/customers', c.id]">Dados</a>
+            <a class="action-btn" [routerLink]="['/settings/customers', c.id, 'payments']">Pagamentos</a>
             <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
           </td>
         </tr>

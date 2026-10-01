@@ -30,8 +30,8 @@
           <td style="font-size:12px">{{ c.assinaturaDesde | date:'dd/MM/yyyy' }}</td>
           <td class="td-right">{{ c.planPrice != null ? (c.planPrice | brl) : '--' }}</td>
           <td class="td-actions">
-            <a class="action-btn" [routerLink]="['/admin/clientes', c.id]">Informações</a>
-            <a class="action-btn" [routerLink]="['/admin/clientes', c.id, 'pagamentos']">Pagamentos</a>
+            <a class="action-btn" [routerLink]="['/admin/customers', c.id]">Informações</a>
+            <a class="action-btn" [routerLink]="['/admin/customers', c.id, 'payments']">Pagamentos</a>
           </td>
         </tr>
       }

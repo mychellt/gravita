@@ -6,23 +6,23 @@ export const routes: Routes = [
     path: 'admin',
     loadComponent: () => import('./layout/admin-shell/admin-shell.component').then(m => m.AdminShellComponent),
     children: [
-      { path: '', redirectTo: 'configuracoes/planos', pathMatch: 'full' },
-      { path: 'configuracoes', redirectTo: 'configuracoes/planos', pathMatch: 'full' },
+      { path: '', redirectTo: 'settings/planos', pathMatch: 'full' },
+      { path: 'settings', redirectTo: 'settings/planos', pathMatch: 'full' },
       {
-        path: 'configuracoes/:secao',
+        path: 'settings/:section',
         loadComponent: () => import('./modules/admin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent),
         canDeactivate: [unsavedChangesGuard]
       },
       {
-        path: 'clientes',
+        path: 'customers',
         loadComponent: () => import('./modules/admin/customers/platform-customers.component').then(m => m.PlatformCustomersComponent)
       },
       {
-        path: 'clientes/:id',
+        path: 'customers/:id',
         loadComponent: () => import('./modules/admin/customers/platform-customer-detail.component').then(m => m.PlatformCustomerDetailComponent)
       },
       {
-        path: 'clientes/:id/pagamentos',
+        path: 'customers/:id/payments',
         loadComponent: () => import('./modules/admin/customers/platform-customer-payments.component').then(m => m.PlatformCustomerPaymentsComponent)
       },
     ]
@@ -53,40 +53,40 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/nfse/nfse.component').then(m => m.NfseComponent)
       },
       {
-        path: 'estoque',
-        loadComponent: () => import('./modules/estoque/estoque.component').then(m => m.EstoqueComponent)
+        path: 'inventory',
+        loadComponent: () => import('./modules/inventory/inventory.component').then(m => m.InventoryComponent)
       },
       {
-        path: 'compras',
-        loadComponent: () => import('./modules/compras/compras.component').then(m => m.ComprasComponent)
+        path: 'purchasing',
+        loadComponent: () => import('./modules/purchasing/purchasing.component').then(m => m.PurchasingComponent)
       },
       {
         path: 'crm',
         loadComponent: () => import('./modules/crm/crm.component').then(m => m.CrmComponent)
       },
       {
-        path: 'financeiro',
-        loadComponent: () => import('./modules/financeiro/financeiro.component').then(m => m.FinanceiroComponent)
+        path: 'finance',
+        loadComponent: () => import('./modules/finance/finance.component').then(m => m.FinanceComponent)
       },
       {
-        path: 'relatorios',
-        loadComponent: () => import('./modules/relatorios/relatorios.component').then(m => m.RelatoriosComponent)
+        path: 'reports',
+        loadComponent: () => import('./modules/reports/reports.component').then(m => m.ReportsComponent)
       },
       {
         path: 'settings',
         loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent)
       },
       {
-        path: 'settings/clientes',
-        loadComponent: () => import('./modules/settings/clientes/clientes-list.component').then(m => m.ClientesListComponent)
+        path: 'settings/customers',
+        loadComponent: () => import('./modules/settings/customers/customers-list.component').then(m => m.CustomersListComponent)
       },
       {
-        path: 'settings/clientes/:id',
-        loadComponent: () => import('./modules/settings/clientes/cliente-detail.component').then(m => m.ClienteDetailComponent)
+        path: 'settings/customers/:id',
+        loadComponent: () => import('./modules/settings/customers/customer-detail.component').then(m => m.CustomerDetailComponent)
       },
       {
-        path: 'settings/clientes/:id/pagamentos',
-        loadComponent: () => import('./modules/settings/clientes/cliente-pagamentos.component').then(m => m.ClientePagamentosComponent)
+        path: 'settings/customers/:id/payments',
+        loadComponent: () => import('./modules/settings/customers/customer-payments.component').then(m => m.CustomerPaymentsComponent)
       },
     ]
   },

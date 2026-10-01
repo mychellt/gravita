@@ -12,10 +12,10 @@
     </div>
   </div>
   <div class="stock-kpi">
-    <div class="stock-kpi-val text-danger">{{ criticalProdutos().length }}</div>
+    <div class="stock-kpi-val text-danger">{{ criticalProducts().length }}</div>
     <div class="stock-kpi-label">Abaixo do mínimo</div>
     <div class="progress-bar" style="margin-top:8px">
-      <div class="progress-fill red" [style.width.%]="(criticalProdutos().length / totalSKUs()) * 100"></div>
+      <div class="progress-fill red" [style.width.%]="(criticalProducts().length / totalSKUs()) * 100"></div>
     </div>
   </div>
   <div class="stock-kpi">
@@ -27,7 +27,7 @@
   </div>
 </div>
 
-<div class="estoque-layout">
+<div class="inventory-layout">
 
   <div class="card">
     <div class="card-head">
@@ -36,7 +36,7 @@
         <input class="filter-input" type="text" placeholder="Buscar produto..."
                [value]="searchQuery()"
                (input)="searchQuery.set($any($event.target).value)" />
-        <select class="filter-select" (change)="filterTipo.set($any($event.target).value)">
+        <select class="filter-select" (change)="filterType.set($any($event.target).value)">
           <option value="">Todos</option>
           <option value="entrada">Entrada</option>
           <option value="saida">Saída</option>
@@ -58,7 +58,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (m of movimentos(); track m.id) {
+        @for (m of movements(); track m.id) {
           <tr>
             <td style="font-size:11px;color:var(--text3)">{{ m.dataHora | date:'dd/MM HH:mm' }}</td>
             <td class="td-name">{{ m.produtoNome }}</td>
@@ -91,14 +91,14 @@
   <div>
     <div class="card">
       <div class="card-head"><span class="card-title">Alertas críticos</span></div>
-      @for (p of criticalProdutos(); track p.id) {
+      @for (p of criticalProducts(); track p.id) {
         <div class="alert-item">
           <div class="alert-dot red"></div>
           <div class="alert-info">
             <div class="alert-prod">{{ p.descricao }}</div>
             <div class="alert-stock text-danger">{{ p.estoque }} un (mín: {{ p.estoqueMinimo }})</div>
           </div>
-          <button class="btn btn-ghost btn-sm" (click)="solicitarCompra(p.descricao)">Pedir</button>
+          <button class="btn btn-ghost btn-sm" (click)="requestPurchase(p.descricao)">Pedir</button>
         </div>
       }
       <div class="alert-item">

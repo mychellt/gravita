@@ -48,21 +48,21 @@ export class SidebarComponent {
       {
         title: 'Operação',
         items: [
-          { label: 'Estoque',      icon: 'ti-box',            route: '/estoque', badge: this.criticalCount(), badgeWarn: true },
-          { label: 'Compras',      icon: 'ti-shopping-cart',  route: '/compras' },
+          { label: 'Estoque',      icon: 'ti-box',            route: '/inventory', badge: this.criticalCount(), badgeWarn: true },
+          { label: 'Compras',      icon: 'ti-shopping-cart',  route: '/purchasing' },
           { label: 'Vendas & CRM', icon: 'ti-users',          route: '/crm' },
         ]
       },
       {
         title: 'Financeiro',
         items: [
-          { label: 'Financeiro',   icon: 'ti-cash',           route: '/financeiro' },
+          { label: 'Financeiro',   icon: 'ti-cash',           route: '/finance' },
         ]
       },
       {
         title: 'Visibilidade',
         items: [
-          { label: 'Relatórios & BI', icon: 'ti-chart-bar',   route: '/relatorios' },
+          { label: 'Relatórios & BI', icon: 'ti-chart-bar',   route: '/reports' },
         ]
       },
       {

@@ -6,18 +6,18 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { BrlPipe } from '../../../shared/pipes/brl.pipe';
 
 @Component({
-  selector: 'app-clientes-list',
+  selector: 'app-customers-list',
   standalone: true,
   imports: [RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: './clientes-list.component.scss',
-  templateUrl: './clientes-list.component.html'
+  styleUrl: './customers-list.component.scss',
+  templateUrl: './customers-list.component.html'
 })
-export class ClientesListComponent {
+export class CustomersListComponent {
   constructor(private data: DataService) {}
 
   searchQuery = signal('');
 
-  readonly clientes = computed(() => {
+  readonly customers = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
     const digits = q.replace(/\D/g, '');
     return this.data.clientes().filter(c =>

@@ -12,7 +12,7 @@ const IE_LABELS: Record<Cliente['indicadorIe'], string> = {
   nao_contribuinte: 'Não contribuinte',
 };
 
-const CONTATO_LABELS: Record<string, string> = {
+const CONTACT_LABELS: Record<string, string> = {
   telefone: 'Telefone',
   whatsapp: 'WhatsApp',
   email: 'E-mail',
@@ -20,39 +20,39 @@ const CONTATO_LABELS: Record<string, string> = {
 };
 
 @Component({
-  selector: 'app-cliente-detail',
+  selector: 'app-customer-detail',
   standalone: true,
   imports: [RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: './cliente-detail.component.scss',
-  templateUrl: './cliente-detail.component.html'
+  styleUrl: './customer-detail.component.scss',
+  templateUrl: './customer-detail.component.html'
 })
-export class ClienteDetailComponent {
+export class CustomerDetailComponent {
   private data = inject(DataService);
 
   /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
-  readonly cliente = computed(() => this.data.clientes().find(c => c.id === this.id()));
+  readonly customer = computed(() => this.data.clientes().find(c => c.id === this.id()));
 
   readonly ieLabel = computed(() => {
-    const c = this.cliente();
+    const c = this.customer();
     return c ? IE_LABELS[c.indicadorIe] ?? '--' : '--';
   });
 
-  readonly contatos = computed(() =>
-    (this.cliente()?.contatos ?? []).map(ct => ({ tipo: CONTATO_LABELS[ct.tipo] ?? ct.tipo, valor: ct.valor || '--' }))
+  readonly contacts = computed(() =>
+    (this.customer()?.contatos ?? []).map(ct => ({ type: CONTACT_LABELS[ct.tipo] ?? ct.tipo, value: ct.valor || '--' }))
   );
 
-  readonly tabelasPreco = computed(() =>
-    [...(this.cliente()?.tabelasPreco ?? [])]
+  readonly priceTables = computed(() =>
+    [...(this.customer()?.tabelasPreco ?? [])]
       .sort((a, b) => a.prioridade - b.prioridade)
-      .map(t => ({ nome: this.data.getTabelaPrecoNome(t.tabelaPrecoId) ?? '--', prioridade: t.prioridade }))
+      .map(t => ({ name: this.data.getTabelaPrecoNome(t.tabelaPrecoId) ?? '--', priority: t.prioridade }))
   );
 
-  formatEndereco(e: Endereco): string {
-    const linha1 = [e.logradouro, e.numero].filter(Boolean).join(', ');
-    const linha1c = e.complemento ? `${linha1} - ${e.complemento}` : linha1;
-    const cidade = [e.municipio, e.uf].filter(Boolean).join('/');
-    return [linha1c, e.bairro, cidade, e.cep].filter(Boolean).join(' · ') || '--';
+  formatAddress(e: Endereco): string {
+    const line1 = [e.logradouro, e.numero].filter(Boolean).join(', ');
+    const line1WithComplement = e.complemento ? `${line1} - ${e.complemento}` : line1;
+    const city = [e.municipio, e.uf].filter(Boolean).join('/');
+    return [line1WithComplement, e.bairro, city, e.cep].filter(Boolean).join(' · ') || '--';
   }
 }

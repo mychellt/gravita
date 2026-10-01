@@ -1,8 +1,8 @@
-@if (cliente(); as c) {
+@if (customer(); as c) {
   <app-page-header [title]="'Pagamentos · ' + (c.nome || 'Cliente')" subtitle="Saldo em aberto e títulos a receber · somente leitura">
-    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
-    <a [routerLink]="['/settings/clientes', c.id]" class="btn btn-ghost"><i class="ti ti-user"></i> Dados</a>
-    <a routerLink="/financeiro" class="btn btn-ghost"><i class="ti ti-cash"></i> Ver no Financeiro</a>
+    <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/settings/customers', c.id]" class="btn btn-ghost"><i class="ti ti-user"></i> Dados</a>
+    <a routerLink="/finance" class="btn btn-ghost"><i class="ti ti-cash"></i> Ver no Financeiro</a>
   </app-page-header>
 
   <div class="pag-kpis">
@@ -15,8 +15,8 @@
     <div class="kpi">
       <div class="kpi-icon red"><i class="ti ti-alert-circle"></i></div>
       <div class="kpi-label">Vencidos</div>
-      <div class="kpi-value" [class.text-danger]="vencidos().length > 0">{{ totalVencido() | brl }}</div>
-      <div class="kpi-sub">{{ vencidos().length }} {{ vencidos().length === 1 ? 'título vencido' : 'títulos vencidos' }}</div>
+      <div class="kpi-value" [class.text-danger]="overdueReceivables().length > 0">{{ totalOverdue() | brl }}</div>
+      <div class="kpi-sub">{{ overdueReceivables().length }} {{ overdueReceivables().length === 1 ? 'título vencido' : 'títulos vencidos' }}</div>
     </div>
   </div>
 
@@ -35,18 +35,18 @@
         </tr>
       </thead>
       <tbody>
-        @for (t of titulos(); track t.id) {
+        @for (t of receivables(); track t.id) {
           <tr>
-            <td class="td-name">{{ t.origemLabel }}</td>
-            <td style="font-size:12px" [class.overdue]="t.vencido">
+            <td class="td-name">{{ t.originLabel }}</td>
+            <td style="font-size:12px" [class.overdue]="t.overdue">
               {{ t.vencimento | date:'dd/MM/yyyy' }}
-              @if (t.vencido) { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
+              @if (t.overdue) { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
             </td>
             <td class="td-amount">{{ t.valor | brl }}</td>
-            <td style="font-size:12px">{{ t.parcelaLabel }}</td>
+            <td style="font-size:12px">{{ t.installmentLabel }}</td>
             <td>
               <app-badge [value]="t.status" />
-              @if (t.vencido) { <app-badge value="vencido" /> }
+              @if (t.overdue) { <app-badge value="vencido" /> }
             </td>
           </tr>
         }
@@ -60,6 +60,6 @@
   </div>
 } @else {
   <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
-    <a routerLink="/settings/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
   </app-page-header>
 }

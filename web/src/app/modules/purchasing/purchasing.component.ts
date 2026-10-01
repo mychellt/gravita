@@ -7,35 +7,35 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
 
 @Component({
-  selector: 'app-compras',
+  selector: 'app-purchasing',
   standalone: true,
   imports: [DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe],
-  styleUrl: './compras.component.scss',
-  templateUrl: './compras.component.html'
+  styleUrl: './purchasing.component.scss',
+  templateUrl: './purchasing.component.html'
 })
-export class ComprasComponent {
+export class PurchasingComponent {
   constructor(public data: DataService, private toast: ToastService) {}
 
-  activeTab = signal<'pedidos' | 'cotacoes' | 'recebimentos' | 'devolucoes'>('pedidos');
+  activeTab = signal<'orders' | 'quotations' | 'receipts' | 'returns'>('orders');
 
-  readonly pedidos = computed(() => this.data.pedidosCompra());
+  readonly orders = computed(() => this.data.pedidosCompra());
 
   readonly totals = computed(() => {
     const all = this.data.pedidosCompra();
     return {
-      abertos:     all.filter(p => ['aberto','aguarda_aprovacao'].includes(p.status)).length,
-      entrega:     all.filter(p => p.status === 'em_transito').length,
-      recebidos:   all.filter(p => p.status === 'encerrado').length,
-      fornecedores: this.data.fornecedores().length
+      open:         all.filter(p => ['aberto','aguarda_aprovacao'].includes(p.status)).length,
+      awaitingDelivery: all.filter(p => p.status === 'em_transito').length,
+      received:     all.filter(p => p.status === 'encerrado').length,
+      suppliers:    this.data.fornecedores().length
     };
   });
 
-  aprovar(id: string) {
+  approve(id: string) {
     this.data.updatePedidoCompraStatus(id, 'aberto');
     this.toast.success('Pedido de compra aprovado!');
   }
 
-  receber(id: string) {
+  receive(id: string) {
     this.data.updatePedidoCompraStatus(id, 'encerrado');
     this.toast.success('Recebimento confirmado. Estoque e Contas a pagar atualizados.');
   }
