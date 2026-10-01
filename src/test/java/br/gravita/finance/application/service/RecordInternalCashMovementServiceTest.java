@@ -18,6 +18,7 @@ import br.gravita.core.ports.outbound.persistence.finance.InternalCashBoxReposit
 import br.gravita.core.usercases.finance.RecordInternalCashMovementService;
 import java.math.BigDecimal;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +45,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Records the movement with its direction, amount and justification")
 	void recordsTheMovementWithDirectionAmountAndJustification() {
 		boxWithBalance("500.00");
 
@@ -59,6 +61,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Decreases the cash box balance on a movement to the bank")
 	void toBankDecreasesTheCashBoxBalance() {
 		boxWithBalance("500.00");
 
@@ -71,6 +74,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Increases the cash box balance on a movement from the bank")
 	void fromBankIncreasesTheCashBoxBalance() {
 		boxWithBalance("500.00");
 
@@ -83,6 +87,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank justification without changing the balance")
 	void rejectsABlankJustificationWithoutChangingTheBalance() {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN))
 				.thenReturn(Optional.of(InternalCashBox.of(InternalCashBoxId.MAIN, BigDecimal.TEN)));
@@ -96,6 +101,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an amount that is zero or negative")
 	void rejectsANonPositiveAmount() {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN))
 				.thenReturn(Optional.of(InternalCashBox.of(InternalCashBoxId.MAIN, BigDecimal.TEN)));
@@ -108,6 +114,7 @@ class RecordInternalCashMovementServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the cash box does not exist")
 	void failsWhenTheCashBoxDoesNotExist() {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN)).thenReturn(Optional.empty());
 

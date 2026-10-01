@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PayableTest {
@@ -29,6 +30,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Starts a purchase receipt payable as open, referencing the receipt and its installment")
 	void aPurchaseReceiptPayableStartsOpenReferencingTheReceiptAndItsInstallment() {
 		UUID supplierId = UUID.randomUUID();
 		UUID receiptId = UUID.randomUUID();
@@ -48,6 +50,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires a supplier and a receipt on a purchase receipt payable")
 	void aPurchaseReceiptPayableRequiresSupplierAndReceipt() {
 		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), null, UUID.randomUUID(), BigDecimal.TEN,
 				DUE, 1, 1)).isInstanceOf(NullPointerException.class);
@@ -56,6 +59,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment number outside the installment total")
 	void aPurchaseReceiptPayableRejectsAnInstallmentNumberOutsideTheTotal() {
 		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), UUID.randomUUID(),
 				BigDecimal.TEN, DUE, 0, 2)).isInstanceOf(BusinessRuleException.class);
@@ -64,12 +68,14 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a purchase receipt payable with a zero or negative amount")
 	void aPurchaseReceiptPayableRejectsANonPositiveAmount() {
 		assertThatThrownBy(() -> Payable.createFromPurchaseReceipt(id(), UUID.randomUUID(), UUID.randomUUID(),
 				BigDecimal.ZERO, DUE, 1, 1)).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Gives a manual payable no receipt reference")
 	void aManualPayableHasNoReceiptReference() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 
@@ -79,6 +85,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Starts a manual payable as open with the manual origin")
 	void aManualPayableStartsOpenWithManualOrigin() {
 		UUID supplierId = UUID.randomUUID();
 
@@ -93,6 +100,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Makes the supplier optional for pure expenses")
 	void theSupplierIsOptionalForPureExpenses() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, List.of());
 
@@ -100,12 +108,14 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires an amount")
 	void amountIsRequired() {
 		assertThatThrownBy(() -> Payable.createManual(id(), null, null, DUE, null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Requires the amount to be positive")
 	void amountMustBePositive() {
 		assertThatThrownBy(() -> Payable.createManual(id(), null, BigDecimal.ZERO, DUE, null))
 				.isInstanceOf(BusinessRuleException.class);
@@ -114,12 +124,14 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires a due date")
 	void dueDateIsRequired() {
 		assertThatThrownBy(() -> Payable.createManual(id(), null, BigDecimal.TEN, null, null))
 				.isInstanceOf(NullPointerException.class).hasMessageContaining("dueDate");
 	}
 
 	@Test
+	@DisplayName("Keeps a cost center split that sums to 100%")
 	void aCostCenterSplitSummingTo100IsKept() {
 		UUID a = UUID.randomUUID();
 		UUID b = UUID.randomUUID();
@@ -131,6 +143,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a cost center split that does not sum to 100%")
 	void aCostCenterSplitNotSummingTo100IsRejected() {
 		assertThatThrownBy(() -> Payable.createManual(id(), null, BigDecimal.TEN, DUE,
 				List.of(share(UUID.randomUUID(), "60"), share(UUID.randomUUID(), "30"))))
@@ -138,6 +151,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a split that repeats a cost center")
 	void aCostCenterCannotAppearTwiceInTheSplit() {
 		UUID a = UUID.randomUUID();
 
@@ -146,6 +160,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires each share percentage to be above 0 and at most 100")
 	void aSharePercentMustBeBetweenZeroExclusiveAndOneHundred() {
 		UUID a = UUID.randomUUID();
 
@@ -155,6 +170,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Replaces the previous split and keeps every other field when changing the cost center split")
 	void withCostCenterSplitReplacesThePreviousSplitKeepingEverythingElse() {
 		UUID a = UUID.randomUUID();
 		UUID b = UUID.randomUUID();
@@ -174,6 +190,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the ledger scope when changing the cost center split")
 	void withCostCenterSplitKeepsTheLedgerScope() {
 		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).inScope(scope);
@@ -184,6 +201,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a new split whose percentages do not sum to 100%")
 	void withCostCenterSplitRejectsPercentagesNotSummingTo100() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 
@@ -193,6 +211,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a new split that repeats a cost center")
 	void withCostCenterSplitRejectsARepeatedCostCenter() {
 		UUID a = UUID.randomUUID();
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
@@ -202,6 +221,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires a new split to have at least one share")
 	void withCostCenterSplitRequiresAtLeastOneShare() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, List.of(share(UUID.randomUUID(), "100")));
 
@@ -210,6 +230,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects splitting a cancelled payable")
 	void aCancelledPayableCannotBeSplit() {
 		Payable cancelled = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
 				PayableStatus.CANCELLED, null, null, null);
@@ -219,6 +240,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Allows reclassifying a paid payable by cost center")
 	void aPaidPayableCanStillBeReclassified() {
 		Payable paid = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, PayableStatus.PAID,
 				null, null, null);
@@ -230,6 +252,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Applies the cost center's percentage to the amount and gives zero for a cost center not charged")
 	void shareOfAppliesTheCostCentersPercentageAndIsZeroForACostCenterNotCharged() {
 		UUID a = UUID.randomUUID();
 		UUID b = UUID.randomUUID();
@@ -243,6 +266,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Treats a payable as outstanding while it is open or approved")
 	void isOutstandingWhileOpenOrApproved() {
 		for (PayableStatus status : PayableStatus.values()) {
 			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, List.of(), status,
@@ -254,6 +278,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Leaves a payable without a scope until it is placed in one")
 	void aPayableIsInNoScopeUntilPlacedInOne() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
@@ -263,6 +288,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Moves an open payable to approved and records the approver")
 	void approvingAnOpenPayableMovesItToApprovedAndRecordsTheApprover() {
 		UUID approver = UUID.randomUUID();
 		Payable open = Payable.createManual(id(), UUID.randomUUID(), new BigDecimal("80.00"), DUE,
@@ -281,6 +307,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Allows approving only open payables")
 	void onlyOpenPayablesCanBeApproved() {
 		for (PayableStatus status : PayableStatus.values()) {
 			if (status == PayableStatus.OPEN) {
@@ -295,6 +322,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires an approver to approve a payable")
 	void approvingRequiresAnApprover() {
 		Payable open = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 
@@ -302,6 +330,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the approver after splitting and placing in a scope")
 	void theApproverSurvivesSplittingAndPlacingInAScope() {
 		UUID approver = UUID.randomUUID();
 		Payable approved = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).approve(approver);
@@ -313,6 +342,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Moves an approved payable to paid and appends the receipt")
 	void payingAnApprovedPayableMovesItToPaidAndAppendsTheReceipt() {
 		Payable approved = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null).approve(UUID.randomUUID());
 
@@ -326,6 +356,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the attachments already linked when paying and allows a missing receipt")
 	void payingKeepsTheAttachmentsAlreadyLinkedAndAllowsMissingReceipt() {
 		Payable approved = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
 				PayableStatus.APPROVED, null, null, null, LedgerScope.NONE, UUID.randomUUID(), List.of("boleto.pdf"));
@@ -336,6 +367,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Allows paying only approved payables")
 	void onlyApprovedPayablesCanBePaid() {
 		for (PayableStatus status : List.of(PayableStatus.OPEN, PayableStatus.PAID, PayableStatus.CANCELLED)) {
 			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, status, null,
@@ -347,6 +379,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the attachments after approving, splitting and placing in a scope")
 	void attachmentsSurviveApprovingSplittingAndPlacingInAScope() {
 		Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null,
 				PayableStatus.OPEN, null, null, null, LedgerScope.NONE, null, List.of("boleto.pdf"));
@@ -359,6 +392,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Appends an attached document to those already linked, whatever the status")
 	void attachingAppendsTheDocumentToThoseAlreadyLinkedInAnyStatus() {
 		for (PayableStatus status : PayableStatus.values()) {
 			Payable payable = Payable.of(id(), null, PayableOrigin.MANUAL, BigDecimal.TEN, DUE, null, status, null,
@@ -373,6 +407,7 @@ class PayableTest {
 	}
 
 	@Test
+	@DisplayName("Requires a document reference to attach a document")
 	void attachingRequiresADocumentReference() {
 		Payable payable = Payable.createManual(id(), null, BigDecimal.TEN, DUE, null);
 

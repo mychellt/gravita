@@ -18,6 +18,7 @@ import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -69,6 +70,7 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approves an open payable over HTTP and persists the approver on it")
 	void approvesAnOpenPayableAndPersistsTheApprover() throws Exception {
 		Payable payable = persistOpenPayable("75.00");
 		UUID approver = UUID.randomUUID();
@@ -84,6 +86,7 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approves a payable above the approval limit when the approver has the elevated profile")
 	void approvesAPayableExceedingTheAlcadaWhenTheApproverHasTheElevatedProfile() throws Exception {
 		UUID elevatedProfile = UUID.randomUUID();
 		configureAlcada("100.00", elevatedProfile);
@@ -96,6 +99,7 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approval of a payable above the approval limit when the approver lacks the elevated profile")
 	void rejectsAPayableExceedingTheAlcadaWhenTheApproverLacksTheElevatedProfile() throws Exception {
 		configureAlcada("100.00", UUID.randomUUID());
 		UUID approver = persistUser(UUID.randomUUID());
@@ -109,6 +113,7 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approval of a payable above the approval limit when the approver is unknown")
 	void rejectsAnUnknownApproverWhenThePayableExceedsTheAlcada() throws Exception {
 		configureAlcada("100.00", UUID.randomUUID());
 		Payable payable = persistOpenPayable("500.00");
@@ -117,6 +122,7 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving a payable that is already approved")
 	void rejectsApprovingAPayableThatIsAlreadyApproved() throws Exception {
 		Payable payable = persistOpenPayable("75.00");
 		approve(payable.getId().value(), UUID.randomUUID()).andExpect(status().isOk());
@@ -125,11 +131,13 @@ class ApprovePayableEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 Not Found when the payable to approve does not exist")
 	void aPayableThatDoesNotExistIsRejectedWith404() throws Exception {
 		approve(UUID.randomUUID(), UUID.randomUUID()).andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Rejects an approval request that does not name an approver")
 	void aRequestWithoutAnApproverIsRejected() throws Exception {
 		Payable payable = persistOpenPayable("75.00");
 

@@ -41,6 +41,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -103,6 +104,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Combines the realized settlements of both sides with the open titles by due date")
 	void combinesTheRealizedSettlementsOfBothSidesWithTheOpenTitlesByDueDate() {
 		LocalDate from = TODAY.minusDays(1);
 		LocalDate to = TODAY.plusDays(5);
@@ -130,6 +132,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Projects an open receivable for what is still owed on it")
 	void anOpenReceivableIsProjectedForWhatIsStillOwedOnIt() {
 		Receivable partlyPaid = receivable("100.00", TODAY.plusDays(1), ReceivableStatus.PARTIALLY_SETTLED);
 		when(receivableRepositoryPort.findOutstandingDueUntil(any(), any())).thenReturn(List.of(partlyPaid));
@@ -142,6 +145,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Projects an overdue title on today instead of its past due date")
 	void anOverdueTitleIsProjectedOnTodayInsteadOfItsPastDueDate() {
 		when(receivableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(receivable("70.00", TODAY.minusDays(10), ReceivableStatus.OPEN)));
@@ -157,6 +161,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Passes all four filters to the ports and to the alert")
 	void passesAllFourFiltersToThePortsAndTheAlert() {
 		UUID company = UUID.randomUUID();
 		UUID branch = UUID.randomUUID();
@@ -181,6 +186,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Counts only the cost center's share of each payable, open or paid")
 	void aCostCenterCountsOnlyItsShareOfEachPayableOpenOrPaid() {
 		UUID costCenter = UUID.randomUUID();
 		UUID other = UUID.randomUUID();
@@ -202,6 +208,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Raises an alert with the first negative period and the lowest balance when the projected balance goes negative")
 	void anAlertIsRaisedWhenTheProjectedBalanceGoesNegativeAndCarriesTheFirstNegativePeriodAndTheLowestBalance() {
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(payable("500.00", TODAY.plusDays(2), List.of())));
@@ -220,6 +227,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Raises no alert while the balance stays non-negative")
 	void noAlertWhileTheBalanceStaysNonNegative() {
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(payable("100.00", TODAY.plusDays(2), List.of())));
@@ -231,6 +239,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Raises no alert for a negative balance that is already in the past")
 	void aNegativeBalanceThatIsAlreadyInThePastDoesNotAlert() {
 		Receivable paid = receivable("10.00", TODAY.minusDays(9), ReceivableStatus.SETTLED);
 		Payable spent = payable("500.00", TODAY.minusDays(9), List.of());
@@ -246,6 +255,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Does not fail the cash flow view when the notification fails")
 	void aFailingNotificationDoesNotFailTheView() {
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(payable("500.00", TODAY.plusDays(2), List.of())));
@@ -257,6 +267,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Defaults the range to thirty days back and ninety days ahead")
 	void theRangeDefaultsToThirtyDaysBackAndNinetyDaysAhead() {
 		CashFlowProjection projection = service.execute(new GetCashFlowQuery(CashFlowGranularity.MONTHLY, null, null,
 				null, null, null, null, null));
@@ -268,6 +279,7 @@ class GetCashFlowServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a range that is inverted or too long")
 	void rejectsAnInvertedOrExcessiveRange() {
 		assertThatThrownBy(() -> service.execute(daily(TODAY, TODAY.minusDays(1))))
 				.isInstanceOf(BusinessRuleException.class);

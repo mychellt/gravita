@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ class GeneratePayableFromReceiptServiceTest {
 	private GeneratePayableFromReceiptService service;
 
 	@Test
+	@DisplayName("Creates one open payable per installment referencing the purchase receipt")
 	void createsOneOpenPurchaseReceiptPayablePerInstallmentReferencingTheReceipt() {
 		UUID supplierId = UUID.randomUUID();
 		UUID receiptId = UUID.randomUUID();
@@ -69,6 +71,7 @@ class GeneratePayableFromReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Is idempotent per purchase receipt and returns the payables that already exist")
 	void isIdempotentPerPurchaseReceiptAndReturnsTheExistingPayables() {
 		UUID supplierId = UUID.randomUUID();
 		UUID receiptId = UUID.randomUUID();
@@ -84,6 +87,7 @@ class GeneratePayableFromReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a command without installments and saves nothing")
 	void rejectsACommandWithoutInstallmentsWithoutSavingAnything() {
 		UUID receiptId = UUID.randomUUID();
 
@@ -95,6 +99,7 @@ class GeneratePayableFromReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
 		UUID receiptId = UUID.randomUUID();
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of());
@@ -107,6 +112,7 @@ class GeneratePayableFromReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves each payable with its own id")
 	void savesEachPayableWithItsOwnId() {
 		UUID receiptId = UUID.randomUUID();
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of());

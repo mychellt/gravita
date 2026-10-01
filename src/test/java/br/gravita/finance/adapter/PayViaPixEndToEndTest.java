@@ -20,6 +20,7 @@ import br.gravita.core.ports.outbound.persistence.finance.PayableRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,6 +63,7 @@ class PayViaPixEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Pays the payable via PIX and persists it as paid with the receipt attached")
 	void paysThePayableAndPersistsItAsPaidWithTheReceiptAttached() throws Exception {
 		Payable payable = persistApproved();
 		when(bankIntegrationPort.payViaPix(any()))
@@ -78,6 +80,7 @@ class PayViaPixEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 502 Bad Gateway on a transfer failure and leaves the payable approved")
 	void aTransferFailureIsReportedAs502AndLeavesThePayableApproved() throws Exception {
 		Payable payable = persistApproved();
 		when(bankIntegrationPort.payViaPix(any()))
@@ -91,6 +94,7 @@ class PayViaPixEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects paying a payable that is still open without contacting the bank")
 	void anOpenPayableIsRejectedWithoutContactingTheBank() throws Exception {
 		Payable open = payableRepositoryPort.save(Payable.createManual(PayableId.of(UUID.randomUUID()), null,
 				new BigDecimal("100.00"), LocalDate.now().plusDays(7), null));
@@ -101,11 +105,13 @@ class PayViaPixEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 Not Found when the payable to pay does not exist")
 	void anUnknownPayableIsRejectedWith404() throws Exception {
 		pixPay(UUID.randomUUID(), "{\"pixKey\": \"12345678909\"}").andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Rejects a PIX payment request that has no PIX key")
 	void aRequestWithoutAPixKeyIsRejected() throws Exception {
 		Payable payable = persistApproved();
 

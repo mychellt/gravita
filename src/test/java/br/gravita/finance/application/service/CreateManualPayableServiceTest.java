@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +57,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates an open manual payable without a supplier")
 	void createsAnOpenManualPayableWithoutASupplier() {
 		savingEchoesTheArgument();
 
@@ -70,6 +72,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a payable for a registered supplier")
 	void createsAPayableForARegisteredSupplier() {
 		UUID supplierId = UUID.randomUUID();
 		when(supplierRepositoryPort.findById(SupplierId.of(supplierId))).thenReturn(Optional.of(mock(Supplier.class)));
@@ -81,6 +84,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Saves the payable together with its cost center split")
 	void savesThePayableWithItsCostCenterSplit() {
 		UUID a = UUID.randomUUID();
 		UUID b = UUID.randomUUID();
@@ -98,6 +102,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unregistered supplier without saving anything")
 	void rejectsAnUnregisteredSupplierWithoutSavingAnything() {
 		UUID supplierId = UUID.randomUUID();
 		when(supplierRepositoryPort.findById(SupplierId.of(supplierId))).thenReturn(Optional.empty());
@@ -110,6 +115,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown cost center without saving anything")
 	void rejectsAnUnknownCostCenterWithoutSavingAnything() {
 		UUID costCenterId = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(costCenterId)).thenReturn(Optional.empty());
@@ -122,6 +128,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a cost center split that does not sum to 100% without saving anything")
 	void rejectsASplitNotSummingTo100WithoutSavingAnything() {
 		assertThatThrownBy(() -> service.execute(new CreateManualPayableCommand(null, BigDecimal.TEN, DUE,
 				List.of(new CostCenterShare(UUID.randomUUID(), new BigDecimal("50"))))))
@@ -131,6 +138,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a zero amount without saving anything")
 	void rejectsAZeroAmountWithoutSavingAnything() {
 		assertThatThrownBy(() -> service.execute(new CreateManualPayableCommand(null, BigDecimal.ZERO, DUE, null)))
 				.isInstanceOf(BusinessRuleException.class);
@@ -139,6 +147,7 @@ class CreateManualPayableServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires both an amount and a due date on the command")
 	void theCommandRequiresAmountAndDueDate() {
 		assertThatThrownBy(() -> new CreateManualPayableCommand(null, null, DUE, null))
 				.isInstanceOf(NullPointerException.class).hasMessageContaining("amount");

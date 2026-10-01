@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -93,6 +94,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Marks the original titles as renegotiated and creates one open receivable per installment")
 	void marksTheOriginalsRenegotiatedAndCreatesOneOpenReceivablePerInstallment() {
 		Receivable first = overdue("100.00");
 		Receivable second = overdue("50.00");
@@ -121,6 +123,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Links the renegotiation back to the original titles")
 	void theRenegotiationLinksBackToTheOriginalTitles() {
 		Receivable first = overdue("100.00");
 		Receivable second = overdue("50.00");
@@ -134,6 +137,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refreshes the customer's credit status once everything is saved")
 	void refreshesTheCustomersCreditStatusOnceEverythingIsSaved() {
 		Receivable original = overdue("100.00");
 
@@ -147,6 +151,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a title that is not overdue without writing anything")
 	void rejectsATitleThatIsNotOverdueWithoutWritingAnything() {
 		Receivable notDue = found(receivable(customerId, ReceivableStatus.OPEN, today.plusDays(5), "100.00"));
 
@@ -159,6 +164,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a title that was already renegotiated")
 	void rejectsAnAlreadyRenegotiatedTitle() {
 		Receivable done = found(receivable(customerId, ReceivableStatus.RENEGOTIATED, today.minusDays(5), "100.00"));
 
@@ -170,6 +176,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown receivable")
 	void rejectsAnUnknownReceivable() {
 		UUID unknown = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(unknown))).thenReturn(Optional.empty());
@@ -182,6 +189,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects titles that belong to different customers")
 	void rejectsTitlesOfDifferentCustomers() {
 		Receivable mine = overdue("100.00");
 		Receivable other = found(receivable(UUID.randomUUID(), ReceivableStatus.OPEN, today.minusDays(4), "10.00"));
@@ -194,6 +202,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the same title listed twice")
 	void rejectsTheSameTitleTwice() {
 		Receivable original = unstubbedOverdue("100.00");
 		RenegotiateTitleCommand twice = new RenegotiateTitleCommand(
@@ -204,6 +213,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires an installment plan and at least one title")
 	void requiresAnInstallmentPlanAndAtLeastOneTitle() {
 		Receivable original = unstubbedOverdue("100.00");
 
@@ -217,6 +227,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment whose due date has already passed")
 	void rejectsAnInstallmentThatIsAlreadyDue() {
 		Receivable original = overdue("100.00");
 
@@ -228,6 +239,7 @@ class RenegotiateTitleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
 		Receivable original = overdue("100.00");
 

@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,6 +57,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Marks the charge as paid and settles the linked receivable")
 	void marksTheChargePaidAndSettlesTheLinkedReceivable() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
@@ -73,6 +75,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Still marks an expired charge as paid when the bank reports it paid")
 	void anExpiredChargeThatTheBankReportsPaidIsStillPaid() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		PixCharge charge = charge(receivable, PixChargeStatus.EXPIRED);
@@ -86,6 +89,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Changes nothing when the same payment is confirmed again")
 	void aRepeatedConfirmationChangesNothing() {
 		Receivable receivable = receivable(ReceivableStatus.SETTLED);
 		PixCharge charge = charge(receivable, PixChargeStatus.PAID);
@@ -99,6 +103,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves an already settled receivable as is but still marks the charge paid")
 	void leavesAnAlreadySettledReceivableAsIsButMarksTheChargePaid() {
 		Receivable receivable = receivable(ReceivableStatus.SETTLED);
 		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
@@ -112,6 +117,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails without marking the charge paid when the receivable cannot be settled")
 	void failsWithoutMarkingPaidWhenTheReceivableCannotBeSettled() {
 		Receivable receivable = receivable(ReceivableStatus.CANCELLED);
 		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
@@ -125,6 +131,7 @@ class ConfirmPixPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the charge does not exist")
 	void failsWhenTheChargeDoesNotExist() {
 		UUID missing = UUID.randomUUID();
 		when(pixChargeRepositoryPort.findById(PixChargeId.of(missing))).thenReturn(Optional.empty());

@@ -12,6 +12,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class SettlementTest {
@@ -25,6 +26,7 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Gives an automatic CNAB settlement the CNAB method and defaults missing adjustments to zero")
 	void anAutomaticCnabSettlementCarriesTheCnabMethodAndDefaultsMissingAdjustmentsToZero() {
 		Settlement settlement = cnab(new BigDecimal("90.00"), new BigDecimal("2.50"), null, paidAt);
 
@@ -37,12 +39,14 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Computes the credited amount as the principal plus the discount granted")
 	void theCreditedAmountIsThePrincipalPlusTheDiscountGranted() {
 		assertThat(cnab(new BigDecimal("90.00"), null, new BigDecimal("10.00"), paidAt).creditedAmount())
 				.isEqualByComparingTo("100.00");
 	}
 
 	@Test
+	@DisplayName("Rejects a non-positive amount and negative adjustments")
 	void rejectsANonPositiveAmountAndNegativeAdjustments() {
 		assertThatThrownBy(() -> cnab(BigDecimal.ZERO, null, null, paidAt)).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> cnab(null, null, null, paidAt)).isInstanceOf(BusinessRuleException.class);
@@ -51,6 +55,7 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Recognises the same bank payment but not a different one")
 	void recognisesTheSameBankPaymentButNotAnotherOne() {
 		Settlement settlement = cnab(new BigDecimal("50.00"), null, null, paidAt);
 
@@ -61,6 +66,7 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Gives a manual settlement the manual method and the entered adjustments")
 	void aManualSettlementCarriesTheManualMethodAndTheEnteredAdjustments() {
 		Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivableId,
 				new BigDecimal("90.00"), new BigDecimal("1.00"), new BigDecimal("2.00"), new BigDecimal("3.00"),
@@ -74,6 +80,7 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Computes the cash amount as principal plus interest, fine and surcharge, excluding the discount")
 	void theCashAmountIsThePrincipalPlusInterestFineAndSurchargeButNotTheDiscount() {
 		Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivableId,
 				new BigDecimal("90.00"), new BigDecimal("2.00"), new BigDecimal("1.00"), new BigDecimal("10.00"),
@@ -83,6 +90,7 @@ class SettlementTest {
 	}
 
 	@Test
+	@DisplayName("Requires a settlement to apply to exactly one receivable or payable")
 	void aSettlementAppliesToExactlyOneReceivableOrPayable() {
 		PayableId payableId = PayableId.of(UUID.randomUUID());
 		Settlement payment = Settlement.ofPayable(SettlementId.of(UUID.randomUUID()), payableId, BigDecimal.TEN, null,

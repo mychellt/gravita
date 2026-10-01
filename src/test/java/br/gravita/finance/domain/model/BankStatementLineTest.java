@@ -10,6 +10,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class BankStatementLineTest {
@@ -21,6 +22,7 @@ class BankStatementLineTest {
 	}
 
 	@Test
+	@DisplayName("Starts a statement line as unmatched")
 	void startsUnmatched() {
 		BankStatementLine line = line("10.00");
 
@@ -30,6 +32,7 @@ class BankStatementLineTest {
 	}
 
 	@Test
+	@DisplayName("Returns a copy pointing at the settlement or the movement when matched")
 	void matchingReturnsACopyPointingAtTheSettlementOrTheMovement() {
 		BankStatementLine line = line("10.00");
 		SettlementId settlementId = SettlementId.of(UUID.randomUUID());
@@ -52,23 +55,27 @@ class BankStatementLineTest {
 	}
 
 	@Test
+	@DisplayName("Tells credit from debit by the sign of the amount")
 	void theSignOfTheAmountTellsCreditFromDebit() {
 		assertThat(line("10.00").isCredit()).isTrue();
 		assertThat(line("-10.00").isCredit()).isFalse();
 	}
 
 	@Test
+	@DisplayName("Turns a missing description into an empty one")
 	void aMissingDescriptionBecomesEmpty() {
 		assertThat(BankStatementLine.unmatched(1, DAY, BigDecimal.ONE, null, null).getDescription()).isEmpty();
 	}
 
 	@Test
+	@DisplayName("Rejects a line number below one")
 	void rejectsALineNumberBelowOne() {
 		assertThatThrownBy(() -> BankStatementLine.unmatched(0, DAY, BigDecimal.ONE, null, null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Requires both a date and an amount")
 	void requiresADateAndAnAmount() {
 		assertThatThrownBy(() -> BankStatementLine.unmatched(1, null, BigDecimal.ONE, null, null))
 				.isInstanceOf(NullPointerException.class);

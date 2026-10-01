@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +31,7 @@ class CreateManualPayableIntegrationTest {
 	private PayableRepositoryPort payableRepositoryPort;
 
 	@Test
+	@DisplayName("Persists a manual payable without a supplier as open")
 	void persistsAManualPayableWithoutSupplierAsOpen() {
 		LocalDate dueDate = LocalDate.now().plusDays(15);
 
@@ -46,6 +48,7 @@ class CreateManualPayableIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Persists the cost center split preserving its order")
 	void persistsTheCostCenterSplitInOrder() {
 		UUID first = UUID.randomUUID();
 		UUID second = UUID.randomUUID();

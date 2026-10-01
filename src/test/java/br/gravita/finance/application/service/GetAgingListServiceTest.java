@@ -27,6 +27,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -62,6 +63,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Buckets the outstanding titles by days overdue as of the query date")
 	void bucketsTheOutstandingTitlesByDaysOverdueAsOfTheQueryDate() {
 		LocalDate asOf = TODAY.plusDays(10);
 		Receivable recent = receivable("100.00", asOf.minusDays(5), ReceivableStatus.OPEN);
@@ -78,6 +80,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Uses today as the query date when none is given")
 	void defaultsTheQueryDateToToday() {
 		Receivable overdue = receivable("10.00", TODAY.minusDays(45), ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(null, TODAY)).thenReturn(List.of(overdue));
@@ -90,6 +93,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Counts a partially settled title only for what is still owed")
 	void aPartiallySettledTitleCountsForWhatIsStillOwed() {
 		Receivable partial = receivable("100.00", TODAY.minusDays(70), ReceivableStatus.PARTIALLY_SETTLED);
 		Settlement payment = Settlement.manual(SettlementId.of(UUID.randomUUID()), partial.getId(),
@@ -103,6 +107,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves out settled, renegotiated and cancelled titles even if the repository returns them")
 	void settledRenegotiatedAndCancelledTitlesAreLeftOutEvenIfTheRepositoryReturnsThem() {
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(null, TODAY)).thenReturn(List.of(
 				receivable("10.00", TODAY.minusDays(5), ReceivableStatus.SETTLED),
@@ -116,6 +121,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Filters the aging list by customer")
 	void filtersByCustomer() {
 		UUID customerId = UUID.randomUUID();
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(customerId, TODAY)).thenReturn(List.of());
@@ -127,6 +133,7 @@ class GetAgingListServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty report for a cost center because receivables are not charged to one")
 	void aCostCenterYieldsAnEmptyReportAsReceivablesAreNotChargedToOne() {
 		AgingReport report = service.execute(new GetAgingListQuery(null, UUID.randomUUID(), null));
 

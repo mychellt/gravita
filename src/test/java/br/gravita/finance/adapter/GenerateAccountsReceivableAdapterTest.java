@@ -14,6 +14,7 @@ import br.gravita.core.ports.outbound.sales.GenerateAccountsReceivablePort.Gener
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,6 +37,7 @@ class GenerateAccountsReceivableAdapterTest {
 			document, new BigDecimal("80.00"), LocalDate.of(2026, 10, 30));
 
 	@Test
+	@DisplayName("Delegates as a single installment that references the fiscal document")
 	void delegatesAsASingleInstallmentReferencingTheFiscalDocument() {
 		adapter.generate(command);
 
@@ -51,6 +53,7 @@ class GenerateAccountsReceivableAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Swallows failures so they never break the invoicing flow")
 	void aFailureNeverPropagatesToTheInvoicingFlow() {
 		when(useCase.execute(any())).thenThrow(new IllegalStateException("db down"));
 

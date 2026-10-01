@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,6 +74,7 @@ class GetAgingListEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Buckets the outstanding titles of every customer into the aging ranges")
 	void bucketsEveryCustomersOutstandingTitles() throws Exception {
 		aging().andExpect(jsonPath("$.asOfDate").value(today.toString()))
 				.andExpect(jsonPath("$.buckets.length()").value(4))
@@ -90,6 +92,7 @@ class GetAgingListEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns only the given customer's titles when filtering the aging list by customer")
 	void filtersByCustomer() throws Exception {
 		aging("customerId", customerB.toString()).andExpect(jsonPath("$.buckets[3].total").value(1000.0))
 				.andExpect(jsonPath("$.total").value(1000.0)).andExpect(jsonPath("$.titleCount").value(1));
@@ -97,6 +100,7 @@ class GetAgingListEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Counts the days overdue up to the as-of date given in the request")
 	void countsDaysOverdueUpToTheGivenDate() throws Exception {
 		aging("asOfDate", today.minusDays(250).toString()).andExpect(jsonPath("$.asOfDate")
 				.value(today.minusDays(250).toString())).andExpect(jsonPath("$.total").value(0.0));
@@ -104,12 +108,14 @@ class GetAgingListEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns an empty aging report when a cost center filter is supplied")
 	void aCostCenterYieldsAnEmptyReport() throws Exception {
 		aging("costCenterId", UUID.randomUUID().toString()).andExpect(jsonPath("$.titleCount").value(0))
 				.andExpect(jsonPath("$.total").value(0.0));
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the as-of date is malformed")
 	void aMalformedDateIsA400() throws Exception {
 		mockMvc.perform(get("/api/finance/receivables/aging").param("asOfDate", "yesterday"))
 				.andExpect(status().isBadRequest());

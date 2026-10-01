@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -82,6 +83,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transfers to the recipient, marks the payable paid and attaches the receipt")
 	void transfersToTheRecipientMarksThePayablePaidAndAttachesTheReceipt() {
 		Payable payable = found(PayableStatus.APPROVED);
 		when(bankIntegrationPort.payViaPix(any())).thenReturn(RECEIPT);
@@ -108,6 +110,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the payable approved and stores nothing when the transfer fails")
 	void aTransferFailureLeavesThePayableApprovedAndStoresNothing() {
 		Payable payable = found(PayableStatus.APPROVED);
 		when(bankIntegrationPort.payViaPix(any()))
@@ -121,6 +124,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the payable approved when the bank refuses the transfer")
 	void aTransferTheBankRefusesLeavesThePayableApproved() {
 		Payable payable = found(PayableStatus.APPROVED);
 		when(bankIntegrationPort.payViaPix(any())).thenThrow(new BusinessRuleException("unknown PIX key"));
@@ -131,6 +135,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Still records the payment when the receipt cannot be stored, so it is never paid twice")
 	void aReceiptThatCannotBeStoredStillRecordsThePaymentSoItIsNeverPaidTwice() {
 		Payable payable = found(PayableStatus.APPROVED);
 		when(bankIntegrationPort.payViaPix(any())).thenReturn(RECEIPT);
@@ -145,6 +150,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Pays only approved payables and does not contact the bank otherwise")
 	void onlyApprovedPayablesCanBePaidAndTheBankIsNotContactedOtherwise() {
 		for (PayableStatus status : List.of(PayableStatus.OPEN, PayableStatus.PAID, PayableStatus.CANCELLED)) {
 			Payable payable = found(status);
@@ -159,6 +165,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown payable")
 	void anUnknownPayableIsNotFound() {
 		UUID id = UUID.randomUUID();
 		when(payableRepositoryPort.findById(PayableId.of(id))).thenReturn(Optional.empty());
@@ -170,6 +177,7 @@ class PayViaPixServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires a payable and a non-blank PIX key on the command")
 	void theCommandRequiresAPayableAndANonBlankPixKey() {
 		assertThatThrownBy(() -> new PayViaPixCommand(null, PIX_KEY)).isInstanceOf(NullPointerException.class);
 		assertThatThrownBy(() -> new PayViaPixCommand(UUID.randomUUID(), null))

@@ -14,6 +14,7 @@ import br.gravita.core.ports.outbound.finance.BankIntegrationPort;
 import br.gravita.core.usercases.finance.ConfirmDailyBatchPaymentService;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,6 +34,7 @@ class ConfirmDailyBatchPaymentServiceTest {
 	private ConfirmDailyBatchPaymentService service;
 
 	@Test
+	@DisplayName("Confirms the payments from the file the bank published")
 	void confirmsTheFileTheBankPublished() {
 		BankReturnImportResult expected = new BankReturnImportResult(2, 0, List.of());
 		when(bankIntegrationPort.fetchPaymentReturnFile(BankIntegration.SICOOB)).thenReturn(Optional.of("cnab"));
@@ -43,6 +45,7 @@ class ConfirmDailyBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Does nothing when the bank has no file for today")
 	void doesNothingWhenTheBankHasNoFileToday() {
 		when(bankIntegrationPort.fetchPaymentReturnFile(BankIntegration.SICOOB)).thenReturn(Optional.empty());
 
@@ -51,6 +54,7 @@ class ConfirmDailyBatchPaymentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Treats a blank file as if there were no file")
 	void treatsABlankFileAsNoFile() {
 		when(bankIntegrationPort.fetchPaymentReturnFile(BankIntegration.SICOOB)).thenReturn(Optional.of("  \n"));
 

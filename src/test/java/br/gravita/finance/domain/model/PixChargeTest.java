@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PixChargeTest {
@@ -33,6 +34,7 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Starts an issued charge as pending, carrying the receivable's amount and due date")
 	void anIssuedChargeCarriesTheReceivablesAmountAndDueDateAndStartsPending() {
 		PixCharge charge = pending();
 
@@ -44,24 +46,28 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a charge with a missing payload")
 	void rejectsAMissingPayload() {
 		assertThatThrownBy(() -> issue(null, NOW.plusSeconds(60))).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> issue(" ", NOW.plusSeconds(60))).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Rejects a payload that is not an EMV BR Code")
 	void rejectsAPayloadThatIsNotAnEmvBrCode() {
 		assertThatThrownBy(() -> issue("not-a-pix-payload", NOW.plusSeconds(60)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("000201");
 	}
 
 	@Test
+	@DisplayName("Rejects a payload without the CRC field")
 	void rejectsAPayloadWithoutTheCrcField() {
 		assertThatThrownBy(() -> issue("00020126360014br.gov.bcb.pix5303986", NOW.plusSeconds(60)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("CRC16");
 	}
 
 	@Test
+	@DisplayName("Rejects a payload with an invalid CRC")
 	void rejectsAPayloadWithABadCrc() {
 		String valid = PixPayloads.valid();
 		String corrupted = valid.substring(0, valid.length() - 4) + "0000";
@@ -71,12 +77,14 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a charge whose expiry is already in the past")
 	void rejectsAChargeThatAlreadyExpires() {
 		assertThatThrownBy(() -> issue(PixPayloads.valid(), NOW)).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("future");
 	}
 
 	@Test
+	@DisplayName("Expires the charge only once its expiry time has passed")
 	void expiresOnlyOncePastExpiresAt() {
 		PixCharge charge = pending();
 
@@ -86,6 +94,7 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Never expires a charge that is already paid")
 	void aPaidChargeNeverExpires() {
 		PixCharge paid = pending().markPaid();
 
@@ -95,6 +104,7 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Moves the charge to paid even when it has already expired")
 	void payingMovesToPaidEvenWhenAlreadyExpired() {
 		PixCharge expired = pending().expireIfDue(NOW.plus(2, ChronoUnit.DAYS));
 
@@ -103,6 +113,7 @@ class PixChargeTest {
 	}
 
 	@Test
+	@DisplayName("Rejects paying a charge that is already paid")
 	void payingAnAlreadyPaidChargeIsRejected() {
 		assertThatThrownBy(() -> pending().markPaid().markPaid()).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("already PAID");

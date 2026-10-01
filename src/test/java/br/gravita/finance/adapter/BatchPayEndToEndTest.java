@@ -19,6 +19,7 @@ import br.gravita.core.ports.outbound.persistence.finance.PayableRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,6 +66,7 @@ class BatchPayEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Generates a single remittance referencing every selected payable and leaves them approved")
 	void generatesOneRemittanceReferencingEveryPayableAndLeavesThemApproved() throws Exception {
 		Payable first = persistApproved("100.00");
 		Payable second = persistApproved("40.25");
@@ -85,6 +87,7 @@ class BatchPayEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a batch containing a still-open payable without contacting the bank")
 	void rejectsABatchWithAPayableThatIsStillOpenWithoutContactingTheBank() throws Exception {
 		Payable approved = persistApproved("100.00");
 		Payable open = persistOpen("40.00");
@@ -95,11 +98,13 @@ class BatchPayEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 Not Found when a selected payable does not exist")
 	void anUnknownPayableIsRejectedWith404() throws Exception {
 		batchPay("\"ITAU\"", UUID.randomUUID()).andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Responds 502 Bad Gateway when the bank is unavailable")
 	void aBankThatIsNotAvailableIsReportedAs502() throws Exception {
 		Payable approved = persistApproved("100.00");
 		when(bankIntegrationPort.sendRemittance(any())).thenThrow(
@@ -109,11 +114,13 @@ class BatchPayEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a batch payment with no payables selected")
 	void anEmptySelectionIsRejected() throws Exception {
 		batchPay("\"ITAU\"").andExpect(status().isBadRequest());
 	}
 
 	@Test
+	@DisplayName("Rejects a batch payment request that does not name a bank")
 	void aRequestWithoutABankIsRejected() throws Exception {
 		Payable approved = persistApproved("100.00");
 

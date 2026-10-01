@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -81,6 +82,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Sets the balance to what is still owed on unsettled titles and the status to regular when nothing is overdue")
 	void theBalanceIsWhatIsStillOwedOnTheUnsettledTitlesAndTheStatusIsRegularWhenNothingIsOverdue() {
 		customerWithLimit("1000.00");
 		unsettledTitles(unsettled("100.00", LocalDate.now().plusDays(5), "40.00"),
@@ -95,6 +97,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Marks a customer with nothing left to pay as regular with a zero balance")
 	void aCustomerWithNothingLeftToPayIsRegularWithAZeroBalance() {
 		customerWithLimit("1000.00");
 		unsettledTitles();
@@ -107,6 +110,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Marks the customer as delinquent when any title is overdue")
 	void anOverdueTitleMakesTheCustomerDelinquent() {
 		customerWithLimit("1000.00");
 		unsettledTitles(unsettled("100.00", LocalDate.now().minusDays(1), null));
@@ -117,6 +121,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Blocks the customer when the balance exceeds a positive credit limit even if nothing is overdue")
 	void exceedingAPositiveCreditLimitBlocksTheCustomerEvenWhenNothingIsOverdue() {
 		customerWithLimit("100.00");
 		unsettledTitles(unsettled("100.01", LocalDate.now().plusDays(5), null));
@@ -127,6 +132,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Does not enforce the credit limit when it is missing or zero")
 	void aMissingOrZeroCreditLimitIsNotEnforced() {
 		for (String limit : new String[] { null, "0.00" }) {
 			org.mockito.Mockito.reset(setCustomerCreditStatusPort);
@@ -140,6 +146,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Skips the update when the customer is unknown")
 	void anUnknownCustomerIsSkipped() {
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.empty());
 
@@ -148,6 +155,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Swallows failures so they never break the settlement flow")
 	void aFailureNeverPropagatesToTheSettlementFlow() {
 		when(customerRepositoryPort.get(customerId)).thenThrow(new IllegalStateException("db down"));
 

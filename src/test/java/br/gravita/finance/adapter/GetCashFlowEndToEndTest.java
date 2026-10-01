@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,6 +123,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Combines everything realized and open when no filter is given")
 	void unfilteredCombinesEverythingRealizedAndOpen() throws Exception {
 		cashFlow().andExpect(jsonPath("$.buckets.length()").value(6))
 				.andExpect(jsonPath(at(0, "realizedInflow")).value(32.0))
@@ -133,6 +135,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns only the given company's movements when filtering by company")
 	void filtersByCompany() throws Exception {
 		cashFlow("companyId", companyB.toString()).andExpect(jsonPath(at(0, "realizedInflow")).value(0.0))
 				.andExpect(jsonPath(at(3, "projectedInflow")).value(10000.0))
@@ -140,6 +143,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns only the given branch's movements when filtering by branch")
 	void filtersByBranch() throws Exception {
 		cashFlow("branchId", branchA2.toString()).andExpect(jsonPath(at(0, "realizedInflow")).value(0.0))
 				.andExpect(jsonPath(at(3, "projectedInflow")).value(1000.0))
@@ -147,6 +151,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Applies the bank account filter to both realized and open entries")
 	void filtersByBankAccountOnBothTheRealizedAndTheOpenSide() throws Exception {
 		cashFlow("bankAccountId", bankA.toString()).andExpect(jsonPath(at(0, "realizedInflow")).value(32.0))
 				.andExpect(jsonPath(at(0, "realizedOutflow")).value(20.0))
@@ -155,6 +160,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Keeps only payables, at their cost center share, when filtering by cost center")
 	void filtersByCostCenterKeepingOnlyPayablesAndTheirShare() throws Exception {
 		cashFlow("costCenterId", costCenter.toString()).andExpect(jsonPath(at(0, "realizedInflow")).value(0.0))
 				.andExpect(jsonPath(at(0, "realizedOutflow")).value(10.0))
@@ -163,6 +169,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Applies several filters together")
 	void combinesFilters() throws Exception {
 		cashFlow("companyId", companyA.toString(), "branchId", branchA1.toString(), "bankAccountId", bankA.toString())
 				.andExpect(jsonPath(at(3, "projectedInflow")).value(100.0))
@@ -172,6 +179,7 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Raises the negative balance alert carrying the filter that was applied")
 	void aNegativeProjectionTriggersTheAlertWithTheFilterThatWasApplied() throws Exception {
 		cashFlow("costCenterId", costCenter.toString(), "openingBalance", "0")
 				.andExpect(jsonPath("$.closingBalance").value(-90.0));
@@ -185,12 +193,14 @@ class GetCashFlowEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the range ends before it starts")
 	void aRangeThatEndsBeforeItStartsIsA400() throws Exception {
 		mockMvc.perform(get("/api/finance/cash-flow").param("from", today.toString()).param("to",
 				today.minusDays(1).toString())).andExpect(status().isBadRequest());
 	}
 
 	@Test
+	@DisplayName("Responds 400 Bad Request when the granularity is unknown")
 	void anUnknownGranularityIsA400() throws Exception {
 		mockMvc.perform(get("/api/finance/cash-flow").param("granularity", "YEARLY"))
 				.andExpect(status().isBadRequest());

@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -70,6 +71,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancels the receivable when the return covers the whole open balance")
 	void aReturnCoveringTheWholeOpenBalanceCancelsTheReceivable() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -82,6 +84,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lowers the amount and keeps the receivable open on a partial return")
 	void aPartialReturnLowersTheAmountAndKeepsTheReceivableOpen() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -94,6 +97,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps a partially settled receivable partially settled after a partial return")
 	void aPartialReturnKeepsAPartiallySettledReceivablePartiallySettled() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
@@ -106,6 +110,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Allows returning only the unsettled portion of the receivable")
 	void onlyTheUnsettledPortionCanBeReturned() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
@@ -116,6 +121,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancels the receivable on a return of the whole unsettled balance without altering what was settled")
 	void aReturnOfTheWholeUnsettledBalanceCancelsWithoutTouchingWhatWasSettled() {
 		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
@@ -128,6 +134,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return above the open balance")
 	void rejectsAReturnAboveTheOpenBalance() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -138,6 +145,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a returned amount that is zero or negative")
 	void rejectsANonPositiveReturnedAmount() {
 		Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
@@ -147,6 +155,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return for a receivable that is no longer outstanding")
 	void rejectsAReceivableThatIsNoLongerOutstanding() {
 		for (ReceivableStatus status : List.of(ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
 				ReceivableStatus.RENEGOTIATED)) {
@@ -160,6 +169,7 @@ class AdjustReceivableForReturnServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the receivable does not exist")
 	void failsWhenTheReceivableDoesNotExist() {
 		UUID id = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(id))).thenReturn(Optional.empty());
