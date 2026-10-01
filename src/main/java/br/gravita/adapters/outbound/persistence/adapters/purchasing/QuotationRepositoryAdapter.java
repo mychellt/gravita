@@ -22,14 +22,14 @@ class QuotationRepositoryAdapter implements QuotationRepositoryPort {
 
 	@Override
 	public Quotation save(Quotation quotation) {
-		QuotationJpaEntity entity = mapper.toEntity(quotation);
+		QuotationJpaEntity entity = mapper.map(quotation);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		QuotationJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<Quotation> findById(QuotationId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

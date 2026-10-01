@@ -26,20 +26,20 @@ class StockReservationRepositoryAdapter implements StockReservationRepositoryPor
 
 	@Override
 	public StockReservation save(StockReservation reservation) {
-		StockReservationJpaEntity entity = mapper.toEntity(reservation);
+		StockReservationJpaEntity entity = mapper.map(reservation);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<StockReservation> findById(StockReservationId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<StockReservation> findActiveByOrderRef(UUID orderRef) {
 		return jpaRepository.findByOrderRefAndStatus(orderRef, StockReservationStatus.ACTIVE).stream()
-				.map(mapper::toDomain)
+				.map(mapper::map)
 				.toList();
 	}
 }

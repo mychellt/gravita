@@ -15,7 +15,7 @@ public final class SerialUnit {
 	private final String serialNumber;
 	private final SerialUnitStatus status;
 
-	private SerialUnit(SerialUnitId id, UUID productId, UUID warehouseId, String serialNumber,
+	public SerialUnit(SerialUnitId id, UUID productId, UUID warehouseId, String serialNumber,
 			SerialUnitStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");

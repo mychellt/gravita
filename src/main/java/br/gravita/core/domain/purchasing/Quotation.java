@@ -20,7 +20,7 @@ public final class Quotation {
 	private final List<SupplierId> suppliers;
 	private final List<QuotationResponse> responses;
 
-	private Quotation(QuotationId id, PurchaseRequestId requestId, List<QuotationItem> items,
+	public Quotation(QuotationId id, PurchaseRequestId requestId, List<QuotationItem> items,
 			List<SupplierId> suppliers, List<QuotationResponse> responses) {
 		this.id = Objects.requireNonNull(id, "QuotationId is required");
 		this.requestId = Objects.requireNonNull(requestId, "requestId is required");

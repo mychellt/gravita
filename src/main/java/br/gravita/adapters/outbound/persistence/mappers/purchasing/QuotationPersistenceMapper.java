@@ -18,58 +18,40 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface QuotationPersistenceMapper {
 
-	default Quotation toDomain(final QuotationJpaEntity entity) {
-		return Quotation.of(
-				QuotationId.of(entity.getId()),
-				PurchaseRequestId.of(entity.getRequestId()),
-				toItems(entity.getItems()),
-				toSuppliers(entity.getSuppliers()),
-				toResponses(entity.getResponseLines()));
+	@Mapping(target = "responses", source = "responseLines", qualifiedByName = "toResponses")
+	Quotation map(final QuotationJpaEntity entity);
+
+	@Mapping(target = "id", source = "id.value")
+	@Mapping(target = "requestId", source = "requestId.value")
+	@Mapping(target = "responseLines", source = "responses", qualifiedByName = "toResponseLines")
+	QuotationJpaEntity map(final Quotation domain);
+
+	QuotationItem map(final QuotationItemEmbeddable embeddable);
+
+	QuotationItemEmbeddable map(final QuotationItem item);
+
+	@Mapping(target = "value", source = "id")
+	QuotationId mapQuotationId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	PurchaseRequestId mapPurchaseRequestId(final UUID id);
+
+	@Mapping(target = "value", source = "id")
+	SupplierId mapSupplierId(final UUID id);
+
+	static UUID unwrap(final SupplierId id) {
+		return id.value();
 	}
 
-	default QuotationJpaEntity toEntity(final Quotation domain) {
-		return QuotationJpaEntity.builder()
-				.id(domain.getId() == null ? null : domain.getId().value())
-				.requestId(domain.getRequestId().value())
-				.items(toItemEmbeddables(domain.getItems()))
-				.suppliers(toSupplierIds(domain.getSuppliers()))
-				.responseLines(toResponseLineEmbeddables(domain.getResponses()))
-				.build();
-	}
-
-	private List<QuotationItem> toItems(final List<QuotationItemEmbeddable> embeddables) {
-		if (embeddables == null) {
-			return List.of();
-		}
-		return embeddables.stream().map(e -> new QuotationItem(e.getProductId(), e.getQuantity())).toList();
-	}
-
-	private List<QuotationItemEmbeddable> toItemEmbeddables(final List<QuotationItem> items) {
-		return items.stream()
-				.map(item -> QuotationItemEmbeddable.builder()
-						.productId(item.productId())
-						.quantity(item.quantity())
-						.build())
-				.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private List<SupplierId> toSuppliers(final List<UUID> supplierIds) {
-		if (supplierIds == null) {
-			return List.of();
-		}
-		return supplierIds.stream().map(SupplierId::of).toList();
-	}
-
-	private List<UUID> toSupplierIds(final List<SupplierId> suppliers) {
-		return suppliers.stream().map(SupplierId::value).collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private List<QuotationResponse> toResponses(final List<QuotationResponseLineEmbeddable> lines) {
+	@Named("toResponses")
+	static List<QuotationResponse> toResponses(final List<QuotationResponseLineEmbeddable> lines) {
 		if (lines == null || lines.isEmpty()) {
 			return List.of();
 		}
@@ -86,7 +68,8 @@ public interface QuotationPersistenceMapper {
 				.toList();
 	}
 
-	private List<QuotationResponseLineEmbeddable> toResponseLineEmbeddables(final List<QuotationResponse> responses) {
+	@Named("toResponseLines")
+	static List<QuotationResponseLineEmbeddable> toResponseLines(final List<QuotationResponse> responses) {
 		return responses.stream()
 				.flatMap(response -> response.itemPrices().stream()
 						.map(itemPrice -> QuotationResponseLineEmbeddable.builder()

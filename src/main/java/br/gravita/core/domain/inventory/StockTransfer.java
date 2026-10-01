@@ -17,7 +17,7 @@ public final class StockTransfer {
 	private final BigDecimal quantity;
 	private final StockTransferStatus status;
 
-	private StockTransfer(StockTransferId id, UUID productId, UUID sourceWarehouseId, UUID destinationWarehouseId,
+	public StockTransfer(StockTransferId id, UUID productId, UUID sourceWarehouseId, UUID destinationWarehouseId,
 			BigDecimal quantity, StockTransferStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");

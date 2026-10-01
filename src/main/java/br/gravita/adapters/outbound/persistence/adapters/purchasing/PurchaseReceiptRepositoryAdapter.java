@@ -25,19 +25,19 @@ class PurchaseReceiptRepositoryAdapter implements PurchaseReceiptRepositoryPort 
 
 	@Override
 	public PurchaseReceipt save(PurchaseReceipt purchaseReceipt) {
-		PurchaseReceiptJpaEntity entity = mapper.toEntity(purchaseReceipt);
+		PurchaseReceiptJpaEntity entity = mapper.map(purchaseReceipt);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PurchaseReceiptJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PurchaseReceipt> findById(PurchaseReceiptId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<PurchaseReceipt> findByOrderId(PurchaseOrderId orderId) {
-		return jpaRepository.findByOrderId(orderId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByOrderId(orderId.value()).stream().map(mapper::map).toList();
 	}
 }

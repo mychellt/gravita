@@ -19,7 +19,7 @@ public final class StockBalance {
 	private final BigDecimal inTransit;
 	private final BigDecimal averageCost;
 
-	private StockBalance(StockBalanceId id, UUID productId, UUID warehouseId, BigDecimal onHand,
+	public StockBalance(StockBalanceId id, UUID productId, UUID warehouseId, BigDecimal onHand,
 			BigDecimal reserved, BigDecimal inTransit, BigDecimal averageCost) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");

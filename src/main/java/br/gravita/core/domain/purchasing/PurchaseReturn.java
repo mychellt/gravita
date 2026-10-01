@@ -18,7 +18,7 @@ public final class PurchaseReturn {
 	private final boolean total;
 	private final String returnNfeRef;
 
-	private PurchaseReturn(PurchaseReturnId id, PurchaseReceiptId receiptId, List<PurchaseReturnItem> items,
+	public PurchaseReturn(PurchaseReturnId id, PurchaseReceiptId receiptId, List<PurchaseReturnItem> items,
 			boolean total, String returnNfeRef) {
 		this.id = Objects.requireNonNull(id, "PurchaseReturnId is required");
 		this.receiptId = Objects.requireNonNull(receiptId, "receiptId is required");

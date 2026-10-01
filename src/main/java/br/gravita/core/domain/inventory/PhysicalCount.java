@@ -24,7 +24,7 @@ public final class PhysicalCount {
 	private final Instant startedAt;
 	private final List<PhysicalCountLine> lines;
 
-	private PhysicalCount(PhysicalCountId id, PhysicalCountScope scope, String productGroupId, UUID warehouseId,
+	public PhysicalCount(PhysicalCountId id, PhysicalCountScope scope, String productGroupId, UUID warehouseId,
 			PhysicalCountStatus status, UUID startedBy, Instant startedAt, List<PhysicalCountLine> lines) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.scope = Objects.requireNonNull(scope, "scope is required");

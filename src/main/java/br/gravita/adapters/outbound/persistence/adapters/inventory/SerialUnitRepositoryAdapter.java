@@ -22,10 +22,10 @@ class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
 
 	@Override
 	public List<SerialUnit> saveAll(List<SerialUnit> serialUnits) {
-		List<SerialUnitJpaEntity> entities = serialUnits.stream().map(mapper::toEntity).toList();
+		List<SerialUnitJpaEntity> entities = serialUnits.stream().map(mapper::map).toList();
 		entities.forEach(entity -> entity.setNew(!jpaRepository.existsById(entity.getId())));
 		return jpaRepository.saveAll(entities).stream()
-				.map(mapper::toDomain)
+				.map(mapper::map)
 				.toList();
 	}
 
@@ -34,7 +34,7 @@ class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
 			List<String> serialNumbers) {
 		return jpaRepository.findByProductIdAndWarehouseIdAndSerialNumberIn(productId, warehouseId, serialNumbers)
 				.stream()
-				.map(mapper::toDomain)
+				.map(mapper::map)
 				.toList();
 	}
 }

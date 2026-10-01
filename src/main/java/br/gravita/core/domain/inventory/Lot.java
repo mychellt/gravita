@@ -17,7 +17,7 @@ public final class Lot {
 	private final LocalDate expiryDate;
 	private final BigDecimal quantity;
 
-	private Lot(LotId id, UUID productId, UUID warehouseId, String code, LocalDate expiryDate, BigDecimal quantity) {
+	public Lot(LotId id, UUID productId, UUID warehouseId, String code, LocalDate expiryDate, BigDecimal quantity) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
 		this.warehouseId = Objects.requireNonNull(warehouseId, "warehouseId is required");
