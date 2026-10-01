@@ -11,6 +11,7 @@ import br.gravita.core.ports.outbound.persistence.inventory.LotRepositoryPort;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ class CheckExpiringLotsEndToEndTest {
 	private NotifyExpiringLotPort notifyExpiringLotPort;
 
 	@Test
+	@DisplayName("Returns only lots that expire within the window and still have remaining quantity")
 	void returnsOnlyLotsWithinTheWindowAndWithRemainingQuantity() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -51,6 +53,7 @@ class CheckExpiringLotsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Includes a lot that expires exactly on the last day of the window")
 	void includesALotExpiringExactlyOnTheWindowBoundary() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -63,6 +66,7 @@ class CheckExpiringLotsEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Restricts the expiring lots to the given warehouse when a warehouse id is provided")
 	void filtersByWarehouseWhenProvided() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID matchingWarehouse = UUID.randomUUID();

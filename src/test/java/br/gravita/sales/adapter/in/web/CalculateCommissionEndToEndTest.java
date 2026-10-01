@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +40,7 @@ class CalculateCommissionEndToEndTest {
 	private CommissionRateJpaRepository commissionRateJpaRepository;
 
 	@Test
+	@DisplayName("Calculates commissions for the orders invoiced within the period")
 	void calculatesCommissionsForInvoicedOrdersInThePeriod() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();
@@ -61,6 +63,7 @@ class CalculateCommissionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Orders invoiced outside the period are not included in the commission")
 	void ordersOutsideThePeriodAreNotIncluded() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();
@@ -76,6 +79,7 @@ class CalculateCommissionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Calculating a commission without a configured rate returns 404")
 	void aMissingCommissionRateIsRejectedWith404() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();

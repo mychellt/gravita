@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +53,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing restores exactly the reserved quantity to available and leaves on-hand unchanged")
 	void releasingRestoresExactlyTheReservedQuantityToAvailableAndLeavesOnHandUnchanged() {
 		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.ACTIVE);
@@ -76,6 +78,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing a reservation that was already released is rejected")
 	void releasingAnAlreadyReleasedReservationIsRejected() {
 		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.RELEASED);
@@ -89,6 +92,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing a reservation that was already consumed is rejected")
 	void releasingAnAlreadyConsumedReservationIsRejected() {
 		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.CONSUMED);
@@ -102,6 +106,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing a reservation that does not exist is rejected")
 	void releasingAnUnknownReservationIsRejected() {
 		when(stockReservationRepositoryPort.findById(reservationId)).thenReturn(Optional.empty());
 
@@ -113,6 +118,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing by order reference releases every active reservation of that order")
 	void releasingByOrderRefReleasesEveryActiveReservationForThatOrder() {
 		UUID otherProductId = UUID.randomUUID();
 		StockReservation firstReservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
@@ -141,6 +147,7 @@ class ReleaseStockReservationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Releasing by order reference does nothing when the order has no active reservations")
 	void releasingByOrderRefWithNoActiveReservationsDoesNothing() {
 		when(stockReservationRepositoryPort.findActiveByOrderRef(orderRef)).thenReturn(List.of());
 

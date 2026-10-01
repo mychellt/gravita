@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -46,6 +47,7 @@ class SubmitPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for every line moves the count to PENDING_APPROVAL")
 	void submittingCountsForEveryLineMovesTheCountToPendingApproval() {
 		UUID product = UUID.randomUUID();
 		PhysicalCount inProgress = physicalCount(List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
@@ -59,6 +61,7 @@ class SubmitPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects submitting counts for a count that does not exist")
 	void rejectsSubmittingCountsForAnUnknownCount() {
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.empty());
 
@@ -68,6 +71,7 @@ class SubmitPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects submitting counts for a count that is not in progress")
 	void rejectsSubmittingCountsForACountThatIsNotInProgress() {
 		UUID product = UUID.randomUUID();
 		PhysicalCount pending = PhysicalCount.of(physicalCountId, PhysicalCountScope.TOTAL, null, warehouseId,

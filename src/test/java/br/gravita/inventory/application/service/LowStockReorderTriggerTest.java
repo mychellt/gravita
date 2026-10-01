@@ -12,6 +12,7 @@ import br.gravita.core.usercases.inventory.LowStockReorderTrigger;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -32,6 +33,7 @@ class LowStockReorderTriggerTest {
 	private LowStockReorderTrigger trigger;
 
 	@Test
+	@DisplayName("AC1: Creates a purchase request for each reorder suggestion produced for the warehouse")
 	void ac1_createsAPurchaseRequestForEachSuggestionProducedForTheWarehouse() {
 		trigger = new LowStockReorderTrigger(suggestReorderUseCase, createPurchaseRequestPort);
 		UUID productId = UUID.randomUUID();
@@ -49,6 +51,7 @@ class LowStockReorderTriggerTest {
 	}
 
 	@Test
+	@DisplayName("Does nothing when no reorder suggestions are produced")
 	void doesNothingWhenNoSuggestionsAreProduced() {
 		trigger = new LowStockReorderTrigger(suggestReorderUseCase, createPurchaseRequestPort);
 		when(suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))).thenReturn(List.of());
@@ -59,6 +62,7 @@ class LowStockReorderTriggerTest {
 	}
 
 	@Test
+	@DisplayName("Skips a suggestion whose replenishment quantity is not positive")
 	void skipsASuggestionWithNoPositiveReplenishmentQuantity() {
 		trigger = new LowStockReorderTrigger(suggestReorderUseCase, createPurchaseRequestPort);
 		ReorderSuggestion suggestion = new ReorderSuggestion(UUID.randomUUID(), warehouseId, new BigDecimal("15"),

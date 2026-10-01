@@ -8,6 +8,7 @@ import br.gravita.adapters.outbound.persistence.entities.inventory.StockBalanceJ
 import br.gravita.adapters.outbound.persistence.repositories.inventory.StockBalanceJpaRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ class ReserveStockEndToEndTest {
 	private StockBalanceJpaRepository stockBalanceJpaRepository;
 
 	@Test
+	@DisplayName("Reserving stock increases the reserved quantity and persists the updated balance")
 	void reservesStockAndPersistsTheUpdatedBalance() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -55,6 +57,7 @@ class ReserveStockEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A reservation larger than the available stock is rejected")
 	void rejectsAReservationLargerThanAvailableStock() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();

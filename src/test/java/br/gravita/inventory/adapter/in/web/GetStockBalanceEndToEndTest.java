@@ -12,6 +12,7 @@ import br.gravita.core.domain.ProductType;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,6 +34,7 @@ class GetStockBalanceEndToEndTest {
 	private StockBalanceJpaRepository stockBalanceJpaRepository;
 
 	@Test
+	@DisplayName("Returns the on-hand, reserved and available balance for a specific warehouse")
 	void returnsTheBalanceForASpecificWarehouse() throws Exception {
 		UUID productId = seedProduct();
 		UUID warehouseId = UUID.randomUUID();
@@ -48,6 +50,7 @@ class GetStockBalanceEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Omitting the warehouse id aggregates the balance across every warehouse")
 	void omittingWarehouseIdAggregatesAcrossEveryWarehouse() throws Exception {
 		UUID productId = seedProduct();
 		seedBalance(productId, UUID.randomUUID(), "30", "0", "0", "8.00");
@@ -61,6 +64,7 @@ class GetStockBalanceEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Querying the balance of an unknown product returns 404")
 	void anUnknownProductReturns404() throws Exception {
 		mockMvc.perform(get("/api/inventory/products/" + UUID.randomUUID() + "/balance"))
 				.andExpect(status().isNotFound());

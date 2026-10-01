@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -70,6 +71,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Recalculates the average cost as a weighted average across entries")
 	void ac1_recalculatesAverageCostAsAWeightedAverageAcrossEntries() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		StockBalance afterFirstEntry = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
@@ -86,6 +88,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Starts the average cost at the entry unit cost when no balance exists yet")
 	void ac1_startsTheAverageCostAtTheEntryUnitCostWhenNoBalanceExistsYet() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -100,12 +103,14 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: The stock movement repository port exposes no update or delete operation (append-only)")
 	void ac2_stockMovementRepositoryPortExposesNoUpdateOrDeleteMethod() {
 		assertThat(StockMovementRepositoryPort.class.getMethods()).extracting(java.lang.reflect.Method::getName)
 				.containsExactly("save");
 	}
 
 	@Test
+	@DisplayName("AC2: The created movement is an ENTRY appended through save only")
 	void ac2_theCreatedMovementIsReturnedAsAnEntryTypeAppendedThroughSaveOnly() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -119,6 +124,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Requires an expiry date when the product has lot control active")
 	void ac3_requiresExpiryDateWhenTheProductHasLotControlActive() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 
@@ -131,6 +137,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Creates a new lot when none exists for the product, warehouse and lot code")
 	void ac3_createsANewLotWhenNoneExistsYetForTheProductWarehouseCode() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -151,6 +158,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Increments the existing lot quantity on a repeat entry for the same lot")
 	void ac3_incrementsAnExistingLotOnARepeatEntry() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -172,6 +180,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: Records each serial number as an individual unit when serial control is active")
 	void ac4_recordsEachSerialAsAnIndividualUnitWhenSerialControlIsActive() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(false, true)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -190,6 +199,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: Rejects a serial-controlled entry whose serial count differs from the quantity")
 	void ac4_rejectsASerialControlledEntryWhoseSerialCountDoesNotMatchQuantity() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(false, true)));
 
@@ -202,6 +212,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC5: Rejects an entry with zero quantity")
 	void ac5_rejectsAZeroQuantity() {
 		RegisterStockEntryCommand command = entryCommand(BigDecimal.ZERO, new BigDecimal("5.00"));
 
@@ -210,6 +221,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC5: Rejects an entry with a negative quantity")
 	void ac5_rejectsANegativeQuantity() {
 		RegisterStockEntryCommand command = entryCommand(new BigDecimal("-1"), new BigDecimal("5.00"));
 
@@ -218,6 +230,7 @@ class RegisterStockEntryServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an entry for an unknown product with not-found")
 	void rejectsAnEntryForAnUnknownProductWithNotFound() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.empty());
 

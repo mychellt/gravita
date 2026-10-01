@@ -29,6 +29,7 @@ import br.gravita.core.ports.outbound.sales.IssueFiscalDocumentPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,6 +67,7 @@ class InvoiceSalesOrderEndToEndTest {
 	private GenerateAccountsReceivablePort generateAccountsReceivablePort;
 
 	@Test
+	@DisplayName("Invoicing an approved order issues the NF-e and moves the order to INVOICED")
 	void invoicingAnApprovedOrderIssuesTheNfeAndTransitionsTheOrderToInvoiced() throws Exception {
 		UUID productId = seedProduct(ProductType.SIMPLE);
 		SalesOrder order = persistOrder(SalesOrderStatus.APPROVED, productId, BigDecimal.ONE,
@@ -95,6 +97,7 @@ class InvoiceSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Invoicing a draft order is rejected")
 	void rejectsInvoicingADraftOrder() throws Exception {
 		UUID productId = seedProduct(ProductType.SIMPLE);
 		SalesOrder order = persistOrder(SalesOrderStatus.DRAFT, productId, BigDecimal.ONE, new BigDecimal("20.00"));
@@ -106,6 +109,7 @@ class InvoiceSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Invoicing an order that does not exist returns 404")
 	void anOrderThatDoesNotExistIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/sales/orders/" + UUID.randomUUID() + "/invoice"))
 				.andExpect(status().isNotFound());

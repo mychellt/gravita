@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ class SubmitPhysicalCountEndToEndTest {
 	private PhysicalCountJpaRepository physicalCountJpaRepository;
 
 	@Test
+	@DisplayName("Submitting counts for every line moves the count to PENDING_APPROVAL, making it approvable")
 	void submittingCountsForEveryLineMovesTheCountToPendingApprovalAndUnblocksApprove() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID divergentProduct = UUID.randomUUID();
@@ -69,6 +71,7 @@ class SubmitPhysicalCountEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for only some lines leaves the count IN_PROGRESS")
 	void submittingCountsForOnlySomeLinesLeavesTheCountInProgress() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID productA = UUID.randomUUID();
@@ -91,6 +94,7 @@ class SubmitPhysicalCountEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for a count that is not IN_PROGRESS is rejected")
 	void submittingCountsForACountThatIsNotInProgressIsRejected() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID product = UUID.randomUUID();

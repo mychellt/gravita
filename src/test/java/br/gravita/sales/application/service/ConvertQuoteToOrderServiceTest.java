@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ class ConvertQuoteToOrderServiceTest {
 	private ConvertQuoteToOrderService service;
 
 	@Test
+	@DisplayName("Converts a draft quote into a draft order carrying over customer, items, prices and discounts")
 	void convertsADraftQuoteIntoADraftOrderCarryingOverCustomerItemsPricesAndDiscounts() {
 		UUID customerId = UUID.randomUUID();
 		List<QuoteItem> items = List.of(
@@ -78,6 +80,7 @@ class ConvertQuoteToOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting a quote that does not exist")
 	void rejectsConvertingAQuoteThatDoesNotExist() {
 		UUID quoteId = UUID.randomUUID();
 		when(quoteRepositoryPort.findById(any())).thenReturn(Optional.empty());
@@ -90,6 +93,7 @@ class ConvertQuoteToOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting an already converted quote and persists no order")
 	void rejectsConvertingAnAlreadyConvertedQuoteWithoutPersistingAnOrder() {
 		Quote convertedQuote = Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),
@@ -104,6 +108,7 @@ class ConvertQuoteToOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting an expired quote and persists no order")
 	void rejectsConvertingAnExpiredQuoteWithoutPersistingAnOrder() {
 		Quote expiredQuote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),

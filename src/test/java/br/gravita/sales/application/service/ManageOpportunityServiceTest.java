@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +45,7 @@ class ManageOpportunityServiceTest {
 	private ManageOpportunityService service;
 
 	@Test
+	@DisplayName("Creates an opportunity in the PROSPECTING stage")
 	void createsAnOpportunityInTheProspectingStage() {
 		when(opportunityRepositoryPort.save(any(Opportunity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -57,6 +59,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("Changing the stage appends exactly one stage transition")
 	void changingStageAppendsExactlyOneStageTransition() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.PROSPECTING)));
@@ -74,6 +77,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("Arbitrary stage jumps are allowed in the flat kanban model")
 	void arbitraryStageJumpsAreAllowedInTheFlatKanbanModel() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.PROSPECTING)));
@@ -86,6 +90,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("An opportunity in a terminal stage rejects further stage changes")
 	void terminalStagesRejectFurtherStageChanges() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.CLOSED)));
@@ -97,6 +102,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("An opportunity in a terminal stage rejects field updates")
 	void terminalStagesRejectFieldUpdates() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.LOST)));
@@ -107,6 +113,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("Field updates are allowed in any non-terminal stage and keep unspecified fields unchanged")
 	void fieldUpdatesAreAllowedAtAnyNonTerminalStageAndKeepUnspecifiedFieldsUnchanged() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		Opportunity existing = opportunity(id, OpportunityStage.PROPOSAL);
@@ -123,6 +130,7 @@ class ManageOpportunityServiceTest {
 	}
 
 	@Test
+	@DisplayName("Changing the stage of an opportunity that does not exist throws not-found")
 	void changingStageOfAnUnknownOpportunityThrows() {
 		OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.empty());

@@ -5,11 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import br.gravita.core.domain.inventory.PhysicalCountLine;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PhysicalCountLineTest {
 
 	@Test
+	@DisplayName("A line that has not been counted yet has no divergence")
 	void aLineWithNoCountedQuantityYetHasNoDivergence() {
 		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"));
 
@@ -17,6 +19,7 @@ class PhysicalCountLineTest {
 	}
 
 	@Test
+	@DisplayName("A line whose counted quantity equals the system quantity has no divergence")
 	void aLineWhereCountedMatchesSystemHasNoDivergence() {
 		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("10"));
 
@@ -24,6 +27,7 @@ class PhysicalCountLineTest {
 	}
 
 	@Test
+	@DisplayName("A line whose counted quantity differs from the system quantity has a divergence")
 	void aLineWhereCountedDiffersFromSystemHasADivergence() {
 		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("7"));
 

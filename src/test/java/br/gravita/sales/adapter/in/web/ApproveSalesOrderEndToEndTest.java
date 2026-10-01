@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,7 @@ class ApproveSalesOrderEndToEndTest {
 	private ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort;
 
 	@Test
+	@DisplayName("Approving a draft order marks it approved and reserves stock for each item")
 	void approvesADraftOrderAndReservesStockForEachItem() throws Exception {
 		UUID productId = UUID.randomUUID();
 		SalesOrder saved = persistDraftOrder(productId, BigDecimal.ONE, new BigDecimal("10.00"), BigDecimal.ZERO);
@@ -80,6 +82,7 @@ class ApproveSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approving an order that is not in DRAFT is rejected")
 	void rejectsApprovingAnOrderThatIsNotDraft() throws Exception {
 		UUID productId = UUID.randomUUID();
 		SalesOrder saved = persistDraftOrder(productId, BigDecimal.ONE, new BigDecimal("10.00"), BigDecimal.ZERO);
@@ -96,6 +99,7 @@ class ApproveSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approving an order above the approval limit is rejected when the approver lacks the elevated profile")
 	void rejectsApprovingAnOrderExceedingTheAlcadaWhenTheApproverLacksTheElevatedProfile() throws Exception {
 		UUID productId = UUID.randomUUID();
 		SalesOrder saved = persistDraftOrder(productId, BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO);
@@ -112,6 +116,7 @@ class ApproveSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approving an order that does not exist returns 404")
 	void anOrderThatDoesNotExistIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/sales/orders/" + UUID.randomUUID() + "/approve")
 						.contentType(MediaType.APPLICATION_JSON)

@@ -11,6 +11,7 @@ import br.gravita.core.ports.outbound.persistence.sales.FollowUpRuleRepositoryPo
 import br.gravita.core.usercases.sales.ListFollowUpRulesService;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +28,7 @@ class ListFollowUpRulesServiceTest {
 	private ListFollowUpRulesService service;
 
 	@Test
+	@DisplayName("Lists both active and inactive follow-up rules")
 	void listsBothActiveAndInactiveRules() {
 		FollowUpRule active =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 7, FollowUpTarget.CUSTOMER, true, true);

@@ -17,6 +17,7 @@ import br.gravita.core.ports.outbound.persistence.sales.FollowUpRuleRepositoryPo
 import br.gravita.core.usercases.sales.ManageFollowUpRuleService;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,6 +34,7 @@ class ManageFollowUpRuleServiceTest {
 	private ManageFollowUpRuleService service;
 
 	@Test
+	@DisplayName("Creates a new follow-up rule")
 	void createsANewFollowUpRule() {
 		when(followUpRuleRepositoryPort.save(any(FollowUpRule.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -53,6 +55,7 @@ class ManageFollowUpRuleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects creating a rule whose days without contact is not positive")
 	void rejectsNonPositiveDaysWithoutContactOnCreate() {
 		CreateFollowUpRuleCommand command = CreateFollowUpRuleCommand.builder()
 				.daysWithoutContact(0)
@@ -65,6 +68,7 @@ class ManageFollowUpRuleServiceTest {
 	}
 
 	@Test
+	@DisplayName("A partial update keeps the fields that were not specified unchanged")
 	void partialUpdateKeepsUnspecifiedFieldsUnchanged() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
@@ -82,6 +86,7 @@ class ManageFollowUpRuleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updating a rule that does not exist throws not-found")
 	void updatingAnUnknownRuleThrows() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.empty());
@@ -92,6 +97,7 @@ class ManageFollowUpRuleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Deleting a rule removes it from the repository")
 	void deletingARuleRemovesItFromTheRepository() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
@@ -103,6 +109,7 @@ class ManageFollowUpRuleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Deleting a rule that does not exist throws not-found")
 	void deletingAnUnknownRuleThrows() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.empty());

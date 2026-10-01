@@ -14,6 +14,7 @@ import br.gravita.core.usercases.sales.SetSalespersonTargetService;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ class SetSalespersonTargetServiceTest {
 	private SetSalespersonTargetService service;
 
 	@Test
+	@DisplayName("Persists the target for the given salesperson and month")
 	void persistsTheTargetForTheGivenSalespersonAndMonth() {
 		UUID salesperson = UUID.randomUUID();
 		YearMonth month = YearMonth.of(2026, 1);
@@ -51,6 +53,7 @@ class SetSalespersonTargetServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target with a negative value")
 	void rejectsNegativeValueTarget() {
 		SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
 				YearMonth.of(2026, 1), new BigDecimal("-1"), 10);
@@ -59,6 +62,7 @@ class SetSalespersonTargetServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target with a negative order count")
 	void rejectsNegativeOrderCountTarget() {
 		SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
 				YearMonth.of(2026, 1), new BigDecimal("100"), -5);

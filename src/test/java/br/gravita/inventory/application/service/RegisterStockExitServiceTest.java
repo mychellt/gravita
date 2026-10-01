@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -81,6 +82,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: Blocks the exit when available stock is insufficient and negative stock is not allowed")
 	void ac2_blocksTheExitWhenAvailableIsInsufficientAndNegativeStockIsNotAllowed() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("10"), BigDecimal.ZERO)));
@@ -93,6 +95,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: Allows stock to go negative when explicitly permitted")
 	void ac2_allowsGoingNegativeWhenExplicitlyPermitted() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("10"), BigDecimal.ZERO)));
@@ -108,6 +111,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Rejects allocating stock from an expired lot")
 	void ac1_rejectsAllocationFromAnExpiredLot() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
@@ -126,6 +130,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: Fulfilling a reservation consumes it and leaves available stock unchanged")
 	void ac4_fulfillingAReservationConsumesItAndLeavesAvailableUnchanged() {
 		StockBalance current = balance(new BigDecimal("100"), new BigDecimal("30"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -153,6 +158,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fulfilling an unknown reservation is rejected")
 	void anUnknownReservationIsRejected() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
@@ -167,6 +173,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: The resulting movement is for exactly the exited quantity")
 	void ac3_theResultingMovementIsForTheExactExitedQuantity() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
@@ -179,6 +186,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC5: Evaluates low-stock reorder for the affected warehouse after a successful exit")
 	void ac5_evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulExit() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
@@ -190,6 +198,7 @@ class RegisterStockExitServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an exit with a zero or negative quantity")
 	void rejectsAZeroOrNegativeQuantity() {
 		assertThatThrownBy(() -> service.execute(exitCommand(BigDecimal.ZERO)))
 				.isInstanceOf(BusinessRuleException.class);

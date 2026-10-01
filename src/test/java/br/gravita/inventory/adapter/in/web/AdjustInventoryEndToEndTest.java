@@ -9,6 +9,7 @@ import br.gravita.adapters.outbound.persistence.entities.inventory.StockBalanceJ
 import br.gravita.adapters.outbound.persistence.repositories.inventory.StockBalanceJpaRepository;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +30,7 @@ class AdjustInventoryEndToEndTest {
 	private StockBalanceJpaRepository stockBalanceJpaRepository;
 
 	@Test
+	@DisplayName("POST adjustment with a positive quantity increases on-hand stock and stores the justification on the movement")
 	void appliesAPositiveAdjustmentAndCarriesTheJustification() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -55,6 +57,7 @@ class AdjustInventoryEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("POST adjustment with a negative quantity decreases on-hand stock")
 	void appliesANegativeAdjustment() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -79,6 +82,7 @@ class AdjustInventoryEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("POST adjustment without a justification is rejected as a bad request")
 	void rejectsAMissingJustification() throws Exception {
 		mockMvc.perform(post("/api/inventory/adjustments")
 						.contentType(MediaType.APPLICATION_JSON)

@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -57,6 +58,7 @@ class ApproveSalesOrderServiceTest {
 	private ApproveSalesOrderService service;
 
 	@Test
+	@DisplayName("Approves a draft order below the approval limit and reserves stock for every item")
 	void approvesADraftOrderBelowTheAlcadaAndReservesStockForEveryItem() {
 		UUID productA = UUID.randomUUID();
 		UUID productB = UUID.randomUUID();
@@ -91,6 +93,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order that does not exist")
 	void rejectsApprovingAnOrderThatDoesNotExist() {
 		UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
@@ -103,6 +106,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order that is not in DRAFT")
 	void rejectsApprovingAnOrderThatIsNotDraft() {
 		SalesOrder approvedOrder = draftOrder(List.of(item(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN,
 				BigDecimal.ZERO))).approve(UUID.randomUUID(), null);
@@ -118,6 +122,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("An order above the value approval limit can be approved by an approver with the elevated profile")
 	void ordersExceedingTheValueAlcadaRequireAnApproverWithTheElevatedProfile() {
 		SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));
@@ -138,6 +143,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order above the approval limit when the approver lacks the elevated profile")
 	void rejectsApprovingAnOrderExceedingTheAlcadaWhenTheApproverLacksTheElevatedProfile() {
 		SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));
@@ -157,6 +163,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("An order above the discount approval limit requires an approver with the elevated profile")
 	void ordersExceedingTheDiscountAlcadaRequireAnApproverWithTheElevatedProfile() {
 		SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"), new BigDecimal("30.00"))));
@@ -175,6 +182,7 @@ class ApproveSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order when the approver does not exist")
 	void rejectsApprovingWhenTheApproverDoesNotExist() {
 		SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));

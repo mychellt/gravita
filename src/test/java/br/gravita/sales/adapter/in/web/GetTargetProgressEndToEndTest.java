@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +40,7 @@ class GetTargetProgressEndToEndTest {
 	private SalespersonTargetRepositoryPort salespersonTargetRepositoryPort;
 
 	@Test
+	@DisplayName("Reports the achieved value and order count against the configured target")
 	void reportsProgressAgainstTheConfiguredTarget() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		YearMonth month = YearMonth.now();
@@ -57,6 +59,7 @@ class GetTargetProgressEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns a \"no target configured\" result when no target was set for the salesperson")
 	void returnsANoTargetConfiguredResultWhenNoTargetWasSet() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		YearMonth month = YearMonth.now();

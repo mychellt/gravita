@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -47,6 +48,7 @@ class GetFunnelConversionServiceTest {
 	private static final Instant PERIOD_END = PERIOD.plusMonths(1).atDay(1).atStartOfDay(ZoneOffset.UTC).toInstant();
 
 	@Test
+	@DisplayName("Computes the conversion rate per stage transition and the volume per salesperson")
 	void computesConversionRatePerStageTransitionAndVolumePerSalesperson() {
 		UUID salespersonA = UUID.randomUUID();
 		UUID salespersonB = UUID.randomUUID();
@@ -80,6 +82,7 @@ class GetFunnelConversionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Restricts the funnel to the given salesperson when provided")
 	void filtersToTheGivenSalespersonWhenProvided() {
 		UUID salespersonA = UUID.randomUUID();
 		UUID salespersonB = UUID.randomUUID();
@@ -102,6 +105,7 @@ class GetFunnelConversionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Average cycle time runs from the first stage transition to the closing transition")
 	void averageCycleTimeIsComputedFromTheFirstTransitionToTheClosingTransition() {
 		UUID salesperson = UUID.randomUUID();
 		OpportunityId opportunityId = OpportunityId.of(UUID.randomUUID());
@@ -126,6 +130,7 @@ class GetFunnelConversionServiceTest {
 	}
 
 	@Test
+	@DisplayName("A period without transitions yields empty results instead of an error")
 	void noTransitionsInThePeriodYieldsEmptyResultsRatherThanAnError() {
 		when(stageTransitionRepositoryPort.findByPeriod(PERIOD_START, PERIOD_END)).thenReturn(List.of());
 		when(opportunityRepositoryPort.findByIds(Set.of())).thenReturn(List.of());

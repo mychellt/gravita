@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -57,6 +58,7 @@ class StartPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("A TOTAL count snapshots every product in the warehouse")
 	void totalScopeSnapshotsEveryProductInTheWarehouse() {
 		UUID productA = UUID.randomUUID();
 		UUID productB = UUID.randomUUID();
@@ -75,6 +77,7 @@ class StartPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("A PARTIAL_BY_GROUP count snapshots only the products of that group")
 	void partialByGroupScopeOnlySnapshotsProductsInThatGroup() {
 		UUID productInGroup = UUID.randomUUID();
 		UUID productOutsideGroup = UUID.randomUUID();
@@ -95,6 +98,7 @@ class StartPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("A PARTIAL_BY_GROUP count without a product group id is rejected")
 	void partialByGroupWithoutAProductGroupIdIsRejected() {
 		assertThatThrownBy(() -> service
 				.execute(new StartPhysicalCountCommand(PhysicalCountScope.PARTIAL_BY_GROUP, null, warehouseId, user)))
@@ -102,6 +106,7 @@ class StartPhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("The saved count always starts IN_PROGRESS")
 	void savedCountAlwaysStartsInProgress() {
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of());
 		ArgumentCaptor<PhysicalCount> captor = ArgumentCaptor.forClass(PhysicalCount.class);

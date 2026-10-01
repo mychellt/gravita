@@ -12,6 +12,7 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.StockRese
 import br.gravita.core.domain.inventory.StockReservationStatus;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ class RegisterStockExitEndToEndTest {
 	private StockReservationJpaRepository stockReservationJpaRepository;
 
 	@Test
+	@DisplayName("Registering a stock exit decreases the on-hand quantity")
 	void registersAnExitAndDecreasesOnHand() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -61,6 +63,7 @@ class RegisterStockExitEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Blocks an exit larger than available stock when negative stock is not allowed")
 	void blocksTheExitWhenAvailableIsInsufficientAndNegativeStockIsNotAllowed() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -81,6 +84,7 @@ class RegisterStockExitEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Allows an exit to drive stock negative when negative stock is explicitly permitted")
 	void allowsGoingNegativeWhenExplicitlyPermitted() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -106,6 +110,7 @@ class RegisterStockExitEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Fulfilling a reservation through an exit consumes it and updates the balance")
 	void fulfillingAReservationConsumesItAndUpdatesTheBalance() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();

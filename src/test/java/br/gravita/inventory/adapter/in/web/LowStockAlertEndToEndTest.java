@@ -14,6 +14,7 @@ import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +37,7 @@ class LowStockAlertEndToEndTest {
 	private StockBalanceRepositoryPort stockBalanceRepositoryPort;
 
 	@Test
+	@DisplayName("AC3: Returns reorder suggestions for products at or below their reorder point")
 	void ac3_returnsSuggestionsForProductsAtOrBelowTheirReorderPoint() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID lowProductId = seedProduct("10", "100", "20");
@@ -50,6 +52,7 @@ class LowStockAlertEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Returns an empty list when no product is at or below its reorder point")
 	void ac3_returnsAnEmptyListWhenNothingIsBelowItsReorderPoint() throws Exception {
 		mockMvc.perform(get("/api/inventory/alerts/low-stock"))
 				.andExpect(status().isOk())

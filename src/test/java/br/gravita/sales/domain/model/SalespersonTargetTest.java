@@ -8,11 +8,13 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.time.YearMonth;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class SalespersonTargetTest {
 
 	@Test
+	@DisplayName("Creates a target when all fields are valid")
 	void createsATargetWithValidFields() {
 		UUID salespersonId = UUID.randomUUID();
 		YearMonth month = YearMonth.of(2026, 1);
@@ -26,6 +28,7 @@ class SalespersonTargetTest {
 	}
 
 	@Test
+	@DisplayName("Allows targets whose value and order count are zero")
 	void allowsZeroValuedTargets() {
 		SalespersonTarget target =
 				new SalespersonTarget(UUID.randomUUID(), YearMonth.of(2026, 1), BigDecimal.ZERO, 0);
@@ -35,6 +38,7 @@ class SalespersonTargetTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target with a negative value")
 	void rejectsNegativeValueTarget() {
 		assertThatThrownBy(() -> new SalespersonTarget(UUID.randomUUID(), YearMonth.of(2026, 1),
 				new BigDecimal("-1"), 10)).isInstanceOf(BusinessRuleException.class)
@@ -42,6 +46,7 @@ class SalespersonTargetTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target with a negative order count")
 	void rejectsNegativeOrderCountTarget() {
 		assertThatThrownBy(() -> new SalespersonTarget(UUID.randomUUID(), YearMonth.of(2026, 1),
 				new BigDecimal("100"), -1)).isInstanceOf(BusinessRuleException.class)
@@ -49,6 +54,7 @@ class SalespersonTargetTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target without a salesperson id")
 	void rejectsNullSalespersonId() {
 		assertThatThrownBy(
 				() -> new SalespersonTarget(null, YearMonth.of(2026, 1), new BigDecimal("100"), 10))
@@ -56,6 +62,7 @@ class SalespersonTargetTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a target without a month")
 	void rejectsNullMonth() {
 		assertThatThrownBy(() -> new SalespersonTarget(UUID.randomUUID(), null, new BigDecimal("100"), 10))
 				.isInstanceOf(NullPointerException.class);

@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -42,6 +43,7 @@ class GetStockBalanceServiceTest {
 	}
 
 	@Test
+	@DisplayName("An unknown product raises not-found instead of returning a zeroed balance")
 	void rejectsAnUnknownProductWithNotFoundInsteadOfAZeroedBalance() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.empty());
 
@@ -51,6 +53,7 @@ class GetStockBalanceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns available as on-hand minus reserved for a known warehouse")
 	void returnsAvailableAsOnHandMinusReservedForAKnownWarehouse() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
@@ -69,6 +72,7 @@ class GetStockBalanceServiceTest {
 	}
 
 	@Test
+	@DisplayName("A known product with no balance in the warehouse reads as zero rather than not-found")
 	void aKnownProductWithNoTrackedBalanceInAWarehouseReadsAsZeroNotNotFound() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
@@ -81,6 +85,7 @@ class GetStockBalanceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Omitting the warehouse id sums the balances of every warehouse")
 	void omittingWarehouseIdAggregatesAcrossEveryWarehouse() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		UUID warehouseA = UUID.randomUUID();
@@ -102,6 +107,7 @@ class GetStockBalanceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Omitting the warehouse id for a known product with no balance rows reads as zero")
 	void omittingWarehouseIdForAKnownProductWithNoBalanceRowsReadsAsZero() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		when(stockBalanceRepositoryPort.findByProductId(productId)).thenReturn(List.of());

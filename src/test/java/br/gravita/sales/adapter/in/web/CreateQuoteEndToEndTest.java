@@ -5,6 +5,7 @@ import br.gravita.core.domain.sales.QuoteId;
 import br.gravita.core.domain.sales.QuoteItem;
 import br.gravita.core.domain.sales.QuoteStatus;
 import br.gravita.core.ports.outbound.persistence.sales.QuoteRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +40,7 @@ class CreateQuoteEndToEndTest {
 	private QuoteRepositoryPort quoteRepositoryPort;
 
 	@Test
+	@DisplayName("A quote is persisted as DRAFT with its items, prices, discounts and validity exactly as submitted")
 	void aQuoteIsPersistedAsDraftWithItsItemsPricesDiscountsAndValidityAsSubmitted() throws Exception {
 		UUID customerId = UUID.randomUUID();
 		UUID salespersonId = UUID.randomUUID();
@@ -90,6 +92,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A quote with no items is rejected with 400")
 	void aQuoteWithNoItemsIsRejectedWith400() throws Exception {
 		String body = """
 				{"customerId": "%s", "validUntil": "%s", "items": []}
@@ -100,6 +103,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A quote with a validity date in the past is rejected with 400")
 	void aValidityDateInThePastIsRejectedWith400() throws Exception {
 		mockMvc.perform(post("/api/sales/quotes").contentType("application/json")
 						.content(singleItemBody(LocalDate.now().minusDays(1))))
@@ -108,6 +112,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A quote whose validity date is today is rejected with 400")
 	void aValidityDateOfTodayIsRejectedWith400() throws Exception {
 		mockMvc.perform(post("/api/sales/quotes").contentType("application/json")
 						.content(singleItemBody(LocalDate.now())))
@@ -115,6 +120,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A quote line with a discount above its subtotal is rejected with 400")
 	void aDiscountAboveTheLineSubtotalIsRejectedWith400() throws Exception {
 		String body = """
 				{
@@ -129,6 +135,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A price with more decimal places than can be stored is rejected instead of being silently rounded")
 	void aPriceWithMorePrecisionThanCanBeStoredIsRejectedRatherThanRounded() throws Exception {
 		String body = """
 				{
@@ -143,6 +150,7 @@ class CreateQuoteEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("A quote without a customer is rejected with 400")
 	void aMissingCustomerIsRejectedWith400() throws Exception {
 		String body = """
 				{

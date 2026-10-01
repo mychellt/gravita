@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +53,7 @@ class ReserveStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving more than the available quantity is rejected")
 	void reservingMoreThanAvailableIsRejected() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("10"), new BigDecimal("5"), BigDecimal.ZERO, new BigDecimal("2.00"));
@@ -68,6 +70,7 @@ class ReserveStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving a product that has no tracked balance is rejected")
 	void reservingAgainstAProductWithNoTrackedBalanceIsRejected() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
@@ -78,6 +81,7 @@ class ReserveStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving increases the reserved quantity and leaves on-hand unchanged")
 	void reservingIncreasesReservedAndLeavesOnHandUnchanged() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), new BigDecimal("10"), BigDecimal.ZERO, new BigDecimal("5.00"));
@@ -95,6 +99,7 @@ class ReserveStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("The created reservation references its order and starts ACTIVE")
 	void theCreatedReservationIsTraceableBackToItsOrderRefAndStartsActive() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("5.00"));
@@ -113,6 +118,7 @@ class ReserveStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("Evaluates low-stock reorder for the affected warehouse after a successful reservation")
 	void evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulReservation() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("5.00"));

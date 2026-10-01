@@ -17,6 +17,7 @@ import br.gravita.core.ports.outbound.sales.SendFollowUpAlertPort;
 import br.gravita.core.usercases.sales.ScheduleFollowUpTaskService;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +38,7 @@ class ScheduleFollowUpTaskServiceTest {
 	private ScheduleFollowUpTaskService service;
 
 	@Test
+	@DisplayName("Schedules a follow-up task and dispatches the alert")
 	void schedulesATaskAndDispatchesTheAlert() {
 		when(followUpTaskRepositoryPort.save(any(FollowUpTask.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -62,6 +64,7 @@ class ScheduleFollowUpTaskServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects scheduling a task with a due date in the past")
 	void rejectsSchedulingWithAPastDueDate() {
 		ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
 				.customerId(UUID.randomUUID())
@@ -76,6 +79,7 @@ class ScheduleFollowUpTaskServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects scheduling a task linked to neither an opportunity nor a customer")
 	void rejectsSchedulingWithoutAnOpportunityOrCustomerLink() {
 		ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
 				.dueDate(LocalDate.now().plusDays(1))

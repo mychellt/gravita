@@ -42,6 +42,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -80,6 +81,7 @@ class ReturnSalesOrderServiceTest {
 	private final FiscalDocumentRef originalNfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
 
 	@Test
+	@DisplayName("Returning every invoiced item in full reverts stock, adjusts the receivable and issues the return NF-e")
 	void returningEveryInvoicedItemInFullRevertsStockAdjustsTheReceivableAndIssuesTheReturnNfe() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -120,6 +122,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returning fewer units than were invoiced is recorded as a partial return")
 	void returningFewerThanTheInvoicedQuantityIsRecordedAsPartial() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -143,6 +146,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("A second partial return that completes the invoiced quantity is recorded as a total return")
 	void aSecondPartialReturnThatCompletesTheInvoicedQuantityIsRecordedAsTotal() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
@@ -163,6 +167,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return against an order that is not invoiced")
 	void rejectsAReturnAgainstAnOrderThatIsNotInvoiced() {
 		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED, BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -178,6 +183,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return quantity above what was invoiced, with no side effects")
 	void rejectsAReturnQuantityExceedingWhatWasOriginallyInvoicedWithoutAnySideEffect() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -193,6 +199,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects returning more than what remains after a prior return")
 	void rejectsReturningMoreThanWhatRemainsAfterAPriorReturn() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
@@ -208,6 +215,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return for an order that does not exist")
 	void rejectsAReturnForAnOrderThatDoesNotExist() {
 		UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
@@ -220,6 +228,7 @@ class ReturnSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return when the product or service of an item cannot be found")
 	void rejectsAReturnWhenAnItemsProductOrServiceCannotBeFound() {
 		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));

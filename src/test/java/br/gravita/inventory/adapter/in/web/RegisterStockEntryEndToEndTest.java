@@ -9,6 +9,7 @@ import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import tools.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.UUID;
@@ -34,6 +35,7 @@ class RegisterStockEntryEndToEndTest {
 	private ObjectMapper objectMapper;
 
 	@Test
+	@DisplayName("Registering a stock entry updates the balance exposed by the read endpoint")
 	void registersAnEntryAndUpdatesTheBalanceAvailableThroughTheReadEndpoint() throws Exception {
 		UUID productId = seedProduct(false, false);
 		UUID warehouseId = UUID.randomUUID();
@@ -59,6 +61,7 @@ class RegisterStockEntryEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("An entry with zero quantity is rejected as a bad request")
 	void rejectsAZeroQuantityEntry() throws Exception {
 		UUID productId = seedProduct(false, false);
 
@@ -75,6 +78,7 @@ class RegisterStockEntryEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("An entry for a lot-controlled product without an expiry date is rejected")
 	void requiresExpiryDateWhenTheProductHasLotControlActive() throws Exception {
 		UUID productId = seedProduct(true, false);
 
@@ -92,6 +96,7 @@ class RegisterStockEntryEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("An entry for an unknown product returns 404")
 	void anUnknownProductReturns404() throws Exception {
 		String body = objectMapper.writeValueAsString(Map.of(
 				"productId", UUID.randomUUID(),
