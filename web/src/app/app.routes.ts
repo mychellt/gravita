@@ -13,6 +13,18 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/admin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent),
         canDeactivate: [unsavedChangesGuard]
       },
+      {
+        path: 'clientes',
+        loadComponent: () => import('./modules/settings/clientes/clientes-list.component').then(m => m.ClientesListComponent)
+      },
+      {
+        path: 'clientes/:id',
+        loadComponent: () => import('./modules/settings/clientes/cliente-detail.component').then(m => m.ClienteDetailComponent)
+      },
+      {
+        path: 'clientes/:id/pagamentos',
+        loadComponent: () => import('./modules/settings/clientes/cliente-pagamentos.component').then(m => m.ClientePagamentosComponent)
+      },
     ]
   },
   {
@@ -64,18 +76,9 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent)
       },
-      {
-        path: 'settings/clientes',
-        loadComponent: () => import('./modules/settings/clientes/clientes-list.component').then(m => m.ClientesListComponent)
-      },
-      {
-        path: 'settings/clientes/:id',
-        loadComponent: () => import('./modules/settings/clientes/cliente-detail.component').then(m => m.ClienteDetailComponent)
-      },
-      {
-        path: 'settings/clientes/:id/pagamentos',
-        loadComponent: () => import('./modules/settings/clientes/cliente-pagamentos.component').then(m => m.ClientePagamentosComponent)
-      },
+      { path: 'settings/clientes', redirectTo: '/admin/clientes', pathMatch: 'full' },
+      { path: 'settings/clientes/:id', redirectTo: '/admin/clientes/:id', pathMatch: 'full' },
+      { path: 'settings/clientes/:id/pagamentos', redirectTo: '/admin/clientes/:id/pagamentos', pathMatch: 'full' },
     ]
   },
   { path: '**', redirectTo: '' }

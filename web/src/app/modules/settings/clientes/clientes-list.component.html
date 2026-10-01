@@ -1,5 +1,5 @@
 <app-page-header title="Clientes" subtitle="Administração · Cadastro de clientes do tenant">
-  <a routerLink="/settings" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  <a routerLink="/admin/configuracoes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
 </app-page-header>
 
 <div class="card">
@@ -32,8 +32,8 @@
           <td class="td-right">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</td>
           <td class="td-right">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</td>
           <td class="td-actions">
-            <a class="action-btn" [routerLink]="['/settings/clientes', c.id]">Dados</a>
-            <a class="action-btn" [routerLink]="['/settings/clientes', c.id, 'pagamentos']">Pagamentos</a>
+            <a class="action-btn" [routerLink]="['/admin/clientes', c.id]">Dados</a>
+            <a class="action-btn" [routerLink]="['/admin/clientes', c.id, 'pagamentos']">Pagamentos</a>
             <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
           </td>
         </tr>
