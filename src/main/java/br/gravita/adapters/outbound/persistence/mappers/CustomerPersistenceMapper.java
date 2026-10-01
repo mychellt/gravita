@@ -15,11 +15,10 @@ import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.NullValueMappingStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
-        imports = br.gravita.core.domain.shared.Document.class,
         nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT)
 public interface CustomerPersistenceMapper {
 
-    @Mapping(target = "documentDomain", expression = "java(new Document(entity.getDocument(), entity.getPersonType()))")
+    @Mapping(target = "documentDomain", expression = "java(new br.gravita.core.domain.shared.Document(entity.getDocument(), entity.getPersonType()))")
     CustomerDomain map(final CustomerJpaEntity entity);
 
     @Mapping(target = "document", source = "documentDomain.number")
