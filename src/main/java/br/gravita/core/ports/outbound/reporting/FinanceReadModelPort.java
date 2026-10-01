@@ -13,6 +13,18 @@ public interface FinanceReadModelPort {
 	 */
 	List<OverdueBalance> overdueReceivables(LocalDate asOf, UUID companyId);
 
+	/**
+	 * The expenses (manual payables, not cancelled) falling due over {@code [from, to]} (inclusive), summed per cost
+	 * center in no particular order; a payable split across cost centers counts for each one's share, and one charged
+	 * to none counts under a {@code null} cost center. Purchases of goods are not expenses: they reach the result as
+	 * CMV once sold. A {@code costCenterId} keeps only that cost center's share; a {@code null} {@code companyId}
+	 * does not restrict.
+	 */
+	List<CostCenterExpense> expensesByCostCenter(LocalDate from, LocalDate to, UUID costCenterId, UUID companyId);
+
 	record OverdueBalance(LocalDate dueDate, BigDecimal outstanding) {
+	}
+
+	record CostCenterExpense(UUID costCenterId, BigDecimal amount) {
 	}
 }

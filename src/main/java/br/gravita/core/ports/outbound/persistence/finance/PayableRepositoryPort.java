@@ -26,4 +26,11 @@ public interface PayableRepositoryPort {
 	 * a payable whose split charges it.
 	 */
 	List<Payable> findOutstandingDueUntil(LocalDate until, CashFlowFilter filter);
+
+	/**
+	 * The titles that fall due over {@code [from, to]} (inclusive), whatever their origin and whether still to be
+	 * paid or already paid, but not cancelled ones, matching {@code filter}; a cost center matches a payable whose
+	 * split charges it.
+	 */
+	List<Payable> findNotCancelledDueBetween(LocalDate from, LocalDate to, CashFlowFilter filter);
 }

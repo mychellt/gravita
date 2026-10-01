@@ -62,4 +62,10 @@ class PayableRepositoryAdapter implements PayableRepositoryPort {
 		return cashFlowQueryRepository.findOutstandingPayables(until, filter).stream().map(mapper::toDomain)
 				.toList();
 	}
+
+	@Override
+	public List<Payable> findNotCancelledDueBetween(LocalDate from, LocalDate to, CashFlowFilter filter) {
+		return cashFlowQueryRepository.findNotCancelledPayablesDueBetween(from, to, filter).stream()
+				.map(mapper::toDomain).toList();
+	}
 }

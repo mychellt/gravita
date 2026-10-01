@@ -46,6 +46,18 @@ public class CashFlowQueryRepository {
 		return typed(jpql, PayableJpaEntity.class, parameters).getResultList();
 	}
 
+	public List<PayableJpaEntity> findNotCancelledPayablesDueBetween(LocalDate from, LocalDate to,
+			CashFlowFilter filter) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("cancelled", PayableStatus.CANCELLED);
+		parameters.put("from", from);
+		parameters.put("to", to);
+		String jpql = "select p from PayableJpaEntity p where p.status <> :cancelled and p.dueDate >= :from"
+				+ " and p.dueDate <= :to" + scopeClauses("p", filter, parameters)
+				+ costCenterClause("p", filter, parameters) + " order by p.dueDate, p.id";
+		return typed(jpql, PayableJpaEntity.class, parameters).getResultList();
+	}
+
 	public List<SettlementJpaEntity> findRealizedSettlements(Instant from, Instant until, CashFlowFilter filter) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("from", from);
