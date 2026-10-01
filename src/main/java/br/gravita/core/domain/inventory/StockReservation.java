@@ -17,7 +17,7 @@ public final class StockReservation {
 	private final BigDecimal quantity;
 	private final StockReservationStatus status;
 
-	private StockReservation(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
+	public StockReservation(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
 			BigDecimal quantity, StockReservationStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.orderRef = Objects.requireNonNull(orderRef, "orderRef is required");

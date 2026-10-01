@@ -15,7 +15,7 @@ public final class PurchaseReceipt {
 	private final PurchaseReceiptStatus status;
 	private final boolean total;
 
-	private PurchaseReceipt(PurchaseReceiptId id, PurchaseOrderId orderId, List<PurchaseReceiptItem> receivedItems,
+	public PurchaseReceipt(PurchaseReceiptId id, PurchaseOrderId orderId, List<PurchaseReceiptItem> receivedItems,
 			List<InstallmentTerm> installmentTerms, PurchaseReceiptStatus status) {
 		this.id = Objects.requireNonNull(id, "PurchaseReceiptId is required");
 		this.orderId = Objects.requireNonNull(orderId, "orderId is required");

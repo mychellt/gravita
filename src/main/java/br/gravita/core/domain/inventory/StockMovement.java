@@ -24,7 +24,7 @@ public final class StockMovement {
 	private final UUID user;
 	private final Instant timestamp;
 
-	private StockMovement(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
+	public StockMovement(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
 			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
 			String originReference, String justification, UUID user, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");

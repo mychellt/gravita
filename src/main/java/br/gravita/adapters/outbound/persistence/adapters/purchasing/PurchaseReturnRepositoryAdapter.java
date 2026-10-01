@@ -24,19 +24,19 @@ class PurchaseReturnRepositoryAdapter implements PurchaseReturnRepositoryPort {
 
 	@Override
 	public PurchaseReturn save(PurchaseReturn purchaseReturn) {
-		PurchaseReturnJpaEntity entity = mapper.toEntity(purchaseReturn);
+		PurchaseReturnJpaEntity entity = mapper.map(purchaseReturn);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PurchaseReturnJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PurchaseReturn> findById(PurchaseReturnId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<PurchaseReturn> findByReceiptId(PurchaseReceiptId receiptId) {
-		return jpaRepository.findByReceiptId(receiptId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByReceiptId(receiptId.value()).stream().map(mapper::map).toList();
 	}
 }

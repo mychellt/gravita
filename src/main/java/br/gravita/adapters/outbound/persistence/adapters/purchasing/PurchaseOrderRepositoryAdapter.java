@@ -22,14 +22,14 @@ class PurchaseOrderRepositoryAdapter implements PurchaseOrderRepositoryPort {
 
 	@Override
 	public PurchaseOrder save(PurchaseOrder purchaseOrder) {
-		PurchaseOrderJpaEntity entity = mapper.toEntity(purchaseOrder);
+		PurchaseOrderJpaEntity entity = mapper.map(purchaseOrder);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		PurchaseOrderJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<PurchaseOrder> findById(PurchaseOrderId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

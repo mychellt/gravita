@@ -24,25 +24,25 @@ class LotRepositoryAdapter implements LotRepositoryPort {
 
 	@Override
 	public Optional<Lot> findByProductIdAndWarehouseIdAndCode(UUID productId, UUID warehouseId, String code) {
-		return jpaRepository.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, code).map(mapper::toDomain);
+		return jpaRepository.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, code).map(mapper::map);
 	}
 
 	@Override
 	public List<Lot> findByExpiryDateLessThanEqual(LocalDate cutoffDate) {
-		return jpaRepository.findByExpiryDateLessThanEqual(cutoffDate).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByExpiryDateLessThanEqual(cutoffDate).stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<Lot> findByExpiryDateLessThanEqualAndWarehouseId(LocalDate cutoffDate, UUID warehouseId) {
 		return jpaRepository.findByExpiryDateLessThanEqualAndWarehouseId(cutoffDate, warehouseId).stream()
-				.map(mapper::toDomain)
+				.map(mapper::map)
 				.toList();
 	}
 
 	@Override
 	public Lot save(Lot lot) {
-		LotJpaEntity entity = mapper.toEntity(lot);
+		LotJpaEntity entity = mapper.map(lot);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 }

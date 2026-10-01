@@ -3,28 +3,20 @@ package br.gravita.adapters.outbound.persistence.mappers.inventory;
 import br.gravita.adapters.outbound.persistence.entities.inventory.SerialUnitJpaEntity;
 import br.gravita.core.domain.inventory.SerialUnit;
 import br.gravita.core.domain.inventory.SerialUnitId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface SerialUnitPersistenceMapper {
 
-	default SerialUnit toDomain(final SerialUnitJpaEntity entity) {
-		return SerialUnit.received(
-				SerialUnitId.of(entity.getId()),
-				entity.getProductId(),
-				entity.getWarehouseId(),
-				entity.getSerialNumber());
-	}
+	SerialUnit map(final SerialUnitJpaEntity entity);
 
-	default SerialUnitJpaEntity toEntity(final SerialUnit domain) {
-		return SerialUnitJpaEntity.builder()
-				.id(domain.getId().value())
-				.productId(domain.getProductId())
-				.warehouseId(domain.getWarehouseId())
-				.serialNumber(domain.getSerialNumber())
-				.status(domain.getStatus())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	SerialUnitJpaEntity map(final SerialUnit domain);
+
+	@Mapping(target = "value", source = "id")
+	SerialUnitId mapSerialUnitId(final UUID id);
 }

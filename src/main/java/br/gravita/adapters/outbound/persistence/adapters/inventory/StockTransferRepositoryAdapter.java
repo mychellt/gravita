@@ -22,13 +22,13 @@ class StockTransferRepositoryAdapter implements StockTransferRepositoryPort {
 
 	@Override
 	public StockTransfer save(StockTransfer transfer) {
-		StockTransferJpaEntity entity = mapper.toEntity(transfer);
+		StockTransferJpaEntity entity = mapper.map(transfer);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		return mapper.toDomain(jpaRepository.save(entity));
+		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
 	public Optional<StockTransfer> findById(StockTransferId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

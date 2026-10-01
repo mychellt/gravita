@@ -3,33 +3,20 @@ package br.gravita.adapters.outbound.persistence.mappers.inventory;
 import br.gravita.adapters.outbound.persistence.entities.inventory.StockBalanceJpaEntity;
 import br.gravita.core.domain.inventory.StockBalance;
 import br.gravita.core.domain.inventory.StockBalanceId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface StockBalancePersistenceMapper {
 
-	default StockBalance toDomain(final StockBalanceJpaEntity entity) {
-		return StockBalance.of(
-				StockBalanceId.of(entity.getId()),
-				entity.getProductId(),
-				entity.getWarehouseId(),
-				entity.getOnHand(),
-				entity.getReserved(),
-				entity.getInTransit(),
-				entity.getAverageCost());
-	}
+	StockBalance map(final StockBalanceJpaEntity entity);
 
-	default StockBalanceJpaEntity toEntity(final StockBalance domain) {
-		return StockBalanceJpaEntity.builder()
-				.id(domain.getId().value())
-				.productId(domain.getProductId())
-				.warehouseId(domain.getWarehouseId())
-				.onHand(domain.getOnHand())
-				.reserved(domain.getReserved())
-				.inTransit(domain.getInTransit())
-				.averageCost(domain.getAverageCost())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	StockBalanceJpaEntity map(final StockBalance domain);
+
+	@Mapping(target = "value", source = "id")
+	StockBalanceId mapStockBalanceId(final UUID id);
 }
