@@ -373,6 +373,23 @@ export interface PlatformCustomer {
   planTier: PlanTier;
   status: 'ativo' | 'inadimplente' | 'bloqueado' | 'inativo';
   assinaturaDesde: Date;
+  responsavel?: string;
+  telefone?: string;
+}
+
+export type PlatformPaymentStatus = 'aberto' | 'pago' | 'cancelado';
+
+/** Mensalidade da assinatura de um cliente da Gravita. */
+export interface PlatformPayment {
+  id: string;
+  customerId: string;
+  /** Mês de referência (dia 1). */
+  competencia: Date;
+  vencimento: Date;
+  valor: number;
+  status: PlatformPaymentStatus;
+  pagoEm?: Date;
+  formaPagamento?: string;
 }
 
 export interface PlatformConfig {

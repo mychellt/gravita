@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { PlatformConfigService } from '../../../core/services/platform-config.service';
 import { PlatformCustomersService } from '../../../core/services/platform-customers.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -9,7 +10,7 @@ import { BrlPipe } from '../../../shared/pipes/brl.pipe';
 @Component({
   selector: 'app-platform-customers',
   standalone: true,
-  imports: [DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe],
+  imports: [DatePipe, RouterLink, BadgeComponent, PageHeaderComponent, BrlPipe],
   styleUrl: './platform-customers.component.scss',
   templateUrl: './platform-customers.component.html'
 })

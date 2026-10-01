@@ -17,6 +17,7 @@
         <th>Status</th>
         <th>Assinante desde</th>
         <th class="td-right">Mensalidade</th>
+        <th class="td-actions">Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -28,11 +29,15 @@
           <td><app-badge [value]="c.status" /></td>
           <td style="font-size:12px">{{ c.assinaturaDesde | date:'dd/MM/yyyy' }}</td>
           <td class="td-right">{{ c.planPrice != null ? (c.planPrice | brl) : '--' }}</td>
+          <td class="td-actions">
+            <a class="action-btn" [routerLink]="['/admin/clientes', c.id]">Informações</a>
+            <a class="action-btn" [routerLink]="['/admin/clientes', c.id, 'pagamentos']">Pagamentos</a>
+          </td>
         </tr>
       }
       @empty {
         <tr>
-          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
+          <td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
         </tr>
       }
     </tbody>
