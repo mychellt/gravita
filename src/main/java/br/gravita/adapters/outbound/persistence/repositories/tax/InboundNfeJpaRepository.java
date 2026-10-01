@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.persistence.repositories.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeJpaEntity;
+import br.gravita.core.domain.tax.InboundNfeStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,7 @@ public interface InboundNfeJpaRepository extends JpaRepository<InboundNfeJpaEnti
 
 	List<InboundNfeJpaEntity> findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
 			UUID companyId, Instant from, Instant to);
+
+	List<InboundNfeJpaEntity> findByCompanyIdAndStatusAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
+			UUID companyId, InboundNfeStatus status, Instant from, Instant to);
 }

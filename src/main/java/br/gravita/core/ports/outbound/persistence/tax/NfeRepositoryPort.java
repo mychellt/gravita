@@ -18,4 +18,11 @@ public interface NfeRepositoryPort {
 
 	/** The NFe {@code companyId} issued and that were authorized over {@code [from, to)}, oldest authorization first. */
 	List<NfeDocument> findAuthorizedByCompanyBetween(CompanyId companyId, Instant from, Instant to);
+
+	/**
+	 * UC-M2-11 (SPED Fiscal): the NFe {@code companyId} issued that SEFAZ authorized over {@code [from, to)} and that
+	 * are still authorized or have since been cancelled - a cancelled NFe stays in the file of the month it was
+	 * issued in - oldest authorization first.
+	 */
+	List<NfeDocument> findAuthorizedOrCancelledByCompanyBetween(CompanyId companyId, Instant from, Instant to);
 }

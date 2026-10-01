@@ -24,4 +24,10 @@ public interface InboundNfeRepositoryPort {
 
 	/** The NFe {@code companyId} received that their suppliers issued over {@code [from, to)}, oldest first. */
 	List<InboundNfe> findIssuedByCompanyBetween(CompanyId companyId, Instant from, Instant to);
+
+	/**
+	 * UC-M2-11 (SPED Fiscal): the NFe {@code companyId} received whose receipt was confirmed and that their suppliers
+	 * issued over {@code [from, to)}, oldest first.
+	 */
+	List<InboundNfe> findConfirmedByCompanyBetween(CompanyId companyId, Instant from, Instant to);
 }

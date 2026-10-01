@@ -8,6 +8,7 @@ import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
+import br.gravita.core.domain.tax.InboundNfeStatus;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
 import java.time.Instant;
 import java.util.List;
@@ -67,6 +68,14 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 		return jpaRepository
 				.findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(companyId.value(), from,
 						to)
+				.stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<InboundNfe> findConfirmedByCompanyBetween(CompanyId companyId, Instant from, Instant to) {
+		return jpaRepository
+				.findByCompanyIdAndStatusAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
+						companyId.value(), InboundNfeStatus.CONFIRMED, from, to)
 				.stream().map(mapper::toDomain).toList();
 	}
 }
