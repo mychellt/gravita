@@ -2,6 +2,7 @@ package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ class CustomerDomainTest {
 	private final Document cpf = Document.cpf("111.444.777-35");
 	private final Document cnpj = Document.cnpj("11.222.333/0001-81");
 
+	@DisplayName("Exposes the data the customer was built with")
 	@Test
 	void shouldExposeCustomerData() {
 		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
@@ -26,6 +28,7 @@ class CustomerDomainTest {
 		assertThat(customer.getDocumentDomain()).isEqualTo(cpf);
 	}
 
+	@DisplayName("Does not allow blocking a customer that is already blocked")
 	@Test
 	void shouldNotAllowBlockingAlreadyBlockedCustomer() {
 		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
@@ -34,6 +37,7 @@ class CustomerDomainTest {
 		assertThatThrownBy(customer::block).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Reactivates a blocked customer")
 	@Test
 	void shouldReactivateBlockedCustomer() {
 		CustomerDomain customer = customerWithStatus(CustomerStatus.BLOCKED);
@@ -43,6 +47,7 @@ class CustomerDomainTest {
 		assertThat(customer.getStatus()).isEqualTo(CustomerStatus.REGULAR);
 	}
 
+	@DisplayName("Applies the credit status and balance computed by Finance")
 	@Test
 	void shouldApplyFinanceComputedCreditStatusAndBalance() {
 		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
@@ -53,6 +58,7 @@ class CustomerDomainTest {
 		assertThat(customer.getCurrentBalance()).isEqualByComparingTo("2500.00");
 	}
 
+	@DisplayName("Rejects a credit status update that is missing the balance or the status")
 	@Test
 	void shouldRejectCreditStatusUpdateMissingBalanceOrStatus() {
 		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
@@ -63,6 +69,7 @@ class CustomerDomainTest {
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Validates a customer that has exactly one default address per type")
 	@Test
 	void shouldValidateSuccessfullyWithOneDefaultAddressPerType() {
 		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true), deliveryAddress(true)));
@@ -70,6 +77,7 @@ class CustomerDomainTest {
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
 
+	@DisplayName("A company customer requires the IE indicator and the final-consumer flag")
 	@Test
 	void shouldRequireIeIndicatorAndFinalConsumerForCompanyCustomer() {
 		CustomerDomain customer = baseCustomer(cnpj, List.of(billingAddress(true)));
@@ -83,6 +91,7 @@ class CustomerDomainTest {
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
 
+	@DisplayName("An individual customer does not require the IE indicator")
 	@Test
 	void shouldNotRequireIeIndicatorForIndividualCustomer() {
 		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
@@ -90,6 +99,7 @@ class CustomerDomainTest {
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
 
+	@DisplayName("Requires the customer to have at least one address")
 	@Test
 	void shouldRequireAtLeastOneAddress() {
 		CustomerDomain customer = baseCustomer(cpf, List.of());
@@ -97,6 +107,7 @@ class CustomerDomainTest {
 		assertThatThrownBy(customer::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Requires exactly one default address for each address type")
 	@Test
 	void shouldRequireExactlyOneDefaultAddressPerType() {
 		CustomerDomain noDefault = baseCustomer(cpf, List.of(billingAddress(false)));
@@ -106,6 +117,7 @@ class CustomerDomainTest {
 		assertThatThrownBy(twoDefaults::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Requires price tables to have unique priorities")
 	@Test
 	void shouldRequireUniquePriceTablePriorities() {
 		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
@@ -116,6 +128,7 @@ class CustomerDomainTest {
 		assertThatThrownBy(customer::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Allows price tables with explicit, distinct priorities")
 	@Test
 	void shouldAllowExplicitlyOrderedPriceTables() {
 		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));

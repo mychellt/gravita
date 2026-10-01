@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -103,6 +104,7 @@ class GetManagerialDreEndToEndTest {
 				new CostCenterShare(rent, new BigDecimal("100")));
 	}
 
+	@DisplayName("Composes the period's DRE with the expenses broken down by cost center")
 	@Test
 	void composesTheDreOfThePeriodWithTheExpensesByCostCenter() throws Exception {
 		mockMvc.perform(get("/api/reports/dre").param("period", "2016-05").param("companyId", company.value().toString())
@@ -124,6 +126,7 @@ class GetManagerialDreEndToEndTest {
 				.andExpect(jsonPath("$.netResult").value(-1292.5));
 	}
 
+	@DisplayName("Narrows the expenses to the requested cost center")
 	@Test
 	void narrowsTheExpensesToTheRequestedCostCenter() throws Exception {
 		mockMvc.perform(get("/api/reports/dre").param("period", "2016-05").param("costCenter", marketing.toString())
@@ -138,6 +141,7 @@ class GetManagerialDreEndToEndTest {
 				.andExpect(jsonPath("$.netResult").value(-442.5));
 	}
 
+	@DisplayName("Returns an empty DRE for a period without activity")
 	@Test
 	void answersAnEmptyDreForAPeriodWithoutActivity() throws Exception {
 		mockMvc.perform(get("/api/reports/dre").param("period", "2016-01").param("companyId", company.value().toString())
@@ -150,6 +154,7 @@ class GetManagerialDreEndToEndTest {
 				.andExpect(jsonPath("$.netResult").value(0));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/dre").header("Authorization", "Bearer valid-token"))
@@ -158,6 +163,7 @@ class GetManagerialDreEndToEndTest {
 				.andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the DRE")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheDre() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -166,6 +172,7 @@ class GetManagerialDreEndToEndTest {
 				.andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/dre").param("period", "2016-05")).andExpect(status().isUnauthorized());

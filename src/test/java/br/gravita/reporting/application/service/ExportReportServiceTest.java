@@ -50,6 +50,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -85,6 +86,7 @@ class ExportReportServiceTest {
 		when(excel.render(any())).thenReturn(XLSX);
 	}
 
+	@DisplayName("Refuses a user without export permission, without running or rendering the report")
 	@Test
 	void refusesAUserWithoutTheExportPermissionOnTheReportWithoutRunningItOrRendering() {
 		UserId viewer = UserId.generate();
@@ -96,6 +98,7 @@ class ExportReportServiceTest {
 		verifyNoInteractions(abcCurve, pdf, excel);
 	}
 
+	@DisplayName("Checks the export permission of the report being exported, not another report's")
 	@Test
 	void checksTheExportPermissionOfTheReportBeingExportedNotAnotherOne() {
 		when(permissions.canExport(user, "abc-curve")).thenReturn(false);
@@ -106,6 +109,7 @@ class ExportReportServiceTest {
 		verify(permissions).canExport(user, "abc-curve");
 	}
 
+	@DisplayName("Exports the ABC curve for the requested parameters as PDF or Excel from the same layout")
 	@Test
 	void exportsTheAbcCurveOfTheRequestedParametersAsPdfOrExcelFromTheSameLayout() {
 		UUID company = UUID.randomUUID();
@@ -141,6 +145,7 @@ class ExportReportServiceTest {
 						new BigDecimal("90.00"), "A");
 	}
 
+	@DisplayName("Exports the dashboard of the period, defaulting to the month")
 	@Test
 	void exportsTheDashboardOfThePeriodDefaultingToTheMonth() {
 		when(dashboard.execute(any())).thenReturn(dashboardView());
@@ -162,6 +167,7 @@ class ExportReportServiceTest {
 				.containsExactly(product.toString(), "Abaixo do mínimo", "2,000", "5,000", "-", "-", "-");
 	}
 
+	@DisplayName("Exports the stock turnover and commission reports with their filters")
 	@Test
 	void exportsTheStockTurnoverAndTheCommissionsWithTheirFilters() {
 		UUID salesperson = UUID.randomUUID();
@@ -190,6 +196,7 @@ class ExportReportServiceTest {
 		assertThat(workbook.getValue().sheets().get(0).rows().get(0)).containsExactly(product, null, "Sim");
 	}
 
+	@DisplayName("Exports the assessed taxes report")
 	@Test
 	void exportsTheAssessedTaxes() {
 		when(assessedTaxes.execute(new AssessedTaxesQuery(user, PERIOD))).thenReturn(new AssessedTaxSummary(PERIOD,
@@ -206,6 +213,7 @@ class ExportReportServiceTest {
 				List.of("IPI", "15,25"), List.of("PIS", "2,48"), List.of("COFINS", "11,40"), List.of("ISS", "30,00"));
 	}
 
+	@DisplayName("Returns the fiscal books' statutory PDF as is and lays out their Excel")
 	@Test
 	void returnsTheStatutoryPdfOfTheFiscalBooksAsIsAndLaysOutTheirExcel() {
 		FiscalBookEntry exit = new FiscalBookEntry(FiscalBookFlow.EXIT, LocalDate.of(2028, 2, 10), "NFE", "1", "20",
@@ -234,6 +242,7 @@ class ExportReportServiceTest {
 				"Créditos (entradas): 0,00", "Saldo (débitos - créditos): 180,00");
 	}
 
+	@DisplayName("Refuses to export reports that have nothing to run yet")
 	@Test
 	void refusesToExportTheReportsThatHaveNothingToRunYet() {
 		for (ReportId report : List.of(ReportId.DRE, ReportId.PURCHASES_BY_SUPPLIER)) {
@@ -243,6 +252,7 @@ class ExportReportServiceTest {
 		verifyNoInteractions(pdf, excel);
 	}
 
+	@DisplayName("Does not swallow what the report itself refuses")
 	@Test
 	void doesNotCatchWhatTheReportItselfRefuses() {
 		when(abcCurve.execute(any())).thenThrow(new ForbiddenException("cannot view"));
@@ -252,6 +262,7 @@ class ExportReportServiceTest {
 		verifyNoInteractions(pdf);
 	}
 
+	@DisplayName("Requires the period and the ABC type for the reports that take them")
 	@Test
 	void requiresThePeriodAndTheAbcTypeWhereTheReportTakesThem() {
 		assertThatThrownBy(() -> new ExportReportQuery(user, ReportId.COMMISSIONS, ExportFormat.PDF, null, null, null,

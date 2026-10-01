@@ -5,6 +5,7 @@ import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,6 +26,7 @@ class DeletePlanAdapterTest {
 	@Mock
 	private PlanRepositoryPort planRepositoryPort;
 
+	@DisplayName("Deletes the plan when it exists")
 	@Test
 	void shouldDeleteWhenPlanExists() {
 		DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
@@ -38,6 +40,7 @@ class DeletePlanAdapterTest {
 		verify(planRepositoryPort).deleteById(id);
 	}
 
+	@DisplayName("Fails with not found when the plan to delete does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
 		DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);

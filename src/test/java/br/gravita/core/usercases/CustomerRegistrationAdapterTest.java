@@ -8,6 +8,7 @@ import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ class CustomerRegistrationAdapterTest {
 	@Mock
 	private CustomerRepositoryPort customerRepositoryPort;
 
+	@DisplayName("Registering a customer assigns an id, sets regular status and a zero balance")
 	@Test
 	void shouldAssignIdSetRegularStatusAndZeroBalanceOnRegistration() {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
@@ -51,6 +53,7 @@ class CustomerRegistrationAdapterTest {
 		assertThat(captor.getValue().getId()).isEqualTo(created.getId());
 	}
 
+	@DisplayName("Registering a customer that already has an id keeps that id")
 	@Test
 	void shouldKeepExistingIdWhenAlreadySet() {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
@@ -68,6 +71,7 @@ class CustomerRegistrationAdapterTest {
 		assertThat(created.getId()).isEqualTo(existingId);
 	}
 
+	@DisplayName("Rejects a customer without an address before anything is saved")
 	@Test
 	void shouldRejectRegistrationWithoutAddressBeforeSaving() {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);
@@ -82,6 +86,7 @@ class CustomerRegistrationAdapterTest {
 		verify(customerRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("Rejects a company customer missing fiscal data before anything is saved")
 	@Test
 	void shouldRejectCompanyCustomerMissingFiscalDataBeforeSaving() {
 		CustomerRegistrationAdapter adapter = new CustomerRegistrationAdapter(customerRepositoryPort);

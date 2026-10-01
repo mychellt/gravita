@@ -6,6 +6,7 @@ import br.gravita.core.domain.CustomerStatus;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,6 +30,7 @@ class SetCustomerCreditStatusAdapterTest {
 	@Mock
 	private CustomerRepositoryPort customerRepositoryPort;
 
+	@DisplayName("Updates the customer's credit status and balance with the values computed by Finance")
 	@Test
 	void shouldUpdateStatusAndBalanceWithFinanceComputedValues() {
 		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
@@ -52,6 +54,7 @@ class SetCustomerCreditStatusAdapterTest {
 		assertThat(captor.getValue().getId()).isEqualTo(customerId);
 	}
 
+	@DisplayName("Accepts a delinquent status from Finance as is, without recomputing it")
 	@Test
 	void shouldAcceptDelinquentStatusWithoutRecomputingIt() {
 		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
@@ -71,6 +74,7 @@ class SetCustomerCreditStatusAdapterTest {
 		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.DELINQUENT);
 	}
 
+	@DisplayName("Rejects a credit status update for a customer that does not exist")
 	@Test
 	void shouldRejectWhenCustomerDoesNotExist() {
 		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);

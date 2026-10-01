@@ -22,6 +22,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetStockTurnoverServiceTest {
@@ -44,6 +45,7 @@ class GetStockTurnoverServiceTest {
 		when(inventory.stockFlows(any(), any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -55,6 +57,7 @@ class GetStockTurnoverServiceTest {
 		verifyNoInteractions(inventory);
 	}
 
+	@DisplayName("Divides the quantity issued by the average of opening and closing stock")
 	@Test
 	void dividesWhatWasIssuedByTheAverageOfTheOpeningAndClosingStock() {
 		UUID product = UUID.randomUUID();
@@ -69,6 +72,7 @@ class GetStockTurnoverServiceTest {
 		});
 	}
 
+	@DisplayName("Flags a product that held stock but issued none as stalled")
 	@Test
 	void flagsAProductThatHeldStockButIssuedNoneAsStalled() {
 		UUID product = UUID.randomUUID();
@@ -82,6 +86,7 @@ class GetStockTurnoverServiceTest {
 		});
 	}
 
+	@DisplayName("Leaves the rate empty when no stock was held at either end of the period but something was issued")
 	@Test
 	void leavesTheRateEmptyWhenNoStockWasHeldAtEitherEndOfThePeriodButSomethingWasIssued() {
 		UUID product = UUID.randomUUID();
@@ -95,6 +100,7 @@ class GetStockTurnoverServiceTest {
 		});
 	}
 
+	@DisplayName("Leaves out products that neither held stock nor issued any")
 	@Test
 	void leavesOutProductsThatNeitherHeldStockNorIssuedAny() {
 		when(inventory.stockFlows(any(), any(), any())).thenReturn(
@@ -103,6 +109,7 @@ class GetStockTurnoverServiceTest {
 		assertThat(service.execute(new StockTurnoverQuery(user, PERIOD, null))).isEmpty();
 	}
 
+	@DisplayName("Ranks the fastest movers first, with stalled and unrated products last")
 	@Test
 	void ranksTheFastestMoversFirstWithStalledAndUnratedProductsLast() {
 		UUID slow = UUID.fromString("00000000-0000-0000-0000-000000000001");

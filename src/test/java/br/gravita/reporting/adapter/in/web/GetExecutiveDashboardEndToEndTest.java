@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -140,6 +141,7 @@ class GetExecutiveDashboardEndToEndTest {
 		receivable("5.00", today.plusDays(10), companyA);
 	}
 
+	@DisplayName("Composes the dashboard from the sales, inventory, finance and tax read models")
 	@Test
 	void composesTheDashboardFromTheSalesInventoryFinanceAndTaxReadModels() throws Exception {
 		mockMvc.perform(get("/api/reports/dashboard").param("period", "DAY").param("companyId", companyA.toString())
@@ -163,6 +165,7 @@ class GetExecutiveDashboardEndToEndTest {
 				.andExpect(jsonPath("$.targets.salespeople[0].salespersonId").value(salesperson.toString()));
 	}
 
+	@DisplayName("Defaults to the month period when none is given")
 	@Test
 	void defaultsToTheMonthPeriod() throws Exception {
 		mockMvc.perform(get("/api/reports/dashboard").header("Authorization", "Bearer valid-token"))
@@ -170,6 +173,7 @@ class GetExecutiveDashboardEndToEndTest {
 				.andExpect(jsonPath("$.period").value("MONTH"));
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the dashboard")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheDashboard() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -178,6 +182,7 @@ class GetExecutiveDashboardEndToEndTest {
 				.andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/dashboard")).andExpect(status().isUnauthorized());

@@ -30,6 +30,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -88,6 +89,7 @@ class ExportReportEndToEndTest {
 		balance(beans, "40");
 	}
 
+	@DisplayName("Exports the screen's rows as an Excel file with typed cells")
 	@Test
 	void exportsTheScreensRowsAsAnExcelFileWithTypedCells() throws Exception {
 		byte[] body = mockMvc.perform(get("/api/reports/stock-turnover/export").param("format", "xlsx")
@@ -109,6 +111,7 @@ class ExportReportEndToEndTest {
 		}
 	}
 
+	@DisplayName("Exports the same rows as a PDF file")
 	@Test
 	void exportsTheSameRowsAsAPdfFile() throws Exception {
 		byte[] body = mockMvc.perform(get("/api/reports/stock-turnover/export").param("format", "pdf")
@@ -126,12 +129,14 @@ class ExportReportEndToEndTest {
 		}
 	}
 
+	@DisplayName("Returns 403 when the profile can view the report but not export it")
 	@Test
 	void answersForbiddenWhenTheProfileCanViewTheReportButNotExportIt() throws Exception {
 		mockMvc.perform(get("/api/reports/stock-turnover/export").param("format", "pdf").param("period", "2019-03")
 				.header("Authorization", "Bearer viewer-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 400 for an unknown format or a missing parameter")
 	@Test
 	void answersBadRequestForAnUnknownFormatOrAMissingParameter() throws Exception {
 		mockMvc.perform(get("/api/reports/stock-turnover/export").param("format", "csv").param("period", "2019-03")
@@ -142,6 +147,7 @@ class ExportReportEndToEndTest {
 				.header("Authorization", "Bearer exporter-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 404 for an unknown report and for reports not available yet")
 	@Test
 	void answersNotFoundForAnUnknownReportAndForOnesNotAvailableYet() throws Exception {
 		mockMvc.perform(get("/api/reports/payroll/export").param("format", "pdf").param("period", "2019-03")
@@ -150,6 +156,7 @@ class ExportReportEndToEndTest {
 				.header("Authorization", "Bearer exporter-token")).andExpect(status().isNotFound());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/stock-turnover/export").param("format", "pdf").param("period", "2019-03"))

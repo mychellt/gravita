@@ -5,6 +5,7 @@ import br.gravita.core.domain.PaymentTermDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.PaymentTermRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,6 +25,7 @@ class UpdatePaymentTermAdapterTest {
 	@Mock
 	private PaymentTermRepositoryPort paymentTermRepositoryPort;
 
+	@DisplayName("Fails with not found when the payment term to update does not exist")
 	@Test
 	void shouldFailWhenPaymentTermNotFound() {
 		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
@@ -35,6 +37,7 @@ class UpdatePaymentTermAdapterTest {
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
+	@DisplayName("Rejects updating a payment term to have no installments")
 	@Test
 	void shouldRejectEmptyInstallmentsOnUpdate() {
 		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
@@ -45,6 +48,7 @@ class UpdatePaymentTermAdapterTest {
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Updates a payment term's installment count and intervals without a fixed pattern")
 	@Test
 	void shouldUpdateInstallmentCountAndIntervalsFreely() {
 		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);

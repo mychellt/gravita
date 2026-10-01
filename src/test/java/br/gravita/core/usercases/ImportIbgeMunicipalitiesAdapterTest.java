@@ -3,6 +3,7 @@ package br.gravita.core.usercases;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.IbgeMunicipalityDomain;
 import br.gravita.core.ports.outbound.persistence.IbgeMunicipalityRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +24,7 @@ class ImportIbgeMunicipalitiesAdapterTest {
 	@Mock
 	private IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort;
 
+	@DisplayName("Importing a municipality not seen before assigns it a new id")
 	@Test
 	void shouldAssignNewIdForUnseenMunicipality() {
 		ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);
@@ -35,6 +37,7 @@ class ImportIbgeMunicipalitiesAdapterTest {
 		assertThat(incoming.getId()).isNotNull();
 	}
 
+	@DisplayName("Upserts by IBGE code so that re-importing does not duplicate municipalities")
 	@Test
 	void shouldUpsertByIbgeCodeSoReimportIsIdempotent() {
 		ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);

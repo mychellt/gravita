@@ -5,6 +5,7 @@ import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,6 +26,7 @@ class FindPlanAdapterTest {
 	@Mock
 	private PlanRepositoryPort planRepositoryPort;
 
+	@DisplayName("Returns the plan when it exists")
 	@Test
 	void shouldReturnPlanWhenFound() {
 		FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);
@@ -38,6 +40,7 @@ class FindPlanAdapterTest {
 		assertThat(found).isEqualTo(plan);
 	}
 
+	@DisplayName("Fails with not found when the plan does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
 		FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);

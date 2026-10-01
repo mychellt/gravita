@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -118,6 +119,7 @@ class GetFiscalBooksEndToEndTest {
 		nfceRepositoryPort.save(nfce(NfceSaleStatus.AUTHORIZED, 17, 4, 9L));
 	}
 
+	@DisplayName("Books the period's authorized and received documents and assesses ICMS")
 	@Test
 	void booksTheAuthorizedAndReceivedDocumentsOfThePeriodAndAssessesIcms() throws Exception {
 		mockMvc.perform(get("/api/reports/fiscal-books").param("period", "2018-03").header("Authorization",
@@ -151,6 +153,7 @@ class GetFiscalBooksEndToEndTest {
 				.andExpect(jsonPath("$.icmsBalance").value(-9.0));
 	}
 
+	@DisplayName("Reconciles the exit book against the period's authorized NF-e and NFC-e records")
 	@Test
 	void reconcilesTheExitsAgainstTheAuthorizedNfeAndNfceRecordsOfThePeriod() throws Exception {
 		String body = mockMvc.perform(get("/api/reports/fiscal-books").param("period", "2018-03").header(
@@ -165,6 +168,7 @@ class GetFiscalBooksEndToEndTest {
 		assertThat(accessKeys).containsExactly(authorizedNfe.getAccessKey(), authorizedNfce.getAccessKey());
 	}
 
+	@DisplayName("Renders the PDF and the TXT with the same books")
 	@Test
 	void rendersThePdfAndTheTxtWithTheSameBooks() throws Exception {
 		String body = mockMvc.perform(get("/api/reports/fiscal-books").param("period", "2018-03").header(
@@ -181,6 +185,7 @@ class GetFiscalBooksEndToEndTest {
 		assertThat(txt).doesNotContain("Fevereiro", "Abril");
 	}
 
+	@DisplayName("Returns empty books for a period without documents")
 	@Test
 	void answersEmptyBooksForAPeriodWithoutDocuments() throws Exception {
 		mockMvc.perform(get("/api/reports/fiscal-books").param("period", "2018-01").header("Authorization",
@@ -193,6 +198,7 @@ class GetFiscalBooksEndToEndTest {
 				.andExpect(jsonPath("$.pdf").value(startsWith("JVBERi")));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/fiscal-books").header("Authorization", "Bearer valid-token"))
@@ -201,6 +207,7 @@ class GetFiscalBooksEndToEndTest {
 				"Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the fiscal books")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheBooks() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -209,6 +216,7 @@ class GetFiscalBooksEndToEndTest {
 				"Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/fiscal-books").param("period", "2018-03"))

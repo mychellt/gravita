@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -73,6 +74,7 @@ class GetStockTurnoverEndToEndTest {
 		balance(beans, "40");
 	}
 
+	@DisplayName("Reports the month's stock turnover and flags stalled products")
 	@Test
 	void reportsTheTurnoverOfTheMonthAndFlagsTheStalledProducts() throws Exception {
 		// Rice opens at 10 and closes at 20: issued 20 over an average of 15.
@@ -85,6 +87,7 @@ class GetStockTurnoverEndToEndTest {
 				.andExpect(jsonPath("$[?(@.product == '" + beans + "')].stalledFlag").value(true));
 	}
 
+	@DisplayName("Ignores stock movements outside the requested month")
 	@Test
 	void ignoresMovementsOutsideTheRequestedMonth() throws Exception {
 		// In April rice opens at 20 and closes at 15: issued 5 over an average of 17.5.
@@ -94,6 +97,7 @@ class GetStockTurnoverEndToEndTest {
 				.andExpect(jsonPath("$[?(@.product == '" + rice + "')].turnoverRate").value(0.2857));
 	}
 
+	@DisplayName("Returns 400 when the period is missing or malformed")
 	@Test
 	void answersBadRequestWhenThePeriodIsMissingOrMalformed() throws Exception {
 		mockMvc.perform(get("/api/reports/stock-turnover").header("Authorization", "Bearer valid-token"))
@@ -102,6 +106,7 @@ class GetStockTurnoverEndToEndTest {
 				.header("Authorization", "Bearer valid-token")).andExpect(status().isBadRequest());
 	}
 
+	@DisplayName("Returns 403 when the profile cannot view the report")
 	@Test
 	void answersForbiddenWhenTheProfileCannotViewTheReport() throws Exception {
 		when(sessionStorePort.resolve("other-token")).thenReturn(Optional.of(UserId.generate()));
@@ -110,6 +115,7 @@ class GetStockTurnoverEndToEndTest {
 				.header("Authorization", "Bearer other-token")).andExpect(status().isForbidden());
 	}
 
+	@DisplayName("Returns 401 when there is no session")
 	@Test
 	void answersUnauthorizedWithoutASession() throws Exception {
 		mockMvc.perform(get("/api/reports/stock-turnover").param("period", "2019-03"))

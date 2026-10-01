@@ -4,6 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CostCenterDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.outbound.persistence.CostCenterRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,6 +24,7 @@ class CreateCostCenterAdapterTest {
 	@Mock
 	private CostCenterRepositoryPort costCenterRepositoryPort;
 
+	@DisplayName("Creates a root cost center and assigns it an id")
 	@Test
 	void shouldCreateRootCostCenterAndAssignId() {
 		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
@@ -35,6 +37,7 @@ class CreateCostCenterAdapterTest {
 		verify(costCenterRepositoryPort).save(command);
 	}
 
+	@DisplayName("Creates a child cost center when its parent exists")
 	@Test
 	void shouldCreateChildCostCenterWhenParentExists() {
 		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
@@ -48,6 +51,7 @@ class CreateCostCenterAdapterTest {
 		assertThat(result.getParentId()).isEqualTo(parentId);
 	}
 
+	@DisplayName("Rejects creating a cost center under a parent that does not exist")
 	@Test
 	void shouldRejectWhenParentCostCenterDoesNotExist() {
 		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);

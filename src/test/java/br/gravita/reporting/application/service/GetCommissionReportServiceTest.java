@@ -23,6 +23,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class GetCommissionReportServiceTest {
@@ -51,6 +52,7 @@ class GetCommissionReportServiceTest {
 		when(sales.commissions(any(), any(), any())).thenReturn(List.of());
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
 		UserId stranger = UserId.generate();
@@ -62,6 +64,7 @@ class GetCommissionReportServiceTest {
 		verifyNoInteractions(sales);
 	}
 
+	@DisplayName("Projects the commissions of the whole requested month")
 	@Test
 	void projectsTheCommissionsOfTheWholeRequestedMonth() {
 		when(sales.commissions(FROM, TO, null)).thenReturn(List.of(record(ANA, RICE, ORDER_1, "0.0500", "45.0000")));
@@ -77,6 +80,7 @@ class GetCommissionReportServiceTest {
 		});
 	}
 
+	@DisplayName("Passes the salesperson filter to the read model")
 	@Test
 	void passesTheSalespersonFilterToTheReadModel() {
 		service.execute(new CommissionReportQuery(user, ANA, PERIOD));
@@ -84,6 +88,7 @@ class GetCommissionReportServiceTest {
 		verify(sales).commissions(FROM, TO, ANA);
 	}
 
+	@DisplayName("Groups the lines by salesperson, then product, then order")
 	@Test
 	void groupsTheLinesBySalespersonThenProductThenOrder() {
 		when(sales.commissions(any(), any(), any())).thenReturn(List.of(record(BRUNO, RICE, ORDER_1, "0.1", "10"),
@@ -100,6 +105,7 @@ class GetCommissionReportServiceTest {
 						tuple(BRUNO, RICE, ORDER_1));
 	}
 
+	@DisplayName("Returns an empty report when nothing was commissioned in the period")
 	@Test
 	void answersAnEmptyReportWhenNothingWasCommissionedInThePeriod() {
 		assertThat(service.execute(new CommissionReportQuery(user, null, PERIOD))).isEmpty();

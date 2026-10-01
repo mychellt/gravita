@@ -8,6 +8,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.InventoryLotSerialRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +35,7 @@ class UpdateProductAdapterTest {
 	@Mock
 	private InventoryLotSerialRepositoryPort inventoryLotSerialRepositoryPort;
 
+	@DisplayName("Rejects updating a product that does not exist")
 	@Test
 	void shouldRejectUpdateWhenProductDoesNotExist() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -45,6 +47,7 @@ class UpdateProductAdapterTest {
 		verify(productRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("A partial update applies only the fields that were provided")
 	@Test
 	void shouldApplyOnlyProvidedFieldsOnPartialUpdate() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -67,6 +70,7 @@ class UpdateProductAdapterTest {
 		assertThat(updated.getBasePrice()).isEqualByComparingTo(java.math.BigDecimal.TEN);
 	}
 
+	@DisplayName("Rejects a barcode that already belongs to another product")
 	@Test
 	void shouldRejectBarcodeAlreadyOwnedByAnotherProduct() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -82,6 +86,7 @@ class UpdateProductAdapterTest {
 		verify(productRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("Allows a product to keep its own barcode when updating")
 	@Test
 	void shouldAllowKeepingItsOwnBarcodeUnchanged() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -102,6 +107,7 @@ class UpdateProductAdapterTest {
 		verify(productRepositoryPort, never()).existsByBarcode(any());
 	}
 
+	@DisplayName("Rejects disabling lot control while the product has open lots")
 	@Test
 	void shouldRejectDisablingLotControlWhenOpenLotsExist() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -120,6 +126,7 @@ class UpdateProductAdapterTest {
 		verify(productRepositoryPort, never()).save(any());
 	}
 
+	@DisplayName("Allows disabling lot control when the product has no open lots")
 	@Test
 	void shouldAllowDisablingLotControlWhenNoOpenLotsExist() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
@@ -140,6 +147,7 @@ class UpdateProductAdapterTest {
 		assertThat(updated.getLotControl()).isFalse();
 	}
 
+	@DisplayName("An unrelated update does not change the product's tax profile fields")
 	@Test
 	void shouldNotChangeTaxProfileFieldsOnUnrelatedUpdate() {
 		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);

@@ -5,6 +5,7 @@ import br.gravita.core.domain.CostCenterDomain;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.outbound.persistence.CostCenterRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,6 +25,7 @@ class UpdateCostCenterAdapterTest {
 	@Mock
 	private CostCenterRepositoryPort costCenterRepositoryPort;
 
+	@DisplayName("Fails with not found when the cost center to update does not exist")
 	@Test
 	void shouldFailWhenCostCenterNotFound() {
 		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
@@ -35,6 +37,7 @@ class UpdateCostCenterAdapterTest {
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
+	@DisplayName("Rejects setting a cost center as its own parent")
 	@Test
 	void shouldRejectSelfAsParent() {
 		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
@@ -46,6 +49,7 @@ class UpdateCostCenterAdapterTest {
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Rejects a new parent cost center that does not exist")
 	@Test
 	void shouldRejectWhenNewParentDoesNotExist() {
 		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
@@ -59,6 +63,7 @@ class UpdateCostCenterAdapterTest {
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
+	@DisplayName("Updates the cost center when the change is valid")
 	@Test
 	void shouldUpdateWhenValid() {
 		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);

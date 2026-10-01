@@ -4,6 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -21,6 +22,7 @@ class ListPlansAdapterTest {
 	@Mock
 	private PlanRepositoryPort planRepositoryPort;
 
+	@DisplayName("Lists plans by delegating to the repository's find-all")
 	@Test
 	void shouldDelegateToRepositoryFindAll() {
 		ListPlansAdapter adapter = new ListPlansAdapter(planRepositoryPort);

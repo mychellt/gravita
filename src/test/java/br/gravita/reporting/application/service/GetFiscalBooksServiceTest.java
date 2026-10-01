@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -53,6 +54,7 @@ class GetFiscalBooksServiceTest {
 		when(pdf.render(any())).thenReturn(PDF);
 	}
 
+	@DisplayName("Refuses a user whose profile cannot view the books, without reading or rendering anything")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheBooksWithoutReadingOrRenderingAnything() {
 		UserId stranger = UserId.generate();
@@ -64,6 +66,7 @@ class GetFiscalBooksServiceTest {
 		verifyNoInteractions(tax, pdf);
 	}
 
+	@DisplayName("Reads the whole requested month from the tax module")
 	@Test
 	void readsTheWholeRequestedMonthFromTax() {
 		service.execute(new FiscalBooksQuery(user, PERIOD));
@@ -72,6 +75,7 @@ class GetFiscalBooksServiceTest {
 		verify(tax).exitDocuments(FROM, TO);
 	}
 
+	@DisplayName("Books the received documents as entries, in document order")
 	@Test
 	void booksTheReceivedDocumentsAsEntriesInDocumentOrder() {
 		when(tax.entryDocuments(any(), any())).thenReturn(List.of(
@@ -92,6 +96,7 @@ class GetFiscalBooksServiceTest {
 		assertThat(books.exits()).isEmpty();
 	}
 
+	@DisplayName("Books the authorized NF-e and NFC-e as exits")
 	@Test
 	void booksTheAuthorizedNfeAndNfceAsExits() {
 		when(tax.exitDocuments(any(), any())).thenReturn(List.of(
@@ -106,6 +111,7 @@ class GetFiscalBooksServiceTest {
 		assertThat(books.entries()).isEmpty();
 	}
 
+	@DisplayName("Assesses ICMS as exit debits minus entry credits")
 	@Test
 	void assessesIcmsAsExitDebitsMinusEntryCredits() {
 		when(tax.entryDocuments(any(), any())).thenReturn(List.of(
@@ -125,6 +131,7 @@ class GetFiscalBooksServiceTest {
 				.containsExactly(tuple(FiscalBookFlow.EXIT, "20"), tuple(FiscalBookFlow.ENTRY, "10"));
 	}
 
+	@DisplayName("An assessment with more credits than debits is a negative balance to carry forward")
 	@Test
 	void anAssessmentWithMoreCreditsThanDebitsIsANegativeBalanceToCarryForward() {
 		when(tax.entryDocuments(any(), any()))
@@ -135,6 +142,7 @@ class GetFiscalBooksServiceTest {
 		assertThat(books.icmsBalance()).isEqualByComparingTo("-60");
 	}
 
+	@DisplayName("Renders the PDF from the same three books")
 	@Test
 	void rendersThePdfFromTheSameThreeBooks() {
 		when(tax.entryDocuments(any(), any()))
@@ -159,6 +167,7 @@ class GetFiscalBooksServiceTest {
 				"Créditos (entradas): 60,00", "Saldo (débitos - créditos): 120,00");
 	}
 
+	@DisplayName("Renders the TXT with the three books and their totals")
 	@Test
 	void rendersTheTxtWithTheThreeBooksAndTheirTotals() {
 		when(tax.entryDocuments(any(), any()))
@@ -174,6 +183,7 @@ class GetFiscalBooksServiceTest {
 				"LIVRO DE APURAÇÃO DO ICMS", "Débito", "Crédito", "Saldo (débitos - créditos): 120,00");
 	}
 
+	@DisplayName("Returns empty books with zero totals for a period without documents")
 	@Test
 	void answersEmptyBooksWithZeroTotalsForAPeriodWithoutDocuments() {
 		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));

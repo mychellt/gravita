@@ -4,6 +4,7 @@ import br.gravita.core.domain.Context;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,6 +26,7 @@ class CreatePlanAdapterTest {
 	@Mock
 	private PlanRepositoryPort planRepositoryPort;
 
+	@DisplayName("Creating a plan assigns a new id and saves it")
 	@Test
 	void shouldAssignIdAndSaveNewPlan() {
 		CreatePlanAdapter adapter = new CreatePlanAdapter(planRepositoryPort);
@@ -46,6 +48,7 @@ class CreatePlanAdapterTest {
 		assertThat(captor.getValue().getName()).isEqualTo("Bronze");
 	}
 
+	@DisplayName("Creating a plan that already has an id keeps that id")
 	@Test
 	void shouldKeepExistingIdWhenAlreadySet() {
 		CreatePlanAdapter adapter = new CreatePlanAdapter(planRepositoryPort);
