@@ -25,6 +25,12 @@ public interface SalesReadModelPort {
 	 */
 	List<SalespersonAchievement> targetAchievement(YearMonth month, UUID companyId);
 
+	/**
+	 * Commissions of the orders invoiced over {@code [from, to]} (inclusive), in no particular order; a commission
+	 * belongs to the period its order was invoiced in. A {@code null} {@code salespersonId} does not restrict.
+	 */
+	List<CommissionRecord> commissions(LocalDate from, LocalDate to, UUID salespersonId);
+
 	record ProductSales(UUID productId, BigDecimal quantity, BigDecimal value) {
 	}
 
@@ -32,5 +38,8 @@ public interface SalesReadModelPort {
 	}
 
 	record SalespersonAchievement(UUID salespersonId, BigDecimal valueTarget, BigDecimal valueAchieved) {
+	}
+
+	record CommissionRecord(UUID salespersonId, UUID productId, UUID orderId, BigDecimal rate, BigDecimal amount) {
 	}
 }
