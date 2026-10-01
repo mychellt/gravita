@@ -15,6 +15,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/relatorios': 'Relatórios & BI',
   '/settings':   'Configurações',
   '/admin/configuracoes': 'Configurações gerais da plataforma',
+  '/admin/clientes': 'Clientes Gravita',
 };
 
 function titleFor(url: string): string {

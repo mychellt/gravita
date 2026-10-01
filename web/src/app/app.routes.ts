@@ -13,6 +13,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/admin/platform-settings/platform-settings.component').then(m => m.PlatformSettingsComponent),
         canDeactivate: [unsavedChangesGuard]
       },
+      {
+        path: 'clientes',
+        loadComponent: () => import('./modules/admin/customers/platform-customers.component').then(m => m.PlatformCustomersComponent)
+      },
     ]
   },
   {
