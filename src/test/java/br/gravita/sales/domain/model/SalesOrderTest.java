@@ -12,11 +12,13 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class SalesOrderTest {
 
 	@Test
+	@DisplayName("A new order starts as DRAFT and references its originating quote")
 	void aNewlyCreatedOrderStartsAsDraftAndReferencesItsOriginQuote() {
 		QuoteId originQuoteId = QuoteId.of(UUID.randomUUID());
 		UUID customerId = UUID.randomUUID();
@@ -32,6 +34,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an order with an empty item list")
 	void rejectsAnEmptyItemList() {
 		assertThatThrownBy(() -> SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), List.of()))
@@ -40,6 +43,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Total value sums each line's subtotal minus its discount")
 	void totalValueSumsEachLinesSubtotalMinusItsDiscount() {
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
@@ -51,6 +55,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Discount percent is the total discount divided by the total subtotal")
 	void discountPercentIsTheTotalDiscountOverTheTotalSubtotal() {
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
@@ -60,6 +65,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Approving a draft order moves it to APPROVED and records the approval details")
 	void approvingADraftOrderTransitionsItToApprovedAndRecordsTheApprovalDetails() {
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
@@ -75,6 +81,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order that is not in DRAFT")
 	void rejectsApprovingAnOrderThatIsNotDraft() {
 		SalesOrder approvedOrder = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
@@ -86,6 +93,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Cancelling a draft order stores the reason and does not require an active stock reservation")
 	void cancellingADraftOrderStoresTheReasonAndDoesNotRequireAnActiveStockReservation() {
 		SalesOrder order = draftOrder();
 
@@ -97,6 +105,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Approved and in-separation orders hold an active stock reservation")
 	void approvedAndInSeparationOrdersHaveAnActiveStockReservation() {
 		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
@@ -113,6 +122,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling an invoiced order and points to the return flow")
 	void rejectsCancellingAnInvoicedOrderPointingToTheReturnFlow() {
 		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
@@ -124,6 +134,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling an order that is already cancelled")
 	void rejectsCancellingAnAlreadyCancelledOrder() {
 		SalesOrder cancelled = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
@@ -133,6 +144,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Invoicing an approved or in-separation order moves it to INVOICED")
 	void invoicingAnApprovedOrTheInSeparationOrderTransitionsItToInvoiced() {
 		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
@@ -146,6 +158,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects invoicing a draft order")
 	void rejectsInvoicingADraftOrder() {
 		SalesOrder draft = draftOrder();
 
@@ -154,6 +167,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Rejects invoicing an order that is already invoiced")
 	void rejectsInvoicingAnAlreadyInvoicedOrder() {
 		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
@@ -163,6 +177,7 @@ class SalesOrderTest {
 	}
 
 	@Test
+	@DisplayName("Invoicing an order records the invoice date")
 	void invoicingAnOrderRecordsTheInvoiceDate() {
 		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),

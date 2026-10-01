@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Sending as PDF moves the quote to SENT without calling WhatsApp")
 	void sendingAsPdfMovesTheQuoteToSentWithoutCallingWhatsApp() {
 		Quote quote = draftQuote(LocalDate.now().plusDays(5));
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
@@ -77,6 +79,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Sending by WhatsApp uses the customer's registered WhatsApp contact")
 	void sendingByWhatsAppUsesTheCustomersRegisteredWhatsAppContact() {
 		Quote quote = draftQuote(LocalDate.now().plusDays(5));
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
@@ -98,6 +101,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects sending an expired quote before any delivery attempt")
 	void rejectsSendingAnExpiredQuoteBeforeAnyDeliveryAttempt() {
 		Quote quote = draftQuote(LocalDate.now().minusDays(1));
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
@@ -111,6 +115,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("A customer without a WhatsApp contact is rejected rather than silently skipped")
 	void aCustomerWithNoWhatsAppContactOnFileIsRejectedRatherThanSilentlySkipped() {
 		Quote quote = draftQuote(LocalDate.now().plusDays(5));
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
@@ -128,6 +133,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Sending a quote that does not exist is rejected")
 	void aQuoteThatDoesNotExistIsRejected() {
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.empty());
 
@@ -137,6 +143,7 @@ class SendQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Sending by WhatsApp for a customer that does not exist is rejected")
 	void aWhatsAppCustomerThatDoesNotExistIsRejected() {
 		Quote quote = draftQuote(LocalDate.now().plusDays(5));
 		when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));

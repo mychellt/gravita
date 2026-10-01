@@ -8,11 +8,13 @@ import br.gravita.core.domain.sales.FollowUpRuleId;
 import br.gravita.core.domain.sales.FollowUpTarget;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class FollowUpRuleTest {
 
 	@Test
+	@DisplayName("Creates a rule when all fields are valid")
 	void createsARuleWithValidFields() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
@@ -25,6 +27,7 @@ class FollowUpRuleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a rule with zero days without contact")
 	void rejectsZeroDaysWithoutContact() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
@@ -34,6 +37,7 @@ class FollowUpRuleTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a rule with negative days without contact")
 	void rejectsNegativeDaysWithoutContact() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
@@ -43,6 +47,7 @@ class FollowUpRuleTest {
 	}
 
 	@Test
+	@DisplayName("A partial update keeps the fields that were not specified unchanged")
 	void partialUpdateKeepsUnspecifiedFieldsUnchanged() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
@@ -56,6 +61,7 @@ class FollowUpRuleTest {
 	}
 
 	@Test
+	@DisplayName("An update can deactivate a rule")
 	void updateCanDeactivateARule() {
 		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);

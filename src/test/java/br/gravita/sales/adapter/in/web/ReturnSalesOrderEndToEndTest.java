@@ -29,6 +29,7 @@ import br.gravita.core.ports.outbound.sales.RegisterStockEntryPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,6 +65,7 @@ class ReturnSalesOrderEndToEndTest {
 	private AdjustReceivableForReturnPort adjustReceivableForReturnPort;
 
 	@Test
+	@DisplayName("Returning an invoiced order reverts stock, issues the return NF-e and adjusts the receivable")
 	void returningAnInvoicedOrderRevertsStockIssuesTheReturnNfeAndAdjustsTheReceivable() throws Exception {
 		UUID productId = seedProduct();
 		FiscalDocumentRef originalNfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
@@ -84,6 +86,7 @@ class ReturnSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returning an order that is not invoiced is rejected as a bad request")
 	void returningAnOrderThatIsNotInvoicedIsRejectedWithBadRequest() throws Exception {
 		UUID productId = seedProduct();
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
@@ -99,6 +102,7 @@ class ReturnSalesOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returning an order that does not exist returns 404")
 	void anOrderThatDoesNotExistIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/sales/orders/" + UUID.randomUUID() + "/return")
 				.contentType("application/json")

@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -63,6 +64,7 @@ class InvoiceSalesOrderServiceTest {
 	private InvoiceSalesOrderService service;
 
 	@Test
+	@DisplayName("Invoices an approved product-only order through NF-e and generates a receivable for the total")
 	void invoicesAnApprovedOrderWithOnlyProductItemsThroughNfeAndGeneratesAReceivableForTheTotal() {
 		UUID productId = UUID.randomUUID();
 		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
@@ -99,6 +101,7 @@ class InvoiceSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects invoicing an order that does not exist")
 	void rejectsInvoicingAnOrderThatDoesNotExist() {
 		UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
@@ -111,6 +114,7 @@ class InvoiceSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects invoicing a draft order and issues no fiscal document")
 	void rejectsInvoicingADraftOrderWithoutIssuingAnyFiscalDocument() {
 		SalesOrder order = orderWithStatus(SalesOrderStatus.DRAFT,
 				List.of(item(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
@@ -127,6 +131,7 @@ class InvoiceSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects invoicing when the product or service of an item cannot be found")
 	void rejectsInvoicingWhenAnItemsProductOrServiceCannotBeFound() {
 		UUID productId = UUID.randomUUID();
 		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
@@ -141,6 +146,7 @@ class InvoiceSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Routes service line items to NFS-e issuance and links the resulting document")
 	void routesServiceLineItemsToNfseIssuanceAndLinksTheResultingDocument() {
 		UUID serviceId = UUID.randomUUID();
 		SalesOrder order = orderWithStatus(SalesOrderStatus.IN_SEPARATION,
@@ -160,6 +166,7 @@ class InvoiceSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Propagates an NFS-e unavailable failure without transitioning the order")
 	void propagatesTheNfseNotAvailableFailureWithoutTransitioningTheOrder() {
 		UUID serviceId = UUID.randomUUID();
 		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,

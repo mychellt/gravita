@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,6 +49,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Suggests a reorder when available stock is below the reorder point")
 	void suggestsReorderWhenAvailableIsBelowTheReorderPoint() {
 		StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -64,6 +66,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Suggests a reorder when available stock equals the reorder point exactly")
 	void suggestsReorderAtTheExactBoundaryWhereAvailableEqualsTheReorderPoint() {
 		StockBalance balance = balanceOf("20");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -75,6 +78,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Produces no suggestion when available stock is above the reorder point")
 	void producesNoSuggestionWhenAvailableIsAboveTheReorderPoint() {
 		StockBalance balance = balanceOf("21");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -86,6 +90,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("The suggested quantity brings the balance back up to the configured maximum, not just the reorder point")
 	void suggestedQuantityBringsTheBalanceBackToTheConfiguredMaximumNotJustToTheReorderPoint() {
 		StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -97,6 +102,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Skips a product that has no reorder point configured")
 	void skipsAProductWithNoConfiguredReorderPoint() {
 		StockBalance balance = balanceOf("0");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -109,6 +115,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Considers only the given warehouse when a warehouse id is provided")
 	void filtersByWarehouseWhenAWarehouseIdIsProvided() {
 		StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of(balance));
@@ -120,6 +127,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: Notifies the low-stock port with the produced suggestions")
 	void ac4NotifiesLowStockPortWithTheProducedSuggestions() {
 		StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
@@ -133,6 +141,7 @@ class SuggestReorderServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: Notifies the low-stock port with an empty list when no suggestion is produced")
 	void ac4NotifiesLowStockPortWithAnEmptyListWhenNoSuggestionIsProduced() {
 		StockBalance balance = balanceOf("21");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));

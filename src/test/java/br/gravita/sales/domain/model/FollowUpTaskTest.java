@@ -9,11 +9,13 @@ import br.gravita.core.domain.sales.FollowUpTaskId;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.time.LocalDate;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class FollowUpTaskTest {
 
 	@Test
+	@DisplayName("Schedules a task linked to an opportunity")
 	void schedulesATaskLinkedToAnOpportunity() {
 		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 		UUID opportunityId = UUID.randomUUID();
@@ -29,6 +31,7 @@ class FollowUpTaskTest {
 	}
 
 	@Test
+	@DisplayName("Schedules a task linked to a customer")
 	void schedulesATaskLinkedToACustomer() {
 		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 		UUID customerId = UUID.randomUUID();
@@ -41,6 +44,7 @@ class FollowUpTaskTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a task linked to neither an opportunity nor a customer")
 	void rejectsATaskWithNeitherOpportunityNorCustomer() {
 		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 
@@ -51,6 +55,7 @@ class FollowUpTaskTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a task with a due date in the past")
 	void rejectsAPastDueDate() {
 		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 
@@ -61,6 +66,7 @@ class FollowUpTaskTest {
 	}
 
 	@Test
+	@DisplayName("Reconstituting from persistence does not re-reject a due date that has since become overdue")
 	void reconstitutingFromPersistenceDoesNotReRejectAPastDueDateThatIsNowOverdue() {
 		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 

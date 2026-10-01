@@ -15,6 +15,7 @@ import br.gravita.core.ports.outbound.persistence.sales.InteractionRepositoryPor
 import br.gravita.core.usercases.sales.LogInteractionService;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +32,7 @@ class LogInteractionServiceTest {
 	private LogInteractionService service;
 
 	@Test
+	@DisplayName("Logs an interaction linked to an opportunity")
 	void logsAnInteractionLinkedToAnOpportunity() {
 		when(interactionRepositoryPort.save(any(Interaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -50,6 +52,7 @@ class LogInteractionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Logs an interaction linked only to a customer")
 	void logsAnInteractionLinkedOnlyToACustomer() {
 		when(interactionRepositoryPort.save(any(Interaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -68,6 +71,7 @@ class LogInteractionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an interaction linked to neither an opportunity nor a customer")
 	void rejectsAnInteractionWithNeitherOpportunityNorCustomer() {
 		LogInteractionCommand command = LogInteractionCommand.builder()
 				.channel(InteractionChannel.EMAIL)

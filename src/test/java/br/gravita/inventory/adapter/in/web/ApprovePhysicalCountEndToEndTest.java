@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +36,7 @@ class ApprovePhysicalCountEndToEndTest {
 	private PhysicalCountJpaRepository physicalCountJpaRepository;
 
 	@Test
+	@DisplayName("Approving a pending-approval count with divergences adjusts the balances and marks the count APPROVED")
 	void approvingADivergentPendingCountAdjustsBalancesAndMarksItApproved() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID divergentProduct = UUID.randomUUID();
@@ -55,6 +57,7 @@ class ApprovePhysicalCountEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Approving a count that is still IN_PROGRESS is rejected")
 	void approvingACountThatIsStillInProgressIsRejected() throws Exception {
 		UUID warehouseId = UUID.randomUUID();
 		UUID countId = seedCount(warehouseId, PhysicalCountStatus.IN_PROGRESS, List.of());

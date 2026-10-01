@@ -15,11 +15,13 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PhysicalCountTest {
 
 	@Test
+	@DisplayName("Starting a TOTAL count does not require a product group")
 	void startingATotalCountRequiresNoProductGroup() {
 		PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
@@ -30,6 +32,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Starting a PARTIAL_BY_GROUP count requires a product group id")
 	void startingAPartialByGroupCountRequiresAProductGroupId() {
 		assertThatThrownBy(() -> PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.PARTIAL_BY_GROUP, null, UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
@@ -44,6 +47,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("A count starts IN_PROGRESS regardless of its scope")
 	void aCountAlwaysStartsInProgressRegardlessOfScope() {
 		PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.PARTIAL_BY_GROUP, "Beverages", UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
@@ -55,6 +59,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for every line moves the count to PENDING_APPROVAL")
 	void submittingCountsForEveryLineMovesTheCountToPendingApproval() {
 		UUID productA = UUID.randomUUID();
 		UUID productB = UUID.randomUUID();
@@ -72,6 +77,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for only some lines keeps the count IN_PROGRESS and preserves earlier counts")
 	void submittingCountsForOnlySomeLinesStaysInProgressAndKeepsWhatWasAlreadyCounted() {
 		UUID productA = UUID.randomUUID();
 		UUID productB = UUID.randomUUID();
@@ -90,6 +96,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Submitting counts for a count that is not IN_PROGRESS is rejected")
 	void submittingCountsForACountThatIsNotInProgressIsRejected() {
 		UUID product = UUID.randomUUID();
 		PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
@@ -101,6 +108,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Submitting a count for a product that is not part of the count is rejected")
 	void submittingACountForAProductNotInTheCountIsRejected() {
 		UUID knownProduct = UUID.randomUUID();
 		UUID unknownProduct = UUID.randomUUID();
@@ -113,6 +121,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Submitting a negative counted quantity is rejected")
 	void submittingANegativeCountedQuantityIsRejected() {
 		UUID product = UUID.randomUUID();
 		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
@@ -124,6 +133,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Approving a PENDING_APPROVAL count moves it to APPROVED")
 	void approvingAPendingApprovalCountMovesItToApproved() {
 		PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
 				UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL, UUID.randomUUID(), Instant.now(), List.of());
@@ -134,6 +144,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Approving a count that is not PENDING_APPROVAL is rejected")
 	void approvingACountThatIsNotPendingApprovalIsRejected() {
 		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(), List.of());
@@ -146,6 +157,7 @@ class PhysicalCountTest {
 	}
 
 	@Test
+	@DisplayName("Reconstructing a count from persistence still enforces the product-group invariant")
 	void reconstructingFromPersistenceStillEnforcesTheGroupInvariant() {
 		assertThatThrownBy(() -> PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.PARTIAL_BY_GROUP, null, UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL,

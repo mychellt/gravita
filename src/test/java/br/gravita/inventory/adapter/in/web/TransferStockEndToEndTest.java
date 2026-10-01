@@ -10,6 +10,7 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.StockBala
 import com.jayway.jsonpath.JsonPath;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +31,7 @@ class TransferStockEndToEndTest {
 	private StockBalanceJpaRepository stockBalanceJpaRepository;
 
 	@Test
+	@DisplayName("Initiating a transfer moves the quantity from on-hand to in-transit at the source warehouse")
 	void initiatingMovesOnHandIntoInTransitAtTheSource() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID sourceWarehouseId = UUID.randomUUID();
@@ -57,6 +59,7 @@ class TransferStockEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a transfer adds the quantity to the destination warehouse on-hand stock")
 	void confirmingMovesTheQuantityIntoTheDestinationOnHand() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID sourceWarehouseId = UUID.randomUUID();
@@ -95,6 +98,7 @@ class TransferStockEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a transfer that does not exist returns 404")
 	void confirmingAnUnknownTransferReturns404() throws Exception {
 		mockMvc.perform(post("/api/inventory/transfers/" + UUID.randomUUID() + "/confirm")
 						.contentType(MediaType.APPLICATION_JSON)

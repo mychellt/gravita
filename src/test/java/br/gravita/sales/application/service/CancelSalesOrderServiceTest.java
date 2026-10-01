@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,7 @@ class CancelSalesOrderServiceTest {
 	private CancelSalesOrderService service;
 
 	@Test
+	@DisplayName("Cancels a draft order without releasing any stock reservation")
 	void cancelsADraftOrderWithoutReleasingAnyStockReservation() {
 		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), List.of(item()));
@@ -58,6 +60,7 @@ class CancelSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancelling an approved order releases its stock reservations")
 	void cancellingAnApprovedOrderReleasesTheOrdersStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED, UUID.randomUUID(),
@@ -75,6 +78,7 @@ class CancelSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancelling an order in separation releases its stock reservations")
 	void cancellingAnInSeparationOrderReleasesItsStockReservations() {
 		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION,
@@ -88,6 +92,7 @@ class CancelSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling an invoiced order, releasing no stock and saving nothing")
 	void rejectsCancellingAnInvoicedOrderWithoutReleasingStockOrSaving() {
 		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, UUID.randomUUID(),
@@ -104,6 +109,7 @@ class CancelSalesOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling an order that does not exist")
 	void rejectsCancellingAnOrderThatDoesNotExist() {
 		UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());

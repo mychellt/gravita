@@ -10,6 +10,7 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.StockRese
 import br.gravita.core.domain.inventory.StockReservationStatus;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,7 @@ class ReleaseStockReservationEndToEndTest {
 	private StockReservationJpaRepository stockReservationJpaRepository;
 
 	@Test
+	@DisplayName("Releasing a reservation restores available stock and leaves on-hand untouched")
 	void releasesTheReservationAndRestoresAvailableStockWithoutTouchingOnHand() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -53,6 +55,7 @@ class ReleaseStockReservationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Releasing a reservation that was already released is rejected")
 	void rejectsReleasingAnAlreadyReleasedReservation() throws Exception {
 		UUID productId = UUID.randomUUID();
 		UUID warehouseId = UUID.randomUUID();
@@ -64,6 +67,7 @@ class ReleaseStockReservationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Releasing a reservation that does not exist is rejected")
 	void rejectsReleasingAnUnknownReservation() throws Exception {
 		mockMvc.perform(delete("/api/inventory/reservations/{id}", UUID.randomUUID()))
 				.andExpect(status().isNotFound());

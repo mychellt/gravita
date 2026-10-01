@@ -21,6 +21,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,6 +43,7 @@ class GetTargetProgressServiceTest {
 	private static final YearMonth MONTH = YearMonth.of(2026, 9);
 
 	@Test
+	@DisplayName("Reports the achieved value and order count against the configured target")
 	void reportsAchievedValueAndOrderCountAgainstTheConfiguredTarget() {
 		UUID salespersonId = UUID.randomUUID();
 		SalesOrder orderA = invoicedOrder(salespersonId, new BigDecimal("300.00"));
@@ -63,6 +65,7 @@ class GetTargetProgressServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns a \"no target configured\" result instead of dividing by zero")
 	void returnsANoTargetConfiguredResultInsteadOfDividingByZero() {
 		UUID salespersonId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(MONTH.atDay(1), MONTH.atEndOfMonth(),
@@ -79,6 +82,7 @@ class GetTargetProgressServiceTest {
 	}
 
 	@Test
+	@DisplayName("Only orders invoiced in the requested month count towards the progress")
 	void onlyOrdersInvoicedInTheRequestedMonthAreConsidered() {
 		UUID salespersonId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(MONTH.atDay(1), MONTH.atEndOfMonth(),

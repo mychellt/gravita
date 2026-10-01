@@ -18,6 +18,7 @@ import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,6 +45,7 @@ class AutoReorderOnStockExitEndToEndTest {
 	private PurchaseRequestJpaRepository purchaseRequestJpaRepository;
 
 	@Test
+	@DisplayName("AC1: A stock exit that drops available stock to or below the reorder point opens a minimum-stock purchase request")
 	void ac1_openingAMinStockTriggerRequestWhenAnExitDropsAvailableToOrBelowTheReorderPoint() throws Exception {
 		UUID productId = seedProduct("10", "100", "20");
 		UUID warehouseId = UUID.randomUUID();
@@ -60,6 +62,7 @@ class AutoReorderOnStockExitEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("AC2: A further stock drop does not open a second purchase request while one is already open")
 	void ac2_aFurtherDropDoesNotOpenASecondRequestWhileOneIsAlreadyOpen() throws Exception {
 		UUID productId = seedProduct("10", "100", "20");
 		UUID warehouseId = UUID.randomUUID();
@@ -74,6 +77,7 @@ class AutoReorderOnStockExitEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("No purchase request is opened when available stock stays above the reorder point after an exit")
 	void doesNotOpenARequestWhenAvailableStaysAboveTheReorderPoint() throws Exception {
 		UUID productId = seedProduct("10", "100", "20");
 		UUID warehouseId = UUID.randomUUID();

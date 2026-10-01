@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class QuoteTest {
@@ -20,6 +21,7 @@ class QuoteTest {
 	private static final LocalDate TODAY = LocalDate.of(2026, 9, 27);
 
 	@Test
+	@DisplayName("A new quote starts as DRAFT with the given validity date")
 	void aNewlyCreatedQuoteStartsAsDraftWithTheGivenValidity() {
 		LocalDate validUntil = TODAY.plusDays(15);
 
@@ -30,6 +32,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Keeps items, prices and discounts exactly as submitted")
 	void keepsItemsPricesAndDiscountsExactlyAsSubmitted() {
 		QuoteItem first = item(new BigDecimal("3"), new BigDecimal("12.34"), new BigDecimal("1.50"));
 		QuoteItem second = item(new BigDecimal("0.5"), new BigDecimal("99.90"), BigDecimal.ZERO);
@@ -40,6 +43,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Does not share the caller's item list (defensive copy)")
 	void doesNotShareTheCallersItemList() {
 		List<QuoteItem> items = new ArrayList<>(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 
@@ -50,6 +54,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Total value sums each line's subtotal minus its discount")
 	void totalValueSumsEachLinesSubtotalMinusItsDiscount() {
 		Quote quote = create(List.of(
 				item(BigDecimal.TEN, new BigDecimal("2.00"), new BigDecimal("5.00")),
@@ -59,6 +64,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a quote with an empty item list")
 	void rejectsAnEmptyItemList() {
 		assertThatThrownBy(() -> create(List.of(), TODAY.plusDays(1)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -66,6 +72,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a quote with a null item list")
 	void rejectsANullItemList() {
 		assertThatThrownBy(() -> create(null, TODAY.plusDays(1)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -73,6 +80,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a validity date of today")
 	void rejectsAValidityDateOfToday() {
 		assertThatThrownBy(() -> create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY))
 				.isInstanceOf(BusinessRuleException.class)
@@ -80,6 +88,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a validity date in the past")
 	void rejectsAValidityDateInThePast() {
 		assertThatThrownBy(() -> create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				TODAY.minusDays(1)))
@@ -88,6 +97,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Sending a quote before its validity date moves it to SENT")
 	void sendingAQuoteBeforeItsValidityDateMovesItToSent() {
 		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
@@ -97,6 +107,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Sending a quote on its validity date still succeeds")
 	void sendingAQuoteOnItsValidityDateStillSucceeds() {
 		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
@@ -106,6 +117,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects sending a quote whose validity date has passed")
 	void rejectsSendingAQuoteWhoseValidityDateHasPassed() {
 		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
@@ -115,6 +127,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("An item without a discount defaults to a zero discount")
 	void anItemWithoutADiscountDefaultsToZero() {
 		QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null);
 
@@ -122,6 +135,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item with a zero or negative quantity")
 	void rejectsANonPositiveQuantity() {
 		assertThatThrownBy(() -> item(BigDecimal.ZERO, BigDecimal.TEN, BigDecimal.ZERO))
 				.isInstanceOf(BusinessRuleException.class)
@@ -129,6 +143,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item with a negative unit price")
 	void rejectsANegativeUnitPrice() {
 		assertThatThrownBy(() -> item(BigDecimal.ONE, new BigDecimal("-1"), BigDecimal.ZERO))
 				.isInstanceOf(BusinessRuleException.class)
@@ -136,6 +151,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item with a negative discount")
 	void rejectsANegativeDiscount() {
 		assertThatThrownBy(() -> item(BigDecimal.ONE, BigDecimal.TEN, new BigDecimal("-0.01")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -143,6 +159,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item whose discount exceeds its line subtotal")
 	void rejectsADiscountGreaterThanTheLineSubtotal() {
 		assertThatThrownBy(() -> item(new BigDecimal("2"), BigDecimal.TEN, new BigDecimal("20.01")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -150,6 +167,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Converting a draft quote moves it to CONVERTED and keeps its data")
 	void convertingADraftQuoteTransitionsItToConvertedAndKeepsItsData() {
 		QuoteItem item = item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
 		Quote quote = create(List.of(item), TODAY.plusDays(1));
@@ -164,6 +182,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Converting on the last valid day is allowed")
 	void convertingOnTheLastValidDayIsAllowed() {
 		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY, QuoteStatus.DRAFT);
@@ -174,6 +193,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting a quote that is already converted")
 	void rejectsConvertingAnAlreadyConvertedQuote() {
 		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1))
 				.convert(TODAY);
@@ -184,6 +204,7 @@ class QuoteTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting an expired quote")
 	void rejectsConvertingAnExpiredQuote() {
 		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.minusDays(1),

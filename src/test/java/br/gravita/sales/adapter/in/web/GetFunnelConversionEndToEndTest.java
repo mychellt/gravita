@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +37,7 @@ class GetFunnelConversionEndToEndTest {
 	private StageTransitionRepositoryPort stageTransitionRepositoryPort;
 
 	@Test
+	@DisplayName("Reports the conversion rate and volume of the sales funnel for the period")
 	void reportsConversionRateAndVolumeForThePeriod() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		OpportunityId opportunityId = persistOpportunity(salespersonId);
@@ -49,6 +51,7 @@ class GetFunnelConversionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Restricts the funnel volume to the given salesperson")
 	void filtersVolumeByTheGivenSalesperson() throws Exception {
 		UUID salespersonId = UUID.randomUUID();
 		UUID otherSalespersonId = UUID.randomUUID();

@@ -8,11 +8,13 @@ import br.gravita.core.domain.inventory.StockBalance;
 import br.gravita.core.domain.inventory.StockBalanceId;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class StockBalanceTest {
 
 	@Test
+	@DisplayName("Available quantity is on-hand minus reserved")
 	void availableIsOnHandMinusReserved() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
@@ -22,6 +24,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving increases the reserved quantity and leaves on-hand untouched")
 	void reserveIncreasesReservedAndLeavesOnHandUntouched() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
@@ -35,6 +38,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving more than the available quantity is rejected")
 	void reserveRejectsAQuantityGreaterThanAvailable() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("90"), BigDecimal.ZERO,
@@ -46,6 +50,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Reserving a zero or negative quantity is rejected")
 	void reserveRejectsAZeroOrNegativeQuantity() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO,
@@ -56,6 +61,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Receiving an entry recalculates the average cost as a weighted average")
 	void receiveEntryRecalculatesAverageCostAsAWeightedAverage() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));
@@ -67,6 +73,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Receiving an entry leaves the reserved and in-transit quantities untouched")
 	void receiveEntryLeavesReservedAndInTransitUntouched() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), new BigDecimal("5"),
@@ -79,6 +86,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("An exit decreases only on-hand and rejects a zero or negative quantity")
 	void exitDecreasesOnHandOnlyAndRejectsAZeroOrNegativeQuantity() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("10"), BigDecimal.ZERO,
@@ -93,6 +101,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("Consuming a reservation decreases on-hand and reserved together, leaving available unchanged")
 	void consumeReservedDecreasesOnHandAndReservedTogetherLeavingAvailableUnchanged() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
@@ -106,6 +115,7 @@ class StockBalanceTest {
 	}
 
 	@Test
+	@DisplayName("An adjustment changes on-hand by exactly its delta, whether positive or negative")
 	void applyAdjustmentReflectsTheDeltaExactlyWhetherPositiveOrNegative() {
 		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));

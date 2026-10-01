@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Queries the repository using today plus the configured number of days as the cutoff date")
 	void queriesTheRepositoryWithTodayPlusTheConfiguredWithinDaysAsTheCutoff() {
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(any())).thenReturn(List.of());
 
@@ -56,6 +58,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("A different within-days value produces a different cutoff date")
 	void aDifferentWithinDaysProducesADifferentCutoff() {
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(any())).thenReturn(List.of());
 
@@ -65,6 +68,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Includes a lot that expires exactly on the cutoff date")
 	void includesALotExpiringExactlyOnTheCutoffDate() {
 		LocalDate cutoff = LocalDate.now().plusDays(30);
 		Lot lot = lotOf(cutoff, "10");
@@ -77,6 +81,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Excludes a lot that has no remaining quantity")
 	void excludesALotWithZeroRemainingQuantity() {
 		LocalDate cutoff = LocalDate.now().plusDays(30);
 		Lot expired = lotOf(cutoff, "0");
@@ -88,6 +93,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Filters the lots by warehouse when a warehouse id is provided")
 	void filtersByWarehouseWhenAWarehouseIdIsProvided() {
 		LocalDate cutoff = LocalDate.now().plusDays(7);
 		Lot lot = lotOf(cutoff, "5");
@@ -100,6 +106,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Pushes the expiring lots through the notification port")
 	void pushesTheResultThroughTheNotificationPort() {
 		LocalDate cutoff = LocalDate.now().plusDays(30);
 		Lot lot = lotOf(cutoff, "10");
@@ -111,6 +118,7 @@ class CheckExpiringLotsServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a negative within-days value")
 	void rejectsANegativeWithinDays() {
 		org.assertj.core.api.Assertions.assertThatThrownBy(() -> new CheckExpiringLotsQuery(-1, null))
 				.isInstanceOf(IllegalArgumentException.class);

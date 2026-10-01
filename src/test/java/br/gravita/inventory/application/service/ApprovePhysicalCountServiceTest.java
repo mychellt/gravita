@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -58,6 +59,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Rejects approving a count that is still in progress")
 	void ac1_rejectsApprovingACountThatIsStillInProgress() {
 		PhysicalCount inProgress = physicalCount(PhysicalCountStatus.IN_PROGRESS, List.of());
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(inProgress));
@@ -70,6 +72,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Rejects approving a count that is already approved")
 	void ac1_rejectsApprovingACountThatIsAlreadyApproved() {
 		PhysicalCount approved = physicalCount(PhysicalCountStatus.APPROVED, List.of());
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(approved));
@@ -82,6 +85,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving a count that does not exist")
 	void rejectsApprovingAnUnknownCount() {
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.empty());
 
@@ -90,6 +94,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: Generates one adjustment per divergent product and none for products whose count matches")
 	void ac2_generatesExactlyOneAdjustmentPerDivergentProductAndNoneForMatchingOnes() {
 		UUID divergentProduct = UUID.randomUUID();
 		UUID matchingProduct = UUID.randomUUID();
@@ -111,6 +116,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Each adjustment justification references the physical count that originated it")
 	void ac3_theAdjustmentJustificationReferencesThePhysicalCount() {
 		UUID divergentProduct = UUID.randomUUID();
 		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
@@ -127,6 +133,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("A count with no divergences is still moved to APPROVED without generating adjustments")
 	void approvingWithNoDivergencesStillMovesTheCountToApproved() {
 		UUID matchingProduct = UUID.randomUUID();
 		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
@@ -141,6 +148,7 @@ class ApprovePhysicalCountServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: If an adjustment fails mid-approval the count is never saved as approved")
 	void ac4_ifAnAdjustmentFailsMidApprovalTheCountIsNeverSavedAsApproved() {
 		UUID firstProduct = UUID.randomUUID();
 		UUID secondProduct = UUID.randomUUID();

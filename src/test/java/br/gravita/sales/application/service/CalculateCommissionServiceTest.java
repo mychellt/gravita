@@ -27,6 +27,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,6 +53,7 @@ class CalculateCommissionServiceTest {
 	private static final YearMonth PERIOD = YearMonth.of(2026, 9);
 
 	@Test
+	@DisplayName("Calculates and persists a commission per invoiced order item using the configured rate")
 	void calculatesAndPersistsACommissionPerInvoicedOrderItemUsingTheConfiguredRate() {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productA = UUID.randomUUID();
@@ -85,6 +87,7 @@ class CalculateCommissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Considers only the given salesperson's orders when a salesperson is provided")
 	void filtersByTheGivenSalespersonWhenProvided() {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();
@@ -104,6 +107,7 @@ class CalculateCommissionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the calculation when no commission rate is configured for the salesperson and product pair")
 	void rejectsCalculatingWhenNoRateIsConfiguredForThePair() {
 		UUID salespersonId = UUID.randomUUID();
 		UUID productId = UUID.randomUUID();

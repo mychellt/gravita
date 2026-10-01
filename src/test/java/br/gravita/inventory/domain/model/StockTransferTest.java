@@ -9,11 +9,13 @@ import br.gravita.core.domain.inventory.StockTransferId;
 import br.gravita.core.domain.inventory.StockTransferStatus;
 import java.math.BigDecimal;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class StockTransferTest {
 
 	@Test
+	@DisplayName("A newly initiated transfer starts in PENDING status")
 	void initiateStartsPending() {
 		StockTransfer transfer = StockTransfer.initiate(StockTransferId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10"));
@@ -22,6 +24,7 @@ class StockTransferTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a pending transfer moves it to CONFIRMED")
 	void confirmMovesToConfirmed() {
 		StockTransfer transfer = StockTransfer.initiate(StockTransferId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10"));
@@ -32,6 +35,7 @@ class StockTransferTest {
 	}
 
 	@Test
+	@DisplayName("Confirming an already confirmed transfer is rejected")
 	void confirmingTwiceIsRejected() {
 		StockTransfer confirmed = StockTransfer.initiate(StockTransferId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), UUID.randomUUID(), new BigDecimal("10")).confirm();

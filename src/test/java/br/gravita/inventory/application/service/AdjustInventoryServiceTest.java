@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -53,6 +54,7 @@ class AdjustInventoryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Rejects an adjustment whose justification is blank")
 	void ac1_rejectsABlankJustification() {
 		AdjustInventoryCommand command = new AdjustInventoryCommand(productId, warehouseId, new BigDecimal("5"), " ",
 				userId);
@@ -63,6 +65,7 @@ class AdjustInventoryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: On-hand changes by exactly the positive or negative adjustment delta")
 	void ac2_onHandReflectsThePositiveOrNegativeDeltaExactly() {
 		StockBalance current = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("10.00"));
@@ -78,6 +81,7 @@ class AdjustInventoryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Posts exactly one accounting entry for each adjustment")
 	void ac3_postsExactlyOneAccountingEntryPerAdjustment() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
@@ -93,6 +97,7 @@ class AdjustInventoryServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC4: The resulting stock movement is of type ADJUSTMENT and carries the justification")
 	void ac4_theResultingMovementIsAnAdjustmentCarryingTheJustification() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());

@@ -8,6 +8,7 @@ import br.gravita.core.ports.inbound.sales.CreateQuoteCommand;
 import br.gravita.core.ports.inbound.sales.QuoteView;
 import br.gravita.core.ports.outbound.persistence.sales.QuoteRepositoryPort;
 import br.gravita.core.usercases.sales.CreateQuoteService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +38,7 @@ class CreateQuoteServiceTest {
 	private CreateQuoteService service;
 
 	@Test
+	@DisplayName("Persists a DRAFT quote with the submitted items and validity date")
 	void persistsADraftQuoteWithTheSubmittedItemsAndValidity() {
 		when(quoteRepositoryPort.save(any(Quote.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		UUID customerId = UUID.randomUUID();
@@ -66,6 +68,7 @@ class CreateQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a quote with no items and persists nothing")
 	void rejectsAQuoteWithNoItemsWithoutPersistingIt() {
 		assertThatThrownBy(() -> service.execute(
 				new CreateQuoteCommand(UUID.randomUUID(), UUID.randomUUID(), List.of(), LocalDate.now().plusDays(1))))
@@ -75,6 +78,7 @@ class CreateQuoteServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a quote whose validity date is not in the future and persists nothing")
 	void rejectsAValidityDateThatIsNotInTheFutureWithoutPersistingIt() {
 		List<QuoteItem> items = List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null));
 

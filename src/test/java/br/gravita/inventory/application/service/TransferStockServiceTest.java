@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -62,6 +63,7 @@ class TransferStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC1: Initiating a transfer never exceeds the quantity available at the source")
 	void ac1_initiatingNeverExceedsTheSourceAvailableQuantity() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, sourceWarehouseId))
 				.thenReturn(Optional.of(sourceBalance(new BigDecimal("10"))));
@@ -74,6 +76,7 @@ class TransferStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2: Initiating a transfer moves on-hand stock into in-transit at the source")
 	void ac2_initiatingMovesOnHandIntoInTransitOnTheSource() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, sourceWarehouseId))
 				.thenReturn(Optional.of(sourceBalance(new BigDecimal("100"))));
@@ -92,6 +95,7 @@ class TransferStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Confirming a transfer that was never initiated is rejected")
 	void ac3_confirmingATransferThatWasNeverInitiatedIsRejected() {
 		UUID unknownId = UUID.randomUUID();
 		when(stockTransferRepositoryPort.findById(StockTransferId.of(unknownId))).thenReturn(Optional.empty());
@@ -101,6 +105,7 @@ class TransferStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC3: Confirming an already confirmed transfer is rejected")
 	void ac3_confirmingTwiceIsRejected() {
 		UUID transferId = UUID.randomUUID();
 		StockTransfer alreadyConfirmed = StockTransfer.initiate(StockTransferId.of(transferId), productId,
@@ -113,6 +118,7 @@ class TransferStockServiceTest {
 	}
 
 	@Test
+	@DisplayName("AC2/AC4: Confirming releases the in-transit quantity and increases the destination on-hand")
 	void ac2AndAc4_confirmingReleasesInTransitAndIncreasesDestinationOnHand() {
 		UUID transferId = UUID.randomUUID();
 		StockTransfer pending = StockTransfer.initiate(StockTransferId.of(transferId), productId, sourceWarehouseId,
