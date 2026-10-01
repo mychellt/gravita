@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -47,6 +48,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a template with a canonical service code")
 	void ac1_createsATemplateWithACanonicalServiceCode() {
 		DiscriminationTemplateId id = service.create(new CreateDiscriminationTemplateCommand("1.05", "Licenciamento"));
 
@@ -58,6 +60,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects creation with an invalid service code or blank text")
 	void createRejectsAnInvalidServiceCodeOrBlankText() {
 		assertThatThrownBy(() -> service.create(new CreateDiscriminationTemplateCommand("99.99", "x")))
 				.isInstanceOf(BusinessRuleException.class);
@@ -67,6 +70,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates the existing template in place")
 	void ac1_updatesTheExistingTemplateInPlace() {
 		DiscriminationTemplate existing = template("01.05", "old");
 		when(repositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
@@ -79,6 +83,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found when updating an unknown template")
 	void updateOfAnUnknownTemplateIsNotFound() {
 		DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
 		when(repositoryPort.findById(id)).thenReturn(Optional.empty());
@@ -89,6 +94,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Deletes an existing template")
 	void ac1_deletesAnExistingTemplate() {
 		DiscriminationTemplate existing = template("01.05", "x");
 		when(repositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
@@ -99,6 +105,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found when deleting an unknown template")
 	void deleteOfAnUnknownTemplateIsNotFound() {
 		DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
 		when(repositoryPort.findById(id)).thenReturn(Optional.empty());
@@ -108,6 +115,7 @@ class ManageDiscriminationTemplateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lists only the requested service type, or everything when none is given")
 	void ac2_listsOnlyTheRequestedServiceTypeOrEverythingWhenNoneIsGiven() {
 		List<DiscriminationTemplate> forType = List.of(template("01.05", "a"));
 		List<DiscriminationTemplate> all = List.of(template("01.05", "a"), template("08.01", "b"));

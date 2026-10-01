@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -112,6 +113,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the cancellation when the supervisor credential is invalid")
 	void ac1_invalidSupervisorCredentialIsRejected() {
 		when(supervisorAuthorizationPort.authorize("wrong-password")).thenReturn(false);
 
@@ -123,6 +125,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling a sale that is neither the last sale nor from today")
 	void ac2_aSaleThatIsNeitherTheLastSaleNorFromTodayIsRejected() {
 		Instant threeDaysAgo = Instant.now().minus(java.time.Duration.ofDays(3));
 		NfceSale oldSale = authorizedSale(threeDaysAgo);
@@ -137,6 +140,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Allows cancelling the last sale even when it is not from today")
 	void ac2_theLastSaleIsEligibleEvenIfNotFromToday() {
 		Instant tenMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(10));
 		NfceSale sale = authorizedSale(tenMinutesAgo);
@@ -149,6 +153,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling a sale past the thirty-minute window")
 	void ac3_aSaleThatIsPastTheThirtyMinuteWindowIsRejected() {
 		Instant fortyFiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(45));
 		NfceSale sale = authorizedSale(fortyFiveMinutesAgo);
@@ -163,6 +168,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transmits a successful cancellation to SEFAZ and updates the sale status")
 	void ac4_successfulCancellationTransmitsToSefazAndUpdatesTheSaleStatus() {
 		Instant fiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(5));
 		NfceSale sale = authorizedSale(fiveMinutesAgo);
@@ -183,6 +189,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refuses to cancel a sale that is not authorized")
 	void aNonAuthorizedSaleCannotBeCancelled() {
 		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
 		NfceSale draftSale = NfceSale.register(NfceSaleId.of(saleId), PosSessionId.of(UUID.randomUUID()),
@@ -197,6 +204,7 @@ class CancelNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling a sale that does not exist")
 	void aNonExistentSaleIsRejected() {
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.empty());
 

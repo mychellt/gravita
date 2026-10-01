@@ -8,6 +8,7 @@ import br.gravita.core.domain.tax.NfceAccessKeyGenerator;
 import br.gravita.core.domain.tax.NfceAccessKeyGenerator.EmissionType;
 import java.time.YearMonth;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class NfceAccessKeyGeneratorTest {
@@ -16,6 +17,7 @@ class NfceAccessKeyGeneratorTest {
 	private static final Pattern DIGITS_44 = Pattern.compile("\\d{44}");
 
 	@Test
+	@DisplayName("Generates a 44-digit key encoding UF, month, CNPJ, model, series and number")
 	void aGeneratedKeyIs44DigitsLongAndEncodesUfMonthCnpjModelSeriesAndNumber() {
 		String key = NfceAccessKeyGenerator.generate("SP", CNPJ, "1", 42L, EmissionType.NORMAL);
 
@@ -30,6 +32,7 @@ class NfceAccessKeyGeneratorTest {
 	}
 
 	@Test
+	@DisplayName("Encodes tpEmis nine in a contingency key")
 	void aContingencyKeyEncodesTpEmisNine() {
 		String key = NfceAccessKeyGenerator.generate("SP", CNPJ, "1", 42L, EmissionType.CONTINGENCY);
 
@@ -37,6 +40,7 @@ class NfceAccessKeyGeneratorTest {
 	}
 
 	@Test
+	@DisplayName("Produces a check digit that is valid under modulo 11")
 	void theCheckDigitIsValidUnderModulo11() {
 		String key = NfceAccessKeyGenerator.generate("RJ", CNPJ, "2", 999L, EmissionType.NORMAL);
 
@@ -44,6 +48,7 @@ class NfceAccessKeyGeneratorTest {
 	}
 
 	@Test
+	@DisplayName("Makes two keys for the same inputs differ in the random segment or check digit")
 	void twoKeysForTheSameInputsDifferInTheRandomSegmentOrCheckDigit() {
 		String first = NfceAccessKeyGenerator.generate("SP", CNPJ, "1", 1L, EmissionType.NORMAL);
 		String second = NfceAccessKeyGenerator.generate("SP", CNPJ, "1", 1L, EmissionType.NORMAL);
@@ -52,12 +57,14 @@ class NfceAccessKeyGeneratorTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown UF")
 	void anUnknownUfIsRejected() {
 		assertThatThrownBy(() -> NfceAccessKeyGenerator.generate("ZZ", CNPJ, "1", 1L, EmissionType.NORMAL))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Rejects a CNPJ that is not 14 digits")
 	void aCnpjThatIsNot14DigitsIsRejected() {
 		assertThatThrownBy(() -> NfceAccessKeyGenerator.generate("SP", "123", "1", 1L, EmissionType.NORMAL))
 				.isInstanceOf(BusinessRuleException.class);

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -97,6 +98,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Assesses the period under the company's regime from its authorized and confirmed documents")
 	void assessesThePeriodUnderTheCompanysRegimeOverItsAuthorizedAndConfirmedDocuments() throws Exception {
 		mockMvc.perform(generate(company, "2018-03"))
 				.andExpect(status().isOk())
@@ -117,6 +119,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Writes an EFD whose blocks and block 9 counters match the lines actually written")
 	void writesAnEfdWhoseBlocksAndBlockNineCountersMatchTheLinesActuallyWritten() throws Exception {
 		List<String> lines = txt(company, "2018-03");
 
@@ -127,6 +130,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Writes the company's documents of the period and the contributions they assess")
 	void writesTheCompanysDocumentsOfThePeriodAndTheContributionsTheyAssess() throws Exception {
 		List<String> lines = txt(company, "2018-03");
 
@@ -142,6 +146,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Leaves out documents from other periods, other companies, and those not confirmed or not authorized")
 	void leavesOutTheDocumentsOfOtherPeriodsOtherCompaniesAndThoseNotConfirmedOrNotAuthorized() throws Exception {
 		String txt = String.join("\n", txt(company, "2018-03"));
 
@@ -152,6 +157,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Writes an empty but well-formed file for a period without documents")
 	void writesAnEmptyButWellFormedFileForAPeriodWithoutDocuments() throws Exception {
 		List<String> lines = txt(company, "2018-01");
 
@@ -161,11 +167,13 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Refuses a Simples Nacional company with a 409 conflict")
 	void refusesACompanyUnderTheSimplesNacionalWithAConflict() throws Exception {
 		mockMvc.perform(generate(simples, "2018-03")).andExpect(status().isConflict());
 	}
 
 	@Test
+	@DisplayName("Returns 404 for an unknown company")
 	void answersNotFoundForAnUnknownCompany() throws Exception {
 		mockMvc.perform(post("/api/sped/contribuicoes").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"companyId\":\"" + UUID.randomUUID() + "\",\"period\":\"2018-03\"}"))
@@ -173,6 +181,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 400 when the company or period is missing or malformed")
 	void answersBadRequestWhenTheCompanyOrThePeriodIsMissingOrMalformed() throws Exception {
 		String companyId = company.value().toString();
 		for (String body : List.of("{\"period\":\"2018-03\"}", "{\"companyId\":\"" + companyId + "\"}",

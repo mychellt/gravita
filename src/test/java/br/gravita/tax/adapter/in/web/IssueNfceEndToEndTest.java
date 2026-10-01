@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -139,6 +140,7 @@ class IssueNfceEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Authorizes the sale in real time with the protocol when SEFAZ is reachable")
 	void ac1_aReachableSefazAuthorizesTheSaleInRealTimeWithTheProtocol() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID productId = seedProduct();

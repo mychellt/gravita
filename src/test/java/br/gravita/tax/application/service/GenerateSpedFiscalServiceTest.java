@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -86,6 +87,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown company without reading or writing anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrWritingAnything() {
 		CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
@@ -97,6 +99,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reads the company's documents over every day of the period in the clock's time zone")
 	void readsTheCompanysDocumentsOverEveryDayOfThePeriodInTheClocksZone() {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
@@ -113,6 +116,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns the generated file named after the company and the month")
 	void returnsTheGeneratedFileNamedAfterTheCompanyAndMonth() {
 		SpedFiscalFile file = service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
@@ -122,6 +126,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lays out every block of the layout in order, with the empty ones left empty")
 	void laysOutEveryBlockOfTheLayoutInOrderWithTheEmptyOnesEmpty() {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
@@ -133,6 +138,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Identifies the company, its address and the accountant")
 	void identifiesTheCompanyItsAddressAndTheAccountant() {
 		service.execute(new GenerateSpedFiscalCommand(companyId, PERIOD, Finality.SUBSTITUTE,
 				SpedFiscalFixtures.taxpayer(), SpedFiscalFixtures.accountant()));
@@ -149,6 +155,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports an authorized exit as a regular C100 with its values")
 	void reportsAnAuthorizedExitAsARegularC100WithItsValues() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
@@ -166,6 +173,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports an NF-e under an entry CFOP as an entry the company issued")
 	void reportsAnNfeUnderAnEntryCfopAsAnEntryTheCompanyIssued() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "1202", "1", 20L,
@@ -177,6 +185,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps a cancelled NF-e with only the fields the layout keeps for it")
 	void keepsACancelledNfeWithOnlyTheFieldsTheLayoutKeepsForIt() {
 		var cancelled = LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.CANCELLED, "5102", "1", 21L,
 				Instant.parse("2028-02-11T12:00:00Z"));
@@ -191,6 +200,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports a confirmed received NF-e as a third-party entry received within the period")
 	void reportsAConfirmedReceivedNfeAsAThirdPartyEntryReceivedWithinThePeriod() {
 		InboundNfe received = SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10",
 				"Alfa SA", "1102", "1102", "300.00", "36.00", "4.00", "0.65", "3.00",
@@ -208,6 +218,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Never dates the receipt of goods before its issue or after the period")
 	void neverDatesTheReceiptOfAGoodBeforeItsIssueOrAfterThePeriod() {
 		InboundNfe late = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-04-02T10:00:00Z")));
 		InboundNfe early = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-02-01T10:00:00Z")));
@@ -229,6 +240,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports every number of a voided range as a voided number and skips other document types")
 	void reportsEveryNumberOfAVoidedRangeAsAVoidedNumberAndSkipsOtherDocumentTypes() {
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of(
 				range(FiscalDocumentType.NFE, "1", 101L, 103L, "2028-02-12T15:00:00Z"),
@@ -243,6 +255,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Sorts documents by day, then operation, then series and number")
 	void sortsTheDocumentsByDayThenOperationThenSeriesAndNumber() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 30L,
@@ -262,6 +275,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assesses ICMS of the regular documents, debits against credits")
 	void assessesTheIcmsOfTheRegularDocumentsDebitsAgainstCredits() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
@@ -283,6 +297,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Declares the ICMS to pay when debits exceed credits")
 	void declaresTheIcmsToPayWhenDebitsExceedCredits() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
@@ -295,6 +310,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lists one participant per counterparty regardless of the number of documents")
 	void listsOneParticipantPerCounterpartyWhateverTheNumberOfDocuments() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
@@ -310,6 +326,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports in warnings what the file goes out without and still generates it")
 	void saysWhatTheFileGoesOutWithoutInWarningsAndStillGeneratesIt() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
@@ -322,6 +339,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails listing every missing or invalid record instead of emitting an incomplete file")
 	void failsListingEveryMissingOrInvalidRecordInsteadOfEmittingAnIncompleteFile() {
 		Taxpayer taxpayer = new Taxpayer(" ", "355", null, null, null, "123", null, null);
 		Accountant accountant = new Accountant(null, "111.111.111-11", "", null);
@@ -348,6 +366,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails on a received NF-e whose series or number cannot fill its C100")
 	void failsOnAReceivedNfeWhoseSeriesOrNumberCannotFillItsC100() {
 		InboundNfe base = LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Alfa SA", "1102", "1102",
 				"10.00", "0", "0", "0", "0", Instant.parse("2028-02-10T12:00:00Z"));
@@ -369,6 +388,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when a number is both voided and issued")
 	void failsWhenANumberIsBothVoidedAndIssued() {
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 102L,
@@ -385,6 +405,7 @@ class GenerateSpedFiscalServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails on a voided range beyond the nine digits of the number")
 	void failsOnAVoidedRangeBeyondTheNineDigitsOfTheNumber() {
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of(
 				range(FiscalDocumentType.NFE, "1", 999_999_990L, 1_000_000_000L, "2028-02-12T15:00:00Z")));

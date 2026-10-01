@@ -1,6 +1,7 @@
 package br.gravita.tax.adapter.in.web;
 
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +23,7 @@ class EnterInboundNfeManuallyEndToEndTest {
 	private MockMvc mockMvc;
 
 	@Test
+	@DisplayName("Creates an inbound NF-e pending conference from fully manual data")
 	void enteringFullyManualDataCreatesAPendingConferenceInboundNfe() throws Exception {
 		mockMvc.perform(post("/api/nfe/inbound").contentType(MediaType.APPLICATION_JSON)
 						.content(manualEntryJson(UUID.randomUUID(), "35240111222333000181550010000012345123456789")))
@@ -33,6 +35,7 @@ class EnterInboundNfeManuallyEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 400 a request that gives only an access key and no manual data")
 	void anAccessKeyAloneWithNoManualDataIsRejectedWith400() throws Exception {
 		mockMvc.perform(post("/api/nfe/inbound").contentType(MediaType.APPLICATION_JSON)
 						.content("""

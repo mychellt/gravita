@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -79,6 +80,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refuses to cancel a document that is not authorized")
 	void aDocumentThatIsNotAuthorizedCannotBeCancelled() {
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.QUEUED, null, "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -91,6 +93,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling a document past the default twenty-four-hour window")
 	void aDocumentPastTheTwentyFourHourDefaultWindowIsRejected() {
 		Instant twentyFiveHoursAgo = Instant.now().minus(Duration.ofHours(25));
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyFiveHoursAgo, "SP");
@@ -104,6 +107,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Cancels a document within the default twenty-four-hour window")
 	void aDocumentWithinTheTwentyFourHourDefaultWindowIsCancelled() {
 		Instant twentyHoursAgo = Instant.now().minus(Duration.ofHours(20));
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyHoursAgo, "SP");
@@ -115,6 +119,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Honors a state's longer legal window past the default twenty-four hours")
 	void aStateWithALongerLegalWindowIsHonoredPastTheDefaultTwentyFourHours() {
 		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company("AM")));
 		Instant thirtyHoursAgo = Instant.now().minus(Duration.ofHours(30));
@@ -127,6 +132,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancellation once a state's longer legal window has also expired")
 	void aStateWithALongerLegalWindowStillExpiresPastItsOwnLimit() {
 		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company("AM")));
 		Instant fortyNineHoursAgo = Instant.now().minus(Duration.ofHours(49));
@@ -138,6 +144,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires a justification to cancel")
 	void justificationIsMandatory() {
 		assertThatThrownBy(() -> service.execute(new CancelNfeCommand(documentId.value(), " ")))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("justification is required");
@@ -146,6 +153,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transmits the cancellation to SEFAZ with the justification and persists it")
 	void successfulCancellationTransmitsToSefazWithTheJustificationAndPersistsIt() {
 		Instant fiveHoursAgo = Instant.now().minus(Duration.ofHours(5));
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, fiveHoursAgo, "SP");
@@ -166,6 +174,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling a document that does not exist")
 	void aNonExistentDocumentIsRejected() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 
@@ -175,6 +184,7 @@ class CancelNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects cancelling when the issuing company does not exist")
 	void anIssuingCompanyThatDoesNotExistIsRejected() {
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, Instant.now(), "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));

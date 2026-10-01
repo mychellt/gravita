@@ -11,11 +11,13 @@ import br.gravita.core.domain.tax.PosSessionId;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CashMovementTest {
 
 	@Test
+	@DisplayName("Recording a sangria or suprimento captures the given type, amount and session")
 	void ac1_recordingASangriaOrSuprimentoCapturesTheGivenTypeAmountAndSession() {
 		PosSessionId sessionId = PosSessionId.of(UUID.randomUUID());
 		Instant now = Instant.now();
@@ -32,6 +34,7 @@ class CashMovementTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank justification")
 	void ac2_blankJustificationIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, new BigDecimal("50.00"), " ",
@@ -40,6 +43,7 @@ class CashMovementTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null justification")
 	void ac2_nullJustificationIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, new BigDecimal("50.00"), null,
@@ -48,6 +52,7 @@ class CashMovementTest {
 	}
 
 	@Test
+	@DisplayName("Records the given timestamp")
 	void ac3_theGivenTimestampIsRecorded() {
 		Instant now = Instant.now();
 
@@ -59,6 +64,7 @@ class CashMovementTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a non-positive amount")
 	void aNonPositiveAmountIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, BigDecimal.ZERO, "Justified",

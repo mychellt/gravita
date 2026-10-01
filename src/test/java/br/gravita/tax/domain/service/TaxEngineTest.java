@@ -9,6 +9,7 @@ import br.gravita.core.domain.tax.TaxOverrideInput;
 import br.gravita.core.domain.tax.TaxRateRule;
 import br.gravita.core.domain.tax.TaxRegime;
 import br.gravita.core.domain.tax.TaxType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -42,6 +43,7 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Computes ICMS, IPI, PIS, COFINS and FCP from rate table data")
 	void shouldComputeIcmsIpiPisCofinsAndFcpFromRateTableData() {
 		ItemTaxInput input = item(List.of(
 				rule(TaxType.ICMS, "12"),
@@ -62,6 +64,7 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Computes ICMS-ST as the internal rate over the MVA base minus the ICMS itself")
 	void shouldComputeIcmsStAsInternalRateOverMvaBaseMinusIcmsProprio() {
 		ItemTaxInput input = item(List.of(
 				rule(TaxType.ICMS, "12"),
@@ -75,6 +78,7 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Applies the base reduction before computing the rate")
 	void shouldApplyBaseReductionBeforeComputingRate() {
 		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12", "20", "0")));
 
@@ -86,6 +90,7 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Skips tax types without a matching rate row")
 	void shouldSkipTaxTypesWithoutAMatchingRateRow() {
 		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
 
@@ -96,6 +101,7 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Applies a manual override while retaining the computed value for audit")
 	void shouldApplyManualOverrideWhileRetainingComputedValueForAudit() {
 		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
 		TaxOverrideInput override = new TaxOverrideInput(0, TaxType.ICMS, new BigDecimal("100.00"), "Negotiated with fiscal auditor");
@@ -111,12 +117,14 @@ class TaxEngineTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an override without justification")
 	void shouldRejectOverrideWithoutJustification() {
 		assertThatThrownBy(() -> new TaxOverrideInput(0, TaxType.ICMS, new BigDecimal("100.00"), " "))
 				.isInstanceOf(TaxDomainException.class);
 	}
 
 	@Test
+	@DisplayName("Produces the same result regardless of which regime selected the rows")
 	void shouldProduceTheSameResultRegardlessOfWhichRegimeSelectedTheRows() {
 		ItemTaxInput simplesLikeInput = item(List.of(rule(TaxType.ICMS, "4")));
 		ItemTaxInput lucroRealLikeInput = new ItemTaxInput(0, "PROD-1", new BigDecimal("10"), new BigDecimal("100.00"),

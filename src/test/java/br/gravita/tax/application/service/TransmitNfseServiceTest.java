@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -108,6 +109,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transmits a homologated document through the adapter of its municipality's standard")
 	void ac1_aHomologatedDocumentIsTransmittedThroughTheAdapterOfItsMunicipalitysStandard() {
 		NfseDocument draft = draft();
 		MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
@@ -127,6 +129,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Marks the document sent, then authorized, with the protocol and only the XML reference")
 	void ac3and5_successMarksTheDocumentSentThenAuthorizedWithProtocolAndOnlyTheXmlReference() {
 		NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
@@ -150,6 +153,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Treats a rejection as a result and leaves the document a draft that can be transmitted again")
 	void ac3_aRejectionIsAResultAndLeavesTheDocumentADraftThatCanBeTransmittedAgain() {
 		NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
@@ -168,6 +172,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Propagates a municipality that does not answer and never saves an authorized document")
 	void ac3_aMunicipalityThatDoesNotAnswerPropagatesAndNeverSavesAnAuthorizedDocument() {
 		NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
@@ -184,6 +189,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives a non-homologated municipality the guided upload instead of a transmission")
 	void ac2_aNonHomologatedMunicipalityGetsTheGuidedUploadInsteadOfATransmission() {
 		NfseDocument draft = draft();
 		MunicipalityIntegration integration = integration(NfseStandard.ISSNET, false);
@@ -202,6 +208,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails before the document leaves draft when its standard has no adapter")
 	void ac4_aStandardWithoutAnAdapterFailsBeforeTheDocumentLeavesDraft() {
 		NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.NFSE_NACIONAL, true));
@@ -213,6 +220,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Needs nothing but registering an adapter to support a new standard")
 	void ac4_registeringAnAdapterForANewStandardIsAllItTakes() {
 		NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.NFSE_NACIONAL, true));
@@ -227,6 +235,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects two adapters registered for the same standard at wiring time")
 	void twoAdaptersForTheSameStandardAreRejectedAtWiring() {
 		assertThatThrownBy(() -> new TransmitNfseService(nfseRepositoryPort, integrationRepositoryPort,
 				guidedManualUploadPort, xmlObjectStoragePort, List.of(abrasf, issuer(NfseStandard.ABRASF))))
@@ -234,6 +243,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reports not found for an unknown document")
 	void anUnknownDocumentIsNotFound() {
 		NfseId id = NfseId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(id)).thenReturn(Optional.empty());
@@ -243,6 +253,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Only a draft is transmittable")
 	void onlyADraftIsTransmittable() {
 		NfseDocument draft = draft();
 		NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
@@ -264,6 +275,7 @@ class TransmitNfseServiceTest {
 	}
 
 	@Test
+	@DisplayName("Treats a municipality without a registered integration as a business rule violation")
 	void aMunicipalityWithoutARegisteredIntegrationIsABusinessRuleViolation() {
 		NfseDocument draft = draft();
 		when(nfseRepositoryPort.findByIdForUpdate(draft.getId())).thenReturn(Optional.of(draft));

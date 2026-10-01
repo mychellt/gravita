@@ -10,6 +10,7 @@ import br.gravita.core.domain.tax.MunicipalityIntegrationId;
 import br.gravita.core.domain.tax.NfseStandard;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -24,6 +25,7 @@ class MunicipalityIntegrationTest {
 
 	@ParameterizedTest
 	@EnumSource(NfseStandard.class)
+	@DisplayName("Accepts each supported standard")
 	void ac1_acceptsEachSupportedStandard(NfseStandard standard) {
 		MunicipalityIntegration integration = create(standard, "2.04", "https://nfse.example/ws", true);
 
@@ -32,6 +34,7 @@ class MunicipalityIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Treats a non-homologated integration as valid even without version and URL")
 	void ac2_nonHomologatedIsValidEvenWithoutVersionAndUrl() {
 		MunicipalityIntegration integration = create(NfseStandard.ABRASF, null, null, false);
 
@@ -39,6 +42,7 @@ class MunicipalityIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Requires a version and URL when homologated")
 	void homologatedRequiresVersionAndUrl() {
 		assertThatThrownBy(() -> create(NfseStandard.ABRASF, " ", "https://x", true))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("version");
@@ -47,6 +51,7 @@ class MunicipalityIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a malformed IBGE code")
 	void rejectsMalformedIbgeCode() {
 		assertThatThrownBy(() -> MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), "123",
 				NfseStandard.BETHA, null, null, CertificateType.A1, null, false))
@@ -54,6 +59,7 @@ class MunicipalityIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Updating replaces the configuration while keeping identity")
 	void updateReplacesConfigurationKeepingIdentity() {
 		MunicipalityIntegration integration = create(NfseStandard.ABRASF, "2.04", "https://old", false);
 		MunicipalityIntegrationId id = integration.getId();
@@ -70,6 +76,7 @@ class MunicipalityIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the configuration untouched when an update fails")
 	void failedUpdateLeavesConfigurationUntouched() {
 		MunicipalityIntegration integration = create(NfseStandard.ABRASF, "2.04", "https://old", true);
 

@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,6 +62,7 @@ class RecordCashMovementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Recording a sangria on an open session persists it immediately with a timestamp and the session link")
 	void ac1and3and4_recordingASangriaAgainstAnOpenSessionPersistsItImmediatelyWithATimestampAndLink()
 			throws Exception {
 		UUID sessionId = seedOpenSession();
@@ -84,6 +86,7 @@ class RecordCashMovementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Accepts recording a suprimento")
 	void ac1_recordingASuprimentoIsAccepted() throws Exception {
 		UUID sessionId = seedOpenSession();
 
@@ -96,6 +99,7 @@ class RecordCashMovementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank justification")
 	void ac2_blankJustificationIsRejected() throws Exception {
 		UUID sessionId = seedOpenSession();
 
@@ -108,6 +112,7 @@ class RecordCashMovementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects recording a movement against a closed session")
 	void ac4_recordingAgainstAClosedSessionIsRejected() throws Exception {
 		UUID sessionId = seedClosedSession();
 
@@ -120,6 +125,7 @@ class RecordCashMovementEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects recording a movement against a non-existent session")
 	void ac4_recordingAgainstANonExistentSessionIsRejected() throws Exception {
 		mockMvc.perform(post("/api/pdv/cash-movements")
 						.contentType(MediaType.APPLICATION_JSON)

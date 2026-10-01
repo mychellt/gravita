@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -81,6 +82,7 @@ class IssueCorrectionLetterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a new correction letter once twenty correction letter events already exist")
 	void rejectsOnceTwentyCorrectionLetterEventsAlreadyExist() {
 		List<CorrectionLetter> maxedOut = new ArrayList<>();
 		for (int i = 1; i <= NfeDocument.MAX_CORRECTION_LETTERS; i++) {
@@ -98,6 +100,7 @@ class IssueCorrectionLetterServiceTest {
 
 	@ParameterizedTest
 	@EnumSource(value = NfeDocumentStatus.class, names = {"DRAFT", "CANCELLED", "VOIDED"})
+	@DisplayName("Requires the document to be authorized")
 	void requiresTheDocumentToBeAuthorized(NfeDocumentStatus status) {
 		NfeDocument document = documentWithStatus(status, List.of());
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -110,6 +113,7 @@ class IssueCorrectionLetterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Assigns each event a sequence number and a SEFAZ protocol and persists both")
 	void eachEventIsAssignedASequenceNumberAndASefazProtocolAndBothArePersisted() {
 		NfeDocument document = authorizedDocument(List.of(new CorrectionLetter(1, "Primeira correção", "PROT1",
 				Instant.now())));
@@ -134,6 +138,7 @@ class IssueCorrectionLetterServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a correction letter for an NF-e document that does not exist")
 	void anNfeDocumentThatDoesNotExistIsRejected() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 

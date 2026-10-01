@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -158,6 +159,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Transmits through a homologated municipality and authorizes the document keeping only an XML reference")
 	void aHomologatedMunicipalityIsTransmittedAndTheDocumentIsAuthorizedWithOnlyAnXmlReference() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = draft(BETHA_CITY);
@@ -178,6 +180,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Reports a rejection, keeps the document as a draft and allows transmitting again once fixed")
 	void aRejectionIsReportedKeepsTheDocumentADraftAndAllowsATransmitOnceFixed() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = draft(BETHA_CITY);
@@ -200,6 +203,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns the XML and upload instructions for a non-homologated municipality and leaves the document untouched")
 	void aNonHomologatedMunicipalityGetsTheXmlAndInstructionsAndTheDocumentIsUntouched() throws Exception {
 		register(ISSNET_CITY, NfseStandard.ISSNET, false);
 		UUID id = draft(ISSNET_CITY);
@@ -219,6 +223,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 503 when the municipality does not answer")
 	void aMunicipalityThatDoesNotAnswerIs503() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID id = draft(BETHA_CITY);
@@ -230,6 +235,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 and keeps the document a draft when a homologated standard has no adapter")
 	void aHomologatedStandardWithoutAnAdapterIs409AndTheDocumentStaysADraft() throws Exception {
 		register(ABRASF_CITY, NfseStandard.ABRASF, true);
 		UUID id = draft(ABRASF_CITY);
@@ -241,6 +247,7 @@ class TransmitNfseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Refuses authorized documents, RPS and unregistered municipalities, and returns 404 for an unknown id")
 	void anAuthorizedAnRpsAndAnUnregisteredMunicipalityAreRefusedAndAnUnknownIdIs404() throws Exception {
 		register(BETHA_CITY, NfseStandard.BETHA, true);
 		UUID authorized = draft(BETHA_CITY);

@@ -2,6 +2,7 @@ package br.gravita.tax.adapter.in.web;
 
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +24,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	private MockMvc mockMvc;
 
 	@Test
+	@DisplayName("Uploading a supplier XML creates an inbound NF-e pending conference")
 	void uploadingASupplierXmlCreatesAPendingConferenceInboundNfe() throws Exception {
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
 				nfeXml().getBytes(StandardCharsets.UTF_8));
@@ -38,6 +40,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 409 a second upload of the same access key")
 	void uploadingTheSameAccessKeyTwiceIsRejectedWith409() throws Exception {
 		UUID companyId = UUID.randomUUID();
 
@@ -58,6 +61,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a malformed XML with 400")
 	void uploadingAMalformedXmlIsRejectedWith400() throws Exception {
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
 				"not xml".getBytes(StandardCharsets.UTF_8));
@@ -69,6 +73,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 400 an XML missing required sections")
 	void uploadingXmlMissingRequiredSectionsIsRejectedWith400() throws Exception {
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
 				xmlMissingRequiredSections().getBytes(StandardCharsets.UTF_8));
@@ -82,6 +87,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 400 an XML with an invalid supplier CNPJ")
 	void uploadingXmlWithAnInvalidSupplierCnpjIsRejectedWith400() throws Exception {
 		MockMultipartFile xmlFile = new MockMultipartFile("xmlFile", "nfe.xml", "text/xml",
 				nfeXmlWithSupplierCnpj("11222333000199").getBytes(StandardCharsets.UTF_8));
@@ -94,6 +100,7 @@ class ImportSupplierNfeXmlEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects with 400 an XML containing a DOCTYPE declaration")
 	void uploadingXmlWithADoctypeDeclarationIsRejectedWith400() throws Exception {
 		String withDoctype = """
 				<?xml version="1.0"?>

@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class NfseDocumentTest {
@@ -48,6 +49,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Issues an RPS in the RPS status, sharing its id with the document")
 	void issuesAnRpsInTheRpsStatusSharingItsIdWithTheDocument() {
 		NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria");
@@ -61,6 +63,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Requires the tomador's full address when tax is withheld")
 	void ac2_aWithheldTaxRequiresTheTomadorsFullAddress() {
 		assertThatThrownBy(() -> issue(tomador("3550308", null), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria")).isInstanceOf(BusinessRuleException.class).hasMessageContaining("full address");
@@ -69,6 +72,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Does not require an address when nothing is withheld")
 	void ac2_withoutWithholdingsAnAddressIsNotRequired() {
 		NfseTomador pf = NfseTomador.of(null, CPF, PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 
@@ -76,12 +80,14 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an incomplete address when the document is built")
 	void incompleteAddressIsRejectedWhenBuilt() {
 		assertThatThrownBy(() -> new TomadorAddress("Rua A", "10", null, " ", "01001000", "SP"))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Rejects a non-positive amount and a blank discrimination")
 	void rejectsNonPositiveAmountAndBlankDiscrimination() {
 		NfseTomador tomador = tomador("3550308", address());
 
@@ -92,6 +98,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Rejects malformed municipality codes")
 	void rejectsMalformedMunicipalityCodes() {
 		assertThatThrownBy(() -> tomador("123", address())).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()),
@@ -101,12 +108,14 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid tomador document")
 	void rejectsAnInvalidTomadorDocument() {
 		assertThatThrownBy(() -> NfseTomador.of(null, "11111111111", PersonType.INDIVIDUAL, "X", null, null))
 				.isInstanceOf(RuntimeException.class);
 	}
 
 	@Test
+	@DisplayName("Converts an RPS into a draft with its NFS-e series and number, keeping the RPS identity")
 	void convertsAnRpsIntoADraftWithItsNfseSeriesAndNumberKeepingTheRpsIdentity() {
 		NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria");
@@ -127,6 +136,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting a document that is not an RPS again")
 	void aDocumentThatIsNotAnRpsCannotBeConvertedAgain() {
 		NfseDocument draft = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria")
 				.convertToNfse("1", 1L, Instant.now());
@@ -137,6 +147,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Requires a converted document to have its number, series and timestamp")
 	void aConvertedDocumentRequiresItsNumberSeriesAndTimestamp() {
 		NfseDocument rps = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria");
 
@@ -152,6 +163,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Moves a draft through sent to authorized, keeping only an XML reference")
 	void transmissionMovesADraftThroughSentToAuthorizedKeepingOnlyAnXmlReference() {
 		Instant sentAt = Instant.parse("2026-10-01T11:00:00Z");
 		Instant authorizedAt = Instant.parse("2026-10-01T11:00:02Z");
@@ -170,6 +182,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Returns a rejected attempt to draft with the reason so it can be sent again")
 	void aRejectedAttemptReturnsToDraftWithTheReasonAndCanBeSentAgain() {
 		NfseDocument rejected = draft().send(Instant.now()).reject("Item de servico invalido");
 
@@ -183,6 +196,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Only a draft can be sent and only a sent document can be decided")
 	void onlyADraftCanBeSentAndOnlyASentOneCanBeDecided() {
 		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
 		NfseDocument draft = draft();
@@ -196,6 +210,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Requires an authorized document to have its protocol, timestamp and XML reference")
 	void anAuthorizedDocumentRequiresItsProtocolTimestampAndXmlReference() {
 		NfseDocument sent = draft().send(Instant.now());
 
@@ -205,6 +220,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Cancelling an authorized document keeps its fiscal data and records the justification")
 	void cancellingAnAuthorizedDocumentKeepsItsFiscalDataAndRecordsTheJustification() {
 		Instant cancelledAt = Instant.parse("2026-10-02T09:00:00Z");
 		NfseDocument authorized = draft().send(Instant.now()).authorize("PROT-1", Instant.now(), "xml/ref-1");
@@ -222,6 +238,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Only an authorized document can be cancelled, and only once")
 	void onlyAnAuthorizedDocumentCanBeCancelledAndOnlyOnce() {
 		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
 		NfseDocument draft = draft();
@@ -235,6 +252,7 @@ class NfseDocumentTest {
 	}
 
 	@Test
+	@DisplayName("Requires a justification and a timestamp to cancel")
 	void cancellationRequiresAJustificationAndATimestamp() {
 		NfseDocument authorized = draft().send(Instant.now()).authorize("P", Instant.now(), "ref");
 

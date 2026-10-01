@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -84,6 +85,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers a cart item and produces a draft sale")
 	void ac1_registersACartItemAndProducesADraftSale() {
 		NfceSaleId id = service.execute(commandWithItemDiscount(null, null));
 
@@ -94,6 +96,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Accepts an item discount within the linked price table's cap")
 	void ac2_anItemDiscountWithinTheLinkedPriceTablesCapIsAccepted() {
 		UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
@@ -105,6 +108,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item discount exceeding a blocking price table's cap")
 	void ac2_anItemDiscountExceedingABlockPriceTablesCapIsRejected() {
 		UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
@@ -117,6 +121,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Still creates the sale when an item discount exceeds only an alerting price table's cap")
 	void ac2_anItemDiscountExceedingAnAlertPriceTablesCapStillCreatesTheSale() {
 		UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
@@ -129,6 +134,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Combines multiple payment methods in the same sale")
 	void ac3_multiplePaymentMethodsAreCombinedInTheSameSale() {
 		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("80.00"), null);
 		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
@@ -144,6 +150,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Derives the change given from the payments minus the sale total")
 	void ac4_changeGivenIsDerivedFromPaymentsMinusSaleTotal() {
 		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("18.00"), null);
 		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
@@ -157,6 +164,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects payments that do not cover the sale total")
 	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() {
 		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("50.00"), null);
 		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
@@ -168,6 +176,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Records a typed customer CPF on the sale")
 	void ac6_aTypedCustomerCpfIsRecordedOnTheSale() {
 		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
 		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
@@ -181,6 +190,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a sale for a non-existent session")
 	void aNonExistentSessionIsRejected() {
 		UUID unknownSession = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(unknownSession))).thenReturn(Optional.empty());
@@ -194,6 +204,7 @@ class RegisterNfceSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a sale for a closed session")
 	void aClosedSessionIsRejected() {
 		PosSession closed = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),

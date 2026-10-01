@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,6 +77,7 @@ class ResendNfeEmailServiceTest {
 	}
 
 	@Test
+	@DisplayName("Resends the already stored XML and DANFE to the recipient rather than regenerating them")
 	void ac5_resendsTheAlreadyStoredXmlAndDanfeToTheRecipientRatherThanRegeneratingThem() {
 		NfeDocument document = authorizedDocument();
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -95,6 +97,7 @@ class ResendNfeEmailServiceTest {
 
 	@ParameterizedTest
 	@EnumSource(value = NfeDocumentStatus.class, names = {"DRAFT", "QUEUED", "SENT", "REJECTED", "CANCELLED", "VOIDED"})
+	@DisplayName("Only an authorized document can have its email resent")
 	void onlyAnAuthorizedDocumentCanHaveItsEmailResent(NfeDocumentStatus status) {
 		NfeDocument document = documentWithStatus(status);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -106,6 +109,7 @@ class ResendNfeEmailServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a recipient with no email on file rather than silently skipping")
 	void aRecipientWithNoEmailOnFileIsRejectedRatherThanSilentlySkipped() {
 		NfeDocument document = authorizedDocument();
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -118,6 +122,7 @@ class ResendNfeEmailServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects resending for an NF-e document that does not exist")
 	void anNfeDocumentThatDoesNotExistIsRejected() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 

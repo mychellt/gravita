@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -86,6 +87,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires a justification and rejects the request without it")
 	void ac1_justificationIsMandatoryTheRequestIsRejectedWithoutIt() {
 		assertThatThrownBy(() -> service.execute(command(null))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("justification");
@@ -97,6 +99,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Produces an immutable record with no update or delete operation")
 	void ac2_theResultingRecordIsImmutableNoUpdateOrDeleteOperationExists() {
 		for (Method method : VoidedNumberRangeRepositoryPort.class.getMethods()) {
 			assertThat(method.getName().toLowerCase()).doesNotContain("update").doesNotContain("delete");
@@ -104,6 +107,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Carries what SPED and Livros Fiscais need to explain the numbering gap")
 	void ac3_theVoidedRangeCarriesWhatSpedLivrosFiscaisWillNeedToExplainTheGap() {
 		VoidedNumberRange result = service.execute(command("numbers printed on damaged forms"));
 
@@ -120,6 +124,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transmits the void to SEFAZ before persisting it locally")
 	void successfulVoidTransmitsToSefazBeforePersistingLocally() {
 		service.execute(command("numbers printed on damaged forms"));
 
@@ -136,6 +141,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a company that does not exist")
 	void aCompanyThatDoesNotExistIsRejected() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 
@@ -145,6 +151,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a series not configured for the company")
 	void aSeriesNotConfiguredForTheCompanyIsRejected() {
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE))
 				.thenReturn(Optional.empty());
@@ -156,6 +163,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a series that does not match the configured one")
 	void aSeriesThatDoesNotMatchTheConfiguredOneIsRejected() {
 		assertThatThrownBy(() -> service.execute(new VoidNumberRangeCommand(companyId, "999", 100L, 110L, "reason")))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("999");
@@ -164,6 +172,7 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an end number before the start number")
 	void anEndNumberBeforeTheStartNumberIsRejected() {
 		assertThatThrownBy(() -> service.execute(new VoidNumberRangeCommand(companyId, "001", 110L, 100L, "reason")))
 				.isInstanceOf(BusinessRuleException.class);

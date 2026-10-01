@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +44,7 @@ class RegisterMunicipalityIntegrationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers a new municipality for each supported standard")
 	void ac1_registersANewMunicipalityForEachStandard() {
 		for (NfseStandard standard : NfseStandard.values()) {
 			when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
@@ -58,6 +60,7 @@ class RegisterMunicipalityIntegrationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a non-homologated registration")
 	void ac2_nonHomologatedRegistrationIsAccepted() {
 		when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
 
@@ -70,6 +73,7 @@ class RegisterMunicipalityIntegrationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates the existing configuration on re-registration instead of creating another")
 	void ac3_reRegisteringUpdatesTheExistingConfigurationInsteadOfCreatingAnother() {
 		MunicipalityIntegration existing = MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()),
 				"3550308", NfseStandard.ABRASF, "2.03", "https://old", CertificateType.A1, List.of(), false);
@@ -87,6 +91,7 @@ class RegisterMunicipalityIntegrationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers a municipality without depending on any NFS-e adapter")
 	void ac4_registrationDoesNotDependOnAnyNfseAdapter() {
 		// The service's only collaborator is the repository: there is nothing to fail when no adapter is deployed.
 		when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());

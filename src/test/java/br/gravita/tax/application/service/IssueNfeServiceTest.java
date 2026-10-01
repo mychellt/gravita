@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -138,6 +139,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Preserves the origin sales order id when provided")
 	void ac1_originSalesOrderIdIsPreservedWhenProvided() {
 		UUID orderId = UUID.randomUUID();
 
@@ -148,6 +150,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Leaves the origin sales order id null for a manual entry")
 	void ac1_manualEntryLeavesOriginSalesOrderIdNull() {
 		NfeDocument document = service.execute(defaultCommand());
 
@@ -155,6 +158,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Resolves the CFOP from the registry rather than hardcoding it")
 	void ac2_cfopIsResolvedFromTheRegistryNotHardcoded() {
 		when(cfopRegistryPort.resolve(NaturezaOperacao.VENDA)).thenReturn(new Cfop("6102"));
 
@@ -165,6 +169,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Validates the recipient's document and IE before the document is created")
 	void ac3_recipientDocumentAndIeAreValidatedBeforeTheDocumentIsCreated() {
 		NfeDocument document = service.execute(defaultCommand());
 
@@ -173,6 +178,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an invalid recipient CPF/CNPJ before anything else happens")
 	void ac3_anInvalidRecipientCpfCnpjIsRejectedBeforeAnythingElseHappens() {
 		RecipientCommand invalidRecipient = new RecipientCommand(null, "111.111.111-11", PersonType.INDIVIDUAL,
 				"Cliente Invalido", null, "SP");
@@ -184,6 +190,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a company recipient without an IE")
 	void ac3_aCompanyRecipientWithoutAnIeIsRejected() {
 		RecipientCommand recipientWithoutIe = new RecipientCommand(null, VALID_CNPJ, PersonType.COMPANY,
 				"Cliente PJ Teste", null, "RJ");
@@ -193,6 +200,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Takes the item tax totals from the shared CalculateTax use case")
 	void ac4_itemTaxTotalsComeFromTheSharedCalculateTaxUseCase() {
 		NfeDocument document = service.execute(defaultCommand());
 
@@ -201,6 +209,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a manual tax override without justification")
 	void ac4_aManualTaxOverrideWithoutJustificationIsRejected() {
 		TaxOverrideCommand unjustifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"), null);
 
@@ -212,6 +221,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Forwards a justified manual tax override to the tax engine")
 	void ac4_aJustifiedManualTaxOverrideIsForwardedToTheTaxEngine() {
 		TaxOverrideCommand justifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"),
 				"Isenção aprovada pelo fiscal");
@@ -225,6 +235,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a discount that exceeds the price table's maximum")
 	void ac5_discountExceedingThePriceTableMaxIsRejected() {
 		UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
@@ -240,6 +251,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lets an explicitly justified override bypass the price table's maximum discount")
 	void ac5_anExplicitlyJustifiedOverrideBypassesThePriceTableMaxDiscount() {
 		UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
@@ -255,6 +267,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a return without a referenced access key")
 	void ac6_aReturnWithoutAReferencedAccessKeyIsRejected() {
 		assertThatThrownBy(() -> service.execute(
 				command(null, NaturezaOperacao.DEVOLUCAO, companyRecipient(), null, null, null, null)))
@@ -262,6 +275,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a return with a referenced access key")
 	void ac6_aReturnWithAReferencedAccessKeyIsAccepted() {
 		String referencedAccessKey = "3".repeat(44);
 
@@ -272,6 +286,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Queues the document and enqueues it for transmission on success")
 	void ac7_onSuccessTheDocumentIsQueuedAndEnqueuedForTransmission() {
 		NfeDocument document = service.execute(defaultCommand());
 
@@ -289,6 +304,7 @@ class IssueNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects issuing when the issuing company does not exist")
 	void anIssuingCompanyThatDoesNotExistIsRejected() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 

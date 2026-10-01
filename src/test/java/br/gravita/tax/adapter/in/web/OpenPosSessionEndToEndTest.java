@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -55,6 +56,7 @@ class OpenPosSessionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Opening a session creates it open and linked to the operator and register")
 	void ac2and3_openingASessionCreatesItOpenAndLinkedToTheOperatorAndRegister() throws Exception {
 		UUID registerId = UUID.randomUUID();
 		UUID operatorId = UUID.randomUUID();
@@ -78,6 +80,7 @@ class OpenPosSessionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects opening a second session on a register that already has an open one")
 	void ac1_openingASecondSessionOnAnAlreadyOpenRegisterIsRejected() throws Exception {
 		UUID registerId = UUID.randomUUID();
 		seedOpenSession(registerId);
@@ -91,6 +94,7 @@ class OpenPosSessionEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Lets several registers each hold an independent open session at the same time")
 	void ac4_multipleRegistersCanEachHoldAnIndependentOpenSessionConcurrently() throws Exception {
 		UUID registerA = UUID.randomUUID();
 		UUID registerB = UUID.randomUUID();

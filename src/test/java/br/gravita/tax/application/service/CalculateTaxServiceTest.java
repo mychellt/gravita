@@ -13,6 +13,7 @@ import br.gravita.core.domain.tax.ProductTaxProfile;
 import br.gravita.core.domain.tax.TaxRateRule;
 import br.gravita.core.domain.tax.TaxRegime;
 import br.gravita.core.domain.tax.TaxType;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,6 +44,7 @@ class CalculateTaxServiceTest {
 	}
 
 	@Test
+	@DisplayName("Resolves the product's tax profile and rate table, then delegates the calculation to the tax engine")
 	void shouldResolveProductProfileQueryRateTableAndDelegateToTheEngine() {
 		when(productTaxProfileRepositoryPort.findByProductRef("PROD-1"))
 				.thenReturn(Optional.of(new ProductTaxProfile("PROD-1", "85171231")));
@@ -63,6 +65,7 @@ class CalculateTaxServiceTest {
 	}
 
 	@Test
+	@DisplayName("Forwards the caller-supplied operation type verbatim so every caller shares one implementation")
 	void shouldForwardTheCallerSuppliedOperationTypeVerbatimSoEveryCallerSharesOneImplementation() {
 		when(productTaxProfileRepositoryPort.findByProductRef("PROD-1"))
 				.thenReturn(Optional.of(new ProductTaxProfile("PROD-1", "85171231")));
@@ -81,6 +84,7 @@ class CalculateTaxServiceTest {
 	}
 
 	@Test
+	@DisplayName("Fails when the product has no registered tax profile")
 	void shouldFailWhenProductHasNoRegisteredTaxProfile() {
 		when(productTaxProfileRepositoryPort.findByProductRef("UNKNOWN")).thenReturn(Optional.empty());
 
@@ -92,6 +96,7 @@ class CalculateTaxServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an override without justification before calling any port")
 	void shouldRejectAnOverrideWithoutJustificationBeforeCallingAnyPort() {
 		CalculateTaxCommand command = new CalculateTaxCommand(
 				List.of(new TaxItemCommand("PROD-1", BigDecimal.ONE, BigDecimal.TEN)),

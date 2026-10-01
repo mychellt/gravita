@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -109,6 +110,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Never handles signing itself, leaving it entirely to the SubmitToSefaz port adapter")
 	void ac1_signingIsNeverHandledHereItIsLeftEntirelyToTheSubmitToSefazPortAdapter() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -121,6 +123,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Lets a SEFAZ timeout propagate instead of failing the document outright")
 	void ac2_aSefazTimeoutIsLeftToPropagateInsteadOfFailingTheDocumentOutright() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -134,6 +137,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Resubmits a document already sent in a prior timed-out attempt without transitioning it again")
 	void ac2_aDocumentAlreadySentFromAPriorTimedOutAttemptIsResubmittedWithoutTransitioningAgain() {
 		NfeDocument document = sentDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -146,6 +150,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Submits a document in contingency mode with the contingency flag set on the SEFAZ request")
 	void ac3_aDocumentInContingencyModeIsSubmittedWithTheContingencyFlagSetOnTheSefazRequest() {
 		NfeDocument document = sentDocument(true);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -159,6 +164,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Renders the DANFE in portrait orientation by default on authorization")
 	void ac4_onAuthorizationTheDanfeIsRenderedInPortraitOrientationByDefault() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -170,6 +176,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Emails the XML and DANFE to the recipient automatically on authorization")
 	void ac5_onAuthorizationXmlAndDanfeAreEmailedToTheRecipientAutomatically() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -185,6 +192,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the transmission successful when the recipient has no email, so a manual resend can cover it later")
 	void ac5_aRecipientWithNoEmailOnFileStillLeavesTheTransmissionSuccessfulSoAManualResendCanCoverItLater() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -198,6 +206,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Stores the rendered XML and DANFE and saves the authorized document with both references")
 	void ac6_theRenderedXmlAndDanfeAreStoredAndTheAuthorizedDocumentIsSavedWithBothReferences() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -215,6 +224,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Surfaces a SEFAZ rejection's reason and removes the document from the queue instead of retrying")
 	void aSefazRejectionSurfacesTheReasonAndRemovesTheDocumentFromTheQueueInsteadOfRetrying() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -229,6 +239,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects transmitting a document that is not queued or sent")
 	void aDocumentThatIsNotQueuedOrSentIsRejectedForTransmission() {
 		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
@@ -240,6 +251,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects transmitting an NF-e document that does not exist")
 	void anNfeDocumentThatDoesNotExistIsRejected() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 
@@ -248,6 +260,7 @@ class TransmitNfeServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects transmitting when the issuing company does not exist")
 	void anIssuingCompanyThatDoesNotExistIsRejected() {
 		NfeDocument document = queuedDocument(false);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));

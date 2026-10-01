@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -42,6 +43,7 @@ class EnterInboundNfeManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Succeeds with fully manual data and no top-level access key")
 	void fullyManualDataSucceedsWithNoAccessKeyGivenAtTheTopLevel() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -55,6 +57,7 @@ class EnterInboundNfeManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Produces an inbound NF-e in the same pending-conference shape as an XML import")
 	void producesAnInboundNfeInTheSamePendingConferenceShapeAsXmlImport() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -69,6 +72,7 @@ class EnterInboundNfeManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an access key alone without resolvable manual data")
 	void anAccessKeyAloneWithoutResolvableManualDataIsRejected() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 
@@ -78,6 +82,7 @@ class EnterInboundNfeManuallyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a request with neither an access key nor manual data")
 	void neitherAnAccessKeyNorManualDataIsRejected() {
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
 

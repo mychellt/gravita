@@ -6,6 +6,7 @@ import br.gravita.core.usercases.tax.NfeXmlParser;
 import br.gravita.core.usercases.tax.ParsedSupplierNfe;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,6 +17,7 @@ class NfeXmlParserTest {
 	private final NfeXmlParser parser = new NfeXmlParser();
 
 	@Test
+	@DisplayName("Parses supplier name, items and taxes from an nfeProc XML")
 	void parsesSupplierNameItemsAndTaxesFromANfeProcXml() {
 		ParsedSupplierNfe parsed = parser.parse(nfeProcXml().getBytes(StandardCharsets.UTF_8));
 
@@ -53,6 +55,7 @@ class NfeXmlParserTest {
 	}
 
 	@Test
+	@DisplayName("Falls back to the infNFe Id when the document has no protNFe")
 	void fallsBackToInfNFeIdWhenTheDocumentHasNoProtNFe() {
 		ParsedSupplierNfe parsed = parser.parse(bareNfeXml().getBytes(StandardCharsets.UTF_8));
 
@@ -60,12 +63,14 @@ class NfeXmlParserTest {
 	}
 
 	@Test
+	@DisplayName("Rejects malformed XML as a business rule violation")
 	void rejectsMalformedXmlAsABusinessRuleViolation() {
 		assertThatThrownBy(() -> parser.parse("not xml at all".getBytes(StandardCharsets.UTF_8)))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
+	@DisplayName("Rejects XML missing required sections")
 	void rejectsXmlMissingRequiredSections() {
 		String incomplete = """
 				<?xml version="1.0" encoding="UTF-8"?>
@@ -77,6 +82,7 @@ class NfeXmlParserTest {
 	}
 
 	@Test
+	@DisplayName("Rejects XML with a DOCTYPE declaration to prevent XXE")
 	void rejectsXmlWithADoctypeDeclarationToPreventXxe() {
 		String withDoctype = """
 				<?xml version="1.0"?>

@@ -42,6 +42,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -104,6 +105,7 @@ class RegisterNfceSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Registers a sale with multiple payments and derives the change")
 	void ac1and3and4_registersASaleWithMultiplePaymentsAndDerivesChange() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID productId = seedProduct();
@@ -134,6 +136,7 @@ class RegisterNfceSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an item discount above the linked price table's blocking cap")
 	void ac2_anItemDiscountExceedingTheLinkedPriceTablesBlockCapIsRejected() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID priceTableId = seedPriceTable("5", MaxDiscountBehavior.BLOCK);
@@ -153,6 +156,7 @@ class RegisterNfceSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Still registers the sale when an item discount exceeds only the price table's alert cap")
 	void ac2_anItemDiscountExceedingTheLinkedPriceTablesAlertCapStillRegistersTheSale() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID priceTableId = seedPriceTable("5", MaxDiscountBehavior.ALERT);
@@ -172,6 +176,7 @@ class RegisterNfceSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Rejects payments that do not cover the sale total")
 	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID productId = seedProduct();
@@ -189,6 +194,7 @@ class RegisterNfceSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Accepts a customer CPF typed at the register")
 	void ac6_aTypedCustomerCpfIsAccepted() throws Exception {
 		UUID sessionId = seedOpenSession();
 		UUID productId = seedProduct();

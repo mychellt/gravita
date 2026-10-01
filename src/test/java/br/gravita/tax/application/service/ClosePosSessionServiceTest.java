@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -94,6 +95,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Breaks the reconciliation totals down by payment method")
 	void ac1_reconciliationTotalsAreBrokenDownByPaymentMethod() {
 		UUID sessionId = UUID.randomUUID();
 		PosSessionId posSessionId = PosSessionId.of(sessionId);
@@ -112,6 +114,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Excludes draft sales from the reconciliation")
 	void ac1_draftSalesAreExcludedFromTheReconciliation() {
 		UUID sessionId = UUID.randomUUID();
 		PosSessionId posSessionId = PosSessionId.of(sessionId);
@@ -127,6 +130,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Includes the opening amount, cash movements and sale count in the report")
 	void ac2_theReportIncludesOpeningAmountCashMovementsAndSaleCount() {
 		UUID sessionId = UUID.randomUUID();
 		PosSessionId posSessionId = PosSessionId.of(sessionId);
@@ -147,6 +151,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Prints the report after the session is closed")
 	void ac3_theReportIsPrintedAfterClosing() {
 		UUID sessionId = UUID.randomUUID();
 		PosSessionId posSessionId = PosSessionId.of(sessionId);
@@ -163,6 +168,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Transitions the session to closed")
 	void ac4_theSessionTransitionsToClosed() {
 		UUID sessionId = UUID.randomUUID();
 		PosSessionId posSessionId = PosSessionId.of(sessionId);
@@ -179,6 +185,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects closing a session that is already closed")
 	void ac4_closingAnAlreadyClosedSessionIsRejected() {
 		UUID sessionId = UUID.randomUUID();
 		PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
@@ -194,6 +201,7 @@ class ClosePosSessionServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects closing an unknown session")
 	void closingAnUnknownSessionIsRejected() {
 		UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.empty());

@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,6 +49,7 @@ class SearchProductForSaleEndToEndTest {
 	private CustomerRepositoryPort customerRepositoryPort;
 
 	@Test
+	@DisplayName("Finds products by barcode or internal code")
 	void ac1_matchesByBarcodeOrInternalCode() throws Exception {
 		ProductDomain product = seedProduct("SKU-COLA-2L", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 
@@ -61,6 +63,7 @@ class SearchProductForSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Excludes out-of-stock and inactive products from the results")
 	void ac4_excludesOutOfStockAndInactiveProducts() throws Exception {
 		seedProduct("SEARCH-OOS", List.of("7891234500001"), ProductStatus.OUT_OF_STOCK, "5.00");
 		seedProduct("SEARCH-INACTIVE", List.of("7891234500002"), ProductStatus.INACTIVE, "5.00");
@@ -72,6 +75,7 @@ class SearchProductForSaleEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Uses the customer's linked price table when a customer id is given")
 	void ac3_usesTheCustomersLinkedPriceTableWhenACustomerIdIsGiven() throws Exception {
 		ProductDomain product = seedProduct("SKU-PRICED", List.of("7891234500003"), ProductStatus.ACTIVE, "20.00");
 

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -124,6 +125,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Moves the sale to authorized with the SEFAZ protocol on online authorization")
 	void ac1_onlineAuthorizationMovesTheSaleToAuthorizedWithTheSefazProtocol() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
@@ -141,6 +143,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Queues the sale for contingency instead of blocking when SEFAZ is unavailable")
 	void ac2_sefazUnavailableQueuesTheSaleForContingencyInsteadOfBlocking() {
 		when(submitToSefazPort.submit(any())).thenThrow(new SefazUnavailableException("timeout", null));
 
@@ -157,6 +160,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Always takes the tax totals from the shared CalculateTax use case")
 	void ac3_theTaxTotalsAlwaysComeFromTheSharedCalculateTaxUseCase() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
@@ -171,6 +175,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Allocates document numbering exactly once per sale")
 	void ac4_documentNumberingIsAllocatedExactlyOncePerSale() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
@@ -183,6 +188,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects issuing a sale that does not exist")
 	void aNonExistentSaleIsRejected() {
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.empty());
 
@@ -193,6 +199,7 @@ class IssueNfceServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects issuing a sale that was already issued")
 	void anAlreadyIssuedSaleCannotBeIssuedAgain() {
 		NfceSale alreadyAuthorized = draftSale().authorize("001", 1L, "3".repeat(44), "protocol-1");
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(alreadyAuthorized));
