@@ -4,6 +4,7 @@ import br.gravita.adapters.outbound.persistence.entities.tax.NfeJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.tax.NfePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.NfeJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.domain.tax.NfeDocumentStatus;
@@ -41,6 +42,14 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 		return jpaRepository
 				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						NfeDocumentStatus.AUTHORIZED, from, to)
+				.stream().map(mapper::toDomain).toList();
+	}
+
+	@Override
+	public List<NfeDocument> findAuthorizedByCompanyBetween(CompanyId companyId, Instant from, Instant to) {
+		return jpaRepository
+				.findByIssuerCompanyIdAndStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
+						companyId.value(), NfeDocumentStatus.AUTHORIZED, from, to)
 				.stream().map(mapper::toDomain).toList();
 	}
 }

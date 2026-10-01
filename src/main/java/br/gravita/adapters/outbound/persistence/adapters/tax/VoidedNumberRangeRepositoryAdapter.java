@@ -37,4 +37,13 @@ class VoidedNumberRangeRepositoryAdapter implements VoidedNumberRangeRepositoryP
 		return jpaRepository.findByCompanyIdAndSeriesAndVoidedAtBetween(companyId.value(), series, voidedFrom, voidedTo)
 				.stream().map(mapper::toDomain).toList();
 	}
+
+	@Override
+	public List<VoidedNumberRange> findByCompanyIdAndVoidedAtBetween(CompanyId companyId, Instant voidedFrom,
+			Instant voidedTo) {
+		return jpaRepository
+				.findByCompanyIdAndVoidedAtGreaterThanEqualAndVoidedAtLessThanOrderByVoidedAtAscSeriesAscStartNumberAsc(
+						companyId.value(), voidedFrom, voidedTo)
+				.stream().map(mapper::toDomain).toList();
+	}
 }

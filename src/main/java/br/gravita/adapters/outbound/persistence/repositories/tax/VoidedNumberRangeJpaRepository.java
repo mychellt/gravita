@@ -12,4 +12,7 @@ public interface VoidedNumberRangeJpaRepository extends JpaRepository<VoidedNumb
 
 	List<VoidedNumberRangeJpaEntity> findByCompanyIdAndSeriesAndVoidedAtBetween(UUID companyId, String series,
 			Instant voidedFrom, Instant voidedTo);
+
+	List<VoidedNumberRangeJpaEntity> findByCompanyIdAndVoidedAtGreaterThanEqualAndVoidedAtLessThanOrderByVoidedAtAscSeriesAscStartNumberAsc(
+			UUID companyId, Instant voidedFrom, Instant voidedTo);
 }

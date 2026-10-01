@@ -12,4 +12,7 @@ public interface InboundNfeJpaRepository extends JpaRepository<InboundNfeJpaEnti
 	Optional<InboundNfeJpaEntity> findByAccessKey(String accessKey);
 
 	List<InboundNfeJpaEntity> findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(Instant from, Instant to);
+
+	List<InboundNfeJpaEntity> findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
+			UUID companyId, Instant from, Instant to);
 }

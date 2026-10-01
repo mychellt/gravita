@@ -1,5 +1,6 @@
 package br.gravita.core.ports.outbound.persistence.tax;
 
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.NfeDocument;
 import br.gravita.core.domain.tax.NfeDocumentId;
 import java.time.Instant;
@@ -14,4 +15,7 @@ public interface NfeRepositoryPort {
 
 	/** The NFe authorized over {@code [from, to)}, oldest authorization first. */
 	List<NfeDocument> findAuthorizedBetween(Instant from, Instant to);
+
+	/** The NFe {@code companyId} issued and that were authorized over {@code [from, to)}, oldest authorization first. */
+	List<NfeDocument> findAuthorizedByCompanyBetween(CompanyId companyId, Instant from, Instant to);
 }
