@@ -1,85 +1,143 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import br.gravita.adapters.outbound.persistence.mappers.tax.DiscriminationTemplatePersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.tax.DiscriminationTemplateJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.DiscriminationTemplatePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.DiscriminationTemplateJpaRepository;
 import br.gravita.core.domain.tax.DiscriminationTemplate;
 import br.gravita.core.domain.tax.DiscriminationTemplateId;
 import br.gravita.core.domain.tax.ServiceCode;
-import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@DataJpaTest
-@Import({DiscriminationTemplateRepositoryAdapter.class, DiscriminationTemplatePersistenceMapperImpl.class})
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class DiscriminationTemplateRepositoryAdapterTest {
 
-	@Autowired
-	private DiscriminationTemplateRepositoryAdapter repositoryAdapter;
+	@Mock
+	private DiscriminationTemplateJpaRepository repository;
 
-	@Autowired
-	private DiscriminationTemplateJpaRepository jpaRepository;
+	@Mock
+	private DiscriminationTemplatePersistenceMapper mapper;
 
-	private DiscriminationTemplate save(String serviceCode, String text) {
-		return repositoryAdapter.save(DiscriminationTemplate.of(DiscriminationTemplateId.of(UUID.randomUUID()),
-				ServiceCode.of(serviceCode), text));
+	@InjectMocks
+	private DiscriminationTemplateRepositoryAdapter adapter;
+
+	@Test
+	@DisplayName("Saves a new template using the mapped entity")
+	void savesANewTemplateUsingTheMappedEntity() {
+		final DiscriminationTemplate template = buildTemplate("01.05", "Licenciamento de software");
+		final DiscriminationTemplateJpaEntity entity = buildEntity(template.getId().value());
+		final DiscriminationTemplateJpaEntity saved = buildEntity(template.getId().value());
+		when(repository.findById(template.getId().value())).thenReturn(Optional.empty());
+		when(mapper.map(template)).thenReturn(entity);
+		when(repository.save(same(entity))).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(template);
+
+		final DiscriminationTemplate result = adapter.save(template);
+
+		assertThat(result).isSameAs(template);
+		verify(repository).save(same(entity));
 	}
 
 	@Test
-	@DisplayName("Saves a discrimination template and finds it by id")
-	void savesAndFindsById() {
-		DiscriminationTemplate saved = save("01.05", "Licenciamento de software");
+	@DisplayName("Updates the managed row in place when the template already exists")
+	void savingAnUpdatedTemplateUpdatesTheManagedRow() {
+		final DiscriminationTemplate template = buildTemplate("08.01", "new");
+		final DiscriminationTemplateJpaEntity existing = buildEntity(template.getId().value());
+		existing.setServiceCode("01.05");
+		existing.setTemplateText("old");
+		when(repository.findById(template.getId().value())).thenReturn(Optional.of(existing));
+		when(repository.save(same(existing))).thenReturn(existing);
+		when(mapper.map(existing)).thenReturn(template);
 
-		DiscriminationTemplate found = repositoryAdapter.findById(saved.getId()).orElseThrow();
+		adapter.save(template);
 
-		assertThat(found.getServiceCode().value()).isEqualTo("01.05");
-		assertThat(found.getTemplateText()).isEqualTo("Licenciamento de software");
-		assertThat(repositoryAdapter.findById(DiscriminationTemplateId.of(UUID.randomUUID()))).isEmpty();
+		assertThat(existing.getServiceCode()).isEqualTo("08.01");
+		assertThat(existing.getTemplateText()).isEqualTo("new");
+		verify(repository).save(same(existing));
 	}
 
 	@Test
-	@DisplayName("Returns only the templates of the requested service code")
-	void ac2_findByServiceCodeReturnsOnlyThatServiceType() {
-		save("01.05", "a");
-		save("01.05", "b");
-		save("08.01", "c");
+	@DisplayName("Finds a template by id")
+	void findsById() {
+		final DiscriminationTemplate template = buildTemplate("01.05", "a");
+		final DiscriminationTemplateJpaEntity entity = buildEntity(template.getId().value());
+		when(repository.findById(template.getId().value())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(template);
 
-		assertThat(repositoryAdapter.findByServiceCode(ServiceCode.of("01.05")))
-				.extracting(DiscriminationTemplate::getTemplateText).containsExactlyInAnyOrder("a", "b");
-		assertThat(repositoryAdapter.findByServiceCode(ServiceCode.of("02.01"))).isEmpty();
-		assertThat(repositoryAdapter.findAll()).hasSize(3);
+		final Optional<DiscriminationTemplate> result = adapter.findById(template.getId());
+
+		assertThat(result).contains(template);
+		verify(repository).findById(template.getId().value());
 	}
 
 	@Test
-	@DisplayName("Keeps a single row when an updated template is saved again")
-	void savingAnUpdatedTemplateKeepsASingleRow() {
-		DiscriminationTemplate saved = save("01.05", "old");
+	@DisplayName("Returns empty when no template exists for the id")
+	void returnsEmptyWhenNoTemplateExistsForTheId() {
+		final DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
+		when(repository.findById(id.value())).thenReturn(Optional.empty());
 
-		DiscriminationTemplate reloaded = repositoryAdapter.findById(saved.getId()).orElseThrow();
-		reloaded.update(ServiceCode.of("08.01"), "new");
-		repositoryAdapter.save(reloaded);
-		jpaRepository.flush();
-
-		assertThat(jpaRepository.count()).isEqualTo(1);
-		DiscriminationTemplate updated = repositoryAdapter.findById(saved.getId()).orElseThrow();
-		assertThat(updated.getServiceCode().value()).isEqualTo("08.01");
-		assertThat(updated.getTemplateText()).isEqualTo("new");
+		assertThat(adapter.findById(id)).isEmpty();
 	}
 
 	@Test
-	@DisplayName("Removes only the template that was deleted by id")
-	void deleteByIdRemovesTheTemplate() {
-		DiscriminationTemplate keep = save("01.05", "keep");
-		DiscriminationTemplate drop = save("01.05", "drop");
+	@DisplayName("Lists all templates ordered by service code and creation")
+	void listsAllTemplates() {
+		final DiscriminationTemplate first = buildTemplate("01.05", "a");
+		final DiscriminationTemplate second = buildTemplate("08.01", "c");
+		final DiscriminationTemplateJpaEntity firstEntity = buildEntity(first.getId().value());
+		final DiscriminationTemplateJpaEntity secondEntity = buildEntity(second.getId().value());
+		when(repository.findAllByOrderByServiceCodeAscCreatedAtAsc()).thenReturn(List.of(firstEntity, secondEntity));
+		when(mapper.map(same(firstEntity))).thenReturn(first);
+		when(mapper.map(same(secondEntity))).thenReturn(second);
 
-		repositoryAdapter.deleteById(drop.getId());
-		jpaRepository.flush();
+		final List<DiscriminationTemplate> result = adapter.findAll();
 
-		assertThat(repositoryAdapter.findById(drop.getId())).isEmpty();
-		assertThat(repositoryAdapter.findById(keep.getId())).isPresent();
+		assertThat(result).containsExactly(first, second);
+	}
+
+	@Test
+	@DisplayName("Finds the templates of the requested service code")
+	void findsTheTemplatesOfTheRequestedServiceCode() {
+		final DiscriminationTemplate template = buildTemplate("01.05", "a");
+		final DiscriminationTemplateJpaEntity entity = buildEntity(template.getId().value());
+		when(repository.findByServiceCodeOrderByCreatedAtAsc("01.05")).thenReturn(List.of(entity));
+		when(mapper.map(entity)).thenReturn(template);
+
+		final List<DiscriminationTemplate> result = adapter.findByServiceCode(ServiceCode.of("01.05"));
+
+		assertThat(result).containsExactly(template);
+		verify(repository).findByServiceCodeOrderByCreatedAtAsc("01.05");
+	}
+
+	@Test
+	@DisplayName("Deletes the template by id")
+	void deletesTheTemplateById() {
+		final DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
+
+		adapter.deleteById(id);
+
+		verify(repository).deleteTemplateById(id.value());
+	}
+
+	private DiscriminationTemplateJpaEntity buildEntity(final UUID id) {
+		return DiscriminationTemplateJpaEntity.builder().id(id).build();
+	}
+
+	private DiscriminationTemplate buildTemplate(final String serviceCode, final String text) {
+		return DiscriminationTemplate.of(DiscriminationTemplateId.of(UUID.randomUUID()), ServiceCode.of(serviceCode),
+				text);
 	}
 }

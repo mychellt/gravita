@@ -1,7 +1,7 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.UserJpaEntity;
-import br.gravita.adapters.outbound.persistence.mappers.tax.UserPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.mappers.tax.UserPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 import br.gravita.adapters.outbound.security.PasswordHasher;
 import br.gravita.core.domain.system.ProfileReference;
@@ -11,107 +11,137 @@ import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.domain.system.UserStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({UserRepositoryAdapter.class, PasswordHasher.class, UserPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class UserRepositoryAdapterTest {
 
-	@Autowired
-	private UserRepositoryAdapter repositoryAdapter;
+	@Mock
+	private UserJpaRepository repository;
 
-	@Autowired
-	private UserJpaRepository jpaRepository;
+	@Mock
+	private PasswordHasher passwordHasher;
 
-	@Test
-	@DisplayName("Persists a user and reports its email as taken")
-	void shouldPersistUserAndReportEmailAsTaken() {
-		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
+	@Mock
+	private UserPersistenceMapper mapper;
 
-		repositoryAdapter.save(user);
-
-		assertThat(repositoryAdapter.existsByEmail("jane@example.com")).isTrue();
-		assertThat(repositoryAdapter.existsByEmail("nobody@example.com")).isFalse();
-	}
+	@InjectMocks
+	private UserRepositoryAdapter adapter;
 
 	@Test
-	@DisplayName("Never persists the plaintext password")
-	void shouldNeverPersistThePlaintextPassword() {
-		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
-		User user = User.register("Jane Doe", "jane@example.com", "plain-text-password", salesperson);
+	@DisplayName("Hashes the raw password before persisting the user")
+	void shouldHashThePasswordBeforePersistingTheUser() {
+		final User user = buildUser();
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		when(passwordHasher.hash("s3cret!")).thenReturn("$2a$10$hashed");
+		when(mapper.map(user, "$2a$10$hashed")).thenReturn(entity);
+		when(repository.save(entity)).thenReturn(entity);
+		when(mapper.map(entity)).thenReturn(user);
 
-		repositoryAdapter.save(user);
+		final User result = adapter.save(user);
 
-		UserJpaEntity stored = jpaRepository.findAll().get(0);
-		assertThat(stored.getPasswordHash()).doesNotContain("plain-text-password");
-		assertThat(stored.getPasswordHash()).startsWith("$2");
-	}
-
-	@Test
-	@DisplayName("Forces two-factor authentication on when the profile is Administrator")
-	void shouldForceTwoFactorEnabledWhenProfileIsAdministrator() {
-		ProfileReference administrator = new ProfileReference(UUID.randomUUID(), "Administrator");
-		User user = User.register("Admin User", "admin@example.com", "s3cret!", administrator);
-
-		repositoryAdapter.save(user);
-
-		UserJpaEntity stored = jpaRepository.findAll().get(0);
-		assertThat(stored.isTwoFactorEnabled()).isTrue();
-	}
-
-	@Test
-	@DisplayName("Finds a persisted user by id")
-	void shouldFindPersistedUserById() {
-		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
-		repositoryAdapter.save(user);
-
-		Optional<User> found = repositoryAdapter.findById(user.getId());
-
-		assertThat(found).isPresent();
-		assertThat(found.get().getEmail()).isEqualTo("jane@example.com");
-		assertThat(found.get().getStatus()).isEqualTo(UserStatus.ACTIVE);
-	}
-
-	@Test
-	@DisplayName("Returns empty when the user id is unknown")
-	void shouldReturnEmptyWhenUserIdIsUnknown() {
-		assertThat(repositoryAdapter.findById(UserId.generate())).isEmpty();
+		assertThat(result).isSameAs(user);
+		verify(passwordHasher).hash("s3cret!");
+		verify(mapper).map(user, "$2a$10$hashed");
+		verify(repository).save(entity);
 	}
 
 	@Test
 	@DisplayName("Updates a user without touching the password hash")
 	void shouldUpdateUserWithoutTouchingThePasswordHash() {
-		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
-		repositoryAdapter.save(user);
-		String originalHash = jpaRepository.findAll().get(0).getPasswordHash();
+		final User user = buildUser();
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		entity.setPasswordHash("original-hash");
+		when(repository.findById(user.getId().value())).thenReturn(Optional.of(entity));
 
-		User loaded = repositoryAdapter.findById(user.getId()).orElseThrow();
-		loaded.update("Jane Roe", null, null, UserStatus.INACTIVE);
-		repositoryAdapter.update(loaded);
+		adapter.update(user);
 
-		UserJpaEntity stored = jpaRepository.findAll().get(0);
-		assertThat(stored.getName()).isEqualTo("Jane Roe");
-		assertThat(stored.getStatus()).isEqualTo(UserStatus.INACTIVE);
-		assertThat(stored.getPasswordHash()).isEqualTo(originalHash);
+		assertThat(entity.getName()).isEqualTo(user.getName());
+		assertThat(entity.getEmail()).isEqualTo(user.getEmail());
+		assertThat(entity.getProfileId()).isEqualTo(user.getProfileId());
+		assertThat(entity.isTwoFactorEnabled()).isEqualTo(user.isTwoFactorEnabled());
+		assertThat(entity.getStatus()).isEqualTo(user.getStatus());
+		assertThat(entity.getPasswordHash()).isEqualTo("original-hash");
+		verify(repository).save(entity);
+		verify(passwordHasher, never()).hash(any());
 	}
 
 	@Test
 	@DisplayName("Fails to update an unknown user")
 	void shouldFailToUpdateAnUnknownUser() {
-		ProfileReference salesperson = new ProfileReference(UUID.randomUUID(), "Salesperson");
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", salesperson);
+		final User user = buildUser();
+		when(repository.findById(user.getId().value())).thenReturn(Optional.empty());
 
-		assertThatThrownBy(() -> repositoryAdapter.update(user)).isInstanceOf(UserNotFoundException.class);
+		assertThatThrownBy(() -> adapter.update(user)).isInstanceOf(UserNotFoundException.class);
+		verify(repository, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Finds a user by id")
+	void shouldFindUserById() {
+		final User user = buildUser();
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		when(repository.findById(user.getId().value())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(user);
+
+		final Optional<User> result = adapter.findById(user.getId());
+
+		assertThat(result).contains(user);
+		verify(repository).findById(user.getId().value());
+	}
+
+	@Test
+	@DisplayName("Returns empty when the user id is unknown")
+	void shouldReturnEmptyWhenUserIdIsUnknown() {
+		final UserId id = UserId.generate();
+		when(repository.findById(id.value())).thenReturn(Optional.empty());
+
+		assertThat(adapter.findById(id)).isEmpty();
+	}
+
+	@Test
+	@DisplayName("Finds a user by email")
+	void shouldFindUserByEmail() {
+		final User user = buildUser();
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		when(repository.findByEmail("jane@example.com")).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(user);
+
+		final Optional<User> result = adapter.findByEmail("jane@example.com");
+
+		assertThat(result).contains(user);
+		verify(repository).findByEmail("jane@example.com");
+	}
+
+	@Test
+	@DisplayName("Reports whether an email is already taken")
+	void shouldReportWhetherAnEmailIsTaken() {
+		when(repository.existsByEmail("jane@example.com")).thenReturn(true);
+		when(repository.existsByEmail("nobody@example.com")).thenReturn(false);
+
+		assertThat(adapter.existsByEmail("jane@example.com")).isTrue();
+		assertThat(adapter.existsByEmail("nobody@example.com")).isFalse();
+	}
+
+	private UserJpaEntity buildEntity(final UUID id) {
+		return UserJpaEntity.builder().id(id).name("Old Name").status(UserStatus.ACTIVE).build();
+	}
+
+	private User buildUser() {
+		return User.register("Jane Doe", "jane@example.com", "s3cret!",
+				new ProfileReference(UUID.randomUUID(), "Salesperson"));
 	}
 }

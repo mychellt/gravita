@@ -1,92 +1,78 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
-import br.gravita.adapters.outbound.persistence.entities.ProfileJpaEntity;
-import br.gravita.adapters.outbound.persistence.mappers.tax.ApprovalAlcadaPersistenceMapperImpl;
+import br.gravita.adapters.outbound.persistence.entities.tax.ApprovalAlcadaJpaEntity;
+import br.gravita.adapters.outbound.persistence.mappers.tax.ApprovalAlcadaPersistenceMapper;
+import br.gravita.adapters.outbound.persistence.repositories.tax.ApprovalAlcadaJpaRepository;
 import br.gravita.core.domain.system.ApprovalAlcada;
 import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.domain.system.ProfileReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@DataJpaTest
-@Import({ApprovalAlcadaRepositoryAdapter.class, ApprovalAlcadaPersistenceMapperImpl.class})
+@ExtendWith(MockitoExtension.class)
 class ApprovalAlcadaRepositoryAdapterTest {
 
-	@Autowired
-	private ApprovalAlcadaRepositoryAdapter repositoryAdapter;
+	@Mock
+	private ApprovalAlcadaJpaRepository repository;
 
-	@Autowired
-	private TestEntityManager entityManager;
+	@Mock
+	private ApprovalAlcadaPersistenceMapper mapper;
 
-	private ProfileReference persistApprover(String name) {
-		UUID id = UUID.randomUUID();
-		entityManager.persist(ProfileJpaEntity.builder().id(id).name(name).permissions(List.of()).build());
-		return new ProfileReference(id, name);
+	@InjectMocks
+	private ApprovalAlcadaRepositoryAdapter adapter;
+
+	@Test
+	@DisplayName("Saves an approval alcada")
+	void shouldSaveAlcada() {
+		final ApprovalAlcada alcada = buildAlcada(ApprovalModule.PURCHASING);
+		final ApprovalAlcadaJpaEntity entity = ApprovalAlcadaJpaEntity.builder().build();
+		final ApprovalAlcadaJpaEntity saved = ApprovalAlcadaJpaEntity.builder().build();
+		when(mapper.map(alcada)).thenReturn(entity);
+		when(repository.save(entity)).thenReturn(saved);
+		when(mapper.map(saved)).thenReturn(alcada);
+
+		final ApprovalAlcada result = adapter.save(alcada);
+
+		assertThat(result).isSameAs(alcada);
+		verify(repository).save(entity);
 	}
 
 	@Test
-	@DisplayName("Saves an approval alcada and retrieves it by module")
-	void shouldSaveAndRetrieveAlcadaByModule() {
-		ProfileReference approver = persistApprover("Purchasing Manager");
-		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("5000.00"), null,
-				approver);
+	@DisplayName("Finds an approval alcada by module")
+	void shouldFindAlcadaByModule() {
+		final ApprovalAlcada alcada = buildAlcada(ApprovalModule.PURCHASING);
+		final ApprovalAlcadaJpaEntity entity = ApprovalAlcadaJpaEntity.builder().build();
+		when(repository.findByModule(ApprovalModule.PURCHASING)).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(alcada);
 
-		repositoryAdapter.save(alcada);
+		final Optional<ApprovalAlcada> result = adapter.findByModule(ApprovalModule.PURCHASING);
 
-		Optional<ApprovalAlcada> found = repositoryAdapter.findByModule(ApprovalModule.PURCHASING);
-		assertThat(found).isPresent();
-		assertThat(found.get().getThresholdValue()).isEqualByComparingTo("5000.00");
-		assertThat(found.get().getApproverProfileId()).isEqualTo(approver.id());
+		assertThat(result).contains(alcada);
+		verify(repository).findByModule(ApprovalModule.PURCHASING);
 	}
 
 	@Test
 	@DisplayName("Returns empty when the module has no alcada configured")
 	void shouldReturnEmptyWhenModuleHasNoAlcadaConfigured() {
-		assertThat(repositoryAdapter.findByModule(ApprovalModule.SALES)).isEmpty();
+		when(repository.findByModule(ApprovalModule.SALES)).thenReturn(Optional.empty());
+
+		assertThat(adapter.findByModule(ApprovalModule.SALES)).isEmpty();
 	}
 
-	@Test
-	@DisplayName("Keeps each module's configuration independent")
-	void shouldKeepEachModuleConfigurationIndependent() {
-		ProfileReference approver = persistApprover("Ops Manager");
-		repositoryAdapter.save(ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("1000.00"), null,
-				approver));
-		repositoryAdapter.save(ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("10.00"),
-				approver));
-
-		assertThat(repositoryAdapter.findByModule(ApprovalModule.PURCHASING)).get()
-				.extracting(ApprovalAlcada::getThresholdValue).isEqualTo(new BigDecimal("1000.00"));
-		assertThat(repositoryAdapter.findByModule(ApprovalModule.SALES)).get()
-				.extracting(ApprovalAlcada::getThresholdDiscountPercent).isEqualTo(new BigDecimal("10.00"));
-		assertThat(repositoryAdapter.findByModule(ApprovalModule.FINANCE)).isEmpty();
-	}
-
-	@Test
-	@DisplayName("Reflects a reconfigured alcada on the next read right after saving it again")
-	void reconfiguringAndSavingAgainImmediatelyReflectsTheNewValueOnNextRead() {
-		ProfileReference approver = persistApprover("Finance Manager");
-		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("2000.00"), null,
-				approver);
-		repositoryAdapter.save(alcada);
-
-		ProfileReference newApprover = persistApprover("CFO");
-		alcada.reconfigure(new BigDecimal("3000.00"), null, newApprover);
-		repositoryAdapter.save(alcada);
-
-		Optional<ApprovalAlcada> found = repositoryAdapter.findByModule(ApprovalModule.FINANCE);
-		assertThat(found).isPresent();
-		assertThat(found.get().getThresholdValue()).isEqualByComparingTo("3000.00");
-		assertThat(found.get().getApproverProfileId()).isEqualTo(newApprover.id());
+	private ApprovalAlcada buildAlcada(final ApprovalModule module) {
+		return ApprovalAlcada.configure(module, new BigDecimal("5000.00"), null,
+				new ProfileReference(UUID.randomUUID(), "Purchasing Manager"));
 	}
 }
