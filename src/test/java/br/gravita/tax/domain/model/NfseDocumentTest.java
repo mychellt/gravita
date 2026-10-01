@@ -105,4 +105,44 @@ class NfseDocumentTest {
 		assertThatThrownBy(() -> NfseTomador.of(null, "11111111111", PersonType.INDIVIDUAL, "X", null, null))
 				.isInstanceOf(RuntimeException.class);
 	}
+
+	@Test
+	void convertsAnRpsIntoADraftWithItsNfseSeriesAndNumberKeepingTheRpsIdentity() {
+		NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
+				"Consultoria");
+		Instant at = Instant.parse("2026-10-01T12:00:00Z");
+
+		NfseDocument draft = rps.convertToNfse("1", 15L, at);
+
+		assertThat(rps.getStatus()).isEqualTo(NfseStatus.RPS);
+		assertThat(rps.getNfseNumber()).isNull();
+		assertThat(draft.getStatus()).isEqualTo(NfseStatus.DRAFT);
+		assertThat(draft.getId()).isEqualTo(rps.getId());
+		assertThat(draft.getNfseSeries()).isEqualTo("1");
+		assertThat(draft.getNfseNumber()).isEqualTo(15L);
+		assertThat(draft.getDraftAt()).isEqualTo(at);
+		assertThat(draft.getRpsSeries()).isEqualTo("001");
+		assertThat(draft.getRpsNumber()).isEqualTo(7L);
+		assertThat(draft.getWithholdings()).isEqualTo(rps.getWithholdings());
+	}
+
+	@Test
+	void aDocumentThatIsNotAnRpsCannotBeConvertedAgain() {
+		NfseDocument draft = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria")
+				.convertToNfse("1", 1L, Instant.now());
+
+		assertThat(draft.isRps()).isFalse();
+		assertThatThrownBy(() -> draft.convertToNfse("1", 2L, Instant.now()))
+				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	void aConvertedDocumentRequiresItsNumberSeriesAndTimestamp() {
+		NfseDocument rps = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria");
+
+		assertThatThrownBy(() -> rps.convertToNfse(" ", 1L, Instant.now())).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> rps.convertToNfse("1", null, Instant.now()))
+				.isInstanceOf(NullPointerException.class);
+		assertThatThrownBy(() -> rps.convertToNfse("1", 1L, null)).isInstanceOf(NullPointerException.class);
+	}
 }

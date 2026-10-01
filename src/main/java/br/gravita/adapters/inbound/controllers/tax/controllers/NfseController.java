@@ -1,7 +1,10 @@
 package br.gravita.adapters.inbound.controllers.tax.controllers;
 
+import br.gravita.adapters.inbound.controllers.tax.dtos.ConvertRpsToNfseRequest;
+import br.gravita.adapters.inbound.controllers.tax.dtos.ConvertRpsToNfseResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsResponse;
+import br.gravita.core.ports.inbound.tax.ConvertRpsToNfseUseCase;
 import br.gravita.core.ports.inbound.tax.IssueRpsUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class NfseController {
 
 	private final IssueRpsUseCase issueRpsUseCase;
+	private final ConvertRpsToNfseUseCase convertRpsToNfseUseCase;
 
 	@PostMapping("/rps")
 	public ResponseEntity<IssueRpsResponse> issueRps(@Valid @RequestBody IssueRpsRequest request) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(IssueRpsResponse.from(issueRpsUseCase.execute(request.toCommand())));
+	}
+
+	@PostMapping("/rps/convert")
+	public ResponseEntity<ConvertRpsToNfseResponse> convertRps(@Valid @RequestBody ConvertRpsToNfseRequest request) {
+		return ResponseEntity.ok(ConvertRpsToNfseResponse.from(convertRpsToNfseUseCase.execute(request.toCommand())));
 	}
 }

@@ -10,9 +10,10 @@ import java.util.regex.Pattern;
 import lombok.Getter;
 
 /**
- * NFSe aggregate root. UC-M4-02 only creates it in its pre-conversion {@link NfseStatus#RPS} state, carrying the RPS
- * identity ({@code rpsSeries}/{@code rpsNumber}) and the resolved ISS/withholding data; the later lifecycle
- * (conversion, transmission, cancellation) is added by UC-M4-03..05.
+ * NFSe aggregate root. UC-M4-02 creates it in its pre-conversion {@link NfseStatus#RPS} state, carrying the RPS
+ * identity ({@code rpsSeries}/{@code rpsNumber}) and the resolved ISS/withholding data; UC-M4-03 converts it into a
+ * {@link NfseStatus#DRAFT} NFSe by assigning the NFSe {@code nfseSeries}/{@code nfseNumber} (scoped per company and
+ * municipality, independent of the RPS and NFe series). Transmission and cancellation are added by UC-M4-04/05.
  */
 @Getter
 public final class NfseDocument {
@@ -37,13 +38,18 @@ public final class NfseDocument {
 	private final String rpsSeries;
 	private final Long rpsNumber;
 	private final Instant createdAt;
+	/** NFSe series/number, assigned at conversion; {@code null} while the document is still an RPS. */
+	private final String nfseSeries;
+	private final Long nfseNumber;
+	/** When the document became a {@link NfseStatus#DRAFT}; {@code null} while it is still an RPS. */
+	private final Instant draftAt;
 
 	private NfseDocument(NfseId id, NfseStatus status, CompanyId providerCompanyId,
 			String providerMunicipalityIbgeCode, NfseTomador tomador, String serviceCode,
 			PlaceOfProvision placeOfProvision, String issMunicipalityIbgeCode, BigDecimal serviceAmount,
 			BigDecimal issRate, BigDecimal issAmount, String issRateOverrideJustification,
 			List<NfseWithholding> withholdings, String discrimination, String rpsSeries, Long rpsNumber,
-			Instant createdAt) {
+			Instant createdAt, String nfseSeries, Long nfseNumber, Instant draftAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.providerCompanyId = Objects.requireNonNull(providerCompanyId, "providerCompanyId is required");
@@ -61,6 +67,14 @@ public final class NfseDocument {
 		this.rpsSeries = requireText(rpsSeries, "rpsSeries");
 		this.rpsNumber = Objects.requireNonNull(rpsNumber, "rpsNumber is required");
 		this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
+		if (status != NfseStatus.RPS) {
+			requireText(nfseSeries, "nfseSeries");
+			Objects.requireNonNull(nfseNumber, "nfseNumber is required");
+			Objects.requireNonNull(draftAt, "draftAt is required");
+		}
+		this.nfseSeries = nfseSeries;
+		this.nfseNumber = nfseNumber;
+		this.draftAt = draftAt;
 	}
 
 	/**
@@ -75,7 +89,26 @@ public final class NfseDocument {
 		requireFullAddressIfWithheld(tomador, withholdings);
 		return new NfseDocument(id, NfseStatus.RPS, providerCompanyId, providerMunicipalityIbgeCode, tomador,
 				serviceCode.value(), placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
-				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt);
+				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt, null, null,
+				null);
+	}
+
+	/**
+	 * Converts an RPS into an NFSe: assigns its series/number and moves it to {@link NfseStatus#DRAFT}, still awaiting
+	 * transmission. Only an RPS can be converted; callers treat an already converted document as done.
+	 */
+	public NfseDocument convertToNfse(String nfseSeries, Long nfseNumber, Instant draftAt) {
+		if (!isRps()) {
+			throw new BusinessRuleException("Only an RPS can be converted to an NFSe, but the document is " + status);
+		}
+		return new NfseDocument(id, NfseStatus.DRAFT, providerCompanyId, providerMunicipalityIbgeCode, tomador,
+				serviceCode, placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
+				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt,
+				nfseSeries, nfseNumber, draftAt);
+	}
+
+	public boolean isRps() {
+		return status == NfseStatus.RPS;
 	}
 
 	/**
@@ -95,10 +128,11 @@ public final class NfseDocument {
 			PlaceOfProvision placeOfProvision, String issMunicipalityIbgeCode, BigDecimal serviceAmount,
 			BigDecimal issRate, BigDecimal issAmount, String issRateOverrideJustification,
 			List<NfseWithholding> withholdings, String discrimination, String rpsSeries, Long rpsNumber,
-			Instant createdAt) {
+			Instant createdAt, String nfseSeries, Long nfseNumber, Instant draftAt) {
 		return new NfseDocument(id, status, providerCompanyId, providerMunicipalityIbgeCode, tomador, serviceCode,
 				placeOfProvision, issMunicipalityIbgeCode, serviceAmount, issRate, issAmount,
-				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt);
+				issRateOverrideJustification, withholdings, discrimination, rpsSeries, rpsNumber, createdAt,
+				nfseSeries, nfseNumber, draftAt);
 	}
 
 	public RpsId getRpsId() {
