@@ -2,6 +2,7 @@ package br.gravita.adapters.inbound.controllers;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
+import br.gravita.core.domain.exceptions.ForbiddenException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.exceptions.UnauthorizedException;
 import br.gravita.core.domain.tax.NfseMunicipalityUnavailableException;
@@ -23,6 +24,11 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(UnauthorizedException.class)
 	public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+	}
+
+	@ExceptionHandler(ForbiddenException.class)
+	public ResponseEntity<String> handleForbidden(ForbiddenException ex) {
+		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)

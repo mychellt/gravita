@@ -55,4 +55,18 @@ class SalespersonTargetRepositoryAdapterTest {
 	void findBySalespersonAndMonthReturnsEmptyWhenNoTargetExists() {
 		assertThat(repositoryAdapter.findBySalespersonAndMonth(UUID.randomUUID(), YearMonth.of(2026, 1))).isEmpty();
 	}
+
+	@Test
+	void findByMonthReturnsEveryTargetOfThatMonthOnly() {
+		UUID ana = UUID.randomUUID();
+		UUID bruno = UUID.randomUUID();
+		YearMonth march = YearMonth.of(2026, 3);
+		repositoryAdapter.save(new SalespersonTarget(ana, march, new BigDecimal("1000.00"), 1));
+		repositoryAdapter.save(new SalespersonTarget(bruno, march, new BigDecimal("2000.00"), 2));
+		repositoryAdapter.save(new SalespersonTarget(ana, YearMonth.of(2026, 4), new BigDecimal("3000.00"), 3));
+
+		assertThat(repositoryAdapter.findByMonth(march)).extracting(SalespersonTarget::salespersonId)
+				.containsExactlyInAnyOrder(ana, bruno);
+		assertThat(repositoryAdapter.findByMonth(YearMonth.of(2026, 5))).isEmpty();
+	}
 }

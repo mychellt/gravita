@@ -7,6 +7,7 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.sales.SalespersonTarget;
 import br.gravita.core.ports.outbound.persistence.sales.SalespersonTargetRepositoryPort;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,5 +39,10 @@ class SalespersonTargetRepositoryAdapter implements SalespersonTargetRepositoryP
 	@Override
 	public Optional<SalespersonTarget> findBySalespersonAndMonth(UUID salespersonId, YearMonth month) {
 		return jpaRepository.findBySalespersonIdAndMonth(salespersonId, month.toString()).map(mapper::toDomain);
+	}
+
+	@Override
+	public List<SalespersonTarget> findByMonth(YearMonth month) {
+		return jpaRepository.findByMonth(month.toString()).stream().map(mapper::toDomain).toList();
 	}
 }
