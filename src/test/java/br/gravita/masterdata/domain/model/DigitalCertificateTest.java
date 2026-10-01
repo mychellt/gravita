@@ -4,6 +4,7 @@ import br.gravita.core.domain.masterdata.CertificateType;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.DigitalCertificate;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ class DigitalCertificateTest {
 	private static final byte[] PFX_PAYLOAD = {1, 2, 3, 4};
 
 	@Test
+	@DisplayName("Uploads an A1 certificate")
 	void shouldUploadA1Certificate() {
 		Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
 
@@ -34,6 +36,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an A3 certificate")
 	void shouldRejectA3Certificate() {
 		assertThatThrownBy(() -> DigitalCertificate.upload(COMPANY_ID, CertificateType.A3, PFX_PAYLOAD, "secret",
 				Instant.now().plus(1, ChronoUnit.DAYS)))
@@ -42,6 +45,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty payload")
 	void shouldRejectEmptyPayload() {
 		assertThatThrownBy(() -> DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, new byte[0], "secret",
 				Instant.now().plus(1, ChronoUnit.DAYS)))
@@ -50,6 +54,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank password")
 	void shouldRejectBlankPassword() {
 		assertThatThrownBy(() -> DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD, " ",
 				Instant.now().plus(1, ChronoUnit.DAYS)))
@@ -58,6 +63,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null expiry date")
 	void shouldRejectNullExpiryDate() {
 		assertThatThrownBy(() -> DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD, "secret", null))
 				.isInstanceOf(BusinessRuleException.class)
@@ -65,6 +71,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Reports an expired certificate as expired")
 	void shouldReportExpiredCertificate() {
 		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
 				"secret", Instant.now().minus(1, ChronoUnit.DAYS));
@@ -73,6 +80,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Reports an active certificate as not expired")
 	void shouldReportActiveCertificateAsNotExpired() {
 		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
 				"secret", Instant.now().plus(1, ChronoUnit.DAYS));
@@ -81,6 +89,7 @@ class DigitalCertificateTest {
 	}
 
 	@Test
+	@DisplayName("Defensively copies the PFX payload")
 	void shouldDefensivelyCopyPfxPayload() {
 		byte[] payload = {5, 6, 7};
 		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, payload, "secret",

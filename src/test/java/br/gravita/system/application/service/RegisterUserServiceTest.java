@@ -9,6 +9,7 @@ import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.system.UnknownProfileException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +36,7 @@ class RegisterUserServiceTest {
 	private ProfileRepositoryPort profileRepositoryPort;
 
 	@Test
+	@DisplayName("Registers a user when the email is free and the profile exists")
 	void shouldRegisterUserWhenEmailIsFreeAndProfileExists() {
 		RegisterUserService service = new RegisterUserService(userRepositoryPort, profileRepositoryPort);
 		UUID profileId = UUID.randomUUID();
@@ -53,6 +55,7 @@ class RegisterUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Forces two-factor on when the profile is administrator")
 	void shouldForceTwoFactorEnabledWhenProfileIsAdministrator() {
 		RegisterUserService service = new RegisterUserService(userRepositoryPort, profileRepositoryPort);
 		UUID profileId = UUID.randomUUID();
@@ -69,6 +72,7 @@ class RegisterUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a duplicate email before touching the profile")
 	void shouldRejectDuplicateEmailBeforeTouchingTheProfile() {
 		RegisterUserService service = new RegisterUserService(userRepositoryPort, profileRepositoryPort);
 		when(userRepositoryPort.existsByEmail("jane@example.com")).thenReturn(true);
@@ -83,6 +87,7 @@ class RegisterUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown profile")
 	void shouldRejectUnknownProfile() {
 		RegisterUserService service = new RegisterUserService(userRepositoryPort, profileRepositoryPort);
 		UUID profileId = UUID.randomUUID();

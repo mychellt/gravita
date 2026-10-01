@@ -14,6 +14,7 @@ import br.gravita.core.usercases.system.AuthResult;
 import br.gravita.core.usercases.system.AuthStatus;
 import br.gravita.core.usercases.system.AuthenticateCommand;
 import br.gravita.core.usercases.tax.AuthenticateService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown email without revealing that it is unknown")
 	void shouldRejectWhenEmailIsUnknownWithoutRevealingIt() {
 		when(userRepositoryPort.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
@@ -81,6 +83,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a wrong password with the same outcome as an unknown email")
 	void shouldRejectWrongPasswordWithTheSameOutcomeAsUnknownEmail() {
 		User user = activeUser(false);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
@@ -96,6 +99,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an inactive user even with the correct password")
 	void shouldRejectInactiveUserEvenWithCorrectPassword() {
 		User user = activeUser(false);
 		user.update(null, null, null, UserStatus.INACTIVE);
@@ -108,6 +112,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Authenticates directly when two-factor is not enabled")
 	void shouldAuthenticateDirectlyWhenTwoFactorIsNotEnabled() {
 		User user = activeUser(false);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
@@ -125,6 +130,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Requires a TOTP code when two-factor is enabled and none is provided")
 	void shouldRequireTotpWhenTwoFactorIsEnabledAndNoCodeProvided() {
 		User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
@@ -139,6 +145,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Refuses to issue a session when the TOTP code is invalid")
 	void shouldRejectSessionIssuanceWhenTotpCodeIsInvalid() {
 		User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
@@ -154,6 +161,7 @@ class AuthenticateServiceTest {
 	}
 
 	@Test
+	@DisplayName("Authenticates after a valid TOTP code")
 	void shouldAuthenticateAfterAValidTotpCode() {
 		User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));

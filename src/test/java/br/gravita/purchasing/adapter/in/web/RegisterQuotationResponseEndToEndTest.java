@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +37,7 @@ class RegisterQuotationResponseEndToEndTest {
 	private final UUID supplierId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("A supplier the quotation was sent to can register a response pricing every item")
 	void aSentSupplierCanRegisterAResponsePricingEveryItem() throws Exception {
 		QuotationId quotationId = seedQuotation(supplierId);
 
@@ -45,6 +47,7 @@ class RegisterQuotationResponseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Re-submitting a response from the same supplier also succeeds")
 	void reSubmittingAResponseFromTheSameSupplierAlsoSucceeds() throws Exception {
 		QuotationId quotationId = seedQuotation(supplierId);
 		mockMvc.perform(post("/api/purchasing/quotations/" + quotationId.value() + "/responses")
@@ -56,6 +59,7 @@ class RegisterQuotationResponseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the supplier was never sent the quotation")
 	void aSupplierNotSentTheQuotationIsRejectedWith400() throws Exception {
 		QuotationId quotationId = seedQuotation(supplierId);
 		UUID strangerSupplier = UUID.randomUUID();
@@ -66,6 +70,7 @@ class RegisterQuotationResponseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the response does not price every quotation item")
 	void aResponseMissingAnItemIsRejectedWith400() throws Exception {
 		QuotationId quotationId = seedQuotation(supplierId);
 		String body = """
@@ -82,6 +87,7 @@ class RegisterQuotationResponseEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when registering a response against an unknown quotation")
 	void registeringAResponseAgainstAnUnknownQuotationIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/purchasing/quotations/" + UUID.randomUUID() + "/responses")
 						.contentType("application/json").content(responseBody(supplierId, LocalDate.now())))

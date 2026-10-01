@@ -13,6 +13,7 @@ import br.gravita.core.ports.inbound.purchasing.ApprovePurchaseOrderCommand;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
 import br.gravita.core.ports.outbound.purchasing.NotifyApprovalWorkflowPort;
 import br.gravita.core.usercases.purchasing.ApprovePurchaseOrderService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +46,7 @@ class ApprovePurchaseOrderServiceTest {
 	private ApprovePurchaseOrderService service;
 
 	@Test
+	@DisplayName("Approving an order pending approval clears the approval flag and notifies")
 	void approvingAnOrderPendingApprovalClearsTheFlagAndNotifies() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		UUID approvedBy = UUID.randomUUID();
@@ -63,6 +65,7 @@ class ApprovePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejecting an order pending approval cancels it and notifies")
 	void rejectingAnOrderPendingApprovalCancelsItAndNotifies() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.of(pendingApprovalOrder(orderId)));
@@ -78,6 +81,7 @@ class ApprovePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an approval decision for an order that does not exist")
 	void rejectsAnOrderThatDoesNotExist() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
@@ -89,6 +93,7 @@ class ApprovePurchaseOrderServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects approving an order that does not require approval")
 	void rejectsApprovingAnOrderThatDoesNotRequireApproval() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.of(create(orderId, false)));

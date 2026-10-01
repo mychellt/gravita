@@ -18,6 +18,7 @@ import br.gravita.core.usercases.UpdateSupplierService;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +40,7 @@ class UpdateSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps unspecified fields on a partial update")
 	void shouldKeepUnspecifiedFieldsOnPartialUpdate() {
 		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
 		SupplierId id = SupplierId.of(UUID.randomUUID());
@@ -60,6 +62,7 @@ class UpdateSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates the PIX key without requiring other fields")
 	void shouldUpdatePixKeyWithoutRequiringOtherFields() {
 		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
 		SupplierId id = SupplierId.of(UUID.randomUUID());
@@ -79,6 +82,7 @@ class UpdateSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws when the supplier does not exist")
 	void shouldThrowWhenSupplierDoesNotExist() {
 		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
 		SupplierId id = SupplierId.of(UUID.randomUUID());

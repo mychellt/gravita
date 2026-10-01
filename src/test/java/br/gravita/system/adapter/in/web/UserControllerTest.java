@@ -11,6 +11,7 @@ import br.gravita.core.domain.system.UnknownProfileException;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.domain.system.UserStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,7 @@ class UserControllerTest {
 	private UpdateUserUseCase updateUserUseCase;
 
 	@Test
+	@DisplayName("Responds 201 with a Location header when user registration succeeds")
 	void shouldReturn201WithLocationWhenRegistrationSucceeds() throws Exception {
 		UUID profileId = UUID.randomUUID();
 		UserId createdId = UserId.generate();
@@ -68,6 +70,7 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the email is blank")
 	void shouldReturn400WhenEmailIsBlank() throws Exception {
 		String body = objectMapper.writeValueAsString(
 				new RegisterUserRequest("Jane Doe", " ", "s3cret!", UUID.randomUUID()));
@@ -77,6 +80,7 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the profile is unknown")
 	void shouldReturn400WhenProfileIsUnknown() throws Exception {
 		RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
 		doThrow(new UnknownProfileException(request.profileId())).when(registerUserUseCase).execute(any());
@@ -89,6 +93,7 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 204 when the user update succeeds")
 	void shouldReturn204WhenUpdateSucceeds() throws Exception {
 		UUID userId = UUID.randomUUID();
 		UUID profileId = UUID.randomUUID();
@@ -109,6 +114,7 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when the user to update is unknown")
 	void shouldReturn404WhenUserIsUnknown() throws Exception {
 		UUID userId = UUID.randomUUID();
 		UpdateUserRequest request = new UpdateUserRequest("Jane Roe", null, null, null);
@@ -122,6 +128,7 @@ class UserControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the updated email is invalid")
 	void shouldReturn400WhenUpdateEmailIsInvalid() throws Exception {
 		UUID userId = UUID.randomUUID();
 		String body = objectMapper.writeValueAsString(new UpdateUserRequest(null, "not-an-email", null, null));

@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class QuotationTest {
@@ -24,6 +25,7 @@ class QuotationTest {
 	private final SupplierId supplierTwo = SupplierId.of(UUID.randomUUID());
 
 	@Test
+	@DisplayName("Registering a response from a supplier the quotation was sent to adds it")
 	void registeringAResponseFromASentSupplierAddsIt() {
 		Quotation quotation = sentQuotation();
 
@@ -36,6 +38,7 @@ class QuotationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response from a supplier the quotation was not sent to")
 	void registeringAResponseFromASupplierNotSentTheQuotationIsRejected() {
 		Quotation quotation = sentQuotation();
 		SupplierId strangerSupplier = SupplierId.of(UUID.randomUUID());
@@ -48,6 +51,7 @@ class QuotationTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a response that does not price every quotation item")
 	void registeringAResponseMissingAnItemIsRejected() {
 		Quotation quotation = sentQuotation();
 
@@ -58,6 +62,7 @@ class QuotationTest {
 	}
 
 	@Test
+	@DisplayName("Re-submitting a response from the same supplier replaces the prior one")
 	void reSubmittingAResponseFromTheSameSupplierReplacesThePriorOne() {
 		Quotation quotation = sentQuotation().registerResponse(supplierOne,
 				List.of(new QuotationItemPrice(productA, BigDecimal.TEN), new QuotationItemPrice(productB, BigDecimal.ONE)),
@@ -73,6 +78,7 @@ class QuotationTest {
 	}
 
 	@Test
+	@DisplayName("Responses from different suppliers are both retained")
 	void responsesFromDifferentSuppliersAreBothRetained() {
 		Quotation quotation = sentQuotation()
 				.registerResponse(supplierOne,
@@ -88,6 +94,7 @@ class QuotationTest {
 	}
 
 	@Test
+	@DisplayName("A quotation must be sent to at least one supplier")
 	void aQuotationMustBeSentToAtLeastOneSupplier() {
 		assertThatThrownBy(() -> Quotation.send(QuotationId.of(UUID.randomUUID()),
 				PurchaseRequestId.of(UUID.randomUUID()),

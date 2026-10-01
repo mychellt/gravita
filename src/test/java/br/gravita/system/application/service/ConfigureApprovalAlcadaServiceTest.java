@@ -10,6 +10,7 @@ import br.gravita.core.domain.system.ApprovalModule;
 import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.system.UnknownApprovalModuleException;
 import br.gravita.core.domain.system.UnknownProfileException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +40,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	private static final ProfileReference APPROVER = new ProfileReference(UUID.randomUUID(), "Financial Manager");
 
 	@Test
+	@DisplayName("Creates a new alcada when the module has none configured yet")
 	void shouldCreateNewAlcadaWhenModuleHasNoneConfiguredYet() {
 		ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
@@ -56,6 +58,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reconfigures the existing alcada instead of creating a second one")
 	void shouldReconfigureExistingAlcadaInsteadOfCreatingASecondOne() {
 		ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
@@ -73,6 +76,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown module before touching any repository")
 	void shouldRejectUnknownModuleBeforeTouchingAnyRepository() {
 		ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
@@ -86,6 +90,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown approver profile")
 	void shouldRejectUnknownApproverProfile() {
 		ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
@@ -101,6 +106,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a command that has no threshold")
 	void shouldRejectCommandWithoutAnyThreshold() {
 		ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);

@@ -8,6 +8,7 @@ import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.core.domain.system.IntegrationEnvironment;
 import br.gravita.core.domain.system.IntegrationName;
 import br.gravita.core.domain.system.UnknownIntegrationException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	private IntegrationCredentialRepositoryPort repositoryPort;
 
 	@Test
+	@DisplayName("Registers a new credential when none exists yet")
 	void shouldRegisterNewCredentialWhenNoneExistsYet() {
 		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.BANK, null))
@@ -45,6 +47,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rotates the existing credential instead of creating a new one")
 	void shouldRotateExistingCredentialInsteadOfCreatingANewOne() {
 		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		IntegrationCredential existing = IntegrationCredential.register(IntegrationName.SEFAZ,
@@ -63,6 +66,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	}
 
 	@Test
+	@DisplayName("Keeps SEFAZ production and homologation credentials independent")
 	void shouldKeepProductionAndHomologationSefazCredentialsIndependent() {
 		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ, IntegrationEnvironment.HOMOLOGATION))
@@ -79,6 +83,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown integration name before touching the repository")
 	void shouldRejectUnknownIntegrationNameBeforeTouchingTheRepository() {
 		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 
@@ -91,6 +96,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a SEFAZ credential without an environment")
 	void shouldRejectSefazWithoutEnvironment() {
 		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ, null)).thenReturn(Optional.empty());

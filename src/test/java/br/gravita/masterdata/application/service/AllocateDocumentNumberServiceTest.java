@@ -9,6 +9,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.masterdata.AllocateDocumentNumberCommand;
 import br.gravita.core.ports.outbound.persistence.DocumentSeriesRepositoryPort;
 import br.gravita.core.usercases.AllocateDocumentNumberService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +38,7 @@ class AllocateDocumentNumberServiceTest {
 	private DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
 	@Test
+	@DisplayName("Reserves the current next number and advances the series")
 	void shouldReserveCurrentNextNumberAndAdvanceTheSeries() {
 		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
@@ -55,6 +57,7 @@ class AllocateDocumentNumberServiceTest {
 	}
 
 	@Test
+	@DisplayName("Retries internally on an optimistic lock conflict without surfacing it")
 	void shouldRetryInternallyOnOptimisticLockConflictWithoutSurfacingIt() {
 		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
@@ -73,6 +76,7 @@ class AllocateDocumentNumberServiceTest {
 	}
 
 	@Test
+	@DisplayName("Gives up after exhausting retries under a persistent conflict")
 	void shouldGiveUpAfterExhaustingRetriesUnderPersistentConflict() {
 		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
@@ -86,6 +90,7 @@ class AllocateDocumentNumberServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws when the series row does not exist")
 	void shouldThrowWhenSeriesRowDoesNotExist() {
 		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
@@ -96,6 +101,7 @@ class AllocateDocumentNumberServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects allocation when the series is not yet configured")
 	void shouldRejectAllocationWhenSeriesNotYetConfigured() {
 		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);

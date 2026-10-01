@@ -16,6 +16,7 @@ import br.gravita.core.ports.outbound.purchasing.NotifyApprovalWorkflowPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,6 +42,7 @@ class ApprovePurchaseOrderEndToEndTest {
 	private final UUID productId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("Responds 204 when approving an order pending approval")
 	void approvingAnOrderPendingApprovalSucceedsWith204() throws Exception {
 		UUID orderId = seedOrder(true).value();
 		UUID approvedBy = UUID.randomUUID();
@@ -63,6 +65,7 @@ class ApprovePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 204 when rejecting an order pending approval")
 	void rejectingAnOrderPendingApprovalSucceedsWith204() throws Exception {
 		UUID orderId = seedOrder(true).value();
 
@@ -82,6 +85,7 @@ class ApprovePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when approving an order that does not require approval")
 	void approvingAnOrderThatDoesNotRequireApprovalIsRejectedWith400() throws Exception {
 		UUID orderId = seedOrder(false).value();
 
@@ -98,6 +102,7 @@ class ApprovePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when approving an unknown order")
 	void approvingAnUnknownOrderIsRejectedWith404() throws Exception {
 		String body = """
 				{

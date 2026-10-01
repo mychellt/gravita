@@ -11,6 +11,7 @@ import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseRequestRepo
 import br.gravita.core.ports.outbound.persistence.purchasing.QuotationRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ApprovalAlcadaRepositoryPort;
 import br.gravita.core.usercases.purchasing.CreatePurchaseOrderService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,6 +49,7 @@ class CreatePurchaseOrderServiceTest {
     private CreatePurchaseOrderService service;
 
     @Test
+    @DisplayName("Creates an order from an open request and marks the request as converted")
     void createsAnOrderFromAnOpenRequestAndConvertsIt() {
         PurchaseRequestId requestId = openRequest();
 
@@ -76,6 +78,7 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Creates an order from a quoted request pricing items from the selected supplier's response")
     void createsAnOrderFromAQuotedRequestPricingItemsFromTheSelectedSuppliersResponse() {
         PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
         UUID productId = UUID.randomUUID();
@@ -108,6 +111,7 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Rejects an order for a purchase request that does not exist")
     void rejectsARequestThatDoesNotExist() {
         PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
         when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.empty());
@@ -119,6 +123,7 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Rejects an order for a purchase request that is already converted")
     void rejectsARequestThatIsAlreadyConverted() {
         PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
         when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.of(
@@ -135,6 +140,7 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Requires approval when the order total meets the configured threshold")
     void requiresApprovalWhenTheOrderTotalMeetsTheConfiguredThreshold() {
         PurchaseRequestId requestId = openRequest();
         when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
@@ -152,6 +158,7 @@ class CreatePurchaseOrderServiceTest {
     }
 
     @Test
+    @DisplayName("Skips approval when the order total is below the configured threshold")
     void skipsApprovalWhenTheOrderTotalIsBelowTheConfiguredThreshold() {
         PurchaseRequestId requestId = openRequest();
         when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))

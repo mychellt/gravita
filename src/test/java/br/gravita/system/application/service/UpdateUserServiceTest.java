@@ -10,6 +10,7 @@ import br.gravita.core.domain.system.UnknownProfileException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.domain.system.UserStatus;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +40,7 @@ class UpdateUserServiceTest {
 	private static final ProfileReference ADMINISTRATOR = new ProfileReference(UUID.randomUUID(), "Administrator");
 
 	@Test
+	@DisplayName("Updates name, email, profile and status")
 	void shouldUpdateNameEmailProfileAndStatus() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
@@ -59,6 +61,7 @@ class UpdateUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Forces two-factor on when the profile switches to administrator")
 	void shouldForceTwoFactorEnabledWhenProfileSwitchesToAdministrator() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
@@ -73,6 +76,7 @@ class UpdateUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown user id")
 	void shouldRejectUnknownUserId() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		UUID userId = UUID.randomUUID();
@@ -85,6 +89,7 @@ class UpdateUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an email already used by another user on update")
 	void shouldRejectDuplicateEmailOnUpdate() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
@@ -100,6 +105,7 @@ class UpdateUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Does not treat an unchanged email as a duplicate")
 	void shouldNotTreatUnchangedEmailAsDuplicate() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
@@ -112,6 +118,7 @@ class UpdateUserServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an unknown profile on update")
 	void shouldRejectUnknownProfileOnUpdate() {
 		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
 		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);

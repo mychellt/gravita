@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,6 +41,7 @@ class SendQuotationServiceTest {
 	private QuotationRepositoryPort quotationRepositoryPort;
 
 	@Test
+	@DisplayName("Sending a quotation for an open request creates it and moves the request to QUOTED")
 	void sendingAQuotationForAnOpenRequestCreatesItAndTransitionsTheRequestToQuoted() {
 		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
 		List<PurchaseRequestItem> items = List.of(
@@ -68,6 +70,7 @@ class SendQuotationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects sending a quotation for a missing request")
 	void sendingAQuotationForAMissingRequestIsRejected() {
 		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
 		when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.empty());
@@ -79,6 +82,7 @@ class SendQuotationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects sending a quotation for a request that is not open")
 	void sendingAQuotationForARequestThatIsNotOpenIsRejected() {
 		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
 		PurchaseRequest quotedRequest = PurchaseRequest.of(requestId, PurchaseRequestOrigin.USER,
@@ -95,6 +99,7 @@ class SendQuotationServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects sending a quotation without any supplier")
 	void sendingAQuotationWithoutAnySupplierIsRejected() {
 		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
 		PurchaseRequest openRequest = PurchaseRequest.open(requestId, PurchaseRequestOrigin.USER,

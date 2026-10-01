@@ -4,6 +4,7 @@ import br.gravita.core.domain.system.IntegrationCredential;
 import br.gravita.core.domain.system.IntegrationEnvironment;
 import br.gravita.core.domain.system.IntegrationName;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class IntegrationCredentialTest {
 
 	@Test
+	@DisplayName("Registers a credential for a non-SEFAZ integration without an environment")
 	void shouldRegisterCredentialForNonSefazIntegrationWithoutEnvironment() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.BANK, null,
 				"https://bank.example.com/api", "secret-key");
@@ -26,6 +28,7 @@ class IntegrationCredentialTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a SEFAZ credential without an environment")
 	void shouldRejectSefazCredentialWithoutEnvironment() {
 		assertThatThrownBy(() -> IntegrationCredential.register(IntegrationName.SEFAZ, null,
 				"https://sefaz.example.com", "cert"))
@@ -34,6 +37,7 @@ class IntegrationCredentialTest {
 	}
 
 	@Test
+	@DisplayName("Registers a SEFAZ credential when the environment is given")
 	void shouldRegisterSefazCredentialWhenEnvironmentIsGiven() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.HOMOLOGATION, "https://homologacao.sefaz.example.com", "cert");
@@ -42,6 +46,7 @@ class IntegrationCredentialTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank endpoint or payload")
 	void shouldRejectBlankEndpointOrPayload() {
 		assertThatThrownBy(() -> IntegrationCredential.register(IntegrationName.BANK, null, " ", "secret"))
 				.isInstanceOf(BusinessRuleException.class);
@@ -50,6 +55,7 @@ class IntegrationCredentialTest {
 	}
 
 	@Test
+	@DisplayName("Rotates endpoint and payload in place without changing id or environment")
 	void shouldRotateEndpointAndPayloadInPlaceWithoutChangingIdOrEnvironment() {
 		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.PRODUCTION, "https://sefaz.example.com", "old-cert");

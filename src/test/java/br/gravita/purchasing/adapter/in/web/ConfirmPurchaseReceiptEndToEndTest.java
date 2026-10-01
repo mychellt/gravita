@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -64,6 +65,7 @@ class ConfirmPurchaseReceiptEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 204 when confirming a receipt whose conference is completed")
 	void confirmingAConferencedReceiptSucceedsWith204() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		PurchaseReceiptId receiptId = seedConferencedReceipt(orderId, BigDecimal.TEN);
@@ -73,6 +75,7 @@ class ConfirmPurchaseReceiptEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Confirming a receipt registers a real stock entry in inventory")
 	void confirmingAReceiptRegistersARealStockEntryInInventory() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		PurchaseReceiptId receiptId = seedConferencedReceipt(orderId, BigDecimal.TEN);
@@ -87,12 +90,14 @@ class ConfirmPurchaseReceiptEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when confirming an unknown receipt")
 	void confirmingAnUnknownReceiptIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/purchasing/receipts/" + UUID.randomUUID() + "/confirm"))
 				.andExpect(status().isNotFound());
 	}
 
 	@Test
+	@DisplayName("Responds 400 on the second attempt to confirm the same receipt")
 	void confirmingTheSameReceiptTwiceIsRejectedWith400OnTheSecondAttempt() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		PurchaseReceiptId receiptId = seedConferencedReceipt(orderId, BigDecimal.TEN);

@@ -10,6 +10,7 @@ import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.shared.PersonType;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class SupplierTest {
@@ -20,6 +21,7 @@ class SupplierTest {
 			new Address("Rua Teste", "100", null, "Centro", "Sao Paulo", "SP", "01000-000");
 
 	@Test
+	@DisplayName("Registers a PJ supplier with the optional purchasing fields absent")
 	void shouldRegisterPjSupplierWithOptionalPurchasingFieldsAbsent() {
 		Supplier supplier = validBuilder().build();
 
@@ -32,6 +34,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Registers a PF supplier reusing the shared document value object")
 	void shouldRegisterPfSupplierReusingSharedDocumentValueObject() {
 		Supplier supplier = validBuilder().document(VALID_CPF).build();
 
@@ -40,6 +43,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a null document")
 	void shouldRejectNullDocument() {
 		assertThatThrownBy(() -> build(b -> b.document(null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -47,6 +51,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a blank name")
 	void shouldRejectBlankName() {
 		assertThatThrownBy(() -> build(b -> b.name(" ")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -54,6 +59,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an empty address list")
 	void shouldRejectEmptyAddressList() {
 		assertThatThrownBy(() -> build(b -> b.addresses(List.of())))
 				.isInstanceOf(BusinessRuleException.class)
@@ -61,11 +67,13 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Allows an empty contacts list")
 	void shouldAllowEmptyContactsList() {
 		assertThatCode(() -> build(b -> b.contacts(List.of()))).doesNotThrowAnyException();
 	}
 
 	@Test
+	@DisplayName("Accepts an optional bank account and PIX key")
 	void shouldAcceptOptionalBankAccountAndPixKey() {
 		BankAccount bankAccount = new BankAccount("001", "1234", "56789-0");
 		PixKey pixKey = PixKey.of("supplier@example.com");
@@ -77,6 +85,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a non-positive average lead time in days")
 	void shouldRejectNonPositiveAverageLeadTimeDays() {
 		assertThatThrownBy(() -> build(b -> b.averageLeadTimeDays(0)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -84,6 +93,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a malformed default purchase CFOP")
 	void shouldRejectMalformedDefaultPurchaseCfop() {
 		assertThatThrownBy(() -> build(b -> b.defaultPurchaseCfop("abc")))
 				.isInstanceOf(BusinessRuleException.class)
@@ -91,6 +101,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Allows using the supplier in a purchase order once both purchasing fields are set")
 	void shouldAllowUsingSupplierInPurchaseOrderOnceBothPurchasingFieldsAreSet() {
 		Supplier supplier = validBuilder().averageLeadTimeDays(5).defaultPurchaseCfop("1102").build();
 
@@ -98,6 +109,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects purchase order use when the average lead time is missing")
 	void shouldRejectPurchaseOrderUseWhenAverageLeadTimeDaysIsMissing() {
 		Supplier supplier = validBuilder().defaultPurchaseCfop("1102").build();
 
@@ -107,6 +119,7 @@ class SupplierTest {
 	}
 
 	@Test
+	@DisplayName("Rejects purchase order use when the default purchase CFOP is missing")
 	void shouldRejectPurchaseOrderUseWhenDefaultPurchaseCfopIsMissing() {
 		Supplier supplier = validBuilder().averageLeadTimeDays(5).build();
 

@@ -11,6 +11,7 @@ import br.gravita.core.usercases.system.CheckPermissionUseCase;
 import br.gravita.core.usercases.system.GetAccessLogQuery;
 import br.gravita.core.usercases.system.GetAccessLogUseCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,7 @@ class AccessLogControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns a page of access log entries when the caller is authorized")
 	void shouldReturnAPageOfAccessLogEntriesWhenCallerIsAuthorized() throws Exception {
 		when(checkPermissionUseCase.execute(any())).thenReturn(true);
 		AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
@@ -75,6 +77,7 @@ class AccessLogControllerTest {
 	}
 
 	@Test
+	@DisplayName("Forwards the user id and pagination filters to the use case")
 	void shouldForwardUserIdAndPaginationFiltersToTheUseCase() throws Exception {
 		when(checkPermissionUseCase.execute(any())).thenReturn(true);
 		UUID userId = UUID.randomUUID();
@@ -99,6 +102,7 @@ class AccessLogControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 403 and skips the query when the caller lacks permission")
 	void shouldReturnForbiddenAndSkipTheQueryWhenCallerLacksPermission() throws Exception {
 		when(checkPermissionUseCase.execute(any())).thenReturn(false);
 
@@ -109,6 +113,7 @@ class AccessLogControllerTest {
 	}
 
 	@Test
+	@DisplayName("Responds 401 when no session token is provided")
 	void shouldReturnUnauthorizedWhenNoSessionTokenIsProvided() throws Exception {
 		mockMvc.perform(get("/api/system/access-log"))
 				.andExpect(status().isUnauthorized());

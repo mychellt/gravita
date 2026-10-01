@@ -12,11 +12,13 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PurchaseRequestTest {
 
 	@Test
+	@DisplayName("Quoting an open request moves it to QUOTED")
 	void quotingAnOpenRequestTransitionsItToQuoted() {
 		PurchaseRequest request = open();
 
@@ -28,6 +30,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Rejects quoting a request that is already quoted")
 	void quotingAnAlreadyQuotedRequestIsRejected() {
 		PurchaseRequest quoted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
 				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
@@ -39,6 +42,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Rejects quoting a request that is already converted")
 	void quotingAConvertedRequestIsRejected() {
 		PurchaseRequest converted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
 				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
@@ -48,6 +52,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Converting an open request moves it to CONVERTED")
 	void convertingAnOpenRequestTransitionsItToConverted() {
 		PurchaseRequest request = open();
 
@@ -58,6 +63,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Converting a quoted request moves it to CONVERTED")
 	void convertingAQuotedRequestTransitionsItToConverted() {
 		PurchaseRequest quoted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
 				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
@@ -69,6 +75,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting a request that is already converted")
 	void convertingAnAlreadyConvertedRequestIsRejected() {
 		PurchaseRequest alreadyConverted = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
 				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),
@@ -80,6 +87,7 @@ class PurchaseRequestTest {
 	}
 
 	@Test
+	@DisplayName("Rejects converting a cancelled request")
 	void convertingACancelledRequestIsRejected() {
 		PurchaseRequest cancelled = PurchaseRequest.of(PurchaseRequestId.of(UUID.randomUUID()),
 				PurchaseRequestOrigin.USER, List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)),

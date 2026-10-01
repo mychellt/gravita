@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ class SendQuotationEndToEndTest {
 	private ObjectMapper objectMapper;
 
 	@Test
+	@DisplayName("A buyer can send a quotation for an open request to multiple suppliers")
 	void aBuyerCanSendAQuotationForAnOpenRequestToMultipleSuppliers() throws Exception {
 		UUID requestId = createOpenPurchaseRequest();
 
@@ -44,6 +46,7 @@ class SendQuotationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when sending a second quotation for the same request")
 	void sendingAQuotationTwiceForTheSameRequestIsRejectedWith400() throws Exception {
 		UUID requestId = createOpenPurchaseRequest();
 		String body = """
@@ -63,6 +66,7 @@ class SendQuotationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when sending a quotation without any supplier")
 	void sendingAQuotationWithoutAnySupplierIsRejectedWith400() throws Exception {
 		UUID requestId = createOpenPurchaseRequest();
 		String body = """
@@ -77,6 +81,7 @@ class SendQuotationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when sending a quotation for a missing purchase request")
 	void sendingAQuotationForAMissingRequestIsRejectedWith404() throws Exception {
 		String body = """
 				{

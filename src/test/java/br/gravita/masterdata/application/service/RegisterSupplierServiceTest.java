@@ -13,6 +13,7 @@ import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.shared.Document;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,7 @@ class RegisterSupplierServiceTest {
 	private SupplierRepositoryPort supplierRepositoryPort;
 
 	@Test
+	@DisplayName("Registers a new supplier without the optional purchasing fields")
 	void shouldRegisterNewSupplierWithoutOptionalPurchasingFields() {
 		RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -47,6 +49,7 @@ class RegisterSupplierServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers a new supplier with the purchasing fields when provided")
 	void shouldRegisterNewSupplierWithPurchasingFieldsWhenProvided() {
 		RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));

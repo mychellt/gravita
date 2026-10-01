@@ -9,6 +9,7 @@ import br.gravita.core.domain.shared.Document;
 import br.gravita.core.ports.inbound.masterdata.SwitchSefazEnvironmentCommand;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.usercases.SwitchSefazEnvironmentService;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -39,6 +40,7 @@ class SwitchSefazEnvironmentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Switches a company from homologation to production")
 	void shouldSwitchCompanyFromHomologationToProduction() {
 		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
 		CompanyId id = CompanyId.of(UUID.randomUUID());
@@ -56,6 +58,7 @@ class SwitchSefazEnvironmentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Switches a company from production to homologation")
 	void shouldSwitchCompanyFromProductionToHomologation() {
 		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
 		CompanyId id = CompanyId.of(UUID.randomUUID());
@@ -70,6 +73,7 @@ class SwitchSefazEnvironmentServiceTest {
 	}
 
 	@Test
+	@DisplayName("Throws when the company does not exist")
 	void shouldThrowWhenCompanyDoesNotExist() {
 		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
 		CompanyId id = CompanyId.of(UUID.randomUUID());

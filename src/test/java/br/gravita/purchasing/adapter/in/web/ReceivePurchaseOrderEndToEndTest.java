@@ -13,6 +13,7 @@ import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderReposi
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +35,7 @@ class ReceivePurchaseOrderEndToEndTest {
 	private final UUID productId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("Responds 201 when the full ordered quantity is received")
 	void receivingTheFullOrderedQuantitySucceedsWith201() throws Exception {
 		UUID orderId = seedOpenOrder(BigDecimal.TEN, false).value();
 
@@ -50,6 +52,7 @@ class ReceivePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when receiving against an unknown order")
 	void receivingAgainstAnUnknownOrderIsRejectedWith404() throws Exception {
 		String body = """
 				{
@@ -63,6 +66,7 @@ class ReceivePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when receiving against an order still pending approval")
 	void receivingAgainstAnOrderPendingApprovalIsRejectedWith400() throws Exception {
 		UUID orderId = seedOpenOrder(BigDecimal.TEN, true).value();
 
@@ -78,6 +82,7 @@ class ReceivePurchaseOrderEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the received item list is empty")
 	void anEmptyReceivedItemListIsRejectedWith400() throws Exception {
 		UUID orderId = seedOpenOrder(BigDecimal.TEN, false).value();
 

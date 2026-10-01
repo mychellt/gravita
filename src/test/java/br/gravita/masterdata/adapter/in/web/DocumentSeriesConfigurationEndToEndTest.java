@@ -2,6 +2,7 @@ package br.gravita.masterdata.adapter.in.web;
 
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.ConfigureDocumentSeriesRequest;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.RegisterCompanyRequest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +31,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 	private ObjectMapper objectMapper;
 
 	@Test
+	@DisplayName("Full document series configuration lifecycle works against the real stack")
 	void fullLifecycleAgainstTheRealStack() throws Exception {
 		UUID companyId = registerCompany();
 
@@ -51,6 +53,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 for an unregistered company")
 	void returns404ForAnUnregisteredCompany() throws Exception {
 		mockMvc.perform(put("/api/companies/" + UUID.randomUUID() + "/document-series/nfe")
 						.contentType("application/json")
@@ -59,6 +62,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 for an invalid document type")
 	void returns400ForAnInvalidDocumentType() throws Exception {
 		UUID companyId = registerCompany();
 
@@ -70,6 +74,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when the next number is missing")
 	void returns400WhenNextNumberIsMissing() throws Exception {
 		UUID companyId = registerCompany();
 		String body = "{\"series\":\"001\"}";

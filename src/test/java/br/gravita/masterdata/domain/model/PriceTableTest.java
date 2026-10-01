@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PriceTableTest {
@@ -17,6 +18,7 @@ class PriceTableTest {
 	private static final ProductOrClassRef PRODUCT_REF = ProductOrClassRef.product(UUID.randomUUID().toString());
 
 	@Test
+	@DisplayName("Rejects a validTo date before validFrom")
 	void shouldRejectValidToBeforeValidFrom() {
 		assertThatThrownBy(() -> table(PriceFormation.FIXED, LocalDate.of(2026, 1, 10), LocalDate.of(2026, 1, 1), null,
 				null, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN))))
@@ -25,6 +27,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Considers the table active within its validity window")
 	void shouldConsiderTableActiveWithinItsValidityWindow() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -33,6 +36,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Automatically excludes the table once validTo is in the past")
 	void shouldExcludeTableAutomaticallyOnceValidToIsInThePast() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 12, 31), null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -41,6 +45,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Considers the table active indefinitely when validTo is absent")
 	void shouldConsiderTableActiveIndefinitelyWhenValidToIsAbsent() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -49,6 +54,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Resolves a fixed price directly from the entry value")
 	void shouldResolveFixedPriceDirectlyFromEntryValue() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, new BigDecimal("99.90"))));
@@ -59,6 +65,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Resolves a percent-over-cost price from the product's current cost at resolution time")
 	void shouldResolvePercentOverCostFromCurrentProductCostAtResolutionTime() {
 		PriceTable table = table(PriceFormation.PERCENT_OVER_COST, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(20))));
@@ -71,6 +78,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Resolves a percent-over-base price from the product's current base price")
 	void shouldResolvePercentOverBaseFromCurrentProductBasePrice() {
 		PriceTable table = table(PriceFormation.PERCENT_OVER_BASE, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(-10))));
@@ -81,6 +89,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a fixed entry with a non-positive value")
 	void shouldRejectFixedEntryWithNonPositiveValue() {
 		assertThatThrownBy(() -> table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.ZERO))))
@@ -89,6 +98,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Allows a discount below the maximum when the behavior is BLOCK")
 	void shouldAllowDiscountBelowMaxWithBlockBehavior() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.BLOCK, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -97,6 +107,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Blocks a discount exceeding the maximum when the behavior is BLOCK")
 	void shouldBlockDiscountExceedingMaxWhenBehaviorIsBlock() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.BLOCK, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -107,6 +118,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Alerts without blocking when the behavior is ALERT")
 	void shouldAlertWithoutBlockingWhenBehaviorIsAlert() {
 		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.ALERT, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
@@ -116,6 +128,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a maximum discount percent without a behavior")
 	void shouldRejectMaxDiscountPercentWithoutBehavior() {
 		assertThatThrownBy(() -> table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.TEN, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN))))
@@ -124,6 +137,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Rejects duplicate entry references")
 	void shouldRejectDuplicateEntryReferences() {
 		assertThatThrownBy(() -> table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN), new PriceTableEntry(PRODUCT_REF, BigDecimal.ONE))))
@@ -132,6 +146,7 @@ class PriceTableTest {
 	}
 
 	@Test
+	@DisplayName("Allows unlimited entries and tables, with no upper bound enforced")
 	void shouldAllowUnlimitedEntriesAndTablesWithNoUpperBoundEnforced() {
 		assertThatCode(() -> table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN))))

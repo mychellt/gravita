@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -66,6 +67,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Reconciles the NF-e against the order and receipt and completes the conference")
 	void reconcilesAgainstTheOrderAndReceiptAndCompletesConference() {
 		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
 		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
@@ -92,6 +94,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Flags a quantity divergence between ordered and received quantities")
 	void flagsAQuantityDivergenceBetweenOrderedAndReceived() {
 		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
 		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("8"));
@@ -108,6 +111,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Flags a value divergence between ordered and invoiced values")
 	void flagsAValueDivergenceBetweenOrderedAndInvoiced() {
 		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
 		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
@@ -124,6 +128,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the import when the order does not exist")
 	void rejectsAnUnknownOrder() {
 		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
@@ -134,6 +139,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the import when the receipt does not exist")
 	void rejectsAnUnknownReceipt() {
 		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
 		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
@@ -146,6 +152,7 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects the import when the receipt does not belong to the given order")
 	void rejectsAReceiptThatDoesNotBelongToTheGivenOrder() {
 		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
 		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),

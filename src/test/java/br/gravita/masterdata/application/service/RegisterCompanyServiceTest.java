@@ -12,6 +12,7 @@ import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,7 @@ class RegisterCompanyServiceTest {
 	private DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
 	@Test
+	@DisplayName("Registers a new company with the homologation SEFAZ environment and initial document series")
 	void shouldRegisterNewCompanyWithHomologationSefazEnvironmentAndInitialDocumentSeries() {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -63,6 +65,7 @@ class RegisterCompanyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Registers a branch against an existing parent company without error")
 	void shouldRegisterBranchAgainstExistingParentCompanyWithoutError() {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		CompanyId parentId = CompanyId.of(UUID.randomUUID());
@@ -78,6 +81,7 @@ class RegisterCompanyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a registration with an unknown parent company")
 	void shouldRejectRegistrationWithUnknownParentCompany() {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		CompanyId unknownParentId = CompanyId.of(UUID.randomUUID());
@@ -91,6 +95,7 @@ class RegisterCompanyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates an existing company preserving its SEFAZ environment and skipping document series creation")
 	void shouldUpdateExistingCompanyPreservingSefazEnvironmentAndSkipDocumentSeriesCreation() {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		CompanyId existingId = CompanyId.of(UUID.randomUUID());
@@ -114,6 +119,7 @@ class RegisterCompanyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects an update of an unknown company")
 	void shouldRejectUpdateOfUnknownCompany() {
 		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		CompanyId unknownId = CompanyId.of(UUID.randomUUID());

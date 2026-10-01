@@ -17,6 +17,7 @@ import br.gravita.core.usercases.purchasing.CreatePurchaseRequestService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,7 @@ class CreatePurchaseRequestServiceTest {
 	private PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
 
 	@Test
+	@DisplayName("Creates a manual request with an arbitrary item list")
 	void shouldCreateAManualRequestWithAnArbitraryItemList() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -52,6 +54,7 @@ class CreatePurchaseRequestServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a request from the inventory minimum-stock trigger without a requester")
 	void shouldCreateARequestFromInventorysMinStockTriggerWithoutARequester() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -69,6 +72,7 @@ class CreatePurchaseRequestServiceTest {
 	}
 
 	@Test
+	@DisplayName("Creates a request from sales-order demand without a requester")
 	void shouldCreateARequestFromSalesOrderDemandWithoutARequester() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -85,6 +89,7 @@ class CreatePurchaseRequestServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a request with an empty item list")
 	void shouldRejectAnEmptyItemList() {
 		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
 
@@ -95,6 +100,7 @@ class CreatePurchaseRequestServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a user-originated request that has no requester")
 	void shouldRejectAUserOriginRequestWithoutARequester() {
 		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
 		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
@@ -105,6 +111,7 @@ class CreatePurchaseRequestServiceTest {
 	}
 
 	@Test
+	@DisplayName("Rejects a system-triggered request that carries a requester")
 	void shouldRejectASystemTriggeredRequestThatCarriesARequester() {
 		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
 		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));

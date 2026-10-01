@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,7 @@ class ReturnToSupplierEndToEndTest {
 	private final UUID productId = UUID.randomUUID();
 
 	@Test
+	@DisplayName("Responds 201 when a confirmed receipt is returned in full")
 	void returningAConfirmedReceiptInFullSucceedsWith201() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		PurchaseReceiptId receiptId = seedConfirmedReceipt(orderId, BigDecimal.TEN);
@@ -54,6 +56,7 @@ class ReturnToSupplierEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when returning more than was received")
 	void returningMoreThanReceivedIsRejectedWith400() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		PurchaseReceiptId receiptId = seedConfirmedReceipt(orderId, BigDecimal.TEN);
@@ -64,6 +67,7 @@ class ReturnToSupplierEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 404 when returning against an unknown receipt")
 	void returningAgainstAnUnknownReceiptIsRejectedWith404() throws Exception {
 		mockMvc.perform(post("/api/purchasing/receipts/" + UUID.randomUUID() + "/return")
 						.contentType("application/json").content(returnBody("1")))
@@ -71,6 +75,7 @@ class ReturnToSupplierEndToEndTest {
 	}
 
 	@Test
+	@DisplayName("Responds 400 when returning a receipt still pending conference")
 	void returningAReceiptStillPendingConferenceIsRejectedWith400() throws Exception {
 		PurchaseOrderId orderId = seedOpenOrder();
 		var pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
