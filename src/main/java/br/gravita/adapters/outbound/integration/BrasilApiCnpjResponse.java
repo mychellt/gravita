@@ -7,26 +7,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 record BrasilApiCnpjResponse(
-        @JsonProperty("razao_social") String razaoSocial,
-        @JsonProperty("nome_fantasia") String nomeFantasia,
-        String logradouro,
-        String numero,
-        String complemento,
-        String bairro,
-        String municipio,
-        String uf,
-        String cep) {
+        @JsonProperty("razao_social") String companyName,
+        @JsonProperty("nome_fantasia") String tradeName,
+        @JsonProperty("logradouro") String street,
+        @JsonProperty("numero") String number,
+        @JsonProperty("complemento") String additionalAddress,
+        @JsonProperty("bairro") String neighborhood,
+        @JsonProperty("municipio") String city,
+        @JsonProperty("uf") String state,
+        @JsonProperty("cep") String zipCode) {
 
     PersonLookupResult getDomain() {
-        final String name = (razaoSocial != null && !razaoSocial.isBlank()) ? razaoSocial : nomeFantasia;
+        final String name = (companyName != null && !companyName.isBlank()) ? companyName : tradeName;
         final AddressDomain address = AddressDomain.builder()
-                .street(logradouro)
-                .number(numero)
-                .complement(complemento)
-                .neighborhood(bairro)
-                .city(municipio)
-                .state(uf)
-                .zipCode(cep)
+                .street(street)
+                .number(number)
+                .complement(additionalAddress)
+                .neighborhood(neighborhood)
+                .city(city)
+                .state(state)
+                .zipCode(zipCode)
                 .build();
         return new PersonLookupResult(name, address);
     }
