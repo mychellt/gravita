@@ -23,25 +23,25 @@ class FollowUpRuleRepositoryAdapter implements FollowUpRuleRepositoryPort {
 
 	@Override
 	public FollowUpRule save(FollowUpRule rule) {
-		FollowUpRuleJpaEntity entity = mapper.toEntity(rule);
+		FollowUpRuleJpaEntity entity = mapper.map(rule);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		FollowUpRuleJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<FollowUpRule> findById(FollowUpRuleId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<FollowUpRule> findAll() {
-		return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<FollowUpRule> findAllActive() {
-		return jpaRepository.findByActiveTrue().stream().map(mapper::toDomain).toList();
+		return jpaRepository.findByActiveTrue().stream().map(mapper::map).toList();
 	}
 
 	@Override

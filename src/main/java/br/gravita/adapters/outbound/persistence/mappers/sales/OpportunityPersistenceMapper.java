@@ -3,33 +3,20 @@ package br.gravita.adapters.outbound.persistence.mappers.sales;
 import br.gravita.adapters.outbound.persistence.entities.sales.OpportunityJpaEntity;
 import br.gravita.core.domain.sales.Opportunity;
 import br.gravita.core.domain.sales.OpportunityId;
+import java.util.UUID;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface OpportunityPersistenceMapper {
 
-	default Opportunity toDomain(final OpportunityJpaEntity entity) {
-		return Opportunity.of(
-				OpportunityId.of(entity.getId()),
-				entity.getCustomerId(),
-				entity.getEstimatedValue(),
-				entity.getProbability(),
-				entity.getExpectedCloseDate(),
-				entity.getOwner(),
-				entity.getStage());
-	}
+	Opportunity map(final OpportunityJpaEntity entity);
 
-	default OpportunityJpaEntity toEntity(final Opportunity domain) {
-		return OpportunityJpaEntity.builder()
-				.id(domain.getId().value())
-				.customerId(domain.getCustomerId())
-				.estimatedValue(domain.getEstimatedValue())
-				.probability(domain.getProbability())
-				.expectedCloseDate(domain.getExpectedCloseDate())
-				.owner(domain.getOwner())
-				.stage(domain.getStage())
-				.build();
-	}
+	@Mapping(target = "id", source = "id.value")
+	OpportunityJpaEntity map(final Opportunity domain);
+
+	@Mapping(target = "value", source = "id")
+	OpportunityId map(final UUID id);
 }

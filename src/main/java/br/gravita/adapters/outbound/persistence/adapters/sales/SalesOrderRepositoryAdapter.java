@@ -26,27 +26,27 @@ class SalesOrderRepositoryAdapter implements SalesOrderRepositoryPort {
 
 	@Override
 	public SalesOrder save(SalesOrder order) {
-		SalesOrderJpaEntity entity = mapper.toEntity(order);
+		SalesOrderJpaEntity entity = mapper.map(order);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		SalesOrderJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<SalesOrder> findById(SalesOrderId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<SalesOrder> findInvoicedByPeriod(LocalDate periodStart, LocalDate periodEnd) {
 		return jpaRepository.findByStatusAndInvoicedAtBetween(SalesOrderStatus.INVOICED, periodStart, periodEnd)
-				.stream().map(mapper::toDomain).toList();
+				.stream().map(mapper::map).toList();
 	}
 
 	@Override
 	public List<SalesOrder> findInvoicedByPeriodAndSalesperson(LocalDate periodStart, LocalDate periodEnd,
 			UUID salespersonId) {
 		return jpaRepository.findByStatusAndInvoicedAtBetweenAndSalespersonId(SalesOrderStatus.INVOICED, periodStart,
-				periodEnd, salespersonId).stream().map(mapper::toDomain).toList();
+				periodEnd, salespersonId).stream().map(mapper::map).toList();
 	}
 }

@@ -13,7 +13,7 @@ public final class FollowUpRule {
 	private final boolean notifyOwner;
 	private final boolean active;
 
-	private FollowUpRule(FollowUpRuleId id, int daysWithoutContact, FollowUpTarget target, boolean notifyOwner,
+	public FollowUpRule(FollowUpRuleId id, int daysWithoutContact, FollowUpTarget target, boolean notifyOwner,
 			boolean active) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.daysWithoutContact = requirePositive(daysWithoutContact);

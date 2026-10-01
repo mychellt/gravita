@@ -20,7 +20,7 @@ public final class Interaction {
 	private final String summary;
 	private final Instant timestamp;
 
-	private Interaction(InteractionId id, OpportunityId opportunityId, UUID customerId, InteractionChannel channel,
+	public Interaction(InteractionId id, OpportunityId opportunityId, UUID customerId, InteractionChannel channel,
 			String summary, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		if (opportunityId == null && customerId == null) {

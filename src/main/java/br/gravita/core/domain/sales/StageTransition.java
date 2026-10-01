@@ -20,7 +20,7 @@ public final class StageTransition {
 	private final OpportunityStage toStage;
 	private final Instant timestamp;
 
-	private StageTransition(StageTransitionId id, OpportunityId opportunityId, OpportunityStage fromStage,
+	public StageTransition(StageTransitionId id, OpportunityId opportunityId, OpportunityStage fromStage,
 			OpportunityStage toStage, Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.opportunityId = Objects.requireNonNull(opportunityId, "opportunityId is required");

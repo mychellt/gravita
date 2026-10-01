@@ -22,6 +22,6 @@ class CommissionRateRepositoryAdapter implements CommissionRateRepositoryPort {
 
 	@Override
 	public Optional<CommissionRate> findBySalespersonAndProduct(UUID salespersonId, UUID productId) {
-		return jpaRepository.findBySalespersonIdAndProductId(salespersonId, productId).map(mapper::toDomain);
+		return jpaRepository.findBySalespersonIdAndProductId(salespersonId, productId).map(mapper::map);
 	}
 }

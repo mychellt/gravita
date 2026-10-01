@@ -9,7 +9,5 @@ import org.mapstruct.NullValueCheckStrategy;
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface CommissionRatePersistenceMapper {
 
-	default CommissionRate toDomain(final CommissionRateJpaEntity entity) {
-		return new CommissionRate(entity.getSalespersonId(), entity.getProductId(), entity.getRate());
-	}
+	CommissionRate map(final CommissionRateJpaEntity entity);
 }

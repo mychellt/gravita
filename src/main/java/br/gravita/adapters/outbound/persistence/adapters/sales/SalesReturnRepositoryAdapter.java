@@ -24,19 +24,19 @@ class SalesReturnRepositoryAdapter implements SalesReturnRepositoryPort {
 
 	@Override
 	public SalesReturn save(SalesReturn salesReturn) {
-		SalesReturnJpaEntity entity = mapper.toEntity(salesReturn);
+		SalesReturnJpaEntity entity = mapper.map(salesReturn);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		SalesReturnJpaEntity saved = jpaRepository.save(entity);
-		return mapper.toDomain(saved);
+		return mapper.map(saved);
 	}
 
 	@Override
 	public Optional<SalesReturn> findById(SalesReturnId id) {
-		return jpaRepository.findById(id.value()).map(mapper::toDomain);
+		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	public List<SalesReturn> findByOrderId(SalesOrderId orderId) {
-		return jpaRepository.findBySalesOrderId(orderId.value()).stream().map(mapper::toDomain).toList();
+		return jpaRepository.findBySalesOrderId(orderId.value()).stream().map(mapper::map).toList();
 	}
 }

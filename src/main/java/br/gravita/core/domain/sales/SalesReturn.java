@@ -26,7 +26,7 @@ public final class SalesReturn {
 	private final boolean total;
 	private final FiscalDocumentRef returnNfeRef;
 
-	private SalesReturn(SalesReturnId id, SalesOrderId orderId, List<SalesReturnItem> items, boolean total,
+	public SalesReturn(SalesReturnId id, SalesOrderId orderId, List<SalesReturnItem> items, boolean total,
 			FiscalDocumentRef returnNfeRef) {
 		this.id = Objects.requireNonNull(id, "SalesReturnId is required");
 		this.orderId = Objects.requireNonNull(orderId, "orderId is required");
