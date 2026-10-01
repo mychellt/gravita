@@ -1,0 +1,47 @@
+@if (customer(); as c) {
+  <app-page-header [title]="c.nomeFantasia || c.razaoSocial" subtitle="Informações do cliente · somente leitura">
+    <a routerLink="/admin/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <a [routerLink]="['/admin/clientes', c.id, 'pagamentos']" class="btn btn-ghost"><i class="ti ti-cash"></i> Histórico de pagamentos</a>
+  </app-page-header>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-building form-section-icon"></i><span class="form-section-title">Empresa</span>
+    </div>
+    <div class="form-body detail-grid">
+      <div><span class="form-label">Razão social</span><div class="detail-value">{{ c.razaoSocial || '--' }}</div></div>
+      <div><span class="form-label">Nome fantasia</span><div class="detail-value">{{ c.nomeFantasia || '--' }}</div></div>
+      <div><span class="form-label">CNPJ</span><div class="detail-value td-mono">{{ c.cnpj || '--' }}</div></div>
+      <div><span class="form-label">Status</span><div class="detail-value"><app-badge [value]="c.status" /></div></div>
+      <div><span class="form-label">Cliente desde</span><div class="detail-value">{{ c.assinaturaDesde | date:'dd/MM/yyyy' }}</div></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-phone form-section-icon"></i><span class="form-section-title">Contato</span>
+    </div>
+    <div class="form-body detail-grid">
+      <div><span class="form-label">Responsável</span><div class="detail-value">{{ c.responsavel || '--' }}</div></div>
+      <div><span class="form-label">E-mail</span><div class="detail-value">{{ c.email || '--' }}</div></div>
+      <div><span class="form-label">Telefone</span><div class="detail-value">{{ c.telefone || '--' }}</div></div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-head">
+      <i class="ti ti-tags form-section-icon"></i><span class="form-section-title">Plano</span>
+    </div>
+    <div class="form-body detail-grid">
+      <div><span class="form-label">Plano contratado</span><div class="detail-value">{{ plan()?.name || c.planTier }}</div></div>
+      <div><span class="form-label">Mensalidade</span><div class="detail-value">{{ plan() ? (plan()!.priceMonthly | brl) : '--' }}</div></div>
+      @for (l of limits(); track l.label) {
+        <div><span class="form-label">{{ l.label }}</span><div class="detail-value">{{ l.value }}</div></div>
+      }
+    </div>
+  </div>
+} @else {
+  <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
+    <a routerLink="/admin/clientes" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  </app-page-header>
+}

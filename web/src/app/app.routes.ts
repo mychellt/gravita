@@ -17,6 +17,14 @@ export const routes: Routes = [
         path: 'clientes',
         loadComponent: () => import('./modules/admin/customers/platform-customers.component').then(m => m.PlatformCustomersComponent)
       },
+      {
+        path: 'clientes/:id',
+        loadComponent: () => import('./modules/admin/customers/platform-customer-detail.component').then(m => m.PlatformCustomerDetailComponent)
+      },
+      {
+        path: 'clientes/:id/pagamentos',
+        loadComponent: () => import('./modules/admin/customers/platform-customer-payments.component').then(m => m.PlatformCustomerPaymentsComponent)
+      },
     ]
   },
   {
