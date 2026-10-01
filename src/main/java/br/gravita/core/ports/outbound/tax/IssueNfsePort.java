@@ -4,7 +4,7 @@ import br.gravita.core.domain.tax.NfseMunicipalityUnavailableException;
 import br.gravita.core.domain.tax.NfseStandard;
 
 /**
- * Transmits an NFSe to a municipality over one {@link NfseStandard}'s webservice. There is one implementation per
+ * Transmits - and cancels - an NFSe to a municipality over one {@link NfseStandard}'s webservice. There is one implementation per
  * standard (ABRASF, NFS-e Nacional, ISS.net, Betha); {@code TransmitNfseService} picks the one whose
  * {@link #standard()} matches the municipality's registered standard, so supporting a new standard means adding an
  * implementation - nothing in the use case changes.
@@ -22,4 +22,12 @@ public interface IssueNfsePort {
 	 * @throws NfseMunicipalityUnavailableException when the municipality cannot be reached or does not answer in time
 	 */
 	NfseIssueResult issue(NfseIssueRequest request);
+
+	/**
+	 * Builds, signs and submits the cancellation of an authorized NFSe, carrying the mandatory justification. Goes
+	 * through the same adapter that issued it, so cancelling needs no extra per-standard wiring.
+	 *
+	 * @throws NfseMunicipalityUnavailableException when the municipality cannot be reached or does not answer in time
+	 */
+	NfseCancellationResult cancel(NfseCancellationRequest request);
 }

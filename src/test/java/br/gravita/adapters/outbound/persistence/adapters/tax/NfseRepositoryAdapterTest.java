@@ -157,6 +157,15 @@ class NfseRepositoryAdapterTest {
 		assertThat(found.getAuthorizedAt()).isEqualTo(Instant.parse("2026-10-01T12:00:03Z"));
 		assertThat(found.getXmlReference()).isEqualTo("xml/nfse-3");
 		assertThat(found.getLastRejectionReason()).isNull();
+
+		nfseRepositoryAdapter.save(found.cancel("Servico nao prestado", Instant.parse("2026-10-02T09:00:00Z")));
+		NfseDocument cancelled = nfseRepositoryAdapter.findById(found.getId()).orElseThrow();
+
+		assertThat(cancelled.getStatus()).isEqualTo(NfseStatus.CANCELLED);
+		assertThat(cancelled.getCancellationJustification()).isEqualTo("Servico nao prestado");
+		assertThat(cancelled.getCancelledAt()).isEqualTo(Instant.parse("2026-10-02T09:00:00Z"));
+		assertThat(cancelled.getProtocol()).isEqualTo("PROT-77");
+		assertThat(cancelled.getXmlReference()).isEqualTo("xml/nfse-3");
 	}
 
 	@Test

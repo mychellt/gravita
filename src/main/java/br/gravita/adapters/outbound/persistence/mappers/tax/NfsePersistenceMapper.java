@@ -48,7 +48,9 @@ public interface NfsePersistenceMapper {
 				entity.getProtocol(),
 				entity.getAuthorizedAt(),
 				entity.getXmlReference(),
-				entity.getLastRejectionReason());
+				entity.getLastRejectionReason(),
+				entity.getCancellationJustification(),
+				entity.getCancelledAt());
 	}
 
 	default NfseJpaEntity toEntity(final NfseDocument domain) {
@@ -89,6 +91,8 @@ public interface NfsePersistenceMapper {
 				.authorizedAt(domain.getAuthorizedAt())
 				.xmlReference(domain.getXmlReference())
 				.lastRejectionReason(domain.getLastRejectionReason())
+				.cancellationJustification(domain.getCancellationJustification())
+				.cancelledAt(domain.getCancelledAt())
 				.withholdings(toWithholdingEmbeddables(domain.getWithholdings()))
 				.build();
 	}
