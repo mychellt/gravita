@@ -1,0 +1,48 @@
+<app-page-header title="Clientes" subtitle="Administração · Cadastro de clientes do tenant">
+  <a routerLink="/settings" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+</app-page-header>
+
+<div class="card">
+  <div class="card-head">
+    <span class="card-title">Todos os clientes</span>
+    <input class="filter-input" type="text" placeholder="Buscar por nome ou documento..."
+           aria-label="Buscar cliente por nome ou documento"
+           [value]="searchQuery()"
+           (input)="searchQuery.set($any($event.target).value)" />
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Documento</th>
+        <th>Status</th>
+        <th class="td-right">Limite de crédito</th>
+        <th class="td-right">Saldo devedor</th>
+        <th class="td-actions">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (c of clientes(); track c.id) {
+        <tr>
+          <td class="td-name">{{ c.nome || '--' }}</td>
+          <td class="td-mono">{{ c.documento || '--' }}</td>
+          <td>
+            @if (c.status) { <app-badge [value]="c.status" /> } @else { -- }
+          </td>
+          <td class="td-right">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</td>
+          <td class="td-right">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</td>
+          <td class="td-actions">
+            <a class="action-btn" [routerLink]="['/settings/clientes', c.id]">Dados</a>
+            <a class="action-btn" [routerLink]="['/settings/clientes', c.id, 'pagamentos']">Pagamentos</a>
+            <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
+          </td>
+        </tr>
+      }
+      @empty {
+        <tr>
+          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

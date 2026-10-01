@@ -4,7 +4,7 @@
 <div class="settings-layout">
   <div class="settings-menu card">
     @for (m of menus; track m.key) {
-      <div class="settings-menu-item" [class.active]="activeMenu() === m.key" (click)="activeMenu.set(m.key)">
+      <div class="settings-menu-item" [class.active]="activeMenu() === m.key" (click)="selectMenu(m)">
         <i class="ti {{ m.icon }}"></i>{{ m.label }}
       </div>
     }
