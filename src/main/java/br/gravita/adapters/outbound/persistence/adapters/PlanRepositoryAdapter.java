@@ -3,6 +3,7 @@ package br.gravita.adapters.outbound.persistence.adapters;
 import br.gravita.adapters.outbound.persistence.entities.PlanJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.PlanJpaRepository;
+import br.gravita.adapters.outbound.persistence.repositories.SubscriptionJpaRepository;
 import br.gravita.core.domain.PlanDomain;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import org.springframework.stereotype.Component;
@@ -15,10 +16,13 @@ import java.util.UUID;
 class PlanRepositoryAdapter implements PlanRepositoryPort {
 
 	private final PlanJpaRepository jpaRepository;
+	private final SubscriptionJpaRepository subscriptionJpaRepository;
 	private final PlanPersistenceMapper mapper;
 
-	PlanRepositoryAdapter(PlanJpaRepository jpaRepository, PlanPersistenceMapper mapper) {
+	PlanRepositoryAdapter(PlanJpaRepository jpaRepository, SubscriptionJpaRepository subscriptionJpaRepository,
+			PlanPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
+		this.subscriptionJpaRepository = subscriptionJpaRepository;
 		this.mapper = mapper;
 	}
 
@@ -38,6 +42,11 @@ class PlanRepositoryAdapter implements PlanRepositoryPort {
 	@Override
 	public List<PlanDomain> findAll() {
 		return jpaRepository.findAll().stream().map(mapper::map).toList();
+	}
+
+	@Override
+	public boolean hasSubscriptions(UUID id) {
+		return subscriptionJpaRepository.existsByPlanId(id);
 	}
 
 	@Override

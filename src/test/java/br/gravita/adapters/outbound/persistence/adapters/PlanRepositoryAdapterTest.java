@@ -3,8 +3,8 @@ package br.gravita.adapters.outbound.persistence.adapters;
 import br.gravita.adapters.outbound.persistence.entities.PlanJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.PlanJpaRepository;
+import br.gravita.adapters.outbound.persistence.repositories.SubscriptionJpaRepository;
 import br.gravita.core.domain.PlanDomain;
-import br.gravita.core.domain.PlanTier;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,11 +12,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static br.gravita.core.domain.PlanFixtures.aPlan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.same;
@@ -28,6 +28,9 @@ class PlanRepositoryAdapterTest {
 
 	@Mock
 	private PlanJpaRepository repository;
+
+	@Mock
+	private SubscriptionJpaRepository subscriptionRepository;
 
 	@Mock
 	private PlanPersistenceMapper mapper;
@@ -122,19 +125,23 @@ class PlanRepositoryAdapterTest {
 		verify(repository, never()).delete(org.mockito.ArgumentMatchers.any());
 	}
 
+	@Test
+	@DisplayName("Reports whether any subscription references the plan")
+	void shouldReportSubscriptionsReferencingPlan() {
+		final UUID referenced = UUID.randomUUID();
+		final UUID unreferenced = UUID.randomUUID();
+		when(subscriptionRepository.existsByPlanId(referenced)).thenReturn(true);
+		when(subscriptionRepository.existsByPlanId(unreferenced)).thenReturn(false);
+
+		assertThat(adapter.hasSubscriptions(referenced)).isTrue();
+		assertThat(adapter.hasSubscriptions(unreferenced)).isFalse();
+	}
+
 	private PlanJpaEntity buildEntity(final UUID id) {
 		return PlanJpaEntity.builder().id(id).build();
 	}
 
 	private PlanDomain buildPlan(final String name) {
-		final PlanDomain plan = PlanDomain.builder()
-				.name(name)
-				.tier(PlanTier.SILVER)
-				.priceMonthly(BigDecimal.TEN)
-				.priceAnnual(BigDecimal.ONE)
-				.features(List.of("x"))
-				.build();
-		plan.setId(UUID.randomUUID());
-		return plan;
+		return aPlan().name(name).build();
 	}
 }
