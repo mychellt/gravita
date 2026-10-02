@@ -25,7 +25,7 @@ public abstract class AbstractEntity<K> implements Persistable<K> {
     @Column(name = "modified_at", nullable = false)
     private Date modifiedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     @Builder.Default
     private boolean active = true;
 
