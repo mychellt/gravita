@@ -268,18 +268,64 @@ document.getElementById('form2').addEventListener('submit', async function (e) {
   const spinner   = document.getElementById('btn-spinner');
   const submitBtn = document.getElementById('btn-submit');
 
-  btnText.textContent = 'Criando conta…';
-  btnIcon.classList.add('hidden');
-  spinner.classList.remove('hidden');
-  submitBtn.disabled = true;
+  const setSubmitting = submitting => {
+    btnText.textContent = submitting ? 'Criando conta…' : 'Criar conta';
+    btnIcon.classList.toggle('hidden', submitting);
+    spinner.classList.toggle('hidden', !submitting);
+    submitBtn.disabled = submitting;
+  };
 
-  await new Promise(r => setTimeout(r, 1600));
+  const errForm = document.getElementById('err-form');
+  errForm.textContent = '';
+  setSubmitting(true);
+
+  try {
+    const response = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        fullName:    document.getElementById('full-name').value.trim(),
+        email:       document.getElementById('email').value.trim(),
+        password:    document.getElementById('password').value,
+        companyName: company,
+        cnpj,
+        phone:       document.getElementById('phone').value.trim(),
+        plan:        params.get('plan') || undefined,
+        billing:     params.get('billing') || undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      showSignupError(response.status, error);
+      setSubmitting(false);
+      return;
+    }
+  } catch (networkError) {
+    errForm.textContent = 'Não foi possível criar a conta agora. Tente novamente em instantes.';
+    setSubmitting(false);
+    return;
+  }
 
   document.getElementById('confirm-email').textContent =
     document.getElementById('email').value.trim();
 
   goToStep(3);
 });
+
+// A 400 names the offending field: the email lives on step 1, so bring the user back to it.
+function showSignupError(status, error) {
+  if (status === 400 && error.field === 'email') {
+    goToStep(1);
+    setError('email', 'err-email', error.message);
+  } else if (status === 400 && error.field === 'cnpj') {
+    setError('cnpj', 'err-cnpj', error.message);
+  } else {
+    document.getElementById('err-form').textContent = status === 400 && error.message
+      ? error.message
+      : 'Não foi possível criar a conta agora. Tente novamente em instantes.';
+  }
+}
 
 document.getElementById('resend-btn').addEventListener('click', function () {
   this.textContent = 'Enviado!';

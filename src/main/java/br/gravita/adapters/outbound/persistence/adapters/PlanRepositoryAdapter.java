@@ -5,6 +5,7 @@ import br.gravita.adapters.outbound.persistence.mappers.PlanPersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.PlanJpaRepository;
 import br.gravita.adapters.outbound.persistence.repositories.SubscriptionJpaRepository;
 import br.gravita.core.domain.PlanDomain;
+import br.gravita.core.domain.PlanTier;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +43,11 @@ class PlanRepositoryAdapter implements PlanRepositoryPort {
 	@Override
 	public List<PlanDomain> findAll() {
 		return jpaRepository.findAll().stream().map(mapper::map).toList();
+	}
+
+	@Override
+	public Optional<PlanDomain> findActiveByTier(PlanTier tier) {
+		return jpaRepository.findFirstByTierAndActiveTrueOrderByCreatedAt(tier).map(mapper::map);
 	}
 
 	@Override
