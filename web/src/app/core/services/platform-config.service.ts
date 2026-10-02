@@ -1,5 +1,8 @@
-import { Injectable, computed, signal } from '@angular/core';
-import { PlatformConfig } from '../models';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { Plan, PlatformConfig } from '../models';
 
 /** Limites legais/de produto que o administrador não pode reduzir. */
 export const PLATFORM_MINIMUMS = {
@@ -9,57 +12,7 @@ export const PLATFORM_MINIMUMS = {
 } as const;
 
 const DEFAULT_CONFIG: PlatformConfig = {
-  plans: [
-    {
-      id: 'plan-bronze', tier: 'BRONZE', name: 'Bronze',
-      description: 'Para pequenos varejos com até 1 CNPJ e operação simplificada.',
-      priceMonthly: 297, priceAnnual: 247, featured: false, active: true,
-      limits: { cnpjs: 1, filiais: 1, caixasPdv: 1, usuarios: 3 },
-      features: [
-        { label: 'NF-e e NFC-e ilimitadas',          included: true },
-        { label: 'Estoque e Compras',                included: true },
-        { label: 'Financeiro básico (CR/CP)',        included: true },
-        { label: 'Dashboard executivo',              included: true },
-        { label: 'NFS-e (serviços)',                 included: false },
-        { label: 'Integração bancária (boleto/PIX)', included: false },
-        { label: 'Integração e-commerce',            included: false },
-        { label: 'API REST + Webhooks',              included: false },
-      ],
-      support: { email: true, chat: true, telefone: false, slaHoras: 8, horarioComercial: true, gerenteDedicado: false },
-    },
-    {
-      id: 'plan-silver', tier: 'SILVER', name: 'Silver',
-      description: 'Para varejos em crescimento com múltiplos caixas, NFS-e e integrações.',
-      priceMonthly: 597, priceAnnual: 497, featured: true, active: true,
-      limits: { cnpjs: 1, filiais: 3, caixasPdv: 5, usuarios: 10 },
-      features: [
-        { label: 'NF-e, NFC-e e NFS-e ilimitadas',     included: true },
-        { label: 'Estoque, Compras e CRM completo',    included: true },
-        { label: 'Financeiro + integração bancária',   included: true },
-        { label: 'NFS-e multi-município',              included: true },
-        { label: 'WhatsApp Business API',              included: true },
-        { label: 'Relatórios avançados + DRE',         included: true },
-        { label: 'Conciliação bancária (OFX/CSV)',     included: true },
-        { label: 'API REST + Webhooks',                included: false },
-      ],
-      support: { email: true, chat: true, telefone: false, slaHoras: 8, horarioComercial: true, gerenteDedicado: false },
-    },
-    {
-      id: 'plan-gold', tier: 'GOLD', name: 'Gold',
-      description: 'Para redes de varejo e operações complexas com múltiplos CNPJs e API aberta.',
-      priceMonthly: 1197, priceAnnual: 997, featured: false, active: true,
-      limits: { cnpjs: null, filiais: null, caixasPdv: null, usuarios: null },
-      features: [
-        { label: 'NF-e, NFC-e e NFS-e ilimitadas',          included: true },
-        { label: 'Todos os módulos incluídos',              included: true },
-        { label: 'API REST + Webhooks',                     included: true },
-        { label: 'Integração e-commerce (Shopify, VTEX)',   included: true },
-        { label: 'Ambiente sandbox incluso',                included: true },
-        { label: 'Exportação contábil configurável',        included: true },
-      ],
-      support: { email: true, chat: true, telefone: true, slaHoras: 2, horarioComercial: false, gerenteDedicado: true },
-    },
-  ],
+  plans: [], // vêm de GET /api/plans (PlatformConfigService.loadPlans)
   billing: {
     trialDias: 14,
     trialExigeCartao: false,
@@ -116,28 +69,107 @@ const DEFAULT_CONFIG: PlatformConfig = {
   ],
 };
 
+export type PlansStatus = 'loading' | 'ready' | 'error';
+
+/** Mensagem para o usuário a partir de uma falha de `HttpClient`; o backend responde regras de negócio (409) em texto puro. */
+function describeFailure(error: unknown, action: string): string {
+  if (!(error instanceof HttpErrorResponse)) return `Não foi possível ${action}.`;
+  if (error.status === 0) return `Não foi possível ${action}: sem conexão com o servidor.`;
+  const detail = error.status < 500 && typeof error.error === 'string' ? error.error.trim() : '';
+  return detail ? `Não foi possível ${action}: ${detail}` : `Não foi possível ${action} (erro ${error.status}).`;
+}
+
+const byMonthlyPrice = (a: Plan, b: Plan) => a.priceMonthly - b.priceMonthly;
+const sameContent = (a: Plan, b: Plan) => JSON.stringify(a) === JSON.stringify(b);
+
 /**
  * Configuração global da plataforma — vale para todos os clientes (tenants)
  * e só pode ser alterada pela área administrativa (`/admin`).
- * Mock em memória, como o `DataService`; substituir por chamadas à API.
+ * Os planos vêm de `/api/plans`; as demais seções ainda são mock em memória, como o `DataService`.
  */
 @Injectable({ providedIn: 'root' })
 export class PlatformConfigService {
+  private readonly http = inject(HttpClient);
+  private readonly plansUrl = `${environment.apiUrl}/plans`;
+
   private readonly _config = signal<PlatformConfig>(structuredClone(DEFAULT_CONFIG));
   private readonly _lastSaved = signal<{ at: Date; by: string } | null>(null);
+  private readonly _plansStatus = signal<PlansStatus>('loading');
+  private readonly _plansError = signal('');
+  private plansRequest: Promise<void> | null = null;
 
   readonly config = this._config.asReadonly();
   readonly lastSaved = this._lastSaved.asReadonly();
+  readonly plansStatus = this._plansStatus.asReadonly();
+  readonly plansError = this._plansError.asReadonly();
   readonly activePlans = computed(() => this._config().plans.filter(p => p.active));
+
+  constructor() {
+    void this.loadPlans();
+  }
 
   /** Cópia independente para edição — nunca expõe o estado salvo para mutação. */
   snapshot(): PlatformConfig {
     return structuredClone(this._config());
   }
 
+  /** Busca os planos no backend. Nunca rejeita: o resultado fica em `plansStatus`/`plansError`. */
+  loadPlans(): Promise<void> {
+    this.plansRequest ??= this.fetchPlans().finally(() => (this.plansRequest = null));
+    return this.plansRequest;
+  }
+
+  /**
+   * Persiste os planos no backend (POST/PUT/DELETE conforme a diferença para o estado salvo) e as demais
+   * seções em memória. Se uma chamada falhar, o que já foi gravado fica refletido no estado salvo e o erro é relançado.
+   */
   async save(config: PlatformConfig, by: string): Promise<void> {
-    await new Promise(r => setTimeout(r, 500));
-    this._config.set(structuredClone(config));
+    const plans = await this.savePlans(config.plans);
+    this._config.set(structuredClone({ ...config, plans }));
     this._lastSaved.set({ at: new Date(), by });
+  }
+
+  private async fetchPlans(): Promise<void> {
+    this._plansStatus.set('loading');
+    try {
+      const plans = await firstValueFrom(this.http.get<Plan[]>(this.plansUrl));
+      this._config.update(c => ({ ...c, plans: [...plans].sort(byMonthlyPrice) }));
+      this._plansError.set('');
+      this._plansStatus.set('ready');
+    } catch (error) {
+      this._plansError.set(describeFailure(error, 'carregar os planos'));
+      this._plansStatus.set('error');
+    }
+  }
+
+  private async savePlans(draft: Plan[]): Promise<Plan[]> {
+    const saved = this._config().plans;
+    const savedById = new Map(saved.map(p => [p.id, p]));
+    const draftIds = new Set(draft.map(p => p.id));
+    const resolved = new Map<Plan, Plan>();
+    let persisted = saved; // o que o backend guarda, atualizado a cada chamada bem-sucedida
+
+    try {
+      for (const removed of saved.filter(p => !draftIds.has(p.id))) {
+        await firstValueFrom(this.http.delete<void>(`${this.plansUrl}/${removed.id}`));
+        persisted = persisted.filter(p => p.id !== removed.id);
+      }
+      for (const plan of draft.filter(p => savedById.has(p.id))) {
+        if (sameContent(plan, savedById.get(plan.id)!)) { resolved.set(plan, plan); continue; }
+        const updated = await firstValueFrom(this.http.put<Plan>(`${this.plansUrl}/${plan.id}`, plan));
+        persisted = persisted.map(p => (p.id === updated.id ? updated : p));
+        resolved.set(plan, updated);
+      }
+      for (const plan of draft.filter(p => !savedById.has(p.id))) {
+        const { id: _clientId, ...body } = plan;
+        const created = await firstValueFrom(this.http.post<Plan>(this.plansUrl, body));
+        persisted = [...persisted, created];
+        resolved.set(plan, created);
+      }
+    } catch (error) {
+      this._config.update(c => ({ ...c, plans: persisted }));
+      throw new Error(describeFailure(error, 'salvar os planos'));
+    }
+    return draft.map(p => resolved.get(p)!);
   }
 }

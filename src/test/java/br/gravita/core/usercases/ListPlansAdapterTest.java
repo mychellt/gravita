@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -31,5 +32,14 @@ class ListPlansAdapterTest {
 		List<PlanDomain> plans = adapter.execute(new Context());
 
 		assertThat(plans).containsExactly(plan);
+	}
+
+	@DisplayName("Reads inside a transaction so the plan's lazy features can be mapped (open-in-view is off)")
+	@Test
+	void shouldReadInsideATransaction() throws NoSuchMethodException {
+		Transactional transactional = ListPlansAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
+
+		assertThat(transactional).isNotNull();
+		assertThat(transactional.readOnly()).isTrue();
 	}
 }

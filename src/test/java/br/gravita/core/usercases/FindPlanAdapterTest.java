@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -45,5 +46,14 @@ class FindPlanAdapterTest {
 		when(planRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id))).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@DisplayName("Reads inside a transaction so the plan's lazy features can be mapped (open-in-view is off)")
+	@Test
+	void shouldReadInsideATransaction() throws NoSuchMethodException {
+		Transactional transactional = FindPlanAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
+
+		assertThat(transactional).isNotNull();
+		assertThat(transactional.readOnly()).isTrue();
 	}
 }
