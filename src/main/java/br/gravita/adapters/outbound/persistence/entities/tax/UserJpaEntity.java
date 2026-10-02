@@ -45,6 +45,9 @@ public class UserJpaEntity {
 	@Column(name = "profile_id", nullable = false)
 	private UUID profileId;
 
+	@Column(name = "company_id")
+	private UUID companyId;
+
 	@Column(name = "two_factor_enabled", nullable = false)
 	private boolean twoFactorEnabled;
 

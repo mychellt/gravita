@@ -22,10 +22,16 @@ public class User {
 	private String email;
 	private String rawPassword;
 	private UUID profileId;
+	private UUID companyId;
 	private boolean twoFactorEnabled;
 	private UserStatus status;
 
 	public static User register(String name, String email, String rawPassword, ProfileReference profile) {
+		return register(name, email, rawPassword, profile, null);
+	}
+
+	/** Registers a user that belongs to the tenant company {@code companyId}. */
+	public static User register(String name, String email, String rawPassword, ProfileReference profile, UUID companyId) {
 		validate(name, email, rawPassword, profile);
 		return User.builder()
 				.id(UserId.generate())
@@ -33,6 +39,7 @@ public class User {
 				.email(email)
 				.rawPassword(rawPassword)
 				.profileId(profile.id())
+				.companyId(companyId)
 				.twoFactorEnabled(profile.isAdministrator())
 				.status(UserStatus.ACTIVE)
 				.build();
