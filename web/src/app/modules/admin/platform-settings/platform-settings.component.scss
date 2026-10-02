@@ -164,3 +164,6 @@
   .form-row.cols-2, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
   .admin-toolbar ::ng-deep .page-header { flex-wrap: wrap; }
 }
+
+.plans-state { display: flex; align-items: center; gap: 10px; }
+.plans-state .btn { margin-left: auto; }

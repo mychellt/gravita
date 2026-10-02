@@ -27,9 +27,16 @@ npm install
 npm start
 # Acesse: http://localhost:4200
 
-# 3. Build de produção
+# 3. Testes unitários (Karma + Chrome headless; defina CHROME_BIN se o Chrome não estiver no PATH)
+npm test
+
+# 4. Build de produção
 npm run build:prod
 ```
+
+Chamadas à API usam `environment.apiUrl` (`/api`). Em desenvolvimento o `ng serve` encaminha `/api` para
+`http://localhost:8080` (`proxy.conf.json`), então suba o backend com o perfil `local` para a tela de planos
+(`/admin/settings/planos`) carregar os planos de `GET /api/plans`.
 
 ## Estrutura de pastas
 
@@ -99,14 +106,14 @@ src/
 - **Angular Signals** — estado reativo sem RxJS overhead
 - **Lazy loading** — cada módulo carregado sob demanda via `loadComponent`
 - **Design tokens** — todas as cores e tamanhos via CSS custom properties
-- **Mock data** — `DataService` com signals simulando backend real
+- **Mock data** — `DataService` com signals simulando backend real (exceto os planos, que já vêm de `/api/plans`)
 
 ## Próximos passos (pós-MVP)
 
 1. Integrar com API REST real (substituir `DataService`)
-2. Adicionar `HttpClient` com interceptors de autenticação
+2. Adicionar interceptors de autenticação ao `HttpClient` (já provido, usado só por `/api/plans`)
 3. Implementar guards de rota por perfil de permissão
-4. Adicionar testes unitários (Jest / Karma)
+4. Ampliar a cobertura de testes unitários (Karma já configurado)
 5. PWA + service worker para PDV offline
 
 ## Deploy AWS (S3 apenas)

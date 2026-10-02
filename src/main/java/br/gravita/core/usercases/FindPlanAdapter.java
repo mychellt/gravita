@@ -6,6 +6,7 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.ports.business.FindPlanPort;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class FindPlanAdapter implements FindPlanPort {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public PlanDomain execute(Context context) {
 		UUID id = context.getData(UUID.class);
 		return planRepositoryPort.findById(id)

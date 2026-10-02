@@ -1,7 +1,14 @@
 {
   "/app.html": {
     "target": "http://localhost:4200",
-    "pathRewrite": { "^/app.html$": "/dashboard" },
+    "pathRewrite": {
+      "^/app.html$": "/dashboard"
+    },
     "logLevel": "silent"
+  },
+  "/api": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true
   }
 }

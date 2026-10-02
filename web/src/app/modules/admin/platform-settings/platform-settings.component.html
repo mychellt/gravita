@@ -49,8 +49,23 @@
       <div class="settings-panel-sub">{{ currentSection.desc }}</div>
     </div>
 
+    <!-- Planos e Suporte editam os planos vindos de /api/plans -->
+    @if ((activeSection() === 'planos' || activeSection() === 'suporte') && cfg.plansStatus() !== 'ready') {
+      @if (cfg.plansStatus() === 'loading') {
+        <div class="plans-state" role="status"><i class="ti ti-loader-2 spin"></i> Carregando planos…</div>
+      } @else {
+        <div class="alert danger plans-state" role="alert">
+          <i class="ti ti-alert-triangle"></i>
+          <span>{{ cfg.plansError() }}</span>
+          <button type="button" class="btn btn-ghost btn-sm" (click)="loadPlans()">
+            <i class="ti ti-refresh"></i> Tentar novamente
+          </button>
+        </div>
+      }
+    }
+
     <!-- ═══════════════ PLANOS ═══════════════ -->
-    @if (activeSection() === 'planos') {
+    @if (activeSection() === 'planos' && cfg.plansStatus() === 'ready') {
       @if (err('planos.geral'); as m) {
         <div class="alert danger" role="alert"><i class="ti ti-alert-triangle"></i>{{ m }}</div>
       }
@@ -358,7 +373,7 @@
     }
 
     <!-- ═══════════════ SUPORTE & SLA ═══════════════ -->
-    @if (activeSection() === 'suporte') {
+    @if (activeSection() === 'suporte' && cfg.plansStatus() === 'ready') {
       <div class="block">
         <div class="block-title">Atendimento por plano</div>
         <div class="table-wrap">

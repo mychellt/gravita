@@ -95,7 +95,7 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
     private router: Router,
   ) {
     this.draft = cfg.snapshot();
-    this.selectedPlanId.set(this.draft.plans.find(p => p.featured)?.id ?? this.draft.plans[0]?.id ?? '');
+    void this.loadPlans();
   }
 
   /** Bound to the route param `:section` (withComponentInputBinding). */
@@ -110,6 +110,8 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
   ngDoCheck(): void {
     const saved = this.cfg.config();
     this.errors = validatePlatformConfig(this.draft);
+    // sem os planos carregados a lista vazia não é um erro do administrador — a tela já mostra o erro de carregamento
+    if (this.cfg.plansStatus() !== 'ready') delete this.errors['planos.geral'];
     this.dirty = JSON.stringify(this.draft) !== JSON.stringify(saved);
 
     this.dirtySections.clear();
@@ -157,12 +159,27 @@ export class PlatformSettingsComponent implements DoCheck, HasUnsavedChanges {
       return;
     }
     this.saving.set(true);
+    const selectedIndex = this.draft.plans.findIndex(p => p.id === this.selectedPlanId());
     try {
       await this.cfg.save(this.draft, CURRENT_USER);
       this.draft = this.cfg.snapshot();
+      this.selectedPlanId.set(this.draft.plans[selectedIndex]?.id ?? this.draft.plans[0]?.id ?? '');
       this.toast.success('Configurações da plataforma salvas.');
+    } catch (error) {
+      // o rascunho continua como está para o administrador corrigir e tentar de novo
+      this.toast.danger(error instanceof Error ? error.message : 'Não foi possível salvar as configurações.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /** Busca os planos no backend e os coloca no rascunho (usado ao abrir a tela e em "Tentar novamente"). */
+  async loadPlans() {
+    await this.cfg.loadPlans();
+    if (this.cfg.plansStatus() !== 'ready') return;
+    this.draft.plans = this.cfg.snapshot().plans;
+    if (!this.draft.plans.some(p => p.id === this.selectedPlanId())) {
+      this.selectedPlanId.set(this.draft.plans.find(p => p.featured)?.id ?? this.draft.plans[0]?.id ?? '');
     }
   }
 
