@@ -117,6 +117,12 @@
 }
 .reg-step.done .step-label { color: var(--text2); }
 
+/* Final step ("Pronto!") reads as completed, so it is green rather than the blue active state. */
+#step-dot-3.active .step-dot {
+  border-color: var(--success);
+  background: var(--success);
+}
+
 .step-line {
   flex: 1;
   height: 2px;

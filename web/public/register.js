@@ -102,6 +102,9 @@ function goToStep(step) {
 
   document.getElementById(`form-step-${step}`).classList.remove('hidden');
 
+  // Once the account is created the plan can no longer be changed from here.
+  document.querySelector('.ps-change-link')?.classList.toggle('hidden', step === 3);
+
   [1, 2, 3].forEach(n => {
     const dot = document.getElementById(`step-dot-${n}`);
     dot.classList.remove('active', 'done');
