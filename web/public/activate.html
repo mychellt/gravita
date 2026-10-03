@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ativar conta — Gravita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="register.css" />
+</head>
+<body class="reg-body">
+
+  <header class="reg-header">
+    <a href="index.html" class="reg-logo">
+      <div class="reg-logo-mark"><i class="ti ti-building-store"></i></div>
+      <span>Grav<span class="accent">ita</span></span>
+    </a>
+    <a href="index.html" class="reg-back-link">
+      <i class="ti ti-arrow-left"></i> Voltar ao início
+    </a>
+  </header>
+
+  <main class="reg-main reg-main-single">
+    <div class="reg-form-side">
+
+      <div class="reg-card" id="state-loading">
+        <div class="success-wrap">
+          <div class="success-icon neutral"><i class="ti ti-loader-2 spin"></i></div>
+          <h1 class="success-title">Ativando sua conta…</h1>
+        </div>
+      </div>
+
+      <div class="reg-card hidden" id="state-success">
+        <div class="success-wrap">
+          <div class="success-icon"><i class="ti ti-check"></i></div>
+          <h1 class="success-title">Conta ativada</h1>
+          <p class="success-sub">Tudo certo! Seu e-mail foi confirmado e você já pode entrar.</p>
+          <a href="app.html" class="btn-reg activate-login-btn">Ir para o login <i class="ti ti-arrow-right"></i></a>
+        </div>
+      </div>
+
+      <div class="reg-card hidden" id="state-failed">
+        <div class="success-wrap">
+          <div class="success-icon failed"><i class="ti ti-alert-triangle"></i></div>
+          <h1 class="success-title" id="failed-title">Link inválido ou expirado</h1>
+          <p class="success-sub" id="failed-message"></p>
+        </div>
+
+        <form class="reg-form activate-resend-form" id="resend-form" novalidate>
+          <div class="field-group">
+            <label class="field-label" for="resend-email">Seu e-mail de cadastro</label>
+            <div class="field-wrap">
+              <i class="ti ti-mail field-icon"></i>
+              <input class="field-input" id="resend-email" type="email" placeholder="ana@empresa.com.br" autocomplete="email" required />
+            </div>
+            <span class="field-error" id="resend-error" role="alert"></span>
+          </div>
+          <button type="submit" class="btn-reg" id="resend-btn">Reenviar</button>
+          <p class="resend-feedback" id="resend-feedback" role="status"></p>
+        </form>
+
+        <p class="reg-footer-text">Já ativou sua conta? <a href="app.html">Entrar</a></p>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="activation-resend.js"></script>
+  <script src="activate.js"></script>
+</body>
+</html>

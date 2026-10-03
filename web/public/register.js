@@ -330,13 +330,27 @@ function showSignupError(status, error) {
   }
 }
 
-document.getElementById('resend-btn').addEventListener('click', function () {
-  this.textContent = 'Enviado!';
+// Step 3's "Reenviar": the address was captured on step 1, so no navigation or extra prompt is needed.
+document.getElementById('resend-btn').addEventListener('click', async function () {
+  const feedback = document.getElementById('resend-feedback');
+  feedback.textContent = '';
   this.disabled = true;
+  this.textContent = 'Enviando…';
+
+  const result = await resendActivation(document.getElementById('email').value.trim());
+  feedback.textContent = result.message;
+  feedback.classList.toggle('error', !result.ok);
+
+  if (!result.ok) {
+    this.textContent = 'Reenviar';
+    this.disabled = false;
+    return;
+  }
+  this.textContent = 'Enviado!';
   setTimeout(() => {
     this.textContent = 'Reenviar';
     this.disabled = false;
-  }, 5000);
+  }, RESEND_COOLDOWN_MS);
 });
 
 document.getElementById('cnpj').addEventListener('blur', function () {

@@ -17,6 +17,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -74,5 +76,26 @@ class SendActivationEmailServiceTest {
 		doThrow(new IllegalStateException("queue down")).when(sendActivationEmail).send(any());
 
 		assertThatThrownBy(() -> service().execute(command())).hasMessage("queue down");
+	}
+
+	@Test
+	@DisplayName("AC7: earlier open tokens of the user are expired once the new one is stored, the new one is untouched")
+	void shouldExpireEarlierOpenTokens() {
+		ActivationToken previous = ActivationToken.issue(userId, NOW.minusSeconds(120)).token();
+		List<ActivationToken> stored = new ArrayList<>(List.of(previous));
+		when(tokenRepository.save(any(ActivationToken.class))).thenAnswer(call -> {
+			ActivationToken saved = call.getArgument(0);
+			if (!stored.contains(saved)) {
+				stored.add(saved);
+			}
+			return saved;
+		});
+		when(tokenRepository.findUnusedByUserId(userId.value())).thenAnswer(call -> List.copyOf(stored));
+
+		service().execute(command());
+
+		ActivationToken current = stored.get(1);
+		assertThat(previous.getExpiresAt()).isEqualTo(NOW);
+		assertThat(current.getExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(24)));
 	}
 }

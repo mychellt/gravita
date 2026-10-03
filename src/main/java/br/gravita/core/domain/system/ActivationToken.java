@@ -37,6 +37,7 @@ public class ActivationToken {
 	private String tokenHash;
 	private Instant expiresAt;
 	private Instant usedAt;
+	private Instant createdAt;
 
 	public static IssuedActivationToken issue(UserId userId, Instant now) {
 		byte[] secret = new byte[SECRET_BYTES];
@@ -47,6 +48,7 @@ public class ActivationToken {
 				.userId(userId.value())
 				.tokenHash(hash(rawToken))
 				.expiresAt(now.plus(VALIDITY))
+				.createdAt(now)
 				.build();
 		return new IssuedActivationToken(rawToken, token);
 	}
@@ -62,6 +64,18 @@ public class ActivationToken {
 
 	public boolean isUsed() {
 		return usedAt != null;
+	}
+
+	/** Whether this token was issued less than {@code window} before {@code now}. */
+	public boolean wasIssuedWithin(Duration window, Instant now) {
+		return createdAt != null && now.isBefore(createdAt.plus(window));
+	}
+
+	/** Kills a still-open token (a newer one replaces it); a spent or already expired token is left as it was. */
+	public void expire(Instant now) {
+		if (!isUsed() && expiresAt.isAfter(now)) {
+			this.expiresAt = now;
+		}
 	}
 
 	/** Marks the token spent; refuses one that was already used or has expired (a used token wins over an expired one). */
