@@ -32,6 +32,16 @@ public class User {
 
 	/** Registers a user that belongs to the tenant company {@code companyId}. */
 	public static User register(String name, String email, String rawPassword, ProfileReference profile, UUID companyId) {
+		return create(name, email, rawPassword, profile, companyId, UserStatus.ACTIVE);
+	}
+
+	/** Self-service signup: the account stays locked until the owner confirms the activation e-mail. */
+	public static User signUp(String name, String email, String rawPassword, ProfileReference profile, UUID companyId) {
+		return create(name, email, rawPassword, profile, companyId, UserStatus.PENDING_ACTIVATION);
+	}
+
+	private static User create(String name, String email, String rawPassword, ProfileReference profile, UUID companyId,
+			UserStatus status) {
 		validate(name, email, rawPassword, profile);
 		return User.builder()
 				.id(UserId.generate())
@@ -41,8 +51,16 @@ public class User {
 				.profileId(profile.id())
 				.companyId(companyId)
 				.twoFactorEnabled(profile.isAdministrator())
-				.status(UserStatus.ACTIVE)
+				.status(status)
 				.build();
+	}
+
+	/** Only a pending signup can be activated; an administrator-deactivated account must not be reopened this way. */
+	public void activate() {
+		if (status != UserStatus.PENDING_ACTIVATION) {
+			throw new BusinessRuleException("Only a user pending activation can be activated");
+		}
+		this.status = UserStatus.ACTIVE;
 	}
 
 	public void update(String name, String email, ProfileReference profile, UserStatus status) {

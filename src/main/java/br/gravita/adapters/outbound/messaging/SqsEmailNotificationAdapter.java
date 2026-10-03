@@ -25,10 +25,22 @@ public class SqsEmailNotificationAdapter implements EmailNotificationPort {
 
 	@Override
 	public void send(String to, String subject, String body) {
-		String messageBody = objectMapper.writeValueAsString(Map.of("to", to, "subject", subject, "body", body));
+		publish(Map.of("to", to, "subject", subject, "body", body));
+	}
+
+	/**
+	 * {@code body} keeps carrying the plain text, so a downstream mailer that does not know {@code htmlBody} yet
+	 * still delivers a readable (plain) e-mail; one that does can send both as a multipart message.
+	 */
+	@Override
+	public void sendHtml(String to, String subject, String htmlBody, String plainTextBody) {
+		publish(Map.of("to", to, "subject", subject, "body", plainTextBody, "htmlBody", htmlBody));
+	}
+
+	private void publish(Map<String, String> message) {
 		sqsClient.sendMessage(SendMessageRequest.builder()
 				.queueUrl(queueUrl)
-				.messageBody(messageBody)
+				.messageBody(objectMapper.writeValueAsString(message))
 				.build());
 	}
 }

@@ -125,4 +125,42 @@ class UserTest {
 		assertThatThrownBy(() -> user.update(null, "not-an-email", null, null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
+
+	@Test
+	@DisplayName("A self-service signup starts pending activation, not active")
+	void shouldSignUpPendingActivation() {
+		User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
+
+		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
+		assertThat(user.isTwoFactorEnabled()).isTrue();
+	}
+
+	@Test
+	@DisplayName("An administrator-registered user is still active right away")
+	void shouldRegisterAsActive() {
+		assertThat(User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON).getStatus())
+				.isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	@DisplayName("Activating a pending user makes it active")
+	void shouldActivatePendingUser() {
+		User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
+
+		user.activate();
+
+		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	@DisplayName("Activation never reopens an administrator-deactivated or already active user")
+	void shouldRejectActivatingAUserThatIsNotPending() {
+		User inactive = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		inactive.update(null, null, null, UserStatus.INACTIVE);
+		User active = User.register("John Doe", "john@example.com", "s3cret!", SALESPERSON);
+
+		assertThatThrownBy(inactive::activate).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(active::activate).isInstanceOf(BusinessRuleException.class);
+		assertThat(inactive.getStatus()).isEqualTo(UserStatus.INACTIVE);
+	}
 }

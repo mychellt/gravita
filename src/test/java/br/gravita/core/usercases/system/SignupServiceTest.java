@@ -10,6 +10,9 @@ import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.system.SignupRejectedException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;
+import br.gravita.core.domain.system.UserSignedUp;
+import br.gravita.core.domain.system.UserStatus;
+import br.gravita.core.ports.messaging.PublishUserSignedUpPort;
 import br.gravita.core.ports.outbound.persistence.CompanyPersonRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.SubscriptionRepositoryPort;
@@ -56,6 +59,8 @@ class SignupServiceTest {
 	private PlanRepositoryPort planRepository;
 	@Mock
 	private SubscriptionRepositoryPort subscriptionRepository;
+	@Mock
+	private PublishUserSignedUpPort publishUserSignedUp;
 
 	private SignupService service;
 	private final UUID companyId = UUID.randomUUID();
@@ -64,7 +69,7 @@ class SignupServiceTest {
 	@BeforeEach
 	void setUp() {
 		service = new SignupService(companyRepository, userRepository, profileRepository, planRepository,
-				subscriptionRepository);
+				subscriptionRepository, publishUserSignedUp);
 		lenient().when(profileRepository.findByName(SignupService.ADMINISTRATOR_PROFILE_NAME))
 				.thenReturn(Optional.of(ADMINISTRATOR));
 		lenient().when(planRepository.findActiveByTier(any(PlanTier.class))).thenAnswer(invocation ->
@@ -99,6 +104,7 @@ class SignupServiceTest {
 		assertThat(user.getValue().getProfileId()).isEqualTo(ADMINISTRATOR.id());
 		assertThat(user.getValue().isTwoFactorEnabled()).isTrue();
 		assertThat(user.getValue().getCompanyId()).isEqualTo(companyId);
+		assertThat(user.getValue().getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
 
 		ArgumentCaptor<Subscription> subscription = ArgumentCaptor.forClass(Subscription.class);
 		verify(subscriptionRepository).save(subscription.capture());
@@ -113,6 +119,18 @@ class SignupServiceTest {
 		assertThat(result.subscriptionId()).isEqualTo(subscriptionId);
 		assertThat(result.plan()).isEqualTo(PlanTier.SILVER);
 		assertThat(result.billingCycle()).isEqualTo(BillingCycle.ANNUAL);
+	}
+
+	@Test
+	@DisplayName("A completed signup announces the new user, carrying the trimmed e-mail and the name")
+	void shouldAnnounceTheNewUser() {
+		SignupResult result = service.execute(command("silver", "monthly"));
+
+		ArgumentCaptor<UserSignedUp> event = ArgumentCaptor.forClass(UserSignedUp.class);
+		verify(publishUserSignedUp).publish(event.capture());
+		assertThat(event.getValue().userId().value()).isEqualTo(result.userId());
+		assertThat(event.getValue().name()).isEqualTo("Ana Souza");
+		assertThat(event.getValue().email()).isEqualTo("ana@acme.com");
 	}
 
 	@Test
@@ -144,7 +162,7 @@ class SignupServiceTest {
 						e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.EMAIL));
 		verify(companyRepository, never()).save(any());
 		verify(userRepository, never()).save(any());
-		verifyNoInteractions(subscriptionRepository);
+		verifyNoInteractions(subscriptionRepository, publishUserSignedUp);
 	}
 
 	@Test
@@ -157,7 +175,7 @@ class SignupServiceTest {
 						e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.CNPJ));
 		verify(companyRepository, never()).save(any());
 		verify(userRepository, never()).save(any());
-		verifyNoInteractions(subscriptionRepository);
+		verifyNoInteractions(subscriptionRepository, publishUserSignedUp);
 	}
 
 	@ParameterizedTest
@@ -181,6 +199,7 @@ class SignupServiceTest {
 						e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.PLAN));
 		verify(companyRepository, never()).save(any());
 		verify(userRepository, never()).save(any());
+		verifyNoInteractions(publishUserSignedUp);
 	}
 
 	@Test
@@ -190,6 +209,7 @@ class SignupServiceTest {
 				.isInstanceOfSatisfying(SignupRejectedException.class,
 						e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.BILLING));
 		verify(companyRepository, never()).save(any());
+		verifyNoInteractions(publishUserSignedUp);
 	}
 
 	@Test
