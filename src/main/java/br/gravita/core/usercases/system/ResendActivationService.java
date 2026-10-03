@@ -14,6 +14,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
+import static java.util.Optional.ofNullable;
+
 @UseCase
 public class ResendActivationService implements ResendActivationUseCase {
 
@@ -31,7 +33,7 @@ public class ResendActivationService implements ResendActivationUseCase {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenRepositoryPort = tokenRepositoryPort;
         this.notifyUserRegistrationProducerPort = notifyUserRegistrationProducerPort;
-        this.clock = Clock.systemUTC();
+        this.clock = ofNullable(clock).orElse(Clock.systemUTC());
     }
 
     @Override
