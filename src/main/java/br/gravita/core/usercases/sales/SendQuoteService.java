@@ -13,13 +13,14 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.sales.SendQuoteCommand;
 import br.gravita.core.ports.inbound.sales.SendQuoteUseCase;
 import br.gravita.core.ports.messaging.SendQuoteByWhatsAppPort;
-import br.gravita.core.ports.messaging.SendQuoteByWhatsAppRequest;
+import br.gravita.core.ports.messaging.records.SendQuoteByWhatsAppRequest;
 import br.gravita.core.ports.outbound.persistence.CustomerRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.sales.QuoteRepositoryPort;
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 
 /**
  * UC-M7-02. The expiry check runs up front - via {@link Quote#send} - before
@@ -34,35 +35,35 @@ import lombok.RequiredArgsConstructor;
 @UseCase
 public class SendQuoteService implements SendQuoteUseCase {
 
-	private final QuoteRepositoryPort quoteRepositoryPort;
-	private final CustomerRepositoryPort customerRepositoryPort;
-	private final SendQuoteByWhatsAppPort sendQuoteByWhatsAppPort;
+    private final QuoteRepositoryPort quoteRepositoryPort;
+    private final CustomerRepositoryPort customerRepositoryPort;
+    private final SendQuoteByWhatsAppPort sendQuoteByWhatsAppPort;
 
-	@Override
-	public void execute(SendQuoteCommand command) {
-		Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
-				.orElseThrow(() -> new QuoteNotFoundException(command.quoteId()));
+    @Override
+    public void execute(SendQuoteCommand command) {
+        Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
+                .orElseThrow(() -> new QuoteNotFoundException(command.quoteId()));
 
-		Quote sent = quote.send(LocalDate.now());
+        Quote sent = quote.send(LocalDate.now());
 
-		if (command.channel() == QuoteDeliveryChannel.WHATSAPP) {
-			String phoneNumber = resolveWhatsAppContact(quote.getCustomerId());
-			sendQuoteByWhatsAppPort.send(new SendQuoteByWhatsAppRequest(phoneNumber, quote.getId().value(),
-					quote.totalValue(), quote.getValidUntil()));
-		}
+        if (command.channel() == QuoteDeliveryChannel.WHATSAPP) {
+            String phoneNumber = resolveWhatsAppContact(quote.getCustomerId());
+            sendQuoteByWhatsAppPort.send(new SendQuoteByWhatsAppRequest(phoneNumber, quote.getId().value(),
+                    quote.totalValue(), quote.getValidUntil()));
+        }
 
-		quoteRepositoryPort.save(sent);
-	}
+        quoteRepositoryPort.save(sent);
+    }
 
-	private String resolveWhatsAppContact(UUID customerId) {
-		CustomerDomain customer = customerRepositoryPort.get(customerId)
-				.orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
-		List<ContactDomain> contacts = customer.getContacts();
-		return (contacts == null ? List.<ContactDomain>of() : contacts).stream()
-				.filter(contact -> contact.getType() == ContactType.WHATSAPP)
-				.map(ContactDomain::getValue)
-				.findFirst()
-				.orElseThrow(() -> new BusinessRuleException(
-						"Customer " + customerId + " has no registered WhatsApp contact"));
-	}
+    private String resolveWhatsAppContact(UUID customerId) {
+        CustomerDomain customer = customerRepositoryPort.get(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
+        List<ContactDomain> contacts = customer.getContacts();
+        return (contacts == null ? List.<ContactDomain>of() : contacts).stream()
+                .filter(contact -> contact.getType() == ContactType.WHATSAPP)
+                .map(ContactDomain::getValue)
+                .findFirst()
+                .orElseThrow(() -> new BusinessRuleException(
+                        "Customer " + customerId + " has no registered WhatsApp contact"));
+    }
 }

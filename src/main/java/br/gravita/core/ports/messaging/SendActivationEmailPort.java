@@ -1,7 +1,11 @@
 package br.gravita.core.ports.messaging;
 
-/** Delivers the "activate your account" e-mail to a new signup. */
+import br.gravita.core.ports.messaging.records.ActivationEmailRequest;
+
+/**
+ * Delivers the "activate your account" e-mail to a new signup.
+ */
 public interface SendActivationEmailPort {
 
-	void send(ActivationEmailRequest request);
+    void send(ActivationEmailRequest request);
 }

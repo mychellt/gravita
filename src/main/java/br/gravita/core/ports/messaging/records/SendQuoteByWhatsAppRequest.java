@@ -1,4 +1,6 @@
-package br.gravita.core.ports.messaging;
+package br.gravita.core.ports.messaging.records;
+
+import br.gravita.core.ports.messaging.SendFiscalDocumentByEmailPort;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,12 +14,12 @@ import java.util.UUID;
  * the quote's own summary.
  */
 public record SendQuoteByWhatsAppRequest(String phoneNumber, UUID quoteId, BigDecimal totalValue,
-		LocalDate validUntil) {
+                                         LocalDate validUntil) {
 
-	public SendQuoteByWhatsAppRequest {
-		Objects.requireNonNull(phoneNumber, "phoneNumber");
-		Objects.requireNonNull(quoteId, "quoteId");
-		Objects.requireNonNull(totalValue, "totalValue");
-		Objects.requireNonNull(validUntil, "validUntil");
-	}
+    public SendQuoteByWhatsAppRequest {
+        Objects.requireNonNull(phoneNumber, "phoneNumber");
+        Objects.requireNonNull(quoteId, "quoteId");
+        Objects.requireNonNull(totalValue, "totalValue");
+        Objects.requireNonNull(validUntil, "validUntil");
+    }
 }

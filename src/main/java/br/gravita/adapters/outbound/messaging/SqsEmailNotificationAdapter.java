@@ -12,35 +12,31 @@ import java.util.Map;
 @Component
 public class SqsEmailNotificationAdapter implements EmailNotificationPort {
 
-	private final SqsClient sqsClient;
-	private final ObjectMapper objectMapper;
-	private final String queueUrl;
+    private final SqsClient sqsClient;
+    private final ObjectMapper objectMapper;
+    private final String queueUrl;
 
-	public SqsEmailNotificationAdapter(SqsClient sqsClient, ObjectMapper objectMapper,
-			@Value("${aws.sqs.email-queue-url}") String queueUrl) {
-		this.sqsClient = sqsClient;
-		this.objectMapper = objectMapper;
-		this.queueUrl = queueUrl;
-	}
+    public SqsEmailNotificationAdapter(SqsClient sqsClient, ObjectMapper objectMapper,
+                                       @Value("${aws.sqs.email-queue-url}") String queueUrl) {
+        this.sqsClient = sqsClient;
+        this.objectMapper = objectMapper;
+        this.queueUrl = queueUrl;
+    }
 
-	@Override
-	public void send(String to, String subject, String body) {
-		publish(Map.of("to", to, "subject", subject, "body", body));
-	}
+    @Override
+    public void send(String to, String subject, String body) {
+        publish(Map.of("to", to, "subject", subject, "body", body));
+    }
 
-	/**
-	 * {@code body} keeps carrying the plain text, so a downstream mailer that does not know {@code htmlBody} yet
-	 * still delivers a readable (plain) e-mail; one that does can send both as a multipart message.
-	 */
-	@Override
-	public void sendHtml(String to, String subject, String htmlBody, String plainTextBody) {
-		publish(Map.of("to", to, "subject", subject, "body", plainTextBody, "htmlBody", htmlBody));
-	}
+    @Override
+    public void sendHtml(String to, String subject, String htmlBody, String plainTextBody) {
+        publish(Map.of("to", to, "subject", subject, "body", plainTextBody, "htmlBody", htmlBody));
+    }
 
-	private void publish(Map<String, String> message) {
-		sqsClient.sendMessage(SendMessageRequest.builder()
-				.queueUrl(queueUrl)
-				.messageBody(objectMapper.writeValueAsString(message))
-				.build());
-	}
+    private void publish(Map<String, String> message) {
+        sqsClient.sendMessage(SendMessageRequest.builder()
+                .queueUrl(queueUrl)
+                .messageBody(objectMapper.writeValueAsString(message))
+                .build());
+    }
 }
