@@ -44,7 +44,7 @@ class SignupServiceTest {
 
 	private static final String VALID_CNPJ = "11.222.333/0001-81";
 	private static final ProfileReference ADMINISTRATOR =
-			new ProfileReference(SignupService.ADMINISTRATOR_PROFILE_ID, "Administrator");
+			new ProfileReference(UUID.randomUUID(), SignupService.ADMINISTRATOR_PROFILE_NAME);
 
 	@Mock
 	private CompanyPersonRepositoryPort companyRepository;
@@ -65,7 +65,7 @@ class SignupServiceTest {
 	void setUp() {
 		service = new SignupService(companyRepository, userRepository, profileRepository, planRepository,
 				subscriptionRepository);
-		lenient().when(profileRepository.findById(SignupService.ADMINISTRATOR_PROFILE_ID))
+		lenient().when(profileRepository.findByName(SignupService.ADMINISTRATOR_PROFILE_NAME))
 				.thenReturn(Optional.of(ADMINISTRATOR));
 		lenient().when(planRepository.findActiveByTier(any(PlanTier.class))).thenAnswer(invocation ->
 				Optional.of(PlanFixtures.aPlan().tier(invocation.getArgument(0)).build()));
@@ -96,7 +96,7 @@ class SignupServiceTest {
 		ArgumentCaptor<User> user = ArgumentCaptor.forClass(User.class);
 		verify(userRepository).save(user.capture());
 		assertThat(user.getValue().getEmail()).isEqualTo("ana@acme.com");
-		assertThat(user.getValue().getProfileId()).isEqualTo(SignupService.ADMINISTRATOR_PROFILE_ID);
+		assertThat(user.getValue().getProfileId()).isEqualTo(ADMINISTRATOR.id());
 		assertThat(user.getValue().isTwoFactorEnabled()).isTrue();
 		assertThat(user.getValue().getCompanyId()).isEqualTo(companyId);
 

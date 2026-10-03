@@ -16,9 +16,9 @@ CREATE TABLE profile_permissions (
 CREATE INDEX idx_profile_permissions_profile_id ON profile_permissions (profile_id);
 
 INSERT INTO profiles (id, name, active, created_at, modified_at) VALUES
-    ('00000000-0000-0000-0000-000000000001', 'Administrator', TRUE, now(), now()),
-    ('00000000-0000-0000-0000-000000000002', 'Financial', TRUE, now(), now()),
-    ('00000000-0000-0000-0000-000000000003', 'Salesperson', TRUE, now(), now()),
-    ('00000000-0000-0000-0000-000000000004', 'Cashier Operator', TRUE, now(), now()),
-    ('00000000-0000-0000-0000-000000000005', 'Purchasing', TRUE, now(), now()),
-    ('00000000-0000-0000-0000-000000000006', 'Read-only', TRUE, now(), now());
+    (gen_random_uuid(), 'Administrator', TRUE, now(), now()),
+    (gen_random_uuid(), 'Financial', TRUE, now(), now()),
+    (gen_random_uuid(), 'Salesperson', TRUE, now(), now()),
+    (gen_random_uuid(), 'Cashier Operator', TRUE, now(), now()),
+    (gen_random_uuid(), 'Purchasing', TRUE, now(), now()),
+    (gen_random_uuid(), 'Read-only', TRUE, now(), now());

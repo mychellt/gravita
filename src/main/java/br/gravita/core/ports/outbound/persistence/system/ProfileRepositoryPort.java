@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface ProfileRepositoryPort {
 
 	Optional<ProfileReference> findById(UUID profileId);
+
+	Optional<ProfileReference> findByName(String name);
 }
