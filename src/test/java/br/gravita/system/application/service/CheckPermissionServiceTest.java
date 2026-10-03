@@ -145,4 +145,16 @@ class CheckPermissionServiceTest {
 
 		assertThat(result).isFalse();
 	}
+
+	@Test
+	@DisplayName("Denies access to a user pending activation (no change to the service needed)")
+	void shouldDenyWhenUserIsPendingActivation() {
+		User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SOME_PROFILE, UUID.randomUUID());
+		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
+
+		boolean result = service().execute(
+				new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
+
+		assertThat(result).isFalse();
+	}
 }

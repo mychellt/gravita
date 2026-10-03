@@ -177,4 +177,18 @@ class AuthenticateServiceTest {
 		assertThat(captor.getValue().isSuccessful()).isTrue();
 		verify(sessionStorePort).store(result.sessionToken(), user.getId());
 	}
+
+	@Test
+	@DisplayName("Rejects a user pending activation even with the correct password (no change to the service needed)")
+	void shouldRejectUserPendingActivationEvenWithCorrectPassword() {
+		User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON, UUID.randomUUID());
+		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+
+		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
+
+		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
+		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);
+		assertThat(result.sessionToken()).isNull();
+		verify(passwordVerificationPort, never()).matches(any(), any());
+	}
 }
