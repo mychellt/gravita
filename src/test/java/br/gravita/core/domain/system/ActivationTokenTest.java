@@ -91,4 +91,42 @@ class ActivationTokenTest {
 				.isInstanceOfSatisfying(ActivationRejectedException.class,
 						e -> assertThat(e.getReason()).isEqualTo(Reason.ALREADY_USED));
 	}
+
+	@Test
+	@DisplayName("Expiring an open token cuts its life to now, so the old link is refused as expired")
+	void shouldExpireAnOpenTokenImmediately() {
+		ActivationToken token = ActivationToken.issue(userId, NOW).token();
+		Instant later = NOW.plusSeconds(90);
+
+		token.expire(later);
+
+		assertThat(token.getExpiresAt()).isEqualTo(later);
+		assertThatThrownBy(() -> token.consume(later)).isInstanceOfSatisfying(ActivationRejectedException.class,
+				e -> assertThat(e.getReason()).isEqualTo(Reason.EXPIRED));
+	}
+
+	@Test
+	@DisplayName("Expiring never extends an already expired token nor touches a spent one")
+	void shouldLeaveSpentAndAlreadyExpiredTokensAlone() {
+		ActivationToken stale = ActivationToken.issue(userId, NOW).token();
+		Instant originalExpiry = stale.getExpiresAt();
+		stale.expire(originalExpiry.plusSeconds(1));
+		assertThat(stale.getExpiresAt()).isEqualTo(originalExpiry);
+
+		ActivationToken spent = ActivationToken.issue(userId, NOW).token();
+		spent.consume(NOW.plusSeconds(1));
+		spent.expire(NOW.plusSeconds(2));
+		assertThat(spent.getExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(24)));
+		assertThat(spent.isUsed()).isTrue();
+	}
+
+	@Test
+	@DisplayName("wasIssuedWithin is true strictly inside the window and false at its end")
+	void shouldTellWhetherItWasIssuedWithinAWindow() {
+		ActivationToken token = ActivationToken.issue(userId, NOW).token();
+		Duration window = Duration.ofSeconds(60);
+
+		assertThat(token.wasIssuedWithin(window, NOW.plusSeconds(59))).isTrue();
+		assertThat(token.wasIssuedWithin(window, NOW.plusSeconds(60))).isFalse();
+	}
 }

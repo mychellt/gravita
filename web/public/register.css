@@ -64,6 +64,12 @@
   align-items: start;
 }
 
+/* Single-column variant used by activate.html (no plan summary beside the card). */
+.reg-main-single {
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
 /* ── Form side ───────────────────────────────────────────────── */
 .reg-form-side {
   max-width: 480px;
@@ -398,6 +404,21 @@
   font-family: var(--font);
 }
 .link-btn:hover { text-decoration: underline; }
+
+.resend-feedback {
+  font-size: 13px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.5;
+}
+.resend-feedback.error { color: var(--danger); }
+.resend-feedback:empty { display: none; }
+
+/* ── Activation result page ──────────────────────────────────── */
+.success-icon.failed  { background: rgba(220,38,38,.1);  color: var(--danger); border-color: rgba(220,38,38,.25); }
+.success-icon.neutral { background: rgba(79,110,247,.1); color: var(--accent); border-color: rgba(79,110,247,.25); }
+.activate-login-btn { text-decoration: none; margin-top: 10px; }
+.activate-resend-form { margin-top: 28px; }
 
 /* ── Plan summary side ───────────────────────────────────────── */
 .reg-plan-side {

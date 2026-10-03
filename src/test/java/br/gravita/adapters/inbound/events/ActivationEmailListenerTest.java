@@ -1,6 +1,7 @@
 package br.gravita.adapters.inbound.events;
 
 import br.gravita.adapters.configuration.async.AsyncConfiguration;
+import br.gravita.core.domain.system.ActivationEmailRequested;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserSignedUp;
 import br.gravita.core.usercases.system.SendActivationEmailCommand;
@@ -159,5 +160,26 @@ class ActivationEmailListenerTest {
 		});
 
 		verify(sendActivationEmail, timeout(TIMEOUT_MS)).execute(any());
+	}
+
+	@Test
+	@DisplayName("A resend request takes the same path: after commit, on the mail thread, as the same command")
+	void aResendRequestIsMailedAfterCommitOnTheMailThread() throws Exception {
+		AtomicReference<String> mailThread = new AtomicReference<>();
+		CountDownLatch mailed = new CountDownLatch(1);
+		doAnswer(call -> {
+			mailThread.set(Thread.currentThread().getName());
+			mailed.countDown();
+			return null;
+		}).when(sendActivationEmail).execute(any());
+
+		transaction.executeWithoutResult(status -> {
+			context.publishEvent(new ActivationEmailRequested(event.userId(), "Ana Souza", "ana@acme.com"));
+			verifyNoInteractions(sendActivationEmail);
+		});
+
+		assertThat(mailed.await(TIMEOUT_MS, TimeUnit.MILLISECONDS)).isTrue();
+		assertThat(mailThread.get()).startsWith("activation-email-");
+		verify(sendActivationEmail).execute(new SendActivationEmailCommand(event.userId(), "Ana Souza", "ana@acme.com"));
 	}
 }
