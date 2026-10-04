@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class ResendActivationServiceTest {
 
-    private static final Instant NOW = Instant.parse("2026-01-10T12:00:00Z");
+    private static final LocalDateTime NOW = LocalDateTime.parse("2026-01-10T12:00:00");
     private static final ProfileReference ADMINISTRATOR = new ProfileReference(UUID.randomUUID(), "Administrator");
 
     @Mock
@@ -42,10 +42,11 @@ class ResendActivationServiceTest {
     }
 
     private ResendActivationService service() {
-        return new ResendActivationService(userRepository, tokenRepository, publisher, Clock.fixed(NOW, ZoneOffset.UTC));
+        return new ResendActivationService(userRepository, tokenRepository, publisher,
+                Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
     }
 
-    private void givenLatestTokenIssuedAt(Instant issuedAt) {
+    private void givenLatestTokenIssuedAt(LocalDateTime issuedAt) {
         when(tokenRepository.findLatestByUserId(pendingUser.getId().value()))
                 .thenReturn(Optional.of(ActivationToken.issue(pendingUser.getId(), issuedAt).token()));
     }

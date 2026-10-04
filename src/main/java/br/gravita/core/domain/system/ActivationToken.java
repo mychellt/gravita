@@ -1,91 +1,85 @@
 package br.gravita.core.domain.system;
 
+import br.gravita.core.domain.AbstractDomain;
 import br.gravita.core.domain.system.ActivationRejectedException.Reason;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.UUID;
 
-/**
- * Single-use credential e-mailed to a new signup to prove they own the address. Only the SHA-256 hash of the secret
- * is kept, so a database leak does not hand out working activation links.
- */
 @Getter
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ActivationToken {
+public class ActivationToken extends AbstractDomain {
+    public static final Duration VALIDITY = Duration.ofHours(24);
 
-	/** Matches the validity of {@code EmailVerification}'s codes. */
-	public static final Duration VALIDITY = Duration.ofHours(24);
+    private static final int SECRET_BYTES = 32;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
-	private static final int SECRET_BYTES = 32;
-	private static final SecureRandom RANDOM = new SecureRandom();
+    private UUID id;
+    private UUID userId;
+    private String tokenHash;
+    private LocalDateTime expiresAt;
 
-	private UUID id;
-	private UUID userId;
-	private String tokenHash;
-	private Instant expiresAt;
-	private Instant usedAt;
-	private Instant createdAt;
+    public static IssuedActivationToken issue(UserId userId) {
+        return issue(userId, LocalDateTime.now());
+    }
 
-	public static IssuedActivationToken issue(UserId userId, Instant now) {
-		byte[] secret = new byte[SECRET_BYTES];
-		RANDOM.nextBytes(secret);
-		String rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(secret);
-		ActivationToken token = ActivationToken.builder()
-				.id(UUID.randomUUID())
-				.userId(userId.value())
-				.tokenHash(hash(rawToken))
-				.expiresAt(now.plus(VALIDITY))
-				.createdAt(now)
-				.build();
-		return new IssuedActivationToken(rawToken, token);
-	}
+    public static IssuedActivationToken issue(UserId userId, LocalDateTime now) {
+        byte[] secret = new byte[SECRET_BYTES];
+        RANDOM.nextBytes(secret);
+        final var rawToken = Base64.getUrlEncoder().withoutPadding().encodeToString(secret);
+        final var token = ActivationToken.builder()
+                .id(UUID.randomUUID())
+                .userId(userId.value())
+                .tokenHash(hash(rawToken))
+                .expiresAt(now.plus(VALIDITY))
+                .createdAt(now)
+                .build();
+        return new IssuedActivationToken(rawToken, token);
+    }
 
-	public static String hash(String rawToken) {
-		try {
-			byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
-			return HexFormat.of().formatHex(digest);
-		} catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException("SHA-256 is required by every Java platform", e);
-		}
-	}
+    public static String hash(String rawToken) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is required by every Java platform", e);
+        }
+    }
 
-	public boolean isUsed() {
-		return usedAt != null;
-	}
+    public boolean isUsed() {
+        return getModifiedAt() != null;
+    }
 
-	/** Whether this token was issued less than {@code window} before {@code now}. */
-	public boolean wasIssuedWithin(Duration window, Instant now) {
-		return createdAt != null && now.isBefore(createdAt.plus(window));
-	}
+    public boolean wasIssuedWithin(Duration window, LocalDateTime now) {
+        return getCreatedAt() != null && now.isBefore(getCreatedAt().plus(window));
+    }
 
-	/** Kills a still-open token (a newer one replaces it); a spent or already expired token is left as it was. */
-	public void expire(Instant now) {
-		if (!isUsed() && expiresAt.isAfter(now)) {
-			this.expiresAt = now;
-		}
-	}
+    public void expire(LocalDateTime now) {
+        if (!isUsed() && expiresAt.isAfter(now)) {
+            this.expiresAt = now;
+        }
+    }
 
-	/** Marks the token spent; refuses one that was already used or has expired (a used token wins over an expired one). */
-	public void consume(Instant now) {
-		if (isUsed()) {
-			throw new ActivationRejectedException(Reason.ALREADY_USED, "Este link de ativação já foi utilizado.");
-		}
-		if (!now.isBefore(expiresAt)) {
-			throw new ActivationRejectedException(Reason.EXPIRED, "Este link de ativação expirou.");
-		}
-		this.usedAt = now;
-	}
+    public void consume(LocalDateTime now) {
+        if (isUsed()) {
+            throw new ActivationRejectedException(Reason.ALREADY_USED, "Este link de ativação já foi utilizado.");
+        }
+        if (!now.isBefore(expiresAt)) {
+            throw new ActivationRejectedException(Reason.EXPIRED, "Este link de ativação expirou.");
+        }
+        setModifiedAt(now);
+    }
 }

@@ -1,13 +1,8 @@
 package br.gravita.core.usercases.system;
 
-import br.gravita.core.domain.system.ActivationRejectedException;
-import br.gravita.core.domain.system.ActivationRejectedException.Reason;
-import br.gravita.core.domain.system.ActivationToken;
-import br.gravita.core.domain.system.IssuedActivationToken;
-import br.gravita.core.domain.system.ProfileReference;
-import br.gravita.core.domain.system.User;
-import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.system.*;
+import br.gravita.core.domain.system.ActivationRejectedException.Reason;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,122 +22,121 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ActivateAccountServiceTest {
 
-	private static final Instant ISSUED_AT = Instant.parse("2026-01-10T12:00:00Z");
-	private static final ProfileReference ADMINISTRATOR = new ProfileReference(UUID.randomUUID(), "Administrator");
+    private static final LocalDateTime ISSUED_AT = LocalDateTime.parse("2026-01-10T12:00:00");
+    private static final ProfileReference ADMINISTRATOR = new ProfileReference(UUID.randomUUID(), "Administrator");
 
-	@Mock
-	private ActivationTokenRepositoryPort tokenRepository;
-	@Mock
-	private UserRepositoryPort userRepository;
+    @Mock
+    private ActivationTokenRepositoryPort tokenRepository;
+    @Mock
+    private UserRepositoryPort userRepository;
 
-	private User user;
-	private IssuedActivationToken issued;
+    private User user;
+    private IssuedActivationToken issued;
 
-	@BeforeEach
-	void setUp() {
-		user = User.signUp("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR, UUID.randomUUID());
-		issued = ActivationToken.issue(user.getId(), ISSUED_AT);
-	}
+    @BeforeEach
+    void setUp() {
+        user = User.signUp("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR, UUID.randomUUID());
+        issued = ActivationToken.issue(user.getId(), ISSUED_AT);
+    }
 
-	private ActivateAccountService serviceAt(Instant now) {
-		return new ActivateAccountService(tokenRepository, userRepository, Clock.fixed(now, ZoneOffset.UTC));
-	}
+    private ActivateAccountService serviceAt(LocalDateTime now) {
+        return new ActivateAccountService(tokenRepository, userRepository,
+                Clock.fixed(now.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
+    }
 
-	private void givenStoredToken() {
-		when(tokenRepository.findByTokenHashForUpdate(issued.token().getTokenHash()))
-				.thenReturn(Optional.of(issued.token()));
-	}
+    private void givenStoredToken() {
+        when(tokenRepository.findByTokenHashForUpdate(issued.token().getTokenHash()))
+                .thenReturn(Optional.of(issued.token()));
+    }
 
-	private void givenStoredUser() {
-		when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-	}
+    private void givenStoredUser() {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    }
 
-	@Test
-	@DisplayName("A valid token activates the user and is marked used")
-	void shouldActivateUserAndSpendTheToken() {
-		givenStoredToken();
-		givenStoredUser();
+    @Test
+    @DisplayName("A valid token activates the user and is marked used")
+    void shouldActivateUserAndSpendTheToken() {
+        givenStoredToken();
+        givenStoredUser();
 
-		serviceAt(ISSUED_AT.plus(Duration.ofHours(1))).execute(issued.rawToken());
 
-		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
-		assertThat(issued.token().getUsedAt()).isEqualTo(ISSUED_AT.plus(Duration.ofHours(1)));
-		verify(userRepository).update(user);
-		verify(tokenRepository).save(issued.token());
-	}
+        serviceAt(ISSUED_AT.plus(Duration.ofHours(1))).execute(issued.rawToken());
 
-	@Test
-	@DisplayName("Replaying a spent token is rejected and leaves the (already active) user untouched")
-	void shouldRejectAReplayedToken() {
-		givenStoredToken();
-		givenStoredUser();
-		ActivateAccountService service = serviceAt(ISSUED_AT.plusSeconds(60));
-		service.execute(issued.rawToken());
+        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        assertThat(issued.token().getModifiedAt()).isEqualTo(ISSUED_AT.plus(Duration.ofHours(1)));
+        verify(userRepository).update(user);
+        verify(tokenRepository).save(issued.token());
+    }
 
-		assertThatThrownBy(() -> service.execute(issued.rawToken()))
-				.isInstanceOfSatisfying(ActivationRejectedException.class,
-						e -> assertThat(e.getReason()).isEqualTo(Reason.ALREADY_USED));
+    @Test
+    @DisplayName("Replaying a spent token is rejected and leaves the (already active) user untouched")
+    void shouldRejectAReplayedToken() {
+        givenStoredToken();
+        givenStoredUser();
+        ActivateAccountService service = serviceAt(ISSUED_AT.plusSeconds(60));
+        service.execute(issued.rawToken());
 
-		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
-		verify(userRepository).update(user); // once: the replay did not re-process it
-	}
+        assertThatThrownBy(() -> service.execute(issued.rawToken()))
+                .isInstanceOfSatisfying(ActivationRejectedException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.ALREADY_USED));
 
-	@Test
-	@DisplayName("An expired token is rejected and the user is not activated")
-	void shouldRejectAnExpiredToken() {
-		givenStoredToken();
+        assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+        verify(userRepository).update(user); // once: the replay did not re-process it
+    }
 
-		assertThatThrownBy(() -> serviceAt(ISSUED_AT.plus(Duration.ofHours(25))).execute(issued.rawToken()))
-				.isInstanceOfSatisfying(ActivationRejectedException.class,
-						e -> assertThat(e.getReason()).isEqualTo(Reason.EXPIRED));
+    @Test
+    @DisplayName("An expired token is rejected and the user is not activated")
+    void shouldRejectAnExpiredToken() {
+        givenStoredToken();
 
-		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
-		verify(userRepository, never()).update(any());
-		verify(tokenRepository, never()).save(any());
-	}
+        assertThatThrownBy(() -> serviceAt(ISSUED_AT.plus(Duration.ofHours(25))).execute(issued.rawToken()))
+                .isInstanceOfSatisfying(ActivationRejectedException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.EXPIRED));
 
-	@Test
-	@DisplayName("An unknown token is rejected as invalid")
-	void shouldRejectAnUnknownToken() {
-		when(tokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.empty());
+        assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
+        verify(userRepository, never()).update(any());
+        verify(tokenRepository, never()).save(any());
+    }
 
-		assertThatThrownBy(() -> serviceAt(ISSUED_AT).execute("not-a-real-token"))
-				.isInstanceOfSatisfying(ActivationRejectedException.class,
-						e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
-		verifyNoInteractions(userRepository);
-	}
+    @Test
+    @DisplayName("An unknown token is rejected as invalid")
+    void shouldRejectAnUnknownToken() {
+        when(tokenRepository.findByTokenHashForUpdate(any())).thenReturn(Optional.empty());
 
-	@Test
-	@DisplayName("A missing or blank token is rejected as invalid without touching the database")
-	void shouldRejectAMissingToken() {
-		for (String token : new String[] {null, "", "   "}) {
-			assertThatThrownBy(() -> serviceAt(ISSUED_AT).execute(token))
-					.isInstanceOfSatisfying(ActivationRejectedException.class,
-							e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
-		}
-		verifyNoInteractions(tokenRepository, userRepository);
-	}
+        assertThatThrownBy(() -> serviceAt(ISSUED_AT).execute("not-a-real-token"))
+                .isInstanceOfSatisfying(ActivationRejectedException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
+        verifyNoInteractions(userRepository);
+    }
 
-	@Test
-	@DisplayName("A token whose user is no longer pending cannot reopen the account and is not spent")
-	void shouldNotReactivateADeactivatedUser() {
-		user.update(null, null, null, UserStatus.INACTIVE);
-		givenStoredToken();
-		givenStoredUser();
+    @Test
+    @DisplayName("A missing or blank token is rejected as invalid without touching the database")
+    void shouldRejectAMissingToken() {
+        for (String token : new String[]{null, "", "   "}) {
+            assertThatThrownBy(() -> serviceAt(ISSUED_AT).execute(token))
+                    .isInstanceOfSatisfying(ActivationRejectedException.class,
+                            e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
+        }
+        verifyNoInteractions(tokenRepository, userRepository);
+    }
 
-		assertThatThrownBy(() -> serviceAt(ISSUED_AT.plusSeconds(60)).execute(issued.rawToken()))
-				.isInstanceOf(BusinessRuleException.class);
+    @Test
+    @DisplayName("A token whose user is no longer pending cannot reopen the account and is not spent")
+    void shouldNotReactivateADeactivatedUser() {
+        user.update(null, null, null, UserStatus.INACTIVE);
+        givenStoredToken();
+        givenStoredUser();
 
-		assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
-		verify(userRepository, never()).update(any());
-		verify(tokenRepository, never()).save(any());
-	}
+        assertThatThrownBy(() -> serviceAt(ISSUED_AT.plusSeconds(60)).execute(issued.rawToken()))
+                .isInstanceOf(BusinessRuleException.class);
+
+        assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
+        verify(userRepository, never()).update(any());
+        verify(tokenRepository, never()).save(any());
+    }
 }

@@ -8,13 +8,12 @@ import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
-
-import static java.util.Optional.ofNullable;
+import java.time.LocalDateTime;
 
 @UseCase
 public class ResendActivationService implements ResendActivationUseCase {
@@ -26,14 +25,19 @@ public class ResendActivationService implements ResendActivationUseCase {
     private final NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort;
     private final Clock clock;
 
-
+    @Autowired
     public ResendActivationService(UserRepositoryPort userRepositoryPort,
-                                   ActivationTokenRepositoryPort tokenRepositoryPort, NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort,
-                                   Clock clock) {
+                                   ActivationTokenRepositoryPort tokenRepositoryPort,
+                                   NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort) {
+        this(userRepositoryPort, tokenRepositoryPort, notifyUserRegistrationProducerPort, Clock.systemDefaultZone());
+    }
+
+    ResendActivationService(UserRepositoryPort userRepositoryPort, ActivationTokenRepositoryPort tokenRepositoryPort,
+                            NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort, Clock clock) {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenRepositoryPort = tokenRepositoryPort;
         this.notifyUserRegistrationProducerPort = notifyUserRegistrationProducerPort;
-        this.clock = ofNullable(clock).orElse(Clock.systemUTC());
+        this.clock = clock;
     }
 
     @Override
@@ -50,9 +54,8 @@ public class ResendActivationService implements ResendActivationUseCase {
     }
 
     private boolean isOutsideCooldown(User user) {
-        Instant now = Instant.now(clock);
         return tokenRepositoryPort.findLatestByUserId(user.getId().value())
-                .map(latest -> !latest.wasIssuedWithin(COOLDOWN, now))
+                .map(latest -> !latest.wasIssuedWithin(COOLDOWN, LocalDateTime.now(clock)))
                 .orElse(true);
     }
 }
