@@ -70,6 +70,7 @@ Each use case below has a standalone implementation ticket under [`m10-sistema/`
 | [`MonitorSefazAvailabilityUseCase`](m10-sistema/uc-11-monitor-sefaz-availability.md) | Availability polling for production/homologation SEFAZ endpoints. |
 | [`TriggerBackupUseCase`](m10-sistema/uc-12-trigger-backup.md) | Daily automatic DB + fiscal-XML backup, 90-day retention. |
 | [`RecordMonitoringAlertUseCase`](m10-sistema/uc-13-record-monitoring-alert.md) | Transmission failures, delayed jobs, critical errors. |
+| [`ActivateAccountUseCase`](m10-sistema/uc-14-activate-account.md) | Confirm a new signup's e-mail through the emailed link; expired/used link handling. |
 
 ## Outbound ports (`application.port.out`)
 
@@ -90,6 +91,7 @@ Each use case below has a standalone implementation ticket under [`m10-sistema/`
 |---|---|
 | `POST /api/auth/login`, `POST /api/auth/2fa/verify` | `AuthenticateUseCase` |
 | `POST /api/users` / `PATCH /api/users/{id}` | User lifecycle |
+| `GET /api/activate?token=`, `POST /api/activate/resend` | `ActivateAccountUseCase` / `ResendActivationUseCase` |
 | `PUT /api/profiles/{id}/permissions` | `AssignProfileUseCase` / `SaveCustomProfileUseCase` |
 | `GET /api/system/access-log` | `GetAccessLogUseCase` |
 | `GET /api/system/audit-trail?entity=&id=` | `GetAuditTrailUseCase` |

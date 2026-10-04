@@ -17,3 +17,4 @@ One ticket per use case from the [module spec](../m10-sistema.md), for granular 
 | 11 | [Monitor SEFAZ Availability](uc-11-monitor-sefaz-availability.md) | 8 — Robustez | Availability polling for production/homologation SEFAZ endpoints. |
 | 12 | [Trigger Backup](uc-12-trigger-backup.md) | 8 — Robustez | Daily DB + fiscal-XML backup, 90-day retention. |
 | 13 | [Record Monitoring Alert](uc-13-record-monitoring-alert.md) | 8 — Robustez | Transmission failures, delayed jobs, critical errors. |
+| 14 | [Activate Account](uc-14-activate-account.md) | 1 — Fundação | Confirm a new signup's e-mail through the emailed link; clear expired/used link handling. |
