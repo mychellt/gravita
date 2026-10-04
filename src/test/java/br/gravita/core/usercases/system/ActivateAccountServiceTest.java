@@ -1,6 +1,5 @@
 package br.gravita.core.usercases.system;
 
-import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.system.*;
 import br.gravita.core.domain.system.ActivationRejectedException.Reason;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
@@ -93,6 +92,7 @@ class ActivateAccountServiceTest {
     @DisplayName("An expired token is rejected and the user is not activated")
     void shouldRejectAnExpiredToken() {
         givenStoredToken();
+        givenStoredUser();
 
         assertThatThrownBy(() -> serviceAt(ISSUED_AT.plus(Duration.ofHours(25))).execute(issued.rawToken()))
                 .isInstanceOfSatisfying(ActivationRejectedException.class,
@@ -133,10 +133,23 @@ class ActivateAccountServiceTest {
         givenStoredUser();
 
         assertThatThrownBy(() -> serviceAt(ISSUED_AT.plusSeconds(60)).execute(issued.rawToken()))
-                .isInstanceOf(BusinessRuleException.class);
+                .isInstanceOfSatisfying(ActivationRejectedException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
 
         assertThat(user.getStatus()).isEqualTo(UserStatus.INACTIVE);
         verify(userRepository, never()).update(any());
         verify(tokenRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Business rule 6: an expired link of a deactivated user is invalid, not merely expired")
+    void shouldTreatAnExpiredLinkOfADeactivatedUserAsInvalid() {
+        user.update(null, null, null, UserStatus.INACTIVE);
+        givenStoredToken();
+        givenStoredUser();
+
+        assertThatThrownBy(() -> serviceAt(ISSUED_AT.plus(Duration.ofHours(25))).execute(issued.rawToken()))
+                .isInstanceOfSatisfying(ActivationRejectedException.class,
+                        e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));
     }
 }

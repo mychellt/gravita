@@ -55,9 +55,13 @@ public class User {
 				.build();
 	}
 
+	public boolean isPendingActivation() {
+		return status == UserStatus.PENDING_ACTIVATION;
+	}
+
 	/** Only a pending signup can be activated; an administrator-deactivated account must not be reopened this way. */
 	public void activate() {
-		if (status != UserStatus.PENDING_ACTIVATION) {
+		if (!isPendingActivation()) {
 			throw new BusinessRuleException("Only a user pending activation can be activated");
 		}
 		this.status = UserStatus.ACTIVE;

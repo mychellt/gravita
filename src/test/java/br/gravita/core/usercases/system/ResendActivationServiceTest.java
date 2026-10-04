@@ -3,21 +3,25 @@ package br.gravita.core.usercases.system;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.system.*;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
+import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -59,7 +63,38 @@ class ResendActivationServiceTest {
 
         service().execute("  ana@acme.com ");
 
-        verify(publisher).execute(eventContext());
+        verify(publisher).execute(registrationContext());
+    }
+
+    @Test
+    @DisplayName("AC7: the new e-mail carries a freshly issued token, saved so that only the new link works")
+    void shouldIssueAndPublishANewToken() {
+        when(userRepository.findByEmail("ana@acme.com")).thenReturn(Optional.of(pendingUser));
+        givenLatestTokenIssuedAt(NOW.minusSeconds(61));
+        when(tokenRepository.findUnusedByUserId(pendingUser.getId().value())).thenReturn(List.of());
+
+        service().execute("ana@acme.com");
+
+        final var saved = ArgumentCaptor.forClass(ActivationToken.class);
+        verify(tokenRepository).save(saved.capture());
+        final var message = publishedMessage();
+        assertThat(ActivationToken.hash(message.token())).isEqualTo(saved.getValue().getTokenHash());
+        assertThat(saved.getValue().getExpiresAt()).isEqualTo(NOW.plus(ActivationToken.VALIDITY));
+        assertThat(message.tenantId()).isEqualTo(pendingUser.getCompanyId());
+    }
+
+    @Test
+    @DisplayName("Business rule 5: the previous unused links stop working when a new one is requested")
+    void shouldExpirePreviousUnusedTokens() {
+        when(userRepository.findByEmail("ana@acme.com")).thenReturn(Optional.of(pendingUser));
+        final var previous = ActivationToken.issue(pendingUser.getId(), NOW.minusHours(2)).token();
+        when(tokenRepository.findLatestByUserId(pendingUser.getId().value())).thenReturn(Optional.of(previous));
+        when(tokenRepository.findUnusedByUserId(pendingUser.getId().value())).thenReturn(List.of(previous));
+
+        service().execute("ana@acme.com");
+
+        assertThat(previous.getExpiresAt()).isEqualTo(NOW);
+        verify(tokenRepository).save(previous);
     }
 
     @Test
@@ -70,7 +105,7 @@ class ResendActivationServiceTest {
 
         service().execute("ana@acme.com");
 
-        verify(publisher).execute(eventContext());
+        verify(publisher).execute(registrationContext());
     }
 
     @Test
@@ -125,8 +160,16 @@ class ResendActivationServiceTest {
         verifyNoInteractions(userRepository, tokenRepository, publisher);
     }
 
-    private Context eventContext() {
-        return argThat(context -> new ActivationEmailRequested(pendingUser.getId(), "Ana Souza", "ana@acme.com")
-                .equals(context.getData(ActivationEmailRequested.class)));
+    private Context registrationContext() {
+        return argThat(context -> {
+            final var message = context.getData(NotifyUserRegistrationMessage.class);
+            return message.username().equals("Ana Souza") && message.recipient().equals("ana@acme.com");
+        });
+    }
+
+    private NotifyUserRegistrationMessage publishedMessage() {
+        final var context = ArgumentCaptor.forClass(Context.class);
+        verify(publisher).execute(context.capture());
+        return context.getValue().getData(NotifyUserRegistrationMessage.class);
     }
 }
