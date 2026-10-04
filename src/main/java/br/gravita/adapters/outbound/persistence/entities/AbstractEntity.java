@@ -9,7 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @MappedSuperclass
@@ -19,11 +19,11 @@ public abstract class AbstractEntity<K> implements Persistable<K> {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "modified_at", nullable = false)
-    private Date modifiedAt;
+    private LocalDateTime modifiedAt;
 
     @Column(nullable = false, columnDefinition = "boolean default true")
     @Builder.Default

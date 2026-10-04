@@ -1,5 +1,6 @@
 package br.gravita.core.usercases.system;
 
-public interface SignupUseCase {
-	SignupResult execute(SignupCommand command);
+import br.gravita.core.domain.Command;
+
+public interface SignupUseCase extends Command<SignupResult> {
 }

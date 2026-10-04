@@ -4,16 +4,16 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Deliberately not an {@code AbstractEntity}: the domain reads "token used" as {@code modifiedAt != null}, so
+ * {@code modifiedAt} must stay null until the token is consumed and cannot be auto-stamped on insert.
+ */
 @Getter
 @Setter
 @Entity
@@ -23,22 +23,23 @@ import java.util.UUID;
 @Table(name = "activation_tokens")
 public class ActivationTokenJpaEntity {
 
-	@Id
-	private UUID id;
+    @Id
+    private UUID id;
 
-	@Column(name = "user_id", nullable = false)
-	private UUID userId;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
-	@Column(name = "token_hash", nullable = false, unique = true, length = 64)
-	private String tokenHash;
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    private String tokenHash;
 
-	@Column(name = "expires_at", nullable = false)
-	private Instant expiresAt;
+    @Column(name = "expires_at", nullable = false)
+    private LocalDateTime expiresAt;
 
-	@Column(name = "used_at")
-	private Instant usedAt;
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	@CreationTimestamp
-	@Column(name = "created_at", nullable = false, updatable = false)
-	private Instant createdAt;
+    /** Set once, when the token is consumed. */
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedAt;
 }

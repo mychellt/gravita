@@ -16,5 +16,5 @@ public interface ActivationTokenJpaRepository extends JpaRepository<ActivationTo
 
 	Optional<ActivationTokenJpaEntity> findFirstByUserIdOrderByCreatedAtDesc(UUID userId);
 
-	List<ActivationTokenJpaEntity> findByUserIdAndUsedAtIsNull(UUID userId);
+	List<ActivationTokenJpaEntity> findByUserIdAndModifiedAtIsNull(UUID userId);
 }
