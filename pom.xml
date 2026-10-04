@@ -17,6 +17,7 @@
     <properties>
         <java.version>25</java.version>
         <aws-sdk.version>2.46.7</aws-sdk.version>
+        <spring-cloud-aws.version>4.2.0</spring-cloud-aws.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <datafaker.version>2.2.2</datafaker.version>
     </properties>
@@ -27,6 +28,13 @@
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>bom</artifactId>
                 <version>${aws-sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.awspring.cloud</groupId>
+                <artifactId>spring-cloud-aws-dependencies</artifactId>
+                <version>${spring-cloud-aws.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -81,6 +89,10 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-starter-sqs</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
@@ -182,6 +194,7 @@
                     <include>application.properties</include>
                     <include>application-*.properties</include>
                     <include>db/**</include>
+                    <include>mails/**</include>
                 </includes>
             </resource>
         </resources>

@@ -1,6 +1,7 @@
 package br.gravita.adapters.outbound.messaging;
 
 import br.gravita.core.domain.Context;
+import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,11 +40,8 @@ class SQSNotifyUserRegistrationProducerAdapterTest {
     }
 
     private Context registration() {
-        var context = new Context();
-        context.putProperty("token", "tok-123");
-        context.putProperty("username", "ana");
-        context.putProperty("recipient", "ana@acme.com");
-        return context;
+        return new Context(NotifyUserRegistrationMessage.builder()
+                .token("tok-123").username("ana").recipient("ana@acme.com").tenantId(UUID.randomUUID()).build());
     }
 
     @Test
