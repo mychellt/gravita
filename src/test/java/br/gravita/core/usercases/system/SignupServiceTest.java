@@ -2,6 +2,7 @@ package br.gravita.core.usercases.system;
 
 import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import br.gravita.core.domain.*;
+import br.gravita.core.domain.system.ActivationToken;
 import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.system.SignupRejectedException;
 import br.gravita.core.domain.system.User;
@@ -10,6 +11,7 @@ import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
 import br.gravita.core.ports.outbound.persistence.CompanyPersonRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.SubscriptionRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,6 +53,8 @@ class SignupServiceTest {
     @Mock
     private SubscriptionRepositoryPort subscriptionRepository;
     @Mock
+    private ActivationTokenRepositoryPort activationTokenRepository;
+    @Mock
     private NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort;
 
     private SignupService service;
@@ -59,7 +64,7 @@ class SignupServiceTest {
     @BeforeEach
     void setUp() {
         service = new SignupService(companyRepository, userRepository, profileRepository, planRepository,
-                subscriptionRepository, notifyUserRegistrationProducerPort);
+                subscriptionRepository, activationTokenRepository, notifyUserRegistrationProducerPort);
         lenient().when(profileRepository.findByName(SignupService.ADMINISTRATOR_PROFILE_NAME))
                 .thenReturn(Optional.of(ADMINISTRATOR));
         lenient().when(planRepository.findActiveByTier(any(PlanTier.class))).thenAnswer(invocation ->
@@ -121,6 +126,24 @@ class SignupServiceTest {
         NotifyUserRegistrationMessage message = context.getValue().getData(NotifyUserRegistrationMessage.class);
         assertThat(message.username()).isEqualTo("Ana Souza");
         assertThat(message.recipient()).isEqualTo("ana@acme.com");
+        assertThat(message.tenantId()).isEqualTo(companyId);
+    }
+
+    @Test
+    @DisplayName("A completed signup issues a single-use activation token: its hash is stored, the raw secret is announced")
+    void shouldIssueAnActivationTokenForTheNewUser() {
+        service.execute(new Context(command("silver", "monthly")));
+
+        ArgumentCaptor<ActivationToken> stored = ArgumentCaptor.forClass(ActivationToken.class);
+        verify(activationTokenRepository).save(stored.capture());
+        ArgumentCaptor<Context> context = ArgumentCaptor.forClass(Context.class);
+        verify(notifyUserRegistrationProducerPort).execute(context.capture());
+        String rawToken = context.getValue().getData(NotifyUserRegistrationMessage.class).token();
+
+        assertThat(rawToken).isNotBlank();
+        assertThat(stored.getValue().getTokenHash()).isEqualTo(ActivationToken.hash(rawToken)).isNotEqualTo(rawToken);
+        assertThat(stored.getValue().isUsed()).isFalse();
+        assertThat(stored.getValue().getExpiresAt()).isAfter(LocalDateTime.now());
     }
 
     @Test
@@ -152,7 +175,7 @@ class SignupServiceTest {
                         e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.EMAIL));
         verify(companyRepository, never()).save(any());
         verify(userRepository, never()).save(any());
-        verifyNoInteractions(subscriptionRepository, notifyUserRegistrationProducerPort);
+        verifyNoInteractions(subscriptionRepository, activationTokenRepository, notifyUserRegistrationProducerPort);
     }
 
     @Test
@@ -165,7 +188,7 @@ class SignupServiceTest {
                         e -> assertThat(e.getField()).isEqualTo(SignupRejectedException.CNPJ));
         verify(companyRepository, never()).save(any());
         verify(userRepository, never()).save(any());
-        verifyNoInteractions(subscriptionRepository, notifyUserRegistrationProducerPort);
+        verifyNoInteractions(subscriptionRepository, activationTokenRepository, notifyUserRegistrationProducerPort);
     }
 
     @ParameterizedTest
