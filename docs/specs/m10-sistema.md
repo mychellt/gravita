@@ -71,6 +71,8 @@ Each use case below has a standalone implementation ticket under [`m10-sistema/`
 | [`TriggerBackupUseCase`](m10-sistema/uc-12-trigger-backup.md) | Daily automatic DB + fiscal-XML backup, 90-day retention. |
 | [`RecordMonitoringAlertUseCase`](m10-sistema/uc-13-record-monitoring-alert.md) | Transmission failures, delayed jobs, critical errors. |
 | [`ActivateAccountUseCase`](m10-sistema/uc-14-activate-account.md) | Confirm a new signup's e-mail through the emailed link; expired/used link handling. |
+| [Login Page](m10-sistema/uc-15-login-page.md) | The login page and route guard fronting `AuthenticateUseCase`; TOTP step for admins. |
+| [`RequestPasswordResetUseCase` / `ResetPasswordUseCase`](m10-sistema/uc-16-reset-password.md) | Self-service "forgot my password": e-mailed reset link, new password. |
 
 ## Outbound ports (`application.port.out`)
 
