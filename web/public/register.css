@@ -417,8 +417,15 @@
 /* ── Activation result page ──────────────────────────────────── */
 .success-icon.failed  { background: rgba(220,38,38,.1);  color: var(--danger); border-color: rgba(220,38,38,.25); }
 .success-icon.neutral { background: rgba(79,110,247,.1); color: var(--accent); border-color: rgba(79,110,247,.25); }
-.activate-login-btn { text-decoration: none; margin-top: 10px; }
+.activate-login-btn, #retry-btn { text-decoration: none; margin-top: 10px; padding: 0 28px; }
 .activate-resend-form { margin-top: 28px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.activate-login-btn:focus-visible,
+#retry-btn:focus-visible,
+#resend-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
 /* ── Plan summary side ───────────────────────────────────────── */
 .reg-plan-side {

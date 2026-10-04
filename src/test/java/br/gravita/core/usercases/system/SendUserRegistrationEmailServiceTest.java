@@ -28,7 +28,7 @@ class SendUserRegistrationEmailServiceTest {
     @DisplayName("Sends the activation template to the new user with a link carrying the token")
     void shouldSendTheActivationEmail() {
         final var service = new SendUserRegistrationEmailService(emailSenderPort,
-                "http://localhost:8080/api/activate", "gravita@localhost");
+                "http://localhost:8080/activate.html", "gravita@localhost");
         final var message = NotifyUserRegistrationMessage.builder()
                 .username("Ana Souza").recipient("ana@acme.com").token("tok_123-abc").tenantId(UUID.randomUUID())
                 .build();
@@ -44,7 +44,7 @@ class SendUserRegistrationEmailServiceTest {
         assertThat(mail.getValue().getSubject()).isEqualTo("Ative sua conta Gravita");
         assertThat(mail.getValue().getProperties())
                 .containsEntry("username", "Ana Souza")
-                .containsEntry("activationUrl", "http://localhost:8080/api/activate?token=tok_123-abc")
+                .containsEntry("activationUrl", "http://localhost:8080/activate.html?token=tok_123-abc")
                 .containsEntry("validityHours", 24L);
     }
 }

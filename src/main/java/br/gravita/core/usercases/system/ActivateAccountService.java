@@ -37,10 +37,15 @@ public class ActivateAccountService implements ActivateAccountUseCase {
     @Transactional
     public void execute(final String rawToken) {
         final var token = findToken(rawToken);
-        token.consume(LocalDateTime.now(clock));
-
         final var user = userRepositoryPort.findById(UserId.of(token.getUserId()))
                 .orElseThrow(ActivateAccountService::invalidToken);
+        // A spent link must still say "already used" for an active user; any other link of a user who is no longer
+        // pending (e.g. blocked) is plainly invalid, even when it has also expired.
+        if (!token.isUsed() && !user.isPendingActivation()) {
+            throw invalidToken();
+        }
+
+        token.consume(LocalDateTime.now(clock));
         user.activate();
 
         userRepositoryPort.update(user);
