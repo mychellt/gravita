@@ -44,22 +44,24 @@ When a new user clicks the link in the activation e-mail, they land on a Gravita
 ## Flow
 
 1. The user receives the activation e-mail, valid for **24 hours** from the moment it was issued.
-2. The user clicks **Ativar minha conta**. The browser opens `activate.html?token=<token>`.
-3. The page shows a loading state, then asks the platform to activate the account.
-4. The page shows exactly one of the outcomes below.
+2. The user clicks **Ativar minha conta**. The browser opens the activation endpoint, `GET /api/activate?token=<token>`.
+3. The platform validates the token and activates the account if it is valid, then **redirects** the browser to the activation page, `activate.html?status=<outcome>`. The user never sees the API response.
+4. The page shows exactly one of the outcomes below, chosen by `status`.
+
+The token is a secret: it is consumed by the platform and **never** passed on to the page. The page removes `status` from the address bar after reading it, so a refresh or a shared URL does not replay an old result.
 
 ## Outcomes and copy
 
 All user-facing text is in Brazilian Portuguese. Wording below is the approved copy.
 
-| # | Situation | Title | Message | Primary action |
-|---|---|---|---|---|
-| 1 | Loading | Ativando sua conta… | — | none |
-| 2 | **Account activated** | Conta ativada | Tudo certo! Seu e-mail foi confirmado e você já pode entrar. | **Ir para o login** |
-| 3 | **Link expired** (older than 24 h, never used) | Link expirado | Este link de ativação expirou. Peça um novo abaixo. | Reenviar e-mail (form with e-mail field) |
-| 4 | **Link already used** (account was already activated with it) | Link já utilizado | Este link de ativação já foi utilizado. Se a sua conta já está ativa, é só entrar. | **Ir para o login**; resend form as secondary |
-| 5 | **Link invalid** (unknown token, damaged link, token missing) | Link inválido | Não foi possível ativar sua conta com este link. Peça um novo abaixo. | Reenviar e-mail |
-| 6 | Platform unreachable | Não foi possível ativar agora | Tente novamente em instantes. | **Tentar novamente** (reload) |
+| # | `status` | Situation | Title | Message | Primary action |
+|---|---|---|---|---|---|
+| 1 | — | Loading | Ativando sua conta… | — | none |
+| 2 | `activated` | **Account activated** | Conta ativada | Tudo certo! Seu e-mail foi confirmado e você já pode entrar. | **Ir para o login** |
+| 3 | `expired` | **Link expired** (older than 24 h, never used) | Link expirado | Este link de ativação expirou. Peça um novo abaixo. | Reenviar e-mail (form with e-mail field) |
+| 4 | `used` | **Link already used** (account was already activated with it) | Link já utilizado | Este link de ativação já foi utilizado. Se a sua conta já está ativa, é só entrar. | **Ir para o login**; resend form as secondary |
+| 5 | `invalid` (also any unknown or missing `status`) | **Link invalid** (unknown token, damaged link, token missing, account blocked) | Link inválido | Não foi possível ativar sua conta com este link. Peça um novo abaixo. | Reenviar e-mail |
+| 6 | `unavailable` | Platform failed to answer | Não foi possível ativar agora | Tente novamente em instantes, clicando outra vez no link do e-mail. | none |
 
 Rules for the copy:
 - State 2 must be the only state that says the account is active.
@@ -96,11 +98,15 @@ Rules for the copy:
 **Used, invalid and error links**
 - [ ] Given a link that was already used, then the page shows state 4 and the account is unchanged.
 - [ ] Given a link with an unknown or missing token, then the page shows state 5.
-- [ ] Given the platform does not respond, then the page shows state 6 and **Tentar novamente** repeats the request.
+- [ ] Given an unexpected failure on the platform, then the user still lands on the page, in state 6, and never on an error response.
+- [ ] Given the page is opened with no `status`, or one it does not know, then it shows state 5.
 - [ ] No state shows a stack trace, HTTP code, or raw JSON.
 
-**Link in the e-mail**
-- [ ] The **Ativar minha conta** button and the plain-text link both open the activation page (`activate.html?token=…`), not an API address.
+**Link in the e-mail and redirect**
+- [ ] The **Ativar minha conta** button and the plain-text link both open `GET /api/activate?token=…`.
+- [ ] Every outcome of that call is a redirect (`302`) to the activation page with `status=activated|expired|used|invalid|unavailable`; the user never sees raw JSON.
+- [ ] The redirect address never contains the token, and the response is not cacheable (`Cache-Control: no-store`).
+- [ ] The page address is configurable per environment (`gravita.activation.result-page-url`).
 
 **Resend**
 - [ ] The response is identical for an unknown address, an already-active account and a pending account.
@@ -112,23 +118,20 @@ Rules for the copy:
 - [ ] Keyboard and screen-reader friendly: the state title is announced when it appears, buttons have visible focus, errors are not conveyed by color alone.
 - [ ] The token never appears in logs, analytics or the browser history after the page loads.
 
-## Platform contract (existing)
+## Platform contract
 
 | Call | Result |
 |---|---|
-| `GET /api/activate?token=…` | `200` activated; `410` link expired (`reason: EXPIRED`) or already used (`reason: ALREADY_USED`); `400` unknown or missing token (`reason: INVALID`) |
+| `GET /api/activate?token=…` | Always `302` to `<result-page-url>?status=…`: `activated`, `expired`, `used`, `invalid` (unknown or missing token, or an account that must not be reopened) or `unavailable` (unexpected failure). Sends `Cache-Control: no-store`. |
 | `POST /api/activate/resend` with `{ "email": … }` | `202` always, with the neutral message; `400` for a malformed address |
 
 Use case: `ActivateAccountUseCase.execute(rawToken)`; resend: `ResendActivationUseCase.execute(email)`.
 
+Configuration: `gravita.activation.link-base-url` (the API endpoint put in the e-mail) and `gravita.activation.result-page-url` (the page the user is redirected to; required in homologation and production).
+
 ## Gaps against the current build
 
-These are known differences between this spec and what exists today, to be planned as part of this ticket:
-
-1. **E-mail link target.** `gravita.activation.link-base-url` defaults to `…/api/activate`, so the link opens JSON. It must point at the page (for example `https://<host>/activate.html`). Local default needs the same change.
-2. **State 4 (already used).** `activate.html` currently shows "Link inválido ou expirado" for an already-used link. It needs its own title, copy and login action.
-3. **Wording of state 5** should read "Link inválido", not "inválido ou expirado".
-4. **State 6** (platform unreachable) has no retry action today.
+None open. The previous gaps (link opened raw JSON, no "already used" state, wording of the invalid state, retry on an unreachable platform) are covered by the redirect flow and the page states above. The retry button was dropped from state 6: the page no longer holds the token, so the user clicks the e-mail link again.
 
 ## Analytics
 

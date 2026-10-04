@@ -1,11 +1,10 @@
-// The link is single-use and its token is a secret: keep it in memory and take it out of the address bar,
-// so it does not linger in the browser history or get copied with the page URL.
-const token = new URLSearchParams(window.location.search).get('token');
+// The e-mailed link hits the API, which validates the token and redirects here with the outcome in ?status=.
+// The token never reaches this page; the status is also taken out of the address bar so a refresh or a shared
+// URL does not replay a stale outcome.
+const activationStatus = new URLSearchParams(window.location.search).get('status');
 window.history.replaceState(null, '', window.location.pathname);
 
-const ACTIVATE_LOGIN_URL = 'app.html';
-
-// Approved copy per outcome (UC-M10-14). `resend` is 'primary' when asking for a new link is the way forward,
+// Approved copy per outcome (UC-M10-14), keyed by the `status` the API redirects with. `resend` is 'primary' when asking for a new link is the way forward,
 // 'secondary' when logging in is, and absent when neither applies.
 const OUTCOMES = {
   activated: {
@@ -35,8 +34,7 @@ const OUTCOMES = {
   unavailable: {
     icon: 'ti-plug-connected-x', tone: 'failed',
     title: 'Não foi possível ativar agora',
-    message: 'Tente novamente em instantes.',
-    retry: true,
+    message: 'Tente novamente em instantes, clicando outra vez no link do e-mail.',
   },
 };
 
@@ -58,7 +56,6 @@ function showOutcome(key) {
   el('result-title').textContent = outcome.title;
   el('result-message').textContent = outcome.message;
   el('login-btn').classList.toggle('hidden', !outcome.login);
-  el('retry-btn').classList.toggle('hidden', !outcome.retry);
   el('resend-form').classList.toggle('hidden', !outcome.resend);
   el('login-hint').classList.toggle('hidden', outcome.resend !== 'primary');
   show('state-result');
@@ -72,41 +69,15 @@ function showOutcome(key) {
 function focusNextAction(outcome) {
   const next = outcome.resend === 'primary' ? el('resend-email')
     : outcome.login ? el('login-btn')
-    : outcome.retry ? el('retry-btn')
     : null;
   if (next) next.focus();
 }
 
-// 410 means the link was real but is stale or spent; 400 or no token at all is simply unusable;
-// anything else (5xx, no answer) says nothing about the link, so the person should try again.
-function outcomeFor(status, body) {
-  if (status === 410) return body.reason === 'ALREADY_USED' ? 'used' : body.reason === 'EXPIRED' ? 'expired' : 'invalid';
-  if (status === 400) return 'invalid';
-  return 'unavailable';
+// Anything the API did not say explicitly (no status, a typo, a hand-edited URL) is an unusable link.
+function outcomeFor(value) {
+  return Object.hasOwn(OUTCOMES, value) ? value : 'invalid';
 }
 
-async function activate() {
-  el('state-loading').setAttribute('aria-busy', 'true');
-  show('state-loading');
-  if (!token) {
-    showOutcome('invalid');
-    return;
-  }
-  try {
-    const response = await fetch(`/api/activate?token=${encodeURIComponent(token)}`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (response.ok) {
-      showOutcome('activated');
-      return;
-    }
-    showOutcome(outcomeFor(response.status, await response.json().catch(() => ({}))));
-  } catch (networkError) {
-    showOutcome('unavailable');
-  }
-}
-
-el('retry-btn').addEventListener('click', activate);
 el('login-btn').addEventListener('click', () => track('activation_login_clicked'));
 
 el('resend-form').addEventListener('submit', async function (e) {
@@ -150,4 +121,4 @@ el('resend-form').addEventListener('submit', async function (e) {
 });
 
 track('activation_page_viewed');
-activate();
+showOutcome(outcomeFor(activationStatus));
