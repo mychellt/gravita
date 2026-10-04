@@ -4,6 +4,7 @@ import br.gravita.core.annotations.UseCase;
 import br.gravita.core.domain.*;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.system.ActivationToken;
 import br.gravita.core.domain.system.SignupRejectedException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
@@ -11,13 +12,13 @@ import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import br.gravita.core.ports.outbound.persistence.CompanyPersonRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.SubscriptionRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
 import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
-import java.util.UUID;
 
 @AllArgsConstructor
 @UseCase
@@ -32,6 +33,7 @@ public class SignupService implements SignupUseCase {
     private final ProfileRepositoryPort profileRepositoryPort;
     private final PlanRepositoryPort planRepositoryPort;
     private final SubscriptionRepositoryPort subscriptionRepositoryPort;
+    private final ActivationTokenRepositoryPort activationTokenRepositoryPort;
     private final NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort;
 
     @Override
@@ -69,6 +71,9 @@ public class SignupService implements SignupUseCase {
         final var user = User.signUp(command.fullName(), email, command.rawPassword(), administrator, company.getId());
         final var userId = userRepositoryPort.save(user).getId();
 
+        final var activationToken = ActivationToken.issue(userId);
+        activationTokenRepositoryPort.save(activationToken.token());
+
         final var subscription = Subscription.request(plan, company, billingCycle);
         subscription.activate();
         Subscription saved = subscriptionRepositoryPort.save(subscription);
@@ -76,7 +81,8 @@ public class SignupService implements SignupUseCase {
         notifyUserRegistrationProducerPort.execute(new Context(NotifyUserRegistrationMessage.builder()
                 .username(user.getName())
                 .recipient(user.getEmail())
-                .tenantId(UUID.randomUUID())
+                .token(activationToken.rawToken())
+                .tenantId(company.getId())
                 .build()));
 
         return new SignupResult(userId.value(), company.getId(), saved.getId(), tier, billingCycle,

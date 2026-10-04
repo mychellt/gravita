@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.UUID;
-
 @Component
 public class SQSNotifyUserRegistrationProducerAdapter implements NotifyUserRegistrationProducerPort {
 
@@ -29,13 +27,7 @@ public class SQSNotifyUserRegistrationProducerAdapter implements NotifyUserRegis
     @Override
     @SneakyThrows
     public Void execute(final Context context) {
-        final var message = NotifyUserRegistrationMessage.builder()
-                .token(context.getProperty("token", String.class))
-                .username(context.getProperty("username", String.class))
-                .recipient(context.getProperty("recipient", String.class))
-                .tenantId(context.getProperty("tenantId", UUID.class))
-                .build();
-
+        final var message = context.getData(NotifyUserRegistrationMessage.class);
         sqsPublisher.publish(queueName, objectMapper.writeValueAsString(message));
 
         return null;
