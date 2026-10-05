@@ -32,6 +32,8 @@ export class AuthService {
 
   private readonly token = signal<string | null>(this.readStoredToken());
   readonly isAuthenticated = computed(() => !!this.token());
+  /** Token da sessão atual, para endpoints que exigem `Authorization: Bearer`. */
+  readonly sessionToken = this.token.asReadonly();
 
   private readonly user = signal<CurrentUser | null>(null);
   /** O usuário da sessão atual; `null` até {@link loadCurrentUser} concluir ou sem sessão. */

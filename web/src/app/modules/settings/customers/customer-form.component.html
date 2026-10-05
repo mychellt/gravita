@@ -1,0 +1,151 @@
+<form class="form-section" (submit)="$event.preventDefault(); submit()" aria-label="Novo cliente">
+  <div class="form-section-head">
+    <i class="ti ti-user-plus form-section-icon"></i><span class="form-section-title">Novo cliente</span>
+  </div>
+  <div class="form-body">
+    <div class="form-row cols-3">
+      <div class="form-field">
+        <label class="form-label">Tipo de pessoa</label>
+        <select class="form-select" name="type" (change)="setType($any($event.target).value)">
+          <option value="COMPANY" [selected]="type() === 'COMPANY'">Pessoa Jurídica</option>
+          <option value="INDIVIDUAL" [selected]="type() === 'INDIVIDUAL'">Pessoa Física</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ documentLabel() }}</label>
+        <input class="form-input mono" type="text" name="document" [value]="document()" (input)="document.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Nome</label>
+        <input class="form-input" type="text" name="name" [value]="name()" (input)="name.set($any($event.target).value)" />
+      </div>
+    </div>
+    <div class="form-row cols-4">
+      <div class="form-field">
+        <label class="form-label">E-mail</label>
+        <input class="form-input" type="email" name="email" [value]="email()" (input)="email.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Indicador de IE</label>
+        <select class="form-select" name="ieIndicator" (change)="ieIndicator.set($any($event.target).value)">
+          @for (o of ieOptions; track o[0]) {
+            <option [value]="o[0]" [selected]="ieIndicator() === o[0]">{{ o[1] }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Limite de crédito (R$)</label>
+        <input class="form-input" type="text" inputmode="decimal" name="creditLimit" placeholder="0,00"
+               [value]="creditLimit()" (input)="creditLimit.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Consumidor final</label>
+        <label class="check-label">
+          <input type="checkbox" name="finalConsumer" [checked]="finalConsumer()" (change)="finalConsumer.set($any($event.target).checked)" />
+          Sim
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section-head">
+    <i class="ti ti-map-pin form-section-icon"></i><span class="form-section-title">Endereços</span>
+  </div>
+  <div class="form-body">
+    @for (a of addresses(); let i = $index; track i) {
+      <div class="repeat-item">
+        <div class="repeat-head">
+          <span class="form-label">Endereço {{ i + 1 }}</span>
+          @if (addresses().length > 1) {
+            <button type="button" class="action-btn danger" (click)="removeAddress(i)">Remover</button>
+          }
+        </div>
+        <div class="form-row cols-4">
+          <div class="form-field">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" (change)="patchAddress(i, { type: $any($event.target).value })">
+              @for (o of addressTypeOptions; track o[0]) {
+                <option [value]="o[0]" [selected]="a.type === o[0]">{{ o[1] }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">CEP</label>
+            <input class="form-input" type="text" [value]="a.zipCode" (input)="patchAddress(i, { zipCode: $any($event.target).value })" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Logradouro</label>
+            <input class="form-input" type="text" [value]="a.street" (input)="patchAddress(i, { street: $any($event.target).value })" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Número</label>
+            <input class="form-input" type="text" [value]="a.number" (input)="patchAddress(i, { number: $any($event.target).value })" />
+          </div>
+        </div>
+        <div class="form-row cols-4">
+          <div class="form-field">
+            <label class="form-label">Complemento</label>
+            <input class="form-input" type="text" [value]="a.complement" (input)="patchAddress(i, { complement: $any($event.target).value })" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Bairro</label>
+            <input class="form-input" type="text" [value]="a.neighborhood" (input)="patchAddress(i, { neighborhood: $any($event.target).value })" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Cidade</label>
+            <input class="form-input" type="text" [value]="a.city" (input)="patchAddress(i, { city: $any($event.target).value })" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">UF</label>
+            <input class="form-input" type="text" maxlength="2" [value]="a.state" (input)="patchAddress(i, { state: $any($event.target).value })" />
+          </div>
+        </div>
+        <label class="check-label">
+          <input type="checkbox" [checked]="a.isDefault" (change)="setDefault(i, $any($event.target).checked)" />
+          Endereço padrão deste tipo
+        </label>
+      </div>
+    }
+    <button type="button" class="btn btn-ghost btn-sm" (click)="addAddress()"><i class="ti ti-plus"></i> Adicionar endereço</button>
+    @if (!addressesValid()) {
+      <div class="form-hint" [class.error]="defaultRuleViolation()">
+        @if (defaultRuleViolation()) {
+          Cada tipo com mais de um endereço precisa ter exatamente um endereço padrão.
+        } @else {
+          Informe ao menos um endereço completo (CEP, logradouro, bairro, cidade e UF).
+        }
+      </div>
+    }
+  </div>
+
+  <div class="form-section-head">
+    <i class="ti ti-phone form-section-icon"></i><span class="form-section-title">Contatos (opcional)</span>
+  </div>
+  <div class="form-body">
+    @for (c of contacts(); let i = $index; track i) {
+      <div class="contact-row">
+        <div class="form-field">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" (change)="patchContact(i, { type: $any($event.target).value })">
+            @for (o of contactTypeOptions; track o[0]) {
+              <option [value]="o[0]" [selected]="c.type === o[0]">{{ o[1] }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Valor</label>
+          <input class="form-input" type="text" [value]="c.value" (input)="patchContact(i, { value: $any($event.target).value })" />
+        </div>
+        <button type="button" class="action-btn danger" (click)="removeContact(i)">Remover</button>
+      </div>
+    }
+    <button type="button" class="btn btn-ghost btn-sm" (click)="addContact()"><i class="ti ti-plus"></i> Adicionar contato</button>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">Cancelar</button>
+    <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+      <i class="ti ti-check"></i> {{ saving() ? 'Salvando…' : 'Cadastrar cliente' }}
+    </button>
+  </div>
+</form>

@@ -1,0 +1,8 @@
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+.repeat-item { border: 1px solid var(--border); border-radius: var(--r8); padding: 10px; margin-bottom: 10px; }
+.repeat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.check-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+.form-hint { font-size: 12px; color: var(--text3); margin-top: 6px; }
+.form-hint.error { color: var(--danger); }
+.contact-row { display: grid; grid-template-columns: 160px 1fr auto; gap: 10px; margin-bottom: 8px; align-items: end; }
+@media (max-width: 720px) { .contact-row { grid-template-columns: 1fr; } }

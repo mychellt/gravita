@@ -1,6 +1,15 @@
 <app-page-header title="Clientes" subtitle="Administração · Cadastro de clientes do tenant">
   <a routerLink="/settings" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  @if (canRegister()) {
+    <button type="button" class="btn btn-primary" [disabled]="showForm()" (click)="showForm.set(true)">
+      <i class="ti ti-plus"></i> Novo Cliente
+    </button>
+  }
 </app-page-header>
+
+@if (showForm()) {
+  <app-customer-form (registered)="onRegistered($event)" (cancelled)="showForm.set(false)" />
+}
 
 <div class="card">
   <div class="card-head">
@@ -24,15 +33,16 @@
     <tbody>
       @for (c of customers(); track c.id) {
         <tr>
-          <td class="td-name">{{ c.nome || '--' }}</td>
-          <td class="td-mono">{{ c.documento || '--' }}</td>
+          <td class="td-name">{{ c.name || '--' }}</td>
+          <td class="td-mono">{{ c.document || '--' }}</td>
           <td>
-            @if (c.status) { <app-badge [value]="c.status" /> } @else { -- }
+            @if (c.status) { <app-badge [value]="statusBadges[c.status]" /> } @else { -- }
           </td>
-          <td class="td-right">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</td>
-          <td class="td-right">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</td>
+          <td class="td-right">{{ c.creditLimit != null ? (c.creditLimit | brl) : '--' }}</td>
+          <td class="td-right">{{ c.currentBalance != null ? (c.currentBalance | brl) : '--' }}</td>
           <td class="td-actions">
-            <a class="action-btn" [routerLink]="['/settings/customers', c.id]">Dados</a>
+            <a class="action-btn" [routerLink]="['/settings/customers', c.id]"
+               title="Ver dados do cliente" aria-label="Ver dados do cliente"><i class="ti ti-eye"></i></a>
             <a class="action-btn" [routerLink]="['/settings/customers', c.id, 'payments']">Pagamentos</a>
             <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
           </td>
@@ -40,7 +50,16 @@
       }
       @empty {
         <tr>
-          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
+          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">
+            @switch (loadStatus()) {
+              @case ('loading') { Carregando clientes… }
+              @case ('error') {
+                Não foi possível carregar os clientes.
+                <button type="button" class="btn btn-ghost btn-sm" (click)="load()">Tentar novamente</button>
+              }
+              @default { Nenhum cliente encontrado }
+            }
+          </td>
         </tr>
       }
     </tbody>
