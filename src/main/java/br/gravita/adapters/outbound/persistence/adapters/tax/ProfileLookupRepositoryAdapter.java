@@ -5,6 +5,7 @@ import br.gravita.core.ports.outbound.persistence.system.ProfileRepositoryPort;
 import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.adapters.outbound.persistence.repositories.tax.ProfileLookupJpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,5 +26,12 @@ class ProfileLookupRepositoryAdapter implements ProfileRepositoryPort {
 	@Override
 	public Optional<ProfileReference> findByName(String name) {
 		return jpaRepository.findByName(name).map(entity -> new ProfileReference(entity.getId(), entity.getName()));
+	}
+
+	@Override
+	public List<ProfileReference> findAll() {
+		return jpaRepository.findAll().stream()
+				.map(entity -> new ProfileReference(entity.getId(), entity.getName()))
+				.toList();
 	}
 }

@@ -1,21 +1,29 @@
 package br.gravita.adapters.inbound.controllers;
 
+import br.gravita.adapters.configuration.web.WebMvcConfiguration;
 import br.gravita.core.domain.PermissionAction;
 import br.gravita.core.domain.PermissionDomain;
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
+import br.gravita.core.usercases.system.ListProfilesUseCase;
 import br.gravita.core.ports.business.AssignProfilePort;
 import br.gravita.core.ports.business.FindProfilePort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProfileRestController.class)
+@Import(WebMvcConfiguration.class)
 class ProfileRestControllerTest {
 
 	@Autowired
@@ -39,6 +48,43 @@ class ProfileRestControllerTest {
 
 	@MockitoBean
 	private FindProfilePort findProfilePort;
+
+	@MockitoBean
+	private ListProfilesUseCase listProfilesUseCase;
+
+	@MockitoBean
+	private SessionStorePort sessionStorePort;
+
+	private static final String SESSION_TOKEN = "session-token";
+	private static final String BEARER = "Bearer " + SESSION_TOKEN;
+
+	@BeforeEach
+	void authenticate() {
+		when(sessionStorePort.resolve(SESSION_TOKEN)).thenReturn(Optional.of(UserId.generate()));
+	}
+
+	@Test
+	@DisplayName("Returns 200 OK with the id and name of every available profile")
+	void shouldListProfilesForTheDropdown() throws Exception {
+		UUID adminId = UUID.randomUUID();
+		UUID salesId = UUID.randomUUID();
+		when(listProfilesUseCase.execute()).thenReturn(List.of(
+				new ProfileReference(adminId, "Administrator"), new ProfileReference(salesId, "Salesperson")));
+
+		mockMvc.perform(get("/api/profiles").header("Authorization", BEARER))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].id").value(adminId.toString()))
+				.andExpect(jsonPath("$[0].name").value("Administrator"))
+				.andExpect(jsonPath("$[1].id").value(salesId.toString()))
+				.andExpect(jsonPath("$[1].name").value("Salesperson"));
+	}
+
+	@Test
+	@DisplayName("Returns 401 Unauthorized when listing profiles without a session")
+	void shouldReturn401WhenListingProfilesWithoutSession() throws Exception {
+		mockMvc.perform(get("/api/profiles")).andExpect(status().isUnauthorized());
+	}
 
 	private static final String VALID_BODY = """
 			{"permissions":[{"module":"finance","screen":"invoices","action":"VIEW"}]}""";

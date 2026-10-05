@@ -3,7 +3,9 @@ package br.gravita.core.ports.outbound.persistence.system;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserId;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserRepositoryPort {
 
@@ -19,4 +21,6 @@ public interface UserRepositoryPort {
 	Optional<User> findByEmail(String email);
 
 	boolean existsByEmail(String email);
+
+	List<User> findAllByCompanyId(UUID companyId);
 }

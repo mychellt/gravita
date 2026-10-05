@@ -1,6 +1,8 @@
 package br.gravita.adapters.inbound.controllers.tax;
 
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.usercases.system.ListUsersUseCase;
 import br.gravita.core.usercases.system.RegisterUserUseCase;
 import br.gravita.core.usercases.system.UpdateUserUseCase;
 import br.gravita.core.domain.system.UserId;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -26,15 +30,24 @@ public class UserController {
 
 	private final RegisterUserUseCase registerUserUseCase;
 	private final UpdateUserUseCase updateUserUseCase;
+	private final ListUsersUseCase listUsersUseCase;
 
-	public UserController(RegisterUserUseCase registerUserUseCase, UpdateUserUseCase updateUserUseCase) {
+	public UserController(RegisterUserUseCase registerUserUseCase, UpdateUserUseCase updateUserUseCase,
+			ListUsersUseCase listUsersUseCase) {
 		this.registerUserUseCase = registerUserUseCase;
 		this.updateUserUseCase = updateUserUseCase;
+		this.listUsersUseCase = listUsersUseCase;
+	}
+
+	@GetMapping
+	public ResponseEntity<List<UserSummaryResponse>> findAll(@AuthenticatedUser UserId callerId) {
+		return ResponseEntity.ok(listUsersUseCase.execute(callerId).stream().map(UserSummaryResponse::from).toList());
 	}
 
 	@PostMapping
-	public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
-		UserId id = registerUserUseCase.execute(request.toCommand());
+	public ResponseEntity<UserResponse> register(@AuthenticatedUser UserId callerId,
+			@Valid @RequestBody RegisterUserRequest request) {
+		UserId id = registerUserUseCase.execute(request.toCommand(callerId));
 		return ResponseEntity.created(URI.create("/api/users/" + id.value())).body(UserResponse.from(id));
 	}
 
