@@ -21,6 +21,7 @@ export interface CurrentUser {
   name: string;
   email: string;
   profile: string | null;
+  companyId: string | null;
 }
 
 /** Fonte única de "existe sessão?" para o guard e para a tela de login. */

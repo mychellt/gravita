@@ -7,8 +7,11 @@ export function initialsOf(name: string | null | undefined): string {
   return (first + last).toLocaleUpperCase('pt-BR');
 }
 
+/** Nome do perfil de acesso com permissão total, como cadastrado no backend. */
+export const ADMINISTRATOR_PROFILE = 'Administrator';
+
 const PROFILE_LABELS: Record<string, string> = {
-  'Administrator': 'Administrador',
+  [ADMINISTRATOR_PROFILE]: 'Administrador',
   'Financial': 'Financeiro',
   'Salesperson': 'Vendedor',
   'Cashier Operator': 'Operador de caixa',

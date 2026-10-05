@@ -90,10 +90,10 @@ describe('AuthService', () => {
       const loading = service.loadCurrentUser();
       const req = http.expectOne('/api/auth/me');
       expect(req.request.headers.get('Authorization')).toBe('Bearer abc');
-      req.flush({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator' });
+      req.flush({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator', companyId: 'c-1' });
       await loading;
 
-      expect(service.currentUser()).toEqual({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator' });
+      expect(service.currentUser()).toEqual({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator', companyId: 'c-1' });
     });
 
     it('has no user and makes no request without a session', async () => {
