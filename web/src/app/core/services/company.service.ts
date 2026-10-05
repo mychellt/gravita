@@ -10,15 +10,15 @@ export interface Company {
   id: string;
   name: string;
   cnpj: string;
-  ie: string;
-  im: string;
-  cnae: string;
+  ie: string | null;
+  im: string | null;
+  cnae: string | null;
   taxRegime: TaxRegime;
   simplesOptante: boolean;
-  address: string;
-  state: string;
-  issuingEmail: string;
-  phone: string;
+  address: string | null;
+  state: string | null;
+  issuingEmail: string | null;
+  phone: string | null;
   logoUrl: string | null;
 }
 

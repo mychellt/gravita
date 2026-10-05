@@ -15,11 +15,17 @@ import java.util.UUID;
 @Mapper(builder = @Builder(disableBuilder = true), nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface CompanyPersistenceMapper {
 
-    @Mapping(target = "cnpj", source = "cnpj", qualifiedByName = "toCnpj")
-    Company map(final CompanyJpaEntity entity);
+    /** Hand-written so a draft company (fiscal profile not filled in yet) can be loaded without tripping the strict rules. */
+    default Company map(final CompanyJpaEntity entity) {
+        return Company.rehydrate(CompanyId.of(entity.getId()), entity.getName(), Document.cnpj(entity.getDocument()),
+                entity.getIe(), entity.getIm(), entity.getCnae(), entity.getTaxRegime(), entity.isSimplesOptante(),
+                entity.getSefazEnvironment(), entity.getAddress(), entity.getState(), entity.getIssuingEmail(),
+                entity.getPhone(), entity.getLogoUrl(),
+                entity.getParentCompanyId() == null ? null : CompanyId.of(entity.getParentCompanyId()));
+    }
 
     @Mapping(target = "id", source = "id.value")
-    @Mapping(target = "cnpj", source = "cnpj.number")
+    @Mapping(target = "document", source = "cnpj.number")
     @Mapping(target = "parentCompanyId", source = "parentCompanyId.value")
     CompanyJpaEntity map(final Company domain);
 

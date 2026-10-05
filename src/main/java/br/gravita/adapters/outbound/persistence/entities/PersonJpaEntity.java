@@ -1,38 +1,30 @@
 package br.gravita.adapters.outbound.persistence.entities;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.DiscriminatorFormula;
 
 import java.util.UUID;
 
 @Getter
 @Setter
-@Entity
+@MappedSuperclass
 @SuperBuilder
 @NoArgsConstructor
-@Table(name = "persons")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorFormula("case when document is not null and length(document) = 14 then 'COMPANY' else 'INDIVIDUAL' end")
 public abstract class PersonJpaEntity extends AbstractEntity<UUID> {
 
+	/** Assigned by the domain (e.g. {@code CompanyId}), not generated, so a preset id is persisted as given. */
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO, generator = "UUID")
 	private UUID id;
 
 	@Column(nullable = false)
 	private String name;
 
+	/** The person's tax document; a subclass may store it under its own column (a company keeps it as {@code cnpj}). */
 	@Column(unique = true, length = 20)
 	private String document;
 }

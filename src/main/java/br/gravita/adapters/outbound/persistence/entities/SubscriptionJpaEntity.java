@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.entities;
 
+import br.gravita.adapters.outbound.persistence.entities.masterdata.CompanyJpaEntity;
 import br.gravita.core.domain.BillingCycle;
 import br.gravita.core.domain.SubscriptionStatus;
 import jakarta.persistence.CascadeType;
@@ -42,8 +43,8 @@ public class SubscriptionJpaEntity extends AbstractEntity<UUID> {
 	private PlanJpaEntity plan;
 
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "person_id", nullable = false)
-	private CompanyPersonJpaEntity person;
+	@JoinColumn(name = "company_id", nullable = false)
+	private CompanyJpaEntity company;
 
 	@Column(nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)

@@ -201,6 +201,11 @@ class IssueNfceConcurrentIntegrationTest {
 			public Optional<Company> findById(CompanyId id) {
 				return Optional.of(company);
 			}
+
+			@Override
+			public boolean existsByCnpj(String cnpj) {
+				return false;
+			}
 		};
 	}
 
@@ -230,7 +235,7 @@ class IssueNfceConcurrentIntegrationTest {
 		entityManager.persist(CompanyJpaEntity.builder()
 				.id(id)
 				.name("Acme Ltda")
-				.cnpj(UUID.randomUUID().toString().substring(0, 14))
+				.document(UUID.randomUUID().toString().substring(0, 14))
 				.ie("123456789")
 				.im("987654")
 				.cnae("6201500")

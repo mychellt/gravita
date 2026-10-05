@@ -33,4 +33,9 @@ class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 	public Optional<Company> findById(CompanyId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
+
+	@Override
+	public boolean existsByCnpj(String cnpj) {
+		return jpaRepository.existsByDocument(cnpj);
+	}
 }

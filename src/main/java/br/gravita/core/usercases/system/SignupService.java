@@ -4,12 +4,14 @@ import br.gravita.core.annotations.UseCase;
 import br.gravita.core.domain.*;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.system.ActivationToken;
 import br.gravita.core.domain.system.SignupRejectedException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
 import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
-import br.gravita.core.ports.outbound.persistence.CompanyPersonRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.SubscriptionRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
@@ -19,6 +21,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
+import java.util.UUID;
 
 @AllArgsConstructor
 @UseCase
@@ -28,7 +31,7 @@ public class SignupService implements SignupUseCase {
     private static final PlanTier DEFAULT_PLAN = PlanTier.SILVER;
     private static final BillingCycle DEFAULT_BILLING = BillingCycle.MONTHLY;
 
-    private final CompanyPersonRepositoryPort companyRepositoryPort;
+    private final CompanyRepositoryPort companyRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final ProfileRepositoryPort profileRepositoryPort;
     private final PlanRepositoryPort planRepositoryPort;
@@ -49,7 +52,7 @@ public class SignupService implements SignupUseCase {
         if (email != null && userRepositoryPort.existsByEmail(email)) {
             throw new SignupRejectedException(SignupRejectedException.EMAIL, "Este e-mail já está cadastrado.");
         }
-        if (companyRepositoryPort.existsByDocument(cnpj.number())) {
+        if (companyRepositoryPort.existsByCnpj(cnpj.number())) {
             throw new SignupRejectedException(SignupRejectedException.CNPJ, "Este CNPJ já está cadastrado.");
         }
 
@@ -61,14 +64,12 @@ public class SignupService implements SignupUseCase {
                 .orElseThrow(() -> new IllegalStateException(
                         "Profile '" + ADMINISTRATOR_PROFILE_NAME + "' is not seeded; signup cannot assign it"));
 
-        final var company = companyRepositoryPort.save(CompanyPerson.builder()
-                .name(companyName)
-                .document(cnpj)
-                .phone(command.phone())
-                .active(true)
-                .build());
+        // One company record: the signup collects name, CNPJ and phone; the fiscal profile is completed in Settings.
+        final var company = companyRepositoryPort.save(
+                Company.draft(CompanyId.of(UUID.randomUUID()), companyName, cnpj, command.phone()));
+        final var companyId = company.getId().value();
 
-        final var user = User.signUp(command.fullName(), email, command.rawPassword(), administrator, company.getId());
+        final var user = User.signUp(command.fullName(), email, command.rawPassword(), administrator, companyId);
         final var userId = userRepositoryPort.save(user).getId();
 
         final var activationToken = ActivationToken.issue(userId);
@@ -82,10 +83,10 @@ public class SignupService implements SignupUseCase {
                 .username(user.getName())
                 .recipient(user.getEmail())
                 .token(activationToken.rawToken())
-                .tenantId(company.getId())
+                .tenantId(companyId)
                 .build()));
 
-        return new SignupResult(userId.value(), company.getId(), saved.getId(), tier, billingCycle,
+        return new SignupResult(userId.value(), companyId, saved.getId(), tier, billingCycle,
                 saved.getActivationDate(), saved.getExpirationDate());
     }
 

@@ -1,6 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.masterdata.Company;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ public class Subscription extends AbstractDomain {
 	private static final int ANNUAL_DAYS = 365;
 
 	private PlanDomain plan;
-	private CompanyPerson person;
+	private Company company;
 	private BillingCycle billingCycle;
 
 	@Builder.Default
@@ -32,10 +33,10 @@ public class Subscription extends AbstractDomain {
 	private LocalDate activationDate;
 	private LocalDate expirationDate;
 
-	public static Subscription request(PlanDomain plan, CompanyPerson person, BillingCycle billingCycle) {
+	public static Subscription request(PlanDomain plan, Company company, BillingCycle billingCycle) {
 		return Subscription.builder()
 				.plan(plan)
-				.person(person)
+				.company(company)
 				.billingCycle(billingCycle)
 				.status(SubscriptionStatus.PENDING)
 				.build();

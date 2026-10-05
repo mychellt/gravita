@@ -33,21 +33,52 @@ public final class Company {
 	public Company(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
 			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
 			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
+		this(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state, issuingEmail,
+				phone, logoUrl, parentCompanyId, false);
+	}
+
+	/** {@code lenient} skips the fiscal-profile rules (IE, IM, UF) for drafts and for rows read back from storage. */
+	private Company(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
+			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
+			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId, boolean lenient) {
 		this.id = id;
 		this.name = requireName(name);
 		this.cnpj = requireCnpj(cnpj);
-		this.ie = validateIe(ie);
-		this.im = validateIm(im);
+		this.ie = lenient && isBlank(ie) ? null : validateIe(ie);
+		this.im = lenient && isBlank(im) ? null : validateIm(im);
 		this.cnae = cnae;
 		this.taxRegime = requireTaxRegime(taxRegime);
 		this.simplesOptante = simplesOptante;
 		this.sefazEnvironment = requireSefazEnvironment(sefazEnvironment);
 		this.address = address;
-		this.state = validateState(state);
+		this.state = lenient && isBlank(state) ? null : validateState(state);
 		this.issuingEmail = issuingEmail;
 		this.phone = phone;
 		this.logoUrl = logoUrl;
 		this.parentCompanyId = parentCompanyId;
+	}
+
+	/**
+	 * A company that only has what signup collects (name, CNPJ, phone). The fiscal profile (IE, IM, CNAE, address,
+	 * UF, issuing e-mail) is filled in later through the regular update, which enforces the usual rules; until then
+	 * it defaults to Simples Nacional and the homologation environment, so nothing is issued for real by accident.
+	 */
+	public static Company draft(CompanyId id, String name, Document cnpj, String phone) {
+		return new Company(id, requireName(name), requireCnpj(cnpj), null, null, null, TaxRegime.SIMPLES_NACIONAL, false,
+				SefazEnvironment.HOMOLOGATION, null, null, null, phone, null, null, true);
+	}
+
+	/** Rebuilds a stored company as it is, including a draft whose fiscal profile is still incomplete. */
+	public static Company rehydrate(CompanyId id, String name, Document cnpj, String ie, String im, String cnae,
+			TaxRegime taxRegime, boolean simplesOptante, SefazEnvironment sefazEnvironment, String address,
+			String state, String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
+		return new Company(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
+				issuingEmail, phone, logoUrl, parentCompanyId, true);
+	}
+
+	/** True once the fiscal profile has everything the strict rules require. */
+	public boolean isProfileComplete() {
+		return ie != null && im != null && state != null;
 	}
 
 	public static Company of(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
@@ -55,6 +86,10 @@ public final class Company {
 			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
 		return new Company(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
 				issuingEmail, phone, logoUrl, parentCompanyId);
+	}
+
+	private static boolean isBlank(String value) {
+		return value == null || value.isBlank();
 	}
 
 	private static String requireName(String name) {

@@ -8,7 +8,10 @@ import br.gravita.core.domain.system.SignupRejectedException;
 import br.gravita.core.domain.system.User;
 import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
-import br.gravita.core.ports.outbound.persistence.CompanyPersonRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
+import br.gravita.core.domain.masterdata.Company;
+import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.ports.outbound.persistence.PlanRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.SubscriptionRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
@@ -43,7 +46,7 @@ class SignupServiceTest {
             new ProfileReference(UUID.randomUUID(), SignupService.ADMINISTRATOR_PROFILE_NAME);
 
     @Mock
-    private CompanyPersonRepositoryPort companyRepository;
+    private CompanyRepositoryPort companyRepository;
     @Mock
     private UserRepositoryPort userRepository;
     @Mock
@@ -58,7 +61,6 @@ class SignupServiceTest {
     private NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort;
 
     private SignupService service;
-    private final UUID companyId = UUID.randomUUID();
     private final UUID subscriptionId = UUID.randomUUID();
 
     @BeforeEach
@@ -69,11 +71,7 @@ class SignupServiceTest {
                 .thenReturn(Optional.of(ADMINISTRATOR));
         lenient().when(planRepository.findActiveByTier(any(PlanTier.class))).thenAnswer(invocation ->
                 Optional.of(PlanFixtures.aPlan().tier(invocation.getArgument(0)).build()));
-        lenient().when(companyRepository.save(any(CompanyPerson.class))).thenAnswer(invocation -> {
-            CompanyPerson company = invocation.getArgument(0);
-            company.setId(companyId);
-            return company;
-        });
+        lenient().when(companyRepository.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(invocation -> {
             Subscription subscription = invocation.getArgument(0);
@@ -87,11 +85,15 @@ class SignupServiceTest {
     void shouldCreateCompanyAdministratorAndActiveSubscription() {
         SignupResult result = service.execute(new Context(command("silver", "annual")));
 
-        ArgumentCaptor<CompanyPerson> company = ArgumentCaptor.forClass(CompanyPerson.class);
+        ArgumentCaptor<Company> company = ArgumentCaptor.forClass(Company.class);
         verify(companyRepository).save(company.capture());
+        UUID companyId = company.getValue().getId().value();
         assertThat(company.getValue().getName()).isEqualTo("Acme Ltda");
-        assertThat(company.getValue().getDocument().number()).isEqualTo("11222333000181");
+        assertThat(company.getValue().getCnpj().number()).isEqualTo("11222333000181");
         assertThat(company.getValue().getPhone()).isEqualTo("(11) 91234-5678");
+        assertThat(company.getValue().getTaxRegime()).isEqualTo(TaxRegime.SIMPLES_NACIONAL);
+        assertThat(company.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
+        assertThat(company.getValue().isProfileComplete()).as("fiscal profile is completed later in Settings").isFalse();
 
         ArgumentCaptor<User> user = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(user.capture());
@@ -107,7 +109,7 @@ class SignupServiceTest {
         assertThat(subscription.getValue().getBillingCycle()).isEqualTo(BillingCycle.ANNUAL);
         assertThat(subscription.getValue().getStatus()).isEqualTo(SubscriptionStatus.ACTIVE);
         assertThat(subscription.getValue().getActivationDate()).isEqualTo(LocalDate.now());
-        assertThat(subscription.getValue().getPerson().getId()).isEqualTo(companyId);
+        assertThat(subscription.getValue().getCompany().getId().value()).isEqualTo(companyId);
         assertThat(subscription.getValue().getPayments()).isEmpty();
 
         assertThat(result.companyId()).isEqualTo(companyId);
@@ -126,7 +128,7 @@ class SignupServiceTest {
         NotifyUserRegistrationMessage message = context.getValue().getData(NotifyUserRegistrationMessage.class);
         assertThat(message.username()).isEqualTo("Ana Souza");
         assertThat(message.recipient()).isEqualTo("ana@acme.com");
-        assertThat(message.tenantId()).isEqualTo(companyId);
+        assertThat(message.tenantId()).isEqualTo(result.companyId());
     }
 
     @Test
@@ -181,7 +183,7 @@ class SignupServiceTest {
     @Test
     @DisplayName("A duplicate CNPJ is rejected on the cnpj field before anything is saved")
     void shouldRejectDuplicateCnpj() {
-        when(companyRepository.existsByDocument("11222333000181")).thenReturn(true);
+        when(companyRepository.existsByCnpj("11222333000181")).thenReturn(true);
 
         assertThatThrownBy(() -> service.execute(new Context(command("silver", "monthly"))))
                 .isInstanceOfSatisfying(SignupRejectedException.class,

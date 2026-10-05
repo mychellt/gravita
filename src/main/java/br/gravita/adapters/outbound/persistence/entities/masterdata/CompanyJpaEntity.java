@@ -1,6 +1,6 @@
 package br.gravita.adapters.outbound.persistence.entities.masterdata;
 
-import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
+import br.gravita.adapters.outbound.persistence.entities.PersonJpaEntity;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import jakarta.persistence.*;
@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
+
 @Getter
 @Setter
 @Entity
@@ -19,23 +20,16 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "companies")
-public class CompanyJpaEntity extends AbstractEntity<UUID> {
-	@Id
-	private UUID id;
+@AttributeOverride(name = "document", column = @Column(name = "cnpj", nullable = false, unique = true, length = 14))
+public class CompanyJpaEntity extends PersonJpaEntity {
 
-	@Column(nullable = false)
-	private String name;
-
-	@Column(nullable = false, unique = true, length = 14)
-	private String cnpj;
-
-	@Column(nullable = false, length = 20)
+	@Column(length = 20)
 	private String ie;
 
-	@Column(nullable = false, length = 20)
+	@Column(length = 20)
 	private String im;
 
-	@Column(nullable = false, length = 10)
+	@Column(length = 10)
 	private String cnae;
 
 	@Enumerated(EnumType.STRING)
@@ -49,16 +43,14 @@ public class CompanyJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false, length = 20)
 	private SefazEnvironment sefazEnvironment;
 
-	@Column(nullable = false)
 	private String address;
 
 	@Column(length = 2)
 	private String state;
 
-	@Column(nullable = false)
 	private String issuingEmail;
 
-	@Column(nullable = false, length = 20)
+	@Column(length = 20)
 	private String phone;
 
 	private String logoUrl;

@@ -85,8 +85,8 @@ export class SettingsComponent implements OnInit {
     this.cnpj.set(company.cnpj);
     this.razaoSocial.set(company.name);
     this.regime.set(company.taxRegime);
-    this.cnae.set(company.cnae);
-    this.ie.set(company.ie);
+    this.cnae.set(company.cnae ?? '');
+    this.ie.set(company.ie ?? '');
   }
 
   cancel() {

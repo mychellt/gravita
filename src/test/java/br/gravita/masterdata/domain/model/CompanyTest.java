@@ -33,6 +33,46 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("A signup draft holds only name, CNPJ and phone, and its fiscal profile is incomplete")
+	void shouldCreateAnIncompleteDraft() {
+		Company draft = Company.draft(CompanyId.of(UUID.randomUUID()), " Acme Ltda ", VALID_CNPJ, "(11) 91234-5678");
+
+		assertThat(draft.getName()).isEqualTo("Acme Ltda");
+		assertThat(draft.getCnpj()).isEqualTo(VALID_CNPJ);
+		assertThat(draft.getPhone()).isEqualTo("(11) 91234-5678");
+		assertThat(draft.getIe()).isNull();
+		assertThat(draft.getIm()).isNull();
+		assertThat(draft.getState()).isNull();
+		assertThat(draft.getTaxRegime()).isEqualTo(TaxRegime.SIMPLES_NACIONAL);
+		assertThat(draft.getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
+		assertThat(draft.isProfileComplete()).isFalse();
+		assertThat(validCompanyBuilder().build().isProfileComplete()).isTrue();
+	}
+
+	@Test
+	@DisplayName("A draft still needs a name and a CNPJ")
+	void shouldRequireNameAndCnpjForADraft() {
+		CompanyId id = CompanyId.of(UUID.randomUUID());
+
+		assertThatThrownBy(() -> Company.draft(id, " ", VALID_CNPJ, null)).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> Company.draft(id, "Acme", null, null)).isInstanceOf(BusinessRuleException.class);
+	}
+
+	@Test
+	@DisplayName("A stored draft can be read back, while the regular constructor keeps requiring the fiscal profile")
+	void shouldRehydrateADraftButStayStrictOtherwise() {
+		CompanyId id = CompanyId.of(UUID.randomUUID());
+
+		Company stored = Company.rehydrate(id, "Acme", VALID_CNPJ, null, null, null, TaxRegime.SIMPLES_NACIONAL, false,
+				SefazEnvironment.HOMOLOGATION, null, null, null, null, null, null);
+
+		assertThat(stored.isProfileComplete()).isFalse();
+		assertThatThrownBy(() -> Company.of(id, "Acme", VALID_CNPJ, null, "1", null, TaxRegime.SIMPLES_NACIONAL, false,
+				SefazEnvironment.HOMOLOGATION, null, "SP", null, null, null, null))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("IE");
+	}
+
+	@Test
 	@DisplayName("Allows registering a branch with a parent company id")
 	void shouldAllowRegisteringBranchWithParentCompanyId() {
 		CompanyId parentId = CompanyId.of(UUID.randomUUID());
