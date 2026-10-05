@@ -15,36 +15,49 @@
     @if (activeMenu() === 'empresa') {
       <div class="settings-panel-head">
         <div class="settings-panel-title">Dados da Empresa</div>
-        <div class="settings-panel-sub">Informações fiscais e operacionais · Mercado Moderno Ltda</div>
+        <div class="settings-panel-sub">Informações fiscais e operacionais{{ companyName() ? ' · ' + companyName() : '' }}</div>
       </div>
-      <div class="form-row cols-2">
-        <div class="form-field">
-          <label class="form-label">CNPJ</label>
-          <input class="form-input" type="text" [value]="cnpj()" readonly />
-        </div>
-        <div class="form-field">
-          <label class="form-label">Razão Social</label>
-          <input class="form-input" type="text" [value]="razaoSocial()" (input)="razaoSocial.set($any($event.target).value)" />
-        </div>
-      </div>
-      <div class="form-row cols-3">
-        <div class="form-field">
-          <label class="form-label">Regime Tributário</label>
-          <select class="form-select" [value]="regime()" (change)="regime.set($any($event.target).value)">
-            <option value="simples_nacional">Simples Nacional</option>
-            <option value="lucro_presumido">Lucro Presumido</option>
-            <option value="lucro_real">Lucro Real</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label class="form-label">CNAE principal</label>
-          <input class="form-input" type="text" [value]="cnae()" (input)="cnae.set($any($event.target).value)" />
-        </div>
-        <div class="form-field">
-          <label class="form-label">Inscrição Estadual</label>
-          <input class="form-input" type="text" [value]="ie()" (input)="ie.set($any($event.target).value)" />
-        </div>
-      </div>
+      @switch (companyStatus()) {
+        @case ('loading') {
+          <div class="setting-desc">Carregando dados da empresa…</div>
+        }
+        @case ('error') {
+          <div class="setting-desc text-danger">
+            Não foi possível carregar os dados da empresa.
+            <button type="button" class="btn btn-ghost" (click)="loadCompany()">Tentar novamente</button>
+          </div>
+        }
+        @default {
+          <div class="form-row cols-2">
+            <div class="form-field">
+              <label class="form-label">CNPJ</label>
+              <input class="form-input" type="text" [value]="cnpj()" readonly />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Razão Social</label>
+              <input class="form-input" type="text" [value]="razaoSocial()" [disabled]="!canEdit()" (input)="razaoSocial.set($any($event.target).value)" />
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-field">
+              <label class="form-label">Regime Tributário</label>
+              <select class="form-select" [value]="regime()" [disabled]="!canEdit()" (change)="regime.set($any($event.target).value)">
+                <option value="SIMPLES_NACIONAL" [selected]="regime() === 'SIMPLES_NACIONAL'">Simples Nacional</option>
+                <option value="LUCRO_PRESUMIDO" [selected]="regime() === 'LUCRO_PRESUMIDO'">Lucro Presumido</option>
+                <option value="LUCRO_REAL" [selected]="regime() === 'LUCRO_REAL'">Lucro Real</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">CNAE principal</label>
+              <input class="form-input" type="text" [value]="cnae()" [disabled]="!canEdit()" (input)="cnae.set($any($event.target).value)" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Inscrição Estadual</label>
+              <input class="form-input" type="text" [value]="ie()" [disabled]="!canEdit()" (input)="ie.set($any($event.target).value)" />
+            </div>
+          </div>
+        }
+      }
       <hr class="settings-divider" />
       <div class="setting-row">
         <div>
@@ -86,10 +99,12 @@
         </div>
         <button class="toggle" [class.on]="backupAuto()" (click)="backupAuto.set(!backupAuto())"></button>
       </div>
-      <div style="margin-top:20px;display:flex;gap:8px">
-        <button class="btn btn-primary" (click)="save()"><i class="ti ti-device-floppy"></i> Salvar</button>
-        <button class="btn btn-ghost">Cancelar</button>
-      </div>
+      @if (canEdit()) {
+        <div style="margin-top:20px;display:flex;gap:8px">
+          <button class="btn btn-primary" [disabled]="companyStatus() !== 'ready' || saving()" (click)="save()"><i class="ti ti-device-floppy"></i> Salvar</button>
+          <button class="btn btn-ghost" [disabled]="companyStatus() !== 'ready' || saving()" (click)="cancel()">Cancelar</button>
+        </div>
+      }
     }
 
     @if (activeMenu() === 'usuarios') {
