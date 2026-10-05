@@ -6,8 +6,11 @@ import br.gravita.adapters.dtos.request.UpdateCustomerRequest;
 import br.gravita.core.domain.AddressType;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.CustomerStatus;
+import br.gravita.core.domain.exceptions.CustomerNotFoundException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
+import br.gravita.core.ports.business.FindCustomerPort;
+import br.gravita.core.ports.business.ListCustomersPort;
 import br.gravita.core.ports.inbound.masterdata.UpdateCustomerUseCase;
 import br.gravita.core.domain.shared.PersonType;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +49,12 @@ class CustomerRestControllerTest {
 
 	@MockitoBean
 	private UpdateCustomerUseCase updateCustomerUseCase;
+
+	@MockitoBean
+	private FindCustomerPort findCustomerPort;
+
+	@MockitoBean
+	private ListCustomersPort listCustomersPort;
 
 	private final RegisterCustomerRequest request = new RegisterCustomerRequest(
 			PersonType.INDIVIDUAL,
@@ -99,10 +108,65 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
-	@DisplayName("Returns 200 OK with the customer when an existing customer is found")
+	@DisplayName("Returns 200 OK with the full customer record when an existing customer is found")
 	void shouldReturn200WhenFindingCustomer() throws Exception {
-		mockMvc.perform(get("/api/customers/" + UUID.randomUUID()))
-				.andExpect(status().isOk());
+		UUID id = UUID.randomUUID();
+		CustomerDomain customer = request.toDomain();
+		customer.setId(id);
+		customer.setStatus(CustomerStatus.REGULAR);
+		customer.setCurrentBalance(new BigDecimal("250.00"));
+		when(findCustomerPort.execute(any())).thenReturn(customer);
+
+		mockMvc.perform(get("/api/customers/" + id))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.id").value(id.toString()))
+				.andExpect(jsonPath("$.name").value("Maria Silva"))
+				.andExpect(jsonPath("$.status").value("REGULAR"))
+				.andExpect(jsonPath("$.creditLimit").value(1000.00))
+				.andExpect(jsonPath("$.currentBalance").value(250.00))
+				.andExpect(jsonPath("$.addresses[0].street").value("Rua A"))
+				.andExpect(jsonPath("$.contacts").isArray())
+				.andExpect(jsonPath("$.priceTables").isArray());
+	}
+
+	@Test
+	@DisplayName("Returns 404 Not Found with a message when the customer does not exist")
+	void shouldReturn404WhenFindingUnknownCustomer() throws Exception {
+		UUID id = UUID.randomUUID();
+		when(findCustomerPort.execute(any())).thenThrow(new CustomerNotFoundException(id));
+
+		mockMvc.perform(get("/api/customers/" + id))
+				.andExpect(status().isNotFound())
+				.andExpect(jsonPath("$.message").value("Customer not found: " + id));
+	}
+
+	@Test
+	@DisplayName("Returns 200 OK with the list of customers")
+	void shouldReturn200WhenListingCustomers() throws Exception {
+		CustomerDomain customer = request.toDomain();
+		customer.setId(UUID.randomUUID());
+		customer.setStatus(CustomerStatus.REGULAR);
+		customer.setCurrentBalance(BigDecimal.ZERO);
+		when(listCustomersPort.execute(any())).thenReturn(List.of(customer));
+
+		mockMvc.perform(get("/api/customers"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].name").value("Maria Silva"))
+				.andExpect(jsonPath("$[0].document").exists())
+				.andExpect(jsonPath("$[0].status").value("REGULAR"))
+				.andExpect(jsonPath("$[0].creditLimit").value(1000.00))
+				.andExpect(jsonPath("$[0].currentBalance").value(0));
+	}
+
+	@Test
+	@DisplayName("Returns 200 OK with an empty array when there are no customers")
+	void shouldReturnEmptyArrayWhenNoCustomers() throws Exception {
+		when(listCustomersPort.execute(any())).thenReturn(List.of());
+
+		mockMvc.perform(get("/api/customers"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(0));
 	}
 
 	@Test
