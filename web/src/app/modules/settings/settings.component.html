@@ -3,7 +3,7 @@
 
 <div class="settings-layout">
   <div class="settings-menu card">
-    @for (m of menus; track m.key) {
+    @for (m of visibleMenus(); track m.key) {
       <div class="settings-menu-item" [class.active]="activeMenu() === m.key" (click)="selectMenu(m)">
         <i class="ti {{ m.icon }}"></i>{{ m.label }}
       </div>
@@ -112,14 +112,11 @@
         <div class="settings-panel-title">Usuários</div>
         <div class="settings-panel-sub">Gerencie acessos e perfis</div>
       </div>
-      <table class="data-table">
-        <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>2FA</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td class="td-name">Ricardo Lima</td><td>ricardo&#64;empresa.com.br</td><td>Administrador</td><td><i class="ti ti-check text-success"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
-          <tr><td class="td-name">Ana Paula</td><td>ana&#64;empresa.com.br</td><td>Vendedor</td><td><i class="ti ti-x text-danger"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
-          <tr><td class="td-name">Carlos Mendes</td><td>carlos&#64;empresa.com.br</td><td>Operador PDV</td><td><i class="ti ti-x text-danger"></i></td><td><span class="badge auth"><span class="badge-dot"></span>Ativo</span></td></tr>
-        </tbody>
-      </table>
+      @if (canEdit()) {
+        <app-users-panel />
+      } @else {
+        <div class="setting-desc text-danger" role="alert">Somente o perfil Administrador pode gerenciar usuários.</div>
+      }
     }
 
     @if (activeMenu() === 'integracoes') {

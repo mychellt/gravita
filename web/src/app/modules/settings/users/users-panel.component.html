@@ -1,0 +1,98 @@
+<div class="panel-actions">
+  <button type="button" class="btn btn-primary" (click)="openForm()" [disabled]="formOpen()">
+    <i class="ti ti-plus"></i> Novo Usuário
+  </button>
+</div>
+
+@if (formOpen()) {
+  <form class="new-user-form" (submit)="submit($event)" novalidate aria-label="Novo usuário">
+    <div class="form-row cols-2">
+      <div class="form-field">
+        <label class="form-label" for="nu-name">Nome</label>
+        <input id="nu-name" class="form-input" type="text" autocomplete="off" [value]="name()"
+               (input)="name.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="nu-email">E-mail</label>
+        <input id="nu-email" class="form-input" type="email" autocomplete="off" [value]="email()"
+               (input)="onEmailInput($any($event.target).value)"
+               [attr.aria-invalid]="emailError() || emailInvalid() ? 'true' : null" aria-describedby="nu-email-error" />
+        <span id="nu-email-error" class="field-error" role="alert">
+          {{ emailError() || (emailInvalid() ? 'E-mail inválido.' : '') }}
+        </span>
+      </div>
+    </div>
+    <div class="form-row cols-2">
+      <div class="form-field">
+        <label class="form-label" for="nu-password">Senha</label>
+        <input id="nu-password" class="form-input" type="password" autocomplete="new-password" [value]="password()"
+               (input)="password.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="nu-profile">Perfil</label>
+        <select id="nu-profile" class="form-select" [value]="profileId()" (change)="profileId.set($any($event.target).value)">
+          <option value="">Selecione…</option>
+          @for (profile of profiles(); track profile.id) {
+            <option [value]="profile.id">{{ label(profile.name) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (formError()) { <p class="form-error" role="alert">{{ formError() }}</p> }
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" (click)="closeForm()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+        {{ submitting() ? 'Cadastrando…' : 'Cadastrar usuário' }}
+      </button>
+    </div>
+  </form>
+}
+
+<table class="data-table">
+  <thead>
+    <tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>2FA</th><th>Status</th><th class="td-actions">Ações</th></tr>
+  </thead>
+  <tbody>
+    @switch (status()) {
+      @case ('loading') {
+        <tr><td colspan="6" class="state-row" role="status">Carregando usuários…</td></tr>
+      }
+      @case ('error') {
+        <tr>
+          <td colspan="6" class="state-row" role="alert">
+            Não foi possível carregar os usuários.
+            <button type="button" class="action-btn" (click)="reload()">Tentar novamente</button>
+          </td>
+        </tr>
+      }
+      @default {
+        @for (u of users(); track u.id) {
+          <tr>
+            <td class="td-name">{{ u.name }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ label(u.profileName) || '--' }}</td>
+            <td>
+              @if (u.twoFactorEnabled) {
+                <i class="ti ti-check text-success" title="2FA ativo" aria-label="2FA ativo"></i>
+              } @else {
+                <i class="ti ti-x text-danger" title="2FA inativo" aria-label="2FA inativo"></i>
+              }
+            </td>
+            <td><app-badge [value]="badge(u.status)" /></td>
+            <td class="td-actions">
+              @if (u.status === 'ACTIVE') {
+                <button type="button" class="action-btn danger" (click)="deactivate(u)"
+                        [disabled]="isSelf(u)" [attr.title]="isSelf(u) ? selfDeactivationHint : null"
+                        [attr.aria-label]="'Inativar ' + u.name">
+                  Inativar
+                </button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="state-row">Nenhum usuário encontrado</td></tr>
+        }
+      }
+    }
+  </tbody>
+</table>

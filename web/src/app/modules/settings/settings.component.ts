@@ -7,13 +7,14 @@ import { ToastService } from '../../core/services/toast.service';
 import { ADMINISTRATOR_PROFILE } from '../../core/user-display';
 import { PlatformConfigService } from '../../core/services/platform-config.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { UsersPanelComponent } from './users/users-panel.component';
 
-interface SettingsMenu { key: string; label: string; icon: string; route?: string; }
+interface SettingsMenu { key: string; label: string; icon: string; route?: string; adminOnly?: boolean; }
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, PageHeaderComponent],
+  imports: [FormsModule, PageHeaderComponent, UsersPanelComponent],
   styleUrl: './settings.component.scss',
   templateUrl: './settings.component.html'
 })
@@ -29,7 +30,7 @@ export class SettingsComponent implements OnInit {
 
   readonly menus: SettingsMenu[] = [
     { key: 'empresa',     label: 'Empresa',       icon: 'ti-building' },
-    { key: 'usuarios',    label: 'Usuários',       icon: 'ti-users' },
+    { key: 'usuarios',    label: 'Usuários',       icon: 'ti-users', adminOnly: true },
     { key: 'clientes',    label: 'Clientes',       icon: 'ti-address-book', route: '/settings/customers' },
     { key: 'permissoes',  label: 'Permissões',     icon: 'ti-shield-lock' },
     { key: 'certificado', label: 'Cert. Digital',  icon: 'ti-certificate' },
@@ -37,6 +38,9 @@ export class SettingsComponent implements OnInit {
     { key: 'auditoria',   label: 'Auditoria',      icon: 'ti-history' },
     { key: 'backup',      label: 'Backup',         icon: 'ti-database-backup' },
   ];
+
+  /** Usuários é do Administrador: os demais perfis nem veem o item no menu. */
+  readonly visibleMenus = computed(() => this.menus.filter(m => !m.adminOnly || this.canEdit()));
 
   selectMenu(m: SettingsMenu) {
     if (m.route) this.router.navigateByUrl(m.route);
