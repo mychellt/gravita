@@ -10,8 +10,13 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
+/**
+ * Body of both {@code POST /api/companies} and {@code PATCH /api/companies/{id}}. The CNPJ is optional here because a
+ * PATCH may omit it (it cannot change); registering a company without one is still rejected by the domain.
+ */
 public record RegisterCompanyRequest(
-		@NotBlank String cnpj,
+		@NotBlank String name,
+		String cnpj,
 		@NotBlank String ie,
 		@NotBlank String im,
 		@NotBlank String cnae,
@@ -27,7 +32,8 @@ public record RegisterCompanyRequest(
 	public RegisterCompanyCommand toCommand(CompanyId id) {
 		return new RegisterCompanyCommand(
 				id,
-				Document.cnpj(cnpj),
+				name,
+				cnpj == null || cnpj.isBlank() ? null : Document.cnpj(cnpj),
 				ie,
 				im,
 				cnae,

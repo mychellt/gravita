@@ -54,7 +54,7 @@ class OpenPosSessionServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654", "6201500",
+		return Company.of(companyId, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654", "6201500",
 				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfce@example.com", "11999999999", null, null);
 	}

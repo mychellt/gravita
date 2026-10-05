@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,14 +47,16 @@ class AuthControllerTest {
 	@Test
 	@DisplayName("GET /me answers with the logged user behind the bearer session token")
 	void shouldReturnTheLoggedUser() throws Exception {
+		UUID companyId = UUID.randomUUID();
 		when(getCurrentUserUseCase.execute("token-123"))
-				.thenReturn(Optional.of(new CurrentUser("Ana Souza", "ana@acme.com", "Administrator")));
+				.thenReturn(Optional.of(new CurrentUser("Ana Souza", "ana@acme.com", "Administrator", companyId)));
 
 		mockMvc.perform(get("/api/auth/me").header("Authorization", "Bearer token-123"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.name").value("Ana Souza"))
 				.andExpect(jsonPath("$.email").value("ana@acme.com"))
-				.andExpect(jsonPath("$.profile").value("Administrator"));
+				.andExpect(jsonPath("$.profile").value("Administrator"))
+				.andExpect(jsonPath("$.companyId").value(companyId.toString()));
 	}
 
 	@Test

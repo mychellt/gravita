@@ -25,6 +25,7 @@ public class GetCurrentUserService implements GetCurrentUserUseCase {
 		return sessionStorePort.resolve(sessionToken)
 				.flatMap(userRepositoryPort::findById)
 				.map(user -> new CurrentUser(user.getName(), user.getEmail(),
-						profileRepositoryPort.findById(user.getProfileId()).map(ProfileReference::name).orElse(null)));
+						profileRepositoryPort.findById(user.getProfileId()).map(ProfileReference::name).orElse(null),
+						user.getCompanyId()));
 	}
 }

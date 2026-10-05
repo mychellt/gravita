@@ -99,7 +99,7 @@ class TransmitNfeContingencyEndToEndTest {
 	@BeforeEach
 	void seedIssuanceInfrastructure() throws Exception {
 		companyId = CompanyId.of(UUID.randomUUID());
-		companyRepositoryPort.save(Company.of(companyId, Document.cnpj(VALID_CNPJ), "123456789", "987654",
+		companyRepositoryPort.save(Company.of(companyId, "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654",
 				"6201500", br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL, true,
 				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null));
 		certificateStoragePort.save(DigitalCertificate.upload(companyId, CertificateType.A1, loadCertificateFixture(),

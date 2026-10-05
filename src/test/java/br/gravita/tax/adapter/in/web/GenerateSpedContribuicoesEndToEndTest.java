@@ -255,7 +255,7 @@ class GenerateSpedContribuicoesEndToEndTest {
 	}
 
 	private void saveCompany(CompanyId id, String cnpj, TaxRegime regime) {
-		companyRepositoryPort.save(Company.of(id, Document.cnpj(cnpj), "123456789", "987654", "4712100", regime,
+		companyRepositoryPort.save(Company.of(id, "Acme Ltda", Document.cnpj(cnpj), "123456789", "987654", "4712100", regime,
 				regime == TaxRegime.SIMPLES_NACIONAL, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfe@example.com", "11999999999", null, null));
 	}

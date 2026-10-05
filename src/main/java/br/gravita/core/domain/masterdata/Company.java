@@ -15,6 +15,7 @@ public final class Company {
 	private static final String ISENTO = "ISENTO";
 
 	private final CompanyId id;
+	private final String name;
 	private final Document cnpj;
 	private final String ie;
 	private final String im;
@@ -29,10 +30,11 @@ public final class Company {
 	private final String logoUrl;
 	private final CompanyId parentCompanyId;
 
-	public Company(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
+	public Company(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
 			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
 			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
 		this.id = id;
+		this.name = requireName(name);
 		this.cnpj = requireCnpj(cnpj);
 		this.ie = validateIe(ie);
 		this.im = validateIm(im);
@@ -48,11 +50,18 @@ public final class Company {
 		this.parentCompanyId = parentCompanyId;
 	}
 
-	public static Company of(CompanyId id, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
+	public static Company of(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
 			boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
 			String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
-		return new Company(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
+		return new Company(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
 				issuingEmail, phone, logoUrl, parentCompanyId);
+	}
+
+	private static String requireName(String name) {
+		if (name == null || name.isBlank()) {
+			throw new BusinessRuleException("Name is required");
+		}
+		return name.trim();
 	}
 
 	private static Document requireCnpj(Document cnpj) {

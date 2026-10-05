@@ -23,6 +23,9 @@ public class CompanyJpaEntity extends AbstractEntity<UUID> {
 	@Id
 	private UUID id;
 
+	@Column(nullable = false)
+	private String name;
+
 	@Column(nullable = false, unique = true, length = 14)
 	private String cnpj;
 

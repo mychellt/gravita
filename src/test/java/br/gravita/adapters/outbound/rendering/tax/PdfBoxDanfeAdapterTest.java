@@ -138,7 +138,7 @@ class PdfBoxDanfeAdapterTest {
 	}
 
 	private Company company(String logoUrl) {
-		return Company.of(CompanyId.of(UUID.randomUUID()), Document.cnpj(VALID_CNPJ), "123456789", "987654",
+		return Company.of(CompanyId.of(UUID.randomUUID()), "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654",
 				"6201500", br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL, true,
 				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", logoUrl,
 				null);

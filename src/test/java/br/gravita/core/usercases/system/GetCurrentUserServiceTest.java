@@ -34,14 +34,16 @@ class GetCurrentUserServiceTest {
 	private GetCurrentUserService service;
 
 	@Test
-	@DisplayName("Resolves the session to the user's name, e-mail and profile name")
+	@DisplayName("Resolves the session to the user's name, e-mail, profile name and company")
 	void shouldResolveTheLoggedUser() {
-		User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR);
+		UUID companyId = UUID.randomUUID();
+		User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR, companyId);
 		when(sessionStorePort.resolve("token")).thenReturn(Optional.of(user.getId()));
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(ADMINISTRATOR.id())).thenReturn(Optional.of(ADMINISTRATOR));
 
-		assertThat(service.execute("token")).contains(new CurrentUser("Ana Souza", "ana@acme.com", "Administrator"));
+		assertThat(service.execute("token"))
+				.contains(new CurrentUser("Ana Souza", "ana@acme.com", "Administrator", companyId));
 	}
 
 	@Test

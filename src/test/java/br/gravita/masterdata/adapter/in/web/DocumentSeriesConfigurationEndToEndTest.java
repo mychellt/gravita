@@ -87,6 +87,7 @@ class DocumentSeriesConfigurationEndToEndTest {
 
 	private UUID registerCompany() throws Exception {
 		RegisterCompanyRequest request = new RegisterCompanyRequest(
+				"Acme Ltda",
 				"11222333000181",
 				"123456789",
 				"987654",

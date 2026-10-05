@@ -21,7 +21,7 @@ public class SwitchSefazEnvironmentService implements SwitchSefazEnvironmentUseC
 		Company existing = companyRepositoryPort.findById(command.companyId())
 				.orElseThrow(() -> new CompanyNotFoundException(command.companyId().value()));
 
-		Company updated = Company.of(existing.getId(), existing.getCnpj(), existing.getIe(), existing.getIm(),
+		Company updated = Company.of(existing.getId(), existing.getName(), existing.getCnpj(), existing.getIe(), existing.getIm(),
 				existing.getCnae(), existing.getTaxRegime(), existing.isSimplesOptante(), command.environment(),
 				existing.getAddress(), existing.getState(), existing.getIssuingEmail(), existing.getPhone(),
 				existing.getLogoUrl(), existing.getParentCompanyId());

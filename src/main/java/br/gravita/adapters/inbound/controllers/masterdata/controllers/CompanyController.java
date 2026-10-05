@@ -33,17 +33,23 @@ public class CompanyController {
     private final SwitchSefazEnvironmentUseCase switchSefazEnvironmentUseCase;
     private final ConfigureDocumentSeriesUseCase configureDocumentSeriesUseCase;
     private final UploadDigitalCertificateUseCase uploadDigitalCertificateUseCase;
+    private final GetCompanyUseCase getCompanyUseCase;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CompanyResponse> get(@PathVariable UUID id) {
+        return ResponseEntity.ok(companyResponse(CompanyId.of(id)));
+    }
 
     @PostMapping
     public ResponseEntity<CompanyResponse> register(@Valid @RequestBody RegisterCompanyRequest request) {
         CompanyId id = registerCompanyUseCase.execute(request.toCommand(null));
-        return ResponseEntity.created(URI.create("/api/companies/" + id.value())).body(CompanyResponse.from(id));
+        return ResponseEntity.created(URI.create("/api/companies/" + id.value())).body(companyResponse(id));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<CompanyResponse> update(@PathVariable UUID id, @Valid @RequestBody RegisterCompanyRequest request) {
         CompanyId updatedId = registerCompanyUseCase.execute(request.toCommand(CompanyId.of(id)));
-        return ResponseEntity.ok(CompanyResponse.from(updatedId));
+        return ResponseEntity.ok(companyResponse(updatedId));
     }
 
     @PatchMapping("/{id}/sefaz-environment")
@@ -51,7 +57,7 @@ public class CompanyController {
                                                                   @Valid @RequestBody SwitchSefazEnvironmentRequest request) {
         CompanyId companyId = CompanyId.of(id);
         switchSefazEnvironmentUseCase.execute(request.toCommand(companyId));
-        return ResponseEntity.ok(CompanyResponse.from(companyId));
+        return ResponseEntity.ok(companyResponse(companyId));
     }
 
     @PutMapping("/{id}/document-series/{type}")
@@ -68,6 +74,10 @@ public class CompanyController {
         uploadDigitalCertificateUseCase
                 .execute(new UploadDigitalCertificateCommand(CompanyId.of(id), type, readBytes(pfxFile), password));
         return ResponseEntity.noContent().build();
+    }
+
+    private CompanyResponse companyResponse(CompanyId id) {
+        return CompanyResponse.from(getCompanyUseCase.execute(id));
     }
 
     private byte[] readBytes(MultipartFile file) {

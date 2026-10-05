@@ -86,6 +86,7 @@ class AllocateDocumentNumberConcurrentIntegrationTest {
 		UUID id = UUID.randomUUID();
 		entityManager.persist(CompanyJpaEntity.builder()
 				.id(id)
+				.name("Acme Ltda")
 				.cnpj(UUID.randomUUID().toString().substring(0, 14))
 				.ie("123456789")
 				.im("987654")

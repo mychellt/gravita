@@ -63,7 +63,7 @@ class GenerateLivrosFiscaisServiceTest {
 	void setUp() {
 		service = new GenerateLivrosFiscaisService(companies, nfes, inbound, voided, books,
 				Clock.system(ZoneOffset.UTC));
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId,
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
 				Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500", TaxRegime.LUCRO_PRESUMIDO,
 				false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null,
 				null)));
