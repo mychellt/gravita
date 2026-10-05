@@ -1,6 +1,9 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DataService } from '../../../core/services/data.service';
+import { ADMINISTRATOR_PROFILE } from '../../../core/user-display';
+import { statusBadge } from '../../../core/customer-display';
+import { AuthService } from '../../../core/services/auth.service';
+import { CustomerService } from '../../../core/services/customer.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../../shared/pipes/brl.pipe';
@@ -12,19 +15,34 @@ import { BrlPipe } from '../../../shared/pipes/brl.pipe';
   styleUrl: './customers-list.component.scss',
   templateUrl: './customers-list.component.html'
 })
-export class CustomersListComponent {
-  constructor(private data: DataService) {}
+export class CustomersListComponent implements OnInit {
+  private readonly service = inject(CustomerService);
+  private readonly auth = inject(AuthService);
+
+  readonly status = this.service.status;
+  readonly badge = statusBadge;
+
+  /** A lista é visível a todos os perfis; só o Administrador cadastra. */
+  readonly canCreate = computed(() => this.auth.currentUser()?.profile === ADMINISTRATOR_PROFILE);
 
   searchQuery = signal('');
 
   readonly customers = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
     const digits = q.replace(/\D/g, '');
-    return this.data.clientes().filter(c =>
+    return this.service.customers().filter(c =>
       !q ||
-      c.nome.toLowerCase().includes(q) ||
-      c.documento.toLowerCase().includes(q) ||
-      (digits !== '' && c.documento.replace(/\D/g, '').includes(digits))
+      c.name.toLowerCase().includes(q) ||
+      c.document.toLowerCase().includes(q) ||
+      (digits !== '' && c.document.replace(/\D/g, '').includes(digits))
     );
   });
+
+  ngOnInit() {
+    void this.service.load();
+  }
+
+  reload() {
+    void this.service.load();
+  }
 }

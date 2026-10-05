@@ -2,3 +2,6 @@
 .filter-input:focus, .filter-select:focus { border-color: var(--accent); }
 .filter-input  { width: 220px; }
 .action-btn:disabled { color: var(--text3); cursor: not-allowed; text-decoration: none; }
+.state-row { text-align: center; padding: 24px; color: var(--text3); }
+.icon-btn { font-size: 15px; padding: 2px 6px; text-decoration: none; }
+.icon-btn:hover { text-decoration: none; color: var(--accent-hover); }

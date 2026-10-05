@@ -1,23 +1,15 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { DataService } from '../../../core/services/data.service';
-import { Cliente, Endereco } from '../../../core/models';
+import {
+  ADDRESS_LABELS, CONTACT_LABELS, IE_INDICATOR_LABELS, documentLabel, formatAddress, statusBadge,
+} from '../../../core/customer-display';
+import { Customer, CustomerService } from '../../../core/services/customer.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../../shared/pipes/brl.pipe';
 
-const IE_LABELS: Record<Cliente['indicadorIe'], string> = {
-  contribuinte: 'Contribuinte',
-  isento: 'Isento',
-  nao_contribuinte: 'Não contribuinte',
-};
-
-const CONTACT_LABELS: Record<string, string> = {
-  telefone: 'Telefone',
-  whatsapp: 'WhatsApp',
-  email: 'E-mail',
-  outro: 'Outro',
-};
+type LoadState = 'loading' | 'ready' | 'not-found' | 'error';
 
 @Component({
   selector: 'app-customer-detail',
@@ -27,32 +19,50 @@ const CONTACT_LABELS: Record<string, string> = {
   templateUrl: './customer-detail.component.html'
 })
 export class CustomerDetailComponent {
-  private data = inject(DataService);
+  private readonly service = inject(CustomerService);
 
   /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
-  readonly customer = computed(() => this.data.clientes().find(c => c.id === this.id()));
+  readonly state = signal<LoadState>('loading');
+  readonly customer = signal<Customer | null>(null);
 
+  readonly documentLabel = computed(() => documentLabel(this.customer()?.type ?? 'COMPANY'));
+  readonly badge = computed(() => statusBadge(this.customer()?.status));
   readonly ieLabel = computed(() => {
-    const c = this.customer();
-    return c ? IE_LABELS[c.indicadorIe] ?? '--' : '--';
+    const indicator = this.customer()?.ieIndicator;
+    return indicator ? IE_INDICATOR_LABELS[indicator] : '--';
   });
 
+  readonly addresses = computed(() =>
+    (this.customer()?.addresses ?? []).map(a => ({
+      kind: ADDRESS_LABELS[a.type] ?? a.type, isDefault: a.isDefault, text: formatAddress(a),
+    })));
+
   readonly contacts = computed(() =>
-    (this.customer()?.contatos ?? []).map(ct => ({ type: CONTACT_LABELS[ct.tipo] ?? ct.tipo, value: ct.valor || '--' }))
-  );
+    (this.customer()?.contacts ?? []).map(ct => ({ type: CONTACT_LABELS[ct.type] ?? ct.type, value: ct.value || '--' })));
 
+  /** Não há endpoint para consultar tabelas de preço; mostramos a referência curta até existir. */
   readonly priceTables = computed(() =>
-    [...(this.customer()?.tabelasPreco ?? [])]
-      .sort((a, b) => a.prioridade - b.prioridade)
-      .map(t => ({ name: this.data.getTabelaPrecoNome(t.tabelaPrecoId) ?? '--', priority: t.prioridade }))
-  );
+    [...(this.customer()?.priceTables ?? [])]
+      .sort((a, b) => a.priority - b.priority)
+      .map(t => ({ name: `Tabela ${t.priceTableId.slice(0, 8)}`, priority: t.priority })));
 
-  formatAddress(e: Endereco): string {
-    const line1 = [e.logradouro, e.numero].filter(Boolean).join(', ');
-    const line1WithComplement = e.complemento ? `${line1} - ${e.complemento}` : line1;
-    const city = [e.municipio, e.uf].filter(Boolean).join('/');
-    return [line1WithComplement, e.bairro, city, e.cep].filter(Boolean).join(' · ') || '--';
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      untracked(() => void this.load(id));
+    });
+  }
+
+  async load(id = this.id()) {
+    this.state.set('loading');
+    this.customer.set(null);
+    try {
+      this.customer.set(await this.service.get(id));
+      this.state.set('ready');
+    } catch (error) {
+      this.state.set(error instanceof HttpErrorResponse && error.status === 404 ? 'not-found' : 'error');
+    }
   }
 }

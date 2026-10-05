@@ -101,6 +101,10 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/settings/customers/customers-list.component').then(m => m.CustomersListComponent)
       },
       {
+        path: 'settings/customers/new',
+        loadComponent: () => import('./modules/settings/customers/customer-form.component').then(m => m.CustomerFormComponent)
+      },
+      {
         path: 'settings/customers/:id',
         loadComponent: () => import('./modules/settings/customers/customer-detail.component').then(m => m.CustomerDetailComponent)
       },

@@ -1,0 +1,186 @@
+<app-page-header title="Novo cliente" subtitle="Administração · Cadastro de clientes do tenant">
+  <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+</app-page-header>
+
+@if (profileKnown() && !isAdministrator()) {
+  <div class="card restricted" role="alert">
+    Somente o perfil Administrador pode cadastrar clientes.
+  </div>
+} @else {
+  <form (submit)="submit($event)" novalidate>
+
+    <div class="form-section">
+      <div class="form-section-head"><i class="ti ti-user form-section-icon"></i><span class="form-section-title">Identificação</span></div>
+      <div class="form-body">
+        <div class="form-row cols-3">
+          <div>
+            <label class="form-label" for="cf-type">Tipo</label>
+            <select id="cf-type" class="form-select" [value]="type()" (change)="setType($any($event.target).value)">
+              <option value="COMPANY">Pessoa jurídica (PJ)</option>
+              <option value="INDIVIDUAL">Pessoa física (PF)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" for="cf-document">{{ type() === 'COMPANY' ? 'CNPJ' : 'CPF' }}</label>
+            <input id="cf-document" class="form-input" type="text" inputmode="numeric" [value]="document()"
+                   (input)="document.set($any($event.target).value)" (blur)="touch('document')"
+                   [attr.aria-invalid]="error('document') ? 'true' : null" />
+            @if (error('document'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+          </div>
+          <div>
+            <label class="form-label" for="cf-name">{{ type() === 'COMPANY' ? 'Razão social' : 'Nome' }}</label>
+            <input id="cf-name" class="form-input" type="text" [value]="name()"
+                   (input)="name.set($any($event.target).value)" (blur)="touch('name')"
+                   [attr.aria-invalid]="error('name') ? 'true' : null" />
+            @if (error('name'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+          </div>
+        </div>
+        <div class="form-row cols-3">
+          <div>
+            <label class="form-label" for="cf-email">E-mail</label>
+            <input id="cf-email" class="form-input" type="email" [value]="email()"
+                   (input)="email.set($any($event.target).value)" (blur)="touch('email')" />
+            @if (error('email'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+          </div>
+          <div>
+            <label class="form-label" for="cf-credit">Limite de crédito (R$)</label>
+            <input id="cf-credit" class="form-input" type="text" inputmode="decimal" placeholder="0,00" [value]="creditLimit()"
+                   (input)="creditLimit.set($any($event.target).value)" (blur)="touch('creditLimit')" />
+            @if (error('creditLimit'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+          </div>
+        </div>
+        @if (type() === 'COMPANY') {
+          <div class="form-row cols-3">
+            <div>
+              <label class="form-label" for="cf-ie">Indicador de IE</label>
+              <select id="cf-ie" class="form-select" [value]="ieIndicator()"
+                      (change)="ieIndicator.set($any($event.target).value); touch('ieIndicator')">
+                <option value="">Selecione…</option>
+                @for (option of ieOptions; track option[0]) { <option [value]="option[0]">{{ option[1] }}</option> }
+              </select>
+              @if (error('ieIndicator'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+            </div>
+            <div>
+              <label class="form-label" for="cf-final">Consumidor final</label>
+              <select id="cf-final" class="form-select" [value]="finalConsumer()"
+                      (change)="finalConsumer.set($any($event.target).value); touch('finalConsumer')">
+                <option value="">Selecione…</option>
+                <option value="yes">Sim</option>
+                <option value="no">Não</option>
+              </select>
+              @if (error('finalConsumer'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-head"><i class="ti ti-map-pin form-section-icon"></i><span class="form-section-title">Endereços</span></div>
+      <div class="form-body">
+        @for (a of addresses(); track $index) {
+          <div class="address-card">
+            <div class="address-card-head">
+              <span>Endereço {{ $index + 1 }}</span>
+              @if (addresses().length > 1) {
+                <button type="button" class="action-btn danger" (click)="removeAddress($index)">Remover</button>
+              }
+            </div>
+            <div class="form-row cols-4">
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-type'">Tipo</label>
+                <select [id]="'cf-a' + $index + '-type'" class="form-select" [value]="a.type"
+                        (change)="updateAddress($index, { type: $any($event.target).value })">
+                  @for (kind of addressKinds; track kind[0]) { <option [value]="kind[0]">{{ kind[1] }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-zip'">CEP</label>
+                <input [id]="'cf-a' + $index + '-zip'" class="form-input" type="text" inputmode="numeric" [value]="a.zipCode"
+                       (input)="updateAddress($index, { zipCode: $any($event.target).value })" (blur)="touch('addresses.' + $index + '.zipCode')" />
+                @if (error('addresses.' + $index + '.zipCode'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-street'">Logradouro</label>
+                <input [id]="'cf-a' + $index + '-street'" class="form-input" type="text" [value]="a.street"
+                       (input)="updateAddress($index, { street: $any($event.target).value })" (blur)="touch('addresses.' + $index + '.street')" />
+                @if (error('addresses.' + $index + '.street'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-number'">Número</label>
+                <input [id]="'cf-a' + $index + '-number'" class="form-input" type="text" [value]="a.number"
+                       (input)="updateAddress($index, { number: $any($event.target).value })" />
+              </div>
+            </div>
+            <div class="form-row cols-4">
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-complement'">Complemento</label>
+                <input [id]="'cf-a' + $index + '-complement'" class="form-input" type="text" [value]="a.complement"
+                       (input)="updateAddress($index, { complement: $any($event.target).value })" />
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-neighborhood'">Bairro</label>
+                <input [id]="'cf-a' + $index + '-neighborhood'" class="form-input" type="text" [value]="a.neighborhood"
+                       (input)="updateAddress($index, { neighborhood: $any($event.target).value })" (blur)="touch('addresses.' + $index + '.neighborhood')" />
+                @if (error('addresses.' + $index + '.neighborhood'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-city'">Cidade</label>
+                <input [id]="'cf-a' + $index + '-city'" class="form-input" type="text" [value]="a.city"
+                       (input)="updateAddress($index, { city: $any($event.target).value })" (blur)="touch('addresses.' + $index + '.city')" />
+                @if (error('addresses.' + $index + '.city'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+              </div>
+              <div>
+                <label class="form-label" [for]="'cf-a' + $index + '-state'">UF</label>
+                <input [id]="'cf-a' + $index + '-state'" class="form-input" type="text" maxlength="2" [value]="a.state"
+                       (input)="updateAddress($index, { state: $any($event.target).value })" (blur)="touch('addresses.' + $index + '.state')" />
+                @if (error('addresses.' + $index + '.state'); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+              </div>
+            </div>
+            <label class="check-row">
+              <input type="checkbox" [checked]="a.isDefault" (change)="setDefault($index, $any($event.target).checked); touch('defaults.' + a.type)" />
+              Endereço padrão de {{ a.type === 'BILLING' ? 'cobrança' : 'entrega' }}
+            </label>
+          </div>
+        }
+        @if (errors()['addresses']; as message) { <p class="field-hint" role="status">{{ message }}</p> }
+        @if (error('defaults.BILLING'); as message) { <span class="field-error" role="alert">Cobrança: {{ message }}</span> }
+        @if (error('defaults.DELIVERY'); as message) { <span class="field-error" role="alert">Entrega: {{ message }}</span> }
+        <button type="button" class="btn btn-ghost" (click)="addAddress()"><i class="ti ti-plus"></i> Adicionar endereço</button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-head"><i class="ti ti-phone form-section-icon"></i><span class="form-section-title">Contatos (opcional)</span></div>
+      <div class="form-body">
+        @for (c of contacts(); track $index) {
+          <div class="contact-row">
+            <select class="form-select" [attr.aria-label]="'Tipo do contato ' + ($index + 1)" [value]="c.type"
+                    (change)="updateContact($index, { type: $any($event.target).value })">
+              @for (kind of contactKinds; track kind[0]) { <option [value]="kind[0]">{{ kind[1] }}</option> }
+            </select>
+            <div>
+              <input class="form-input" type="text" [attr.aria-label]="'Valor do contato ' + ($index + 1)" [value]="c.value"
+                     (input)="updateContact($index, { value: $any($event.target).value })" (blur)="touch('contacts.' + $index)" />
+              @if (error('contacts.' + $index); as message) { <span class="field-error" role="alert">{{ message }}</span> }
+            </div>
+            <button type="button" class="action-btn danger" (click)="removeContact($index)">Remover</button>
+          </div>
+        } @empty {
+          <p class="field-hint">Nenhum contato adicionado.</p>
+        }
+        <button type="button" class="btn btn-ghost" (click)="addContact()"><i class="ti ti-plus"></i> Adicionar contato</button>
+      </div>
+    </div>
+
+    @if (formError()) { <p class="form-error" role="alert">{{ formError() }}</p> }
+
+    <div class="form-actions">
+      @if (!canSubmit() && !submitting()) { <span class="field-hint">Preencha os campos obrigatórios e ao menos um endereço completo.</span> }
+      <a routerLink="/settings/customers" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+        {{ submitting() ? 'Cadastrando…' : 'Cadastrar cliente' }}
+      </button>
+    </div>
+  </form>
+}

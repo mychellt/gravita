@@ -1,5 +1,8 @@
 <app-page-header title="Clientes" subtitle="Administração · Cadastro de clientes do tenant">
   <a routerLink="/settings" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  @if (canCreate()) {
+    <a routerLink="/settings/customers/new" class="btn btn-primary"><i class="ti ti-plus"></i> Novo Cliente</a>
+  }
 </app-page-header>
 
 <div class="card">
@@ -22,26 +25,39 @@
       </tr>
     </thead>
     <tbody>
-      @for (c of customers(); track c.id) {
-        <tr>
-          <td class="td-name">{{ c.nome || '--' }}</td>
-          <td class="td-mono">{{ c.documento || '--' }}</td>
-          <td>
-            @if (c.status) { <app-badge [value]="c.status" /> } @else { -- }
-          </td>
-          <td class="td-right">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</td>
-          <td class="td-right">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</td>
-          <td class="td-actions">
-            <a class="action-btn" [routerLink]="['/settings/customers', c.id]">Dados</a>
-            <a class="action-btn" [routerLink]="['/settings/customers', c.id, 'payments']">Pagamentos</a>
-            <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
-          </td>
-        </tr>
-      }
-      @empty {
-        <tr>
-          <td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum cliente encontrado</td>
-        </tr>
+      @switch (status()) {
+        @case ('loading') {
+          <tr><td colspan="6" class="state-row" role="status">Carregando clientes…</td></tr>
+        }
+        @case ('error') {
+          <tr>
+            <td colspan="6" class="state-row" role="alert">
+              Não foi possível carregar os clientes.
+              <button class="action-btn" type="button" (click)="reload()">Tentar novamente</button>
+            </td>
+          </tr>
+        }
+        @default {
+          @for (c of customers(); track c.id) {
+            <tr>
+              <td class="td-name">{{ c.name || '--' }}</td>
+              <td class="td-mono">{{ c.document || '--' }}</td>
+              <td>
+                @if (badge(c.status); as b) { <app-badge [value]="b" /> } @else { -- }
+              </td>
+              <td class="td-right">{{ c.creditLimit != null ? (c.creditLimit | brl) : '--' }}</td>
+              <td class="td-right">{{ c.currentBalance != null ? (c.currentBalance | brl) : '--' }}</td>
+              <td class="td-actions">
+                <a class="action-btn icon-btn" [routerLink]="['/settings/customers', c.id]"
+                   title="Ver dados do cliente" [attr.aria-label]="'Ver dados de ' + c.name"><i class="ti ti-eye"></i></a>
+                <a class="action-btn" [routerLink]="['/settings/customers', c.id, 'payments']">Pagamentos</a>
+                <button class="action-btn" type="button" disabled title="Em breve">Usuário (em breve)</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="state-row">Nenhum cliente encontrado</td></tr>
+          }
+        }
       }
     </tbody>
   </table>

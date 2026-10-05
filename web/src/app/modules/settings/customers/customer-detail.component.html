@@ -1,5 +1,5 @@
 @if (customer(); as c) {
-  <app-page-header [title]="c.nome || 'Cliente'" subtitle="Dados cadastrais · somente leitura">
+  <app-page-header [title]="c.name || 'Cliente'" subtitle="Dados cadastrais · somente leitura">
     <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
     <a [routerLink]="['/settings/customers', c.id, 'payments']" class="btn btn-ghost"><i class="ti ti-cash"></i> Pagamentos</a>
   </app-page-header>
@@ -9,12 +9,11 @@
       <i class="ti ti-user form-section-icon"></i><span class="form-section-title">Identificação</span>
     </div>
     <div class="form-body detail-grid">
-      <div><span class="form-label">Nome</span><div class="detail-value">{{ c.nome || '--' }}</div></div>
-      <div><span class="form-label">{{ c.tipo === 'pf' ? 'CPF' : 'CNPJ' }}</span><div class="detail-value td-mono">{{ c.documento || '--' }}</div></div>
-      <div><span class="form-label">Status</span><div class="detail-value">@if (c.status) { <app-badge [value]="c.status" /> } @else { -- }</div></div>
-      <div><span class="form-label">Inscrição Estadual</span><div class="detail-value">{{ c.ie || '--' }}</div></div>
+      <div><span class="form-label">Nome</span><div class="detail-value">{{ c.name || '--' }}</div></div>
+      <div><span class="form-label">{{ documentLabel() }}</span><div class="detail-value td-mono">{{ c.document || '--' }}</div></div>
+      <div><span class="form-label">Status</span><div class="detail-value">@if (badge(); as b) { <app-badge [value]="b" /> } @else { -- }</div></div>
       <div><span class="form-label">Indicador de IE</span><div class="detail-value">{{ ieLabel() }}</div></div>
-      <div><span class="form-label">Consumidor final</span><div class="detail-value">{{ c.consumidorFinal == null ? '--' : (c.consumidorFinal ? 'Sim' : 'Não') }}</div></div>
+      <div><span class="form-label">Consumidor final</span><div class="detail-value">{{ c.finalConsumer == null ? '--' : (c.finalConsumer ? 'Sim' : 'Não') }}</div></div>
       <div><span class="form-label">E-mail</span><div class="detail-value">{{ c.email || '--' }}</div></div>
     </div>
   </div>
@@ -24,8 +23,8 @@
       <i class="ti ti-credit-card form-section-icon"></i><span class="form-section-title">Crédito</span>
     </div>
     <div class="form-body detail-grid">
-      <div><span class="form-label">Limite de crédito</span><div class="detail-value">{{ c.limiteCredito != null ? (c.limiteCredito | brl) : '--' }}</div></div>
-      <div><span class="form-label">Saldo devedor</span><div class="detail-value">{{ c.saldoDevedor != null ? (c.saldoDevedor | brl) : '--' }}</div></div>
+      <div><span class="form-label">Limite de crédito</span><div class="detail-value">{{ c.creditLimit != null ? (c.creditLimit | brl) : '--' }}</div></div>
+      <div><span class="form-label">Saldo devedor</span><div class="detail-value">{{ c.currentBalance != null ? (c.currentBalance | brl) : '--' }}</div></div>
     </div>
   </div>
 
@@ -34,8 +33,8 @@
       <i class="ti ti-map-pin form-section-icon"></i><span class="form-section-title">Endereços</span>
     </div>
     <div class="form-body">
-      @for (e of c.enderecos; track $index) {
-        <div class="detail-list-item">{{ formatAddress(e) }}</div>
+      @for (a of addresses(); track $index) {
+        <div class="detail-list-item"><span class="detail-list-tag">{{ a.kind }}{{ a.isDefault ? ' · padrão' : '' }}</span>{{ a.text }}</div>
       } @empty {
         <div class="detail-empty">--</div>
       }
@@ -67,6 +66,13 @@
       }
     </div>
   </div>
+} @else if (state() === 'loading') {
+  <app-page-header title="Cliente" subtitle="Carregando…" />
+} @else if (state() === 'error') {
+  <app-page-header title="Não foi possível carregar o cliente" subtitle="Tente novamente em instantes">
+    <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+    <button class="btn btn-ghost" type="button" (click)="load()"><i class="ti ti-refresh"></i> Tentar novamente</button>
+  </app-page-header>
 } @else {
   <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
     <a routerLink="/settings/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
