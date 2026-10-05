@@ -21,7 +21,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -122,6 +124,42 @@ class CustomerRepositoryAdapterTest {
 		final List<CustomerDomain> result = adapter.findAll();
 
 		assertThat(result).containsExactly(ana, bruno);
+	}
+
+	@Test
+	@DisplayName("Lists only the customers of the given company")
+	void shouldListCustomersOfACompany() {
+		final UUID companyId = UUID.randomUUID();
+		final CustomerDomain ana = buildCustomer("Ana");
+		final CustomerJpaEntity anaEntity = buildEntity(ana.getId());
+		when(repository.findAllByCompanyId(companyId)).thenReturn(List.of(anaEntity));
+		when(mapper.map(same(anaEntity))).thenReturn(ana);
+
+		assertThat(adapter.findAllByCompanyId(companyId)).containsExactly(ana);
+		verify(repository, never()).findAll();
+	}
+
+	@Test
+	@DisplayName("Finds a customer by id only within the given company")
+	void shouldFindCustomerByIdAndCompany() {
+		final UUID companyId = UUID.randomUUID();
+		final CustomerDomain customer = buildCustomer("Maria Silva");
+		final CustomerJpaEntity entity = buildEntity(customer.getId());
+		when(repository.findByIdAndCompanyId(customer.getId(), companyId)).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(customer);
+
+		assertThat(adapter.findByIdAndCompanyId(customer.getId(), companyId)).contains(customer);
+		verify(repository, never()).findById(any());
+	}
+
+	@Test
+	@DisplayName("Returns empty when the customer exists but belongs to another company")
+	void shouldReturnEmptyWhenCustomerBelongsToAnotherCompany() {
+		final UUID id = UUID.randomUUID();
+		final UUID companyId = UUID.randomUUID();
+		when(repository.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.empty());
+
+		assertThat(adapter.findByIdAndCompanyId(id, companyId)).isEmpty();
 	}
 
 	private CustomerJpaEntity buildEntity(final UUID id) {

@@ -156,6 +156,16 @@ class CustomerConcurrentUseCaseIntegrationTest {
 			}
 
 			@Override
+			public List<CustomerDomain> findAllByCompanyId(UUID companyId) {
+				return repositoryAdapter.findAllByCompanyId(companyId);
+			}
+
+			@Override
+			public Optional<CustomerDomain> findByIdAndCompanyId(UUID lookupId, UUID companyId) {
+				return repositoryAdapter.findByIdAndCompanyId(lookupId, companyId);
+			}
+
+			@Override
 			public CustomerDomain save(CustomerDomain model) {
 				return repositoryAdapter.save(model);
 			}

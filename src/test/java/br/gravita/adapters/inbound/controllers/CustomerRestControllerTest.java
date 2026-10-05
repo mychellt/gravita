@@ -1,5 +1,6 @@
 package br.gravita.adapters.inbound.controllers;
 
+import br.gravita.adapters.configuration.web.WebMvcConfiguration;
 import br.gravita.adapters.dtos.request.RegisterCustomerRequest;
 import br.gravita.adapters.dtos.request.RegisterCustomerRequest.AddressRequest;
 import br.gravita.adapters.dtos.request.UpdateCustomerRequest;
@@ -13,21 +14,28 @@ import br.gravita.core.ports.business.FindCustomerPort;
 import br.gravita.core.ports.business.ListCustomersPort;
 import br.gravita.core.ports.inbound.masterdata.UpdateCustomerUseCase;
 import br.gravita.core.domain.shared.PersonType;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -36,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CustomerRestController.class)
+@Import(WebMvcConfiguration.class)
 class CustomerRestControllerTest {
 
 	@Autowired
@@ -55,6 +64,19 @@ class CustomerRestControllerTest {
 
 	@MockitoBean
 	private ListCustomersPort listCustomersPort;
+
+	@MockitoBean
+	private SessionStorePort sessionStorePort;
+
+	private static final String SESSION_TOKEN = "session-token";
+	private static final String BEARER = "Bearer " + SESSION_TOKEN;
+
+	private final UserId callerId = UserId.generate();
+
+	@BeforeEach
+	void authenticate() {
+		when(sessionStorePort.resolve(SESSION_TOKEN)).thenReturn(Optional.of(callerId));
+	}
 
 	private final RegisterCustomerRequest request = new RegisterCustomerRequest(
 			PersonType.INDIVIDUAL,
@@ -78,6 +100,7 @@ class CustomerRestControllerTest {
 		when(customerRegistrationPort.execute(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isCreated())
@@ -93,6 +116,7 @@ class CustomerRestControllerTest {
 				PersonType.INDIVIDUAL, "111.444.777-35", "Maria Silva", null, null, null, null, List.of(), List.of(), List.of());
 
 		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(invalid)))
 				.andExpect(status().isBadRequest());
@@ -102,6 +126,7 @@ class CustomerRestControllerTest {
 	@DisplayName("Returns 400 Bad Request when required customer fields are missing")
 	void shouldReturn400WhenRequiredFieldsAreMissing() throws Exception {
 		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content("{}"))
 				.andExpect(status().isBadRequest());
@@ -117,7 +142,8 @@ class CustomerRestControllerTest {
 		customer.setCurrentBalance(new BigDecimal("250.00"));
 		when(findCustomerPort.execute(any())).thenReturn(customer);
 
-		mockMvc.perform(get("/api/customers/" + id))
+		mockMvc.perform(get("/api/customers/" + id)
+						.header("Authorization", BEARER))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.id").value(id.toString()))
 				.andExpect(jsonPath("$.name").value("Maria Silva"))
@@ -135,7 +161,8 @@ class CustomerRestControllerTest {
 		UUID id = UUID.randomUUID();
 		when(findCustomerPort.execute(any())).thenThrow(new CustomerNotFoundException(id));
 
-		mockMvc.perform(get("/api/customers/" + id))
+		mockMvc.perform(get("/api/customers/" + id)
+						.header("Authorization", BEARER))
 				.andExpect(status().isNotFound())
 				.andExpect(jsonPath("$.message").value("Customer not found: " + id));
 	}
@@ -149,7 +176,8 @@ class CustomerRestControllerTest {
 		customer.setCurrentBalance(BigDecimal.ZERO);
 		when(listCustomersPort.execute(any())).thenReturn(List.of(customer));
 
-		mockMvc.perform(get("/api/customers"))
+		mockMvc.perform(get("/api/customers")
+						.header("Authorization", BEARER))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(1))
 				.andExpect(jsonPath("$[0].name").value("Maria Silva"))
@@ -164,7 +192,8 @@ class CustomerRestControllerTest {
 	void shouldReturnEmptyArrayWhenNoCustomers() throws Exception {
 		when(listCustomersPort.execute(any())).thenReturn(List.of());
 
-		mockMvc.perform(get("/api/customers"))
+		mockMvc.perform(get("/api/customers")
+						.header("Authorization", BEARER))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(0));
 	}
@@ -177,6 +206,7 @@ class CustomerRestControllerTest {
 				null, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(update)))
 				.andExpect(status().isNoContent());
@@ -193,6 +223,7 @@ class CustomerRestControllerTest {
 		doThrow(new ResourceNotFoundException("Customer not found: " + id)).when(updateCustomerUseCase).execute(any());
 
 		mockMvc.perform(patch("/api/customers/" + id)
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(update)))
 				.andExpect(status().isNotFound());
@@ -206,6 +237,7 @@ class CustomerRestControllerTest {
 				null, "111.444.777-35", null, null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(update)))
 				.andExpect(status().isConflict());
@@ -219,8 +251,58 @@ class CustomerRestControllerTest {
 				PersonType.INDIVIDUAL, "111.444.777-36", null, null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(update)))
 				.andExpect(status().isConflict());
+	}
+
+	@Test
+	@DisplayName("Hands the authenticated caller, resolved from the session, to the register-customer use case")
+	void shouldPassTheSessionCallerToRegistration() throws Exception {
+		CustomerDomain created = request.toDomain();
+		created.setId(UUID.randomUUID());
+		created.setStatus(CustomerStatus.REGULAR);
+		created.setCurrentBalance(BigDecimal.ZERO);
+		created.setCompanyId(UUID.randomUUID());
+		when(customerRegistrationPort.execute(any())).thenReturn(created);
+
+		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.companyId").value(created.getCompanyId().toString()));
+
+		verify(customerRegistrationPort).execute(argThat(context -> callerId.equals(context.getCaller())));
+	}
+
+	@Test
+	@DisplayName("Ignores a companyId supplied by the client when registering a customer")
+	void shouldIgnoreClientSuppliedCompanyId() throws Exception {
+		CustomerDomain created = request.toDomain();
+		created.setId(UUID.randomUUID());
+		created.setStatus(CustomerStatus.REGULAR);
+		created.setCurrentBalance(BigDecimal.ZERO);
+		when(customerRegistrationPort.execute(any())).thenReturn(created);
+		String forged = objectMapper.writeValueAsString(request).replaceFirst("\\{", "{\"companyId\":\"" + UUID.randomUUID() + "\",");
+
+		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
+						.contentType("application/json")
+						.content(forged))
+				.andExpect(status().isCreated());
+
+		verify(customerRegistrationPort).execute(argThat(context ->
+				context.getData(CustomerDomain.class).getCompanyId() == null));
+	}
+
+	@Test
+	@DisplayName("Returns 401 Unauthorized, without reaching the use case, when there is no session")
+	void shouldReturn401WithoutSession() throws Exception {
+		mockMvc.perform(get("/api/customers")).andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/api/customers/" + UUID.randomUUID())).andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(listCustomersPort, findCustomerPort);
 	}
 }

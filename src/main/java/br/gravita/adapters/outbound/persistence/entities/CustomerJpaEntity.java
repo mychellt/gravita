@@ -58,6 +58,9 @@ public class CustomerJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false)
 	private Long version;
 
+	@Column(name = "company_id")
+	private UUID companyId;
+
 	@ElementCollection
 	@CollectionTable(name = "customer_addresses", joinColumns = @JoinColumn(name = "customer_id"))
 	private List<CustomerAddressEmbeddable> addresses;

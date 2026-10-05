@@ -1,5 +1,6 @@
 package br.gravita.core.domain;
 
+import br.gravita.core.domain.system.UserId;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -12,7 +13,7 @@ public class Context extends HashMap<String, Object> implements Serializable {
     @Getter
     @AllArgsConstructor
     private enum Parameters {
-        DATA("data"), RESUlT("result");
+        DATA("data"), RESUlT("result"), CALLER("caller");
         private final String value;
     }
 
@@ -22,6 +23,16 @@ public class Context extends HashMap<String, Object> implements Serializable {
 
     public Context() {
         super();
+    }
+
+    /** The authenticated user behind the request, resolved from the session by the inbound adapter. */
+    public Context withCaller(final UserId callerId) {
+        put(Parameters.CALLER.value, callerId);
+        return this;
+    }
+
+    public UserId getCaller() {
+        return getProperty(Parameters.CALLER.value, UserId.class);
     }
 
     public Class<?> getDataClass() {

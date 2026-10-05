@@ -13,14 +13,19 @@ import java.util.UUID;
 public class FindCustomerAdapter implements FindCustomerPort {
 
 	private final CustomerRepositoryPort customerRepositoryPort;
+	private final CallerCompanyResolver callerCompanyResolver;
 
-	public FindCustomerAdapter(CustomerRepositoryPort customerRepositoryPort) {
+	public FindCustomerAdapter(CustomerRepositoryPort customerRepositoryPort, CallerCompanyResolver callerCompanyResolver) {
 		this.customerRepositoryPort = customerRepositoryPort;
+		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
 	public CustomerDomain execute(Context context) {
 		UUID id = context.getData(UUID.class);
-		return customerRepositoryPort.get(id).orElseThrow(() -> new CustomerNotFoundException(id));
+		// A customer of another company is reported as not found, so its existence is not leaked.
+		return callerCompanyResolver.resolve(context)
+				.flatMap(companyId -> customerRepositoryPort.findByIdAndCompanyId(id, companyId))
+				.orElseThrow(() -> new CustomerNotFoundException(id));
 	}
 }

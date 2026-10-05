@@ -12,13 +12,17 @@ import java.util.List;
 public class ListCustomersAdapter implements ListCustomersPort {
 
 	private final CustomerRepositoryPort customerRepositoryPort;
+	private final CallerCompanyResolver callerCompanyResolver;
 
-	public ListCustomersAdapter(CustomerRepositoryPort customerRepositoryPort) {
+	public ListCustomersAdapter(CustomerRepositoryPort customerRepositoryPort, CallerCompanyResolver callerCompanyResolver) {
 		this.customerRepositoryPort = customerRepositoryPort;
+		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
 	public List<CustomerDomain> execute(Context context) {
-		return customerRepositoryPort.findAll();
+		return callerCompanyResolver.resolve(context)
+				.map(customerRepositoryPort::findAllByCompanyId)
+				.orElse(List.of());
 	}
 }
