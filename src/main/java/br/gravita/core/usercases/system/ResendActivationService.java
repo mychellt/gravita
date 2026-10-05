@@ -9,13 +9,14 @@ import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
 import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+@RequiredArgsConstructor
 @UseCase
 public class ResendActivationService implements ResendActivationUseCase {
 
@@ -24,26 +25,11 @@ public class ResendActivationService implements ResendActivationUseCase {
     private final UserRepositoryPort userRepositoryPort;
     private final ActivationTokenRepositoryPort tokenRepositoryPort;
     private final NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort;
-    private final Clock clock;
-
-    @Autowired
-    public ResendActivationService(UserRepositoryPort userRepositoryPort,
-                                   ActivationTokenRepositoryPort tokenRepositoryPort,
-                                   NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort) {
-        this(userRepositoryPort, tokenRepositoryPort, notifyUserRegistrationProducerPort, Clock.systemDefaultZone());
-    }
-
-    ResendActivationService(UserRepositoryPort userRepositoryPort, ActivationTokenRepositoryPort tokenRepositoryPort,
-                            NotifyUserRegistrationProducerPort notifyUserRegistrationProducerPort, Clock clock) {
-        this.userRepositoryPort = userRepositoryPort;
-        this.tokenRepositoryPort = tokenRepositoryPort;
-        this.notifyUserRegistrationProducerPort = notifyUserRegistrationProducerPort;
-        this.clock = clock;
-    }
+    private final Clock clock = Clock.systemDefaultZone();
 
     @Override
     @Transactional
-    public void execute(String email) {
+    public void execute(final String email) {
         if (email == null || email.isBlank()) {
             return;
         }
@@ -53,8 +39,7 @@ public class ResendActivationService implements ResendActivationUseCase {
                 .ifPresent(this::issueNewLink);
     }
 
-    /** Only the newest link may work, so the user's previous unused links are cut short before a new one is issued. */
-    private void issueNewLink(User user) {
+    private void issueNewLink(final User user) {
         final var now = LocalDateTime.now(clock);
         tokenRepositoryPort.findUnusedByUserId(user.getId().value()).forEach(previous -> {
             previous.expire(now);
@@ -71,7 +56,7 @@ public class ResendActivationService implements ResendActivationUseCase {
                 .build()));
     }
 
-    private boolean isOutsideCooldown(User user) {
+    private boolean isOutsideCooldown(final User user) {
         return tokenRepositoryPort.findLatestByUserId(user.getId().value())
                 .map(latest -> !latest.wasIssuedWithin(COOLDOWN, LocalDateTime.now(clock)))
                 .orElse(true);

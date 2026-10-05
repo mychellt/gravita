@@ -1,7 +1,10 @@
 package br.gravita.core.usercases.system;
 
 import br.gravita.core.domain.Context;
-import br.gravita.core.domain.system.*;
+import br.gravita.core.domain.system.ActivationToken;
+import br.gravita.core.domain.system.ProfileReference;
+import br.gravita.core.domain.system.User;
+import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.messaging.NotifyUserRegistrationProducerPort;
 import br.gravita.core.ports.messaging.records.NotifyUserRegistrationMessage;
 import br.gravita.core.ports.outbound.persistence.system.ActivationTokenRepositoryPort;
@@ -14,9 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,8 +47,7 @@ class ResendActivationServiceTest {
     }
 
     private ResendActivationService service() {
-        return new ResendActivationService(userRepository, tokenRepository, publisher,
-                Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
+        return new ResendActivationService(userRepository, tokenRepository, publisher);
     }
 
     private void givenLatestTokenIssuedAt(LocalDateTime issuedAt) {
