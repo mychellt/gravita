@@ -1,0 +1,72 @@
+<main class="auth-page">
+  <div class="auth-logo">Grav<span class="accent">ita</span></div>
+
+  <section class="auth-card" aria-labelledby="login-title">
+    @if (step() === 'credentials') {
+      <h1 class="auth-title" id="login-title">Entrar</h1>
+      <p class="auth-lead">Use seu e-mail e senha para acessar o Gravita.</p>
+
+      <form (submit)="submit($event)" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="login-email">E-mail</label>
+          <input class="auth-input" id="login-email" name="email" type="email" inputmode="email"
+                 autocomplete="username" autofocus placeholder="ana@empresa.com.br" #emailInput
+                 [value]="email()" (input)="onEmailInput($event)"
+                 [attr.aria-invalid]="emailError() ? 'true' : null"
+                 aria-describedby="login-email-error" />
+          <p class="auth-error" id="login-email-error" role="alert">
+            @if (emailError()) { <i class="ti ti-alert-circle" aria-hidden="true"></i><span>{{ emailError() }}</span> }
+          </p>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="login-password">Senha</label>
+          <input class="auth-input" id="login-password" name="password" type="password"
+                 autocomplete="current-password" #passwordInput (input)="onPasswordInput($event)"
+                 [attr.aria-invalid]="passwordError() ? 'true' : null"
+                 aria-describedby="login-password-error" />
+          <p class="auth-error" id="login-password-error" role="alert">
+            @if (passwordError()) { <i class="ti ti-alert-circle" aria-hidden="true"></i><span>{{ passwordError() }}</span> }
+          </p>
+        </div>
+
+        <button type="submit" class="auth-btn" [disabled]="submitting()">
+          @if (submitting()) { Entrando… } @else { Entrar }
+        </button>
+
+        <p class="auth-error" id="login-form-error" role="alert">
+          @if (formError()) { <i class="ti ti-alert-circle" aria-hidden="true"></i><span>{{ formError() }}</span> }
+        </p>
+      </form>
+
+      <p class="auth-links"><a [routerLink]="forgotPasswordPath">Esqueci minha senha</a></p>
+    } @else {
+      <h1 class="auth-title" id="login-title">Verificação em duas etapas</h1>
+      <p class="auth-lead">Digite o código de 6 dígitos do seu aplicativo autenticador.</p>
+
+      <form (submit)="submitCode($event)" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="login-code">Código de verificação</label>
+          <input class="auth-input" id="login-code" name="code" type="text" inputmode="numeric"
+                 autocomplete="one-time-code" maxlength="6" placeholder="000000" #totpInput
+                 [value]="code()" (input)="onCodeInput($event)"
+                 [attr.aria-invalid]="codeError() ? 'true' : null"
+                 aria-describedby="login-code-error" />
+          <p class="auth-error" id="login-code-error" role="alert">
+            @if (codeError()) { <i class="ti ti-alert-circle" aria-hidden="true"></i><span>{{ codeError() }}</span> }
+          </p>
+        </div>
+
+        <button type="submit" class="auth-btn" [disabled]="submitting()">
+          @if (submitting()) { Verificando… } @else { Verificar }
+        </button>
+
+        <p class="auth-error" id="login-form-error" role="alert">
+          @if (formError()) { <i class="ti ti-alert-circle" aria-hidden="true"></i><span>{{ formError() }}</span> }
+        </p>
+      </form>
+
+      <p class="auth-links"><button type="button" class="auth-link-btn" (click)="backToCredentials()">Voltar</button></p>
+    }
+  </section>
+</main>
