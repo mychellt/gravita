@@ -1,9 +1,12 @@
 import { Routes } from '@angular/router';
+import { authGuard, guestGuard } from './core/guards/auth.guard';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
     path: 'admin',
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     loadComponent: () => import('./layout/admin-shell/admin-shell.component').then(m => m.AdminShellComponent),
     children: [
       { path: '', redirectTo: 'settings/planos', pathMatch: 'full' },
@@ -27,6 +30,12 @@ export const routes: Routes = [
       },
     ]
   },
+  // Telas públicas de autenticação: fora do shell do app. O login redireciona quem já tem sessão.
+  {
+    path: 'login',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./modules/auth/login/login.component').then(m => m.LoginComponent)
+  },
   // Telas públicas de recuperação de senha: fora do shell do app, sem sessão.
   {
     path: 'forgot-password',
@@ -38,6 +47,8 @@ export const routes: Routes = [
   },
   {
     path: '',
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
