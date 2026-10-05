@@ -17,6 +17,7 @@ public enum EmailTemplate {
     SUPER_USER_ACTIVATION("super_user_activation.ftl"),
     EMAIL_UPDATE_VERIFICATION("user_email_verification.ftl"),
     PASSWORD_RECOVERY("password_recovery.ftl"),
+    PASSWORD_RESET("password_reset.ftl"),
     PASSWORD_CHANGED_BY_ADMIN("password_changed_by_admin.ftl"),
     EMAIL_CHANGED_BY_ADMIN("email_changed_by_admin.ftl");
 

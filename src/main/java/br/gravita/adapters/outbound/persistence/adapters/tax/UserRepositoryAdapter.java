@@ -45,6 +45,14 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 	}
 
 	@Override
+	public void updatePassword(User user) {
+		UserJpaEntity entity = jpaRepository.findById(user.getId().value())
+				.orElseThrow(() -> new UserNotFoundException(user.getId().value()));
+		entity.setPasswordHash(passwordHasher.hash(user.getRawPassword()));
+		jpaRepository.save(entity);
+	}
+
+	@Override
 	public Optional<User> findById(UserId userId) {
 		return jpaRepository.findById(userId.value()).map(mapper::map);
 	}

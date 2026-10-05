@@ -163,4 +163,25 @@ class UserTest {
 		assertThatThrownBy(active::activate).isInstanceOf(BusinessRuleException.class);
 		assertThat(inactive.getStatus()).isEqualTo(UserStatus.INACTIVE);
 	}
+
+	@Test
+	@DisplayName("Changing the password keeps the account as it is and only needs a non-blank password")
+	void shouldChangeThePassword() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		user.changePassword("n3w-pass");
+
+		assertThat(user.getRawPassword()).isEqualTo("n3w-pass");
+		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
+	}
+
+	@Test
+	@DisplayName("A blank or missing new password is refused and the old one is kept")
+	void shouldRejectABlankNewPassword() {
+		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+
+		assertThatThrownBy(() -> user.changePassword(" ")).isInstanceOf(BusinessRuleException.class);
+		assertThatThrownBy(() -> user.changePassword(null)).isInstanceOf(BusinessRuleException.class);
+		assertThat(user.getRawPassword()).isEqualTo("s3cret!");
+	}
 }

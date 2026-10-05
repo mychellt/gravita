@@ -11,6 +11,9 @@ public interface UserRepositoryPort {
 
 	void update(User user);
 
+	/** Stores the new password of {@code user} (its raw password, hashed on the way in); no other field is touched. */
+	void updatePassword(User user);
+
 	Optional<User> findById(UserId userId);
 
 	Optional<User> findByEmail(String email);

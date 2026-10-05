@@ -5,6 +5,7 @@ QUEUES=(
   gravita-email-notifications
   gravita-quote-whatsapp
   user_registration_queue
+  password_reset_queue
 )
 
 for queue in "${QUEUES[@]}"; do

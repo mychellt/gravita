@@ -67,6 +67,16 @@ public class User {
 		this.status = UserStatus.ACTIVE;
 	}
 
+	public boolean isActive() {
+		return status == UserStatus.ACTIVE;
+	}
+
+	/** Same bar as registration: the new password only has to be present. */
+	public void changePassword(String newRawPassword) {
+		requirePassword(newRawPassword);
+		this.rawPassword = newRawPassword;
+	}
+
 	public void update(String name, String email, ProfileReference profile, UserStatus status) {
 		if (name != null) {
 			if (name.isBlank()) {
@@ -98,11 +108,15 @@ public class User {
 		if (email == null || !EMAIL.matcher(email).matches()) {
 			throw new BusinessRuleException("A valid email is required");
 		}
-		if (rawPassword == null || rawPassword.isBlank()) {
-			throw new BusinessRuleException("Password is required");
-		}
+		requirePassword(rawPassword);
 		if (profile == null) {
 			throw new BusinessRuleException("Profile is required");
+		}
+	}
+
+	private static void requirePassword(String rawPassword) {
+		if (rawPassword == null || rawPassword.isBlank()) {
+			throw new BusinessRuleException("Password is required");
 		}
 	}
 }
