@@ -10,7 +10,9 @@ import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.adapters.outbound.security.PasswordHasher;
 import br.gravita.adapters.outbound.persistence.repositories.tax.UserJpaRepository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @PersistenceAdapter
 class UserRepositoryAdapter implements UserRepositoryPort {
@@ -65,5 +67,10 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 	@Override
 	public boolean existsByEmail(String email) {
 		return jpaRepository.existsByEmail(email);
+	}
+
+	@Override
+	public List<User> findAllByCompanyId(UUID companyId) {
+		return jpaRepository.findAllByCompanyId(companyId).stream().map(mapper::map).toList();
 	}
 }

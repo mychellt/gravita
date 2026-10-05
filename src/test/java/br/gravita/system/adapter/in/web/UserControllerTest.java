@@ -1,38 +1,49 @@
 package br.gravita.system.adapter.in.web;
 
+import br.gravita.adapters.configuration.web.WebMvcConfiguration;
 import br.gravita.adapters.inbound.controllers.tax.RegisterUserRequest;
 import br.gravita.adapters.inbound.controllers.tax.UpdateUserRequest;
 import br.gravita.adapters.inbound.controllers.tax.UserController;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
+import br.gravita.core.usercases.system.ListUsersUseCase;
 import br.gravita.core.usercases.system.RegisterUserCommand;
 import br.gravita.core.usercases.system.RegisterUserUseCase;
 import br.gravita.core.usercases.system.UpdateUserCommand;
 import br.gravita.core.usercases.system.UpdateUserUseCase;
+import br.gravita.core.usercases.system.UserSummary;
 import br.gravita.core.domain.system.UnknownProfileException;
 import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserNotFoundException;
 import br.gravita.core.domain.system.UserStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@Import(WebMvcConfiguration.class)
 class UserControllerTest {
 
 	@Autowired
@@ -47,6 +58,22 @@ class UserControllerTest {
 	@MockitoBean
 	private UpdateUserUseCase updateUserUseCase;
 
+	@MockitoBean
+	private ListUsersUseCase listUsersUseCase;
+
+	@MockitoBean
+	private SessionStorePort sessionStorePort;
+
+	private static final String SESSION_TOKEN = "session-token";
+	private static final String BEARER = "Bearer " + SESSION_TOKEN;
+
+	private final UserId callerId = UserId.generate();
+
+	@BeforeEach
+	void authenticate() {
+		when(sessionStorePort.resolve(SESSION_TOKEN)).thenReturn(Optional.of(callerId));
+	}
+
 	@Test
 	@DisplayName("Responds 201 with a Location header when user registration succeeds")
 	void shouldReturn201WithLocationWhenRegistrationSucceeds() throws Exception {
@@ -56,6 +83,7 @@ class UserControllerTest {
 		when(registerUserUseCase.execute(any())).thenReturn(createdId);
 
 		mockMvc.perform(post("/api/users")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isCreated())
@@ -67,6 +95,76 @@ class UserControllerTest {
 		assertThat(captor.getValue().email()).isEqualTo("jane@example.com");
 		assertThat(captor.getValue().rawPassword()).isEqualTo("s3cret!");
 		assertThat(captor.getValue().profileId()).isEqualTo(profileId);
+		assertThat(captor.getValue().callerId()).isEqualTo(callerId);
+	}
+
+	@Test
+	@DisplayName("Ignores a client-supplied companyId on registration and uses the caller's session")
+	void shouldIgnoreClientSuppliedCompanyIdOnRegistration() throws Exception {
+		UUID profileId = UUID.randomUUID();
+		when(registerUserUseCase.execute(any())).thenReturn(UserId.generate());
+		String body = """
+				{"name":"Jane Doe","email":"jane@example.com","password":"s3cret!","profileId":"%s","companyId":"%s"}"""
+				.formatted(profileId, UUID.randomUUID());
+
+		mockMvc.perform(post("/api/users").header("Authorization", BEARER).contentType("application/json").content(body))
+				.andExpect(status().isCreated());
+
+		ArgumentCaptor<RegisterUserCommand> captor = ArgumentCaptor.forClass(RegisterUserCommand.class);
+		verify(registerUserUseCase).execute(captor.capture());
+		assertThat(captor.getValue().callerId()).isEqualTo(callerId);
+	}
+
+	@Test
+	@DisplayName("Responds 401 when registering a user without a session")
+	void shouldReturn401WhenRegisteringWithoutSession() throws Exception {
+		RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
+
+		mockMvc.perform(post("/api/users").contentType("application/json").content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(registerUserUseCase);
+	}
+
+	@Test
+	@DisplayName("Lists the users of the caller's company")
+	void shouldListTheUsersOfTheCallersCompany() throws Exception {
+		UUID userId = UUID.randomUUID();
+		UUID profileId = UUID.randomUUID();
+		when(listUsersUseCase.execute(callerId)).thenReturn(List.of(
+				new UserSummary(userId, "Jane Doe", "jane@example.com", profileId, "Salesperson", false, UserStatus.ACTIVE)));
+
+		mockMvc.perform(get("/api/users").header("Authorization", BEARER))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].id").value(userId.toString()))
+				.andExpect(jsonPath("$[0].name").value("Jane Doe"))
+				.andExpect(jsonPath("$[0].email").value("jane@example.com"))
+				.andExpect(jsonPath("$[0].profileId").value(profileId.toString()))
+				.andExpect(jsonPath("$[0].profileName").value("Salesperson"))
+				.andExpect(jsonPath("$[0].twoFactorEnabled").value(false))
+				.andExpect(jsonPath("$[0].status").value("ACTIVE"))
+				.andExpect(jsonPath("$[0].password").doesNotExist())
+				.andExpect(jsonPath("$[0].rawPassword").doesNotExist());
+	}
+
+	@Test
+	@DisplayName("Does not accept a company id to list users: only the session decides the company")
+	void shouldNotLetTheClientChooseTheCompanyWhenListing() throws Exception {
+		when(listUsersUseCase.execute(callerId)).thenReturn(List.of());
+
+		mockMvc.perform(get("/api/users").param("companyId", UUID.randomUUID().toString()).header("Authorization", BEARER))
+				.andExpect(status().isOk());
+
+		verify(listUsersUseCase).execute(callerId);
+	}
+
+	@Test
+	@DisplayName("Responds 401 when listing users without a session")
+	void shouldReturn401WhenListingWithoutSession() throws Exception {
+		mockMvc.perform(get("/api/users")).andExpect(status().isUnauthorized());
+
+		verifyNoInteractions(listUsersUseCase);
 	}
 
 	@Test
@@ -75,7 +173,7 @@ class UserControllerTest {
 		String body = objectMapper.writeValueAsString(
 				new RegisterUserRequest("Jane Doe", " ", "s3cret!", UUID.randomUUID()));
 
-		mockMvc.perform(post("/api/users").contentType("application/json").content(body))
+		mockMvc.perform(post("/api/users").header("Authorization", BEARER).contentType("application/json").content(body))
 				.andExpect(status().isBadRequest());
 	}
 
@@ -86,6 +184,7 @@ class UserControllerTest {
 		doThrow(new UnknownProfileException(request.profileId())).when(registerUserUseCase).execute(any());
 
 		mockMvc.perform(post("/api/users")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isBadRequest())

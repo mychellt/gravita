@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -161,6 +162,19 @@ class UserRepositoryAdapterTest {
 
 		assertThat(adapter.existsByEmail("jane@example.com")).isTrue();
 		assertThat(adapter.existsByEmail("nobody@example.com")).isFalse();
+	}
+
+	@Test
+	@DisplayName("Finds the users of a company through the company filter")
+	void shouldFindUsersByCompanyId() {
+		final UUID companyId = UUID.randomUUID();
+		final User user = buildUser();
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		when(repository.findAllByCompanyId(companyId)).thenReturn(List.of(entity));
+		when(mapper.map(entity)).thenReturn(user);
+
+		assertThat(adapter.findAllByCompanyId(companyId)).containsExactly(user);
+		verify(repository).findAllByCompanyId(companyId);
 	}
 
 	private UserJpaEntity buildEntity(final UUID id) {
