@@ -133,7 +133,11 @@
       </div>
     }
 
-    @if (activeMenu() !== 'empresa' && activeMenu() !== 'usuarios' && activeMenu() !== 'integracoes') {
+    @if (activeMenu() === 'clientes') {
+      <router-outlet />
+    }
+
+    @if (!['empresa', 'usuarios', 'integracoes', 'clientes'].includes(activeMenu())) {
       <div class="settings-panel-head">
         <div class="settings-panel-title">{{ activeMenuLabel() }}</div>
       </div>

@@ -1,6 +1,8 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { Company, CompanyService, TaxRegime, failureDetail } from '../../core/services/company.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -9,12 +11,15 @@ import { PlatformConfigService } from '../../core/services/platform-config.servi
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { UsersPanelComponent } from './users/users-panel.component';
 
+const CUSTOMERS_MENU = 'clientes';
+const CUSTOMERS_ROUTE = '/settings/customers';
+
 interface SettingsMenu { key: string; label: string; icon: string; route?: string; adminOnly?: boolean; }
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [FormsModule, PageHeaderComponent, UsersPanelComponent],
+  imports: [FormsModule, RouterOutlet, PageHeaderComponent, UsersPanelComponent],
   styleUrl: './settings.component.scss',
   templateUrl: './settings.component.html'
 })
@@ -22,7 +27,18 @@ export class SettingsComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly companies = inject(CompanyService);
 
-  constructor(private toast: ToastService, private platform: PlatformConfigService, private router: Router) {}
+  constructor(private toast: ToastService, private platform: PlatformConfigService, private router: Router) {
+    // Clientes é uma rota filha: o menu acompanha a URL (inclusive voltar/avançar do navegador).
+    effect(() => {
+      if (this.inCustomers()) this.activeMenu.set(CUSTOMERS_MENU);
+      else if (this.activeMenu() === CUSTOMERS_MENU) this.activeMenu.set('empresa');
+    }, { allowSignalWrites: true });
+  }
+
+  private readonly url = toSignal(
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd), map(() => this.router.url)),
+    { initialValue: this.router.url });
+  private readonly inCustomers = computed(() => this.url().split('?')[0].startsWith(CUSTOMERS_ROUTE));
 
   readonly compliance = computed(() => this.platform.config().compliance);
 
@@ -43,8 +59,12 @@ export class SettingsComponent implements OnInit {
   readonly visibleMenus = computed(() => this.menus.filter(m => !m.adminOnly || this.canEdit()));
 
   selectMenu(m: SettingsMenu) {
-    if (m.route) this.router.navigateByUrl(m.route);
-    else this.activeMenu.set(m.key);
+    if (m.route) {
+      this.router.navigateByUrl(m.route);
+      return;
+    }
+    this.activeMenu.set(m.key);
+    if (this.inCustomers()) this.router.navigateByUrl('/settings');
   }
 
   activeMenuLabel() {

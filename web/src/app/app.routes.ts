@@ -94,23 +94,26 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent)
-      },
-      {
-        path: 'settings/customers',
-        loadComponent: () => import('./modules/settings/customers/customers-list.component').then(m => m.CustomersListComponent)
-      },
-      {
-        path: 'settings/customers/new',
-        loadComponent: () => import('./modules/settings/customers/customer-form.component').then(m => m.CustomerFormComponent)
-      },
-      {
-        path: 'settings/customers/:id',
-        loadComponent: () => import('./modules/settings/customers/customer-detail.component').then(m => m.CustomerDetailComponent)
-      },
-      {
-        path: 'settings/customers/:id/payments',
-        loadComponent: () => import('./modules/settings/customers/customer-payments.component').then(m => m.CustomerPaymentsComponent)
+        loadComponent: () => import('./modules/settings/settings.component').then(m => m.SettingsComponent),
+        // Clientes vive dentro do layout de Configurações (menu lateral + painel).
+        children: [
+          {
+            path: 'customers',
+            loadComponent: () => import('./modules/settings/customers/customers-list.component').then(m => m.CustomersListComponent)
+          },
+          {
+            path: 'customers/new',
+            loadComponent: () => import('./modules/settings/customers/customer-form.component').then(m => m.CustomerFormComponent)
+          },
+          {
+            path: 'customers/:id',
+            loadComponent: () => import('./modules/settings/customers/customer-detail.component').then(m => m.CustomerDetailComponent)
+          },
+          {
+            path: 'customers/:id/payments',
+            loadComponent: () => import('./modules/settings/customers/customer-payments.component').then(m => m.CustomerPaymentsComponent)
+          },
+        ]
       },
     ]
   },
