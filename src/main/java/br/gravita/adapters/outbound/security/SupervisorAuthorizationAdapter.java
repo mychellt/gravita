@@ -11,14 +11,14 @@ public class SupervisorAuthorizationAdapter implements SupervisorAuthorizationPo
 	private final PasswordVerificationPort passwordVerificationPort;
 	private final String supervisorPasswordHash;
 
-	public SupervisorAuthorizationAdapter(PasswordVerificationPort passwordVerificationPort,
-			@Value("${gravita.pdv.supervisor-password-hash}") String supervisorPasswordHash) {
+	public SupervisorAuthorizationAdapter(final PasswordVerificationPort passwordVerificationPort,
+			@Value("${gravita.pdv.supervisor-password-hash}") final String supervisorPasswordHash) {
 		this.passwordVerificationPort = passwordVerificationPort;
 		this.supervisorPasswordHash = supervisorPasswordHash;
 	}
 
 	@Override
-	public boolean authorize(String supervisorCredential) {
+	public boolean authorize(final String supervisorCredential) {
 		return supervisorCredential != null && !supervisorCredential.isBlank()
 				&& passwordVerificationPort.matches(supervisorCredential, supervisorPasswordHash);
 	}

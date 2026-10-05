@@ -63,10 +63,23 @@ class GenerateLivrosFiscaisServiceTest {
 	void setUp() {
 		service = new GenerateLivrosFiscaisService(companies, nfes, inbound, voided, books,
 				Clock.system(ZoneOffset.UTC));
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
-				Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500", TaxRegime.LUCRO_PRESUMIDO,
-				false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null,
-				null)));
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.LUCRO_PRESUMIDO)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build()));
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of());
@@ -76,7 +89,7 @@ class GenerateLivrosFiscaisServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown company without reading or rendering anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrRenderingAnything() {
-		CompanyId stranger = CompanyId.of(UUID.randomUUID());
+		final CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new GenerateLivrosFiscaisCommand(stranger, PERIOD)))
@@ -94,7 +107,7 @@ class GenerateLivrosFiscaisServiceTest {
 		verify(inbound).findIssuedByCompanyBetween(companyId, FROM, TO);
 		verify(voided).findByCompanyIdAndVoidedAtBetween(companyId, FROM, TO);
 
-		GenerateLivrosFiscaisService saoPaulo = new GenerateLivrosFiscaisService(companies, nfes, inbound, voided,
+		final GenerateLivrosFiscaisService saoPaulo = new GenerateLivrosFiscaisService(companies, nfes, inbound, voided,
 				books, Clock.system(java.time.ZoneId.of("America/Sao_Paulo")));
 		saoPaulo.execute(new GenerateLivrosFiscaisCommand(companyId, PERIOD));
 		verify(nfes).findAuthorizedByCompanyBetween(companyId, Instant.parse("2028-02-01T03:00:00Z"),
@@ -105,14 +118,14 @@ class GenerateLivrosFiscaisServiceTest {
 	@DisplayName("Books received NF-e as entries in document order with their CFOPs joined")
 	void booksTheReceivedNfeAsEntriesInDocumentOrderWithTheirCfopsJoined() {
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1403", "300.00",
-						"36.00", "0", "0", "0", Instant.parse("2028-02-20T12:00:00Z")),
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "9", "Alfa SA", "1102", "1102", "100.00", "12.00",
-						"4.00", "0.65", "3.00", Instant.parse("2028-02-20T08:00:00Z")),
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "5", "Gama ME", "2102", "2102", "50.00", "0", "0",
-						"0", "0", Instant.parse("2028-02-05T08:00:00Z"))));
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1403",
+						"300.00", new LivrosFiscaisFixtures.Taxes("36.00", "0", "0", "0"), Instant.parse("2028-02-20T12:00:00Z")),
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "9", "Alfa SA", "1102", "1102", "100.00",
+						new LivrosFiscaisFixtures.Taxes("12.00", "4.00", "0.65", "3.00"), Instant.parse("2028-02-20T08:00:00Z")),
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "5", "Gama ME", "2102", "2102", "50.00",
+						new LivrosFiscaisFixtures.Taxes("0", "0", "0", "0"), Instant.parse("2028-02-05T08:00:00Z"))));
 
-		LivrosFiscaisBooks result = execute().books();
+		final LivrosFiscaisBooks result = execute().books();
 
 		assertThat(result.entryBook().lines()).extracting(LivrosFiscaisBooks.Line::counterpartName)
 				.containsExactly("Gama ME", "Alfa SA", "Beta Ltda");
@@ -137,7 +150,7 @@ class GenerateLivrosFiscaisServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "3102", "1", 13L,
 						Instant.parse("2028-02-11T10:00:00Z"))));
 
-		LivrosFiscaisBooks result = execute().books();
+		final LivrosFiscaisBooks result = execute().books();
 
 		assertThat(result.exitBook().lines()).extracting(LivrosFiscaisBooks.Line::number)
 				.containsExactly("9", "12");
@@ -147,7 +160,7 @@ class GenerateLivrosFiscaisServiceTest {
 		assertThat(result.exitBook().lines()).allMatch(line -> line.flow() == Flow.EXIT);
 		assertThat(result.entryBook().lines()).extracting(LivrosFiscaisBooks.Line::number)
 				.containsExactly("11", "13");
-		LivrosFiscaisBooks.Line exit = result.exitBook().lines().get(0);
+		final LivrosFiscaisBooks.Line exit = result.exitBook().lines().get(0);
 		assertThat(exit.counterpartName()).isEqualTo("Cliente SA");
 		assertThat(exit.totalValue()).isEqualByComparingTo("1015.00");
 		assertThat(exit.icmsValue()).isEqualByComparingTo("18.00");
@@ -168,7 +181,7 @@ class GenerateLivrosFiscaisServiceTest {
 				voidedRange("1", 101L, 110L, "numbers printed on damaged forms", "2028-02-10T15:00:00Z"),
 				voidedRange("2", 7L, 7L, "skipped by the printer", "2028-02-12T09:00:00Z")));
 
-		LivrosFiscaisBooks result = execute().books();
+		final LivrosFiscaisBooks result = execute().books();
 
 		assertThat(result.exitBook().voidedRanges()).extracting(LivrosFiscaisBooks.VoidedRange::series,
 				LivrosFiscaisBooks.VoidedRange::startNumber, LivrosFiscaisBooks.VoidedRange::endNumber,
@@ -201,12 +214,12 @@ class GenerateLivrosFiscaisServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 2L,
 						Instant.parse("2028-02-11T10:00:00Z"))));
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1102", "300.00",
-						"54.00", "0", "0", "0", Instant.parse("2028-02-20T12:00:00Z")),
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "11", "Isenta ME", "1102", "1102", "30.00", "0",
-						"0", "0", "0", Instant.parse("2028-02-21T12:00:00Z"))));
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1102",
+						"300.00", new LivrosFiscaisFixtures.Taxes("54.00", "0", "0", "0"), Instant.parse("2028-02-20T12:00:00Z")),
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "11", "Isenta ME", "1102", "1102",
+						"30.00", new LivrosFiscaisFixtures.Taxes("0", "0", "0", "0"), Instant.parse("2028-02-21T12:00:00Z"))));
 
-		LivrosFiscaisBooks.IcmsAssessment assessment = execute().books().icmsAssessmentBook();
+		final LivrosFiscaisBooks.IcmsAssessment assessment = execute().books().icmsAssessmentBook();
 
 		assertThat(assessment.debit()).isEqualByComparingTo("36.00");
 		assertThat(assessment.credit()).isEqualByComparingTo("54.00");
@@ -224,10 +237,10 @@ class GenerateLivrosFiscaisServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 1L,
 						Instant.parse("2028-02-10T10:00:00Z"))));
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1102", "300.00",
-						"12.00", "2.00", "0.65", "3.00", Instant.parse("2028-02-20T12:00:00Z"))));
+				LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Beta Ltda", "1102", "1102",
+						"300.00", new LivrosFiscaisFixtures.Taxes("12.00", "2.00", "0.65", "3.00"), Instant.parse("2028-02-20T12:00:00Z"))));
 
-		LivrosFiscaisBooks.TaxSummary summary = execute().books().taxSummary();
+		final LivrosFiscaisBooks.TaxSummary summary = execute().books().taxSummary();
 
 		assertTotals(summary.icms(), "18.00", "12.00", "6.00");
 		assertTotals(summary.ipi(), "5.00", "2.00", "3.00");
@@ -238,7 +251,7 @@ class GenerateLivrosFiscaisServiceTest {
 	@Test
 	@DisplayName("Returns empty books and zero totals for a period without documents")
 	void answersEmptyBooksAndZeroTotalsForAPeriodWithoutDocuments() {
-		LivrosFiscaisBooks result = execute().books();
+		final LivrosFiscaisBooks result = execute().books();
 
 		assertThat(result.entryBook().lines()).isEmpty();
 		assertThat(result.exitBook().lines()).isEmpty();
@@ -251,9 +264,9 @@ class GenerateLivrosFiscaisServiceTest {
 	@Test
 	@DisplayName("Identifies the company and period and hands the books to the renderer")
 	void identifiesTheCompanyAndThePeriodAndHandsTheBooksToTheRenderer() {
-		LivrosFiscaisReport report = execute();
+		final LivrosFiscaisReport report = execute();
 
-		ArgumentCaptor<LivrosFiscaisBooks> rendered = ArgumentCaptor.forClass(LivrosFiscaisBooks.class);
+		final ArgumentCaptor<LivrosFiscaisBooks> rendered = ArgumentCaptor.forClass(LivrosFiscaisBooks.class);
 		verify(books).generate(rendered.capture());
 		assertThat(rendered.getValue()).isSameAs(report.books());
 		assertThat(report.books().companyId()).isEqualTo(companyId);
@@ -268,13 +281,13 @@ class GenerateLivrosFiscaisServiceTest {
 		return service.execute(new GenerateLivrosFiscaisCommand(companyId, PERIOD));
 	}
 
-	private VoidedNumberRange voidedRange(String series, long start, long end, String justification, String at) {
+	private VoidedNumberRange voidedRange(final String series, final long start, final long end, final String justification, final String at) {
 		return VoidedNumberRange.of(VoidedNumberRangeId.of(UUID.randomUUID()), companyId, FiscalDocumentType.NFE,
 				series, start, end, justification, "void-protocol", Instant.parse(at));
 	}
 
-	private static void assertTotals(LivrosFiscaisBooks.Totals totals, String onExits, String onEntries,
-			String balance) {
+	private static void assertTotals(final LivrosFiscaisBooks.Totals totals, final String onExits, final String onEntries,
+			final String balance) {
 		assertThat(totals.onExits()).isEqualByComparingTo(onExits);
 		assertThat(totals.onEntries()).isEqualByComparingTo(onEntries);
 		assertThat(totals.balance()).isEqualByComparingTo(balance);

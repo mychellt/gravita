@@ -12,11 +12,11 @@ public record ProductOrClassRef(ProductOrClassRefType type, String referenceId) 
 		}
 	}
 
-	public static ProductOrClassRef product(String productId) {
+	public static ProductOrClassRef product(final String productId) {
 		return new ProductOrClassRef(ProductOrClassRefType.PRODUCT, productId);
 	}
 
-	public static ProductOrClassRef productClass(String classId) {
+	public static ProductOrClassRef productClass(final String classId) {
 		return new ProductOrClassRef(ProductOrClassRefType.PRODUCT_CLASS, classId);
 	}
 }

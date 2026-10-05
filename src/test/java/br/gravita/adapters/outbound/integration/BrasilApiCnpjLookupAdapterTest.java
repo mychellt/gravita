@@ -23,8 +23,8 @@ class BrasilApiCnpjLookupAdapterTest {
 	@Test
 	@DisplayName("Returns the company name and address when the BrasilAPI lookup succeeds")
 	void shouldReturnNameAndAddressOnSuccess() {
-		RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
-		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+		final RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
+		final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 		server.expect(requestTo("http://brasilapi.test/api/cnpj/v1/11444777000161"))
 				.andRespond(withSuccess("""
 						{
@@ -38,9 +38,9 @@ class BrasilApiCnpjLookupAdapterTest {
 						  "cep": "01000-000"
 						}
 						""", MediaType.APPLICATION_JSON));
-		BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
+		final BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
 
-		Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
+		final Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
 
 		assertThat(result).isPresent();
 		assertThat(result.get().name()).isEqualTo("Acme LTDA");
@@ -50,13 +50,13 @@ class BrasilApiCnpjLookupAdapterTest {
 	@Test
 	@DisplayName("Degrades to an empty result when the BrasilAPI service fails")
 	void shouldDegradeToEmptyWhenServiceFails() {
-		RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
-		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+		final RestClient.Builder builder = RestClient.builder().baseUrl("http://brasilapi.test/api");
+		final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 		server.expect(requestTo("http://brasilapi.test/api/cnpj/v1/11444777000161"))
 				.andRespond(withServerError());
-		BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
+		final BrasilApiCnpjLookupAdapter adapter = new BrasilApiCnpjLookupAdapter(builder.build());
 
-		Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
+		final Optional<PersonLookupResult> result = adapter.execute(new Context(CNPJ));
 
 		assertThat(result).isEmpty();
 	}

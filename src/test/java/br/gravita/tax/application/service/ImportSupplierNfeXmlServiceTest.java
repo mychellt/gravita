@@ -41,12 +41,12 @@ class ImportSupplierNfeXmlServiceTest {
 	@Test
 	@DisplayName("Stores the XML before persisting and returns an inbound NF-e pending conference")
 	void storesTheXmlBeforePersistingAndReturnsAPendingConferenceInboundNfe() {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
-		byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
 		when(xmlObjectStoragePort.store(eq(companyId), eq(xml))).thenReturn("xml-object-ref-1");
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		InboundNfe result = service.execute(new ImportSupplierNfeXmlCommand(companyId, xml));
+		final InboundNfe result = service.execute(new ImportSupplierNfeXmlCommand(companyId, xml));
 
 		assertThat(result.getStatus()).isEqualTo(InboundNfeStatus.PENDING_CONFERENCE);
 		assertThat(result.getXmlStorageRef()).isEqualTo("xml-object-ref-1");
@@ -54,7 +54,7 @@ class ImportSupplierNfeXmlServiceTest {
 		assertThat(result.getSupplierName()).isEqualTo("Fornecedor Exemplo LTDA");
 		assertThat(result.getItems()).hasSize(1);
 
-		ArgumentCaptor<InboundNfe> savedCaptor = ArgumentCaptor.forClass(InboundNfe.class);
+		final ArgumentCaptor<InboundNfe> savedCaptor = ArgumentCaptor.forClass(InboundNfe.class);
 		org.mockito.Mockito.verify(inboundNfeRepositoryPort).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().getXmlStorageRef()).isEqualTo("xml-object-ref-1");
 	}

@@ -23,8 +23,8 @@ public final class Renegotiation {
 	private final List<ReceivableId> newReceivableIds;
 	private final Instant createdAt;
 
-	public Renegotiation(RenegotiationId id, UUID customerId, List<ReceivableId> originalReceivableIds,
-			List<ReceivableId> newReceivableIds, Instant createdAt) {
+	public Renegotiation(final RenegotiationId id, final UUID customerId, final List<ReceivableId> originalReceivableIds,
+			final List<ReceivableId> newReceivableIds, final Instant createdAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");
 		this.originalReceivableIds = requireDistinctAndNotEmpty("originalReceivableIds", originalReceivableIds);
@@ -35,17 +35,17 @@ public final class Renegotiation {
 		}
 	}
 
-	public static Renegotiation create(RenegotiationId id, UUID customerId, List<ReceivableId> originalReceivableIds,
-			List<ReceivableId> newReceivableIds, Instant createdAt) {
+	public static Renegotiation create(final RenegotiationId id, final UUID customerId, final List<ReceivableId> originalReceivableIds,
+			final List<ReceivableId> newReceivableIds, final Instant createdAt) {
 		return new Renegotiation(id, customerId, originalReceivableIds, newReceivableIds, createdAt);
 	}
 
-	public static Renegotiation of(RenegotiationId id, UUID customerId, List<ReceivableId> originalReceivableIds,
-			List<ReceivableId> newReceivableIds, Instant createdAt) {
+	public static Renegotiation of(final RenegotiationId id, final UUID customerId, final List<ReceivableId> originalReceivableIds,
+			final List<ReceivableId> newReceivableIds, final Instant createdAt) {
 		return new Renegotiation(id, customerId, originalReceivableIds, newReceivableIds, createdAt);
 	}
 
-	private static List<ReceivableId> requireDistinctAndNotEmpty(String field, List<ReceivableId> ids) {
+	private static List<ReceivableId> requireDistinctAndNotEmpty(final String field, final List<ReceivableId> ids) {
 		Objects.requireNonNull(ids, field + " is required");
 		if (ids.isEmpty()) {
 			throw new BusinessRuleException(field + " must not be empty");

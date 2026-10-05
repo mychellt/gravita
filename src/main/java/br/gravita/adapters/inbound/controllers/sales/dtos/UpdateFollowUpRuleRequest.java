@@ -12,7 +12,7 @@ public record UpdateFollowUpRuleRequest(
 		Boolean notifyOwner,
 		Boolean active) {
 
-	public UpdateFollowUpRuleCommand toCommand(UUID ruleId) {
+	public UpdateFollowUpRuleCommand toCommand(final UUID ruleId) {
 		return new UpdateFollowUpRuleCommand(FollowUpRuleId.of(ruleId), daysWithoutContact, target, notifyOwner,
 				active);
 	}

@@ -8,8 +8,8 @@ import java.util.UUID;
 public record ConferenceResultResponse(List<ConferenceLineResponse> lines, BigDecimal orderedValue,
 		BigDecimal invoicedValue, boolean hasDivergences) {
 
-	public static ConferenceResultResponse from(ConferenceResult result) {
-		List<ConferenceLineResponse> lines = result.lines().stream()
+	public static ConferenceResultResponse from(final ConferenceResult result) {
+		final List<ConferenceLineResponse> lines = result.lines().stream()
 				.map(line -> new ConferenceLineResponse(line.productId(), line.orderedQty(), line.receivedQty(),
 						line.isDivergent()))
 				.toList();

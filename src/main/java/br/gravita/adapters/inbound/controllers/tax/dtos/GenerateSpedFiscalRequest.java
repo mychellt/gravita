@@ -33,9 +33,9 @@ public record GenerateSpedFiscalRequest(@NotNull UUID companyId, YearMonth perio
 
 	@AssertTrue(message = "inform either period (yyyy-MM) or both startDate and endDate")
 	public boolean isPeriodInformed() {
-		boolean month = period != null;
-		boolean someDates = startDate != null || endDate != null;
-		boolean bothDates = startDate != null && endDate != null;
+		final boolean month = period != null;
+		final boolean someDates = startDate != null || endDate != null;
+		final boolean bothDates = startDate != null && endDate != null;
 		return month ? !someDates : bothDates;
 	}
 
@@ -45,7 +45,7 @@ public record GenerateSpedFiscalRequest(@NotNull UUID companyId, YearMonth perio
 	}
 
 	public GenerateSpedFiscalCommand toCommand() {
-		Period resolved = period != null ? Period.ofMonth(period) : new Period(startDate, endDate);
+		final Period resolved = period != null ? Period.ofMonth(period) : new Period(startDate, endDate);
 		return new GenerateSpedFiscalCommand(CompanyId.of(companyId), resolved, finality,
 				new Taxpayer(taxpayer.legalName(), taxpayer.municipalityCode(), taxpayer.profile(),
 						taxpayer.activity(), taxpayer.tradeName(), taxpayer.zipCode(), taxpayer.number(),

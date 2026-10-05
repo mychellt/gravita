@@ -11,7 +11,7 @@ public class ListProfilesService implements ListProfilesUseCase {
 
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public ListProfilesService(ProfileRepositoryPort profileRepositoryPort) {
+	public ListProfilesService(final ProfileRepositoryPort profileRepositoryPort) {
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 

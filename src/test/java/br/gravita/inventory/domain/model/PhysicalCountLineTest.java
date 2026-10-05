@@ -12,24 +12,24 @@ class PhysicalCountLineTest {
 
 	@Test
 	@DisplayName("A line that has not been counted yet has no divergence")
-	void aLineWithNoCountedQuantityYetHasNoDivergence() {
-		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"));
+	void lineWithNoCountedQuantityYetHasNoDivergence() {
+		final PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"));
 
 		assertThat(line.hasDivergence()).isFalse();
 	}
 
 	@Test
 	@DisplayName("A line whose counted quantity equals the system quantity has no divergence")
-	void aLineWhereCountedMatchesSystemHasNoDivergence() {
-		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("10"));
+	void lineWhereCountedMatchesSystemHasNoDivergence() {
+		final PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("10"));
 
 		assertThat(line.hasDivergence()).isFalse();
 	}
 
 	@Test
 	@DisplayName("A line whose counted quantity differs from the system quantity has a divergence")
-	void aLineWhereCountedDiffersFromSystemHasADivergence() {
-		PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("7"));
+	void lineWhereCountedDiffersFromSystemHasADivergence() {
+		final PhysicalCountLine line = new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"), new BigDecimal("7"));
 
 		assertThat(line.hasDivergence()).isTrue();
 		assertThat(line.divergence()).isEqualByComparingTo("-3");

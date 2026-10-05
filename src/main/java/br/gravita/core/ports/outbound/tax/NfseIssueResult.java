@@ -11,7 +11,7 @@ import java.util.Objects;
 public record NfseIssueResult(String protocol, Instant authorizedAt, byte[] xml, String rejectionReason) {
 
 	public NfseIssueResult {
-		boolean authorized = protocol != null;
+		final boolean authorized = protocol != null;
 		if (authorized == (rejectionReason != null)) {
 			throw new IllegalArgumentException("exactly one of protocol or rejectionReason must be present");
 		}
@@ -21,11 +21,11 @@ public record NfseIssueResult(String protocol, Instant authorizedAt, byte[] xml,
 		}
 	}
 
-	public static NfseIssueResult authorized(String protocol, Instant authorizedAt, byte[] xml) {
+	public static NfseIssueResult authorized(final String protocol, final Instant authorizedAt, final byte[] xml) {
 		return new NfseIssueResult(protocol, authorizedAt, xml, null);
 	}
 
-	public static NfseIssueResult rejected(String reason) {
+	public static NfseIssueResult rejected(final String reason) {
 		return new NfseIssueResult(null, null, null, reason);
 	}
 

@@ -43,22 +43,22 @@ class ScheduleFollowUpTaskServiceTest {
 		when(followUpTaskRepositoryPort.save(any(FollowUpTask.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		UUID opportunityId = UUID.randomUUID();
-		UUID owner = UUID.randomUUID();
-		ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
+		final UUID opportunityId = UUID.randomUUID();
+		final UUID owner = UUID.randomUUID();
+		final ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
 				.opportunityId(opportunityId)
 				.dueDate(LocalDate.now().plusDays(5))
 				.owner(owner)
 				.alertChannel(AlertChannel.EMAIL)
 				.build();
 
-		FollowUpTaskView view = service.execute(command);
+		final FollowUpTaskView view = service.execute(command);
 
 		assertThat(view.opportunityId()).isEqualTo(opportunityId);
 		assertThat(view.owner()).isEqualTo(owner);
 		assertThat(view.alertChannel()).isEqualTo(AlertChannel.EMAIL);
 
-		ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
+		final ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
 		verify(sendFollowUpAlertPort).send(sentTask.capture());
 		assertThat(sentTask.getValue().getOpportunityId()).isEqualTo(opportunityId);
 	}
@@ -66,7 +66,7 @@ class ScheduleFollowUpTaskServiceTest {
 	@Test
 	@DisplayName("Rejects scheduling a task with a due date in the past")
 	void rejectsSchedulingWithAPastDueDate() {
-		ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
+		final ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
 				.customerId(UUID.randomUUID())
 				.dueDate(LocalDate.now().minusDays(1))
 				.owner(UUID.randomUUID())
@@ -81,7 +81,7 @@ class ScheduleFollowUpTaskServiceTest {
 	@Test
 	@DisplayName("Rejects scheduling a task linked to neither an opportunity nor a customer")
 	void rejectsSchedulingWithoutAnOpportunityOrCustomerLink() {
-		ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
+		final ScheduleFollowUpTaskCommand command = ScheduleFollowUpTaskCommand.builder()
 				.dueDate(LocalDate.now().plusDays(1))
 				.owner(UUID.randomUUID())
 				.alertChannel(AlertChannel.APP)

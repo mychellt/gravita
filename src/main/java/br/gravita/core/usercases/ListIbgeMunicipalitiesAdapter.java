@@ -13,12 +13,12 @@ public class ListIbgeMunicipalitiesAdapter implements ListIbgeMunicipalitiesPort
 
 	private final IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort;
 
-	public ListIbgeMunicipalitiesAdapter(IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort) {
+	public ListIbgeMunicipalitiesAdapter(final IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort) {
 		this.ibgeMunicipalityRepositoryPort = ibgeMunicipalityRepositoryPort;
 	}
 
 	@Override
-	public List<IbgeMunicipalityDomain> execute(Context context) {
+	public List<IbgeMunicipalityDomain> execute(final Context context) {
 		return ibgeMunicipalityRepositoryPort.findAll();
 	}
 }

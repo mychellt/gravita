@@ -81,8 +81,8 @@ class CancelNfeServiceTest {
 
 	@Test
 	@DisplayName("Refuses to cancel a document that is not authorized")
-	void aDocumentThatIsNotAuthorizedCannotBeCancelled() {
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.QUEUED, null, "SP");
+	void documentThatIsNotAuthorizedCannotBeCancelled() {
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.QUEUED, null, "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
@@ -94,9 +94,9 @@ class CancelNfeServiceTest {
 
 	@Test
 	@DisplayName("Rejects cancelling a document past the default twenty-four-hour window")
-	void aDocumentPastTheTwentyFourHourDefaultWindowIsRejected() {
-		Instant twentyFiveHoursAgo = Instant.now().minus(Duration.ofHours(25));
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyFiveHoursAgo, "SP");
+	void documentPastTheTwentyFourHourDefaultWindowIsRejected() {
+		final Instant twentyFiveHoursAgo = Instant.now().minus(Duration.ofHours(25));
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyFiveHoursAgo, "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
@@ -108,35 +108,35 @@ class CancelNfeServiceTest {
 
 	@Test
 	@DisplayName("Cancels a document within the default twenty-four-hour window")
-	void aDocumentWithinTheTwentyFourHourDefaultWindowIsCancelled() {
-		Instant twentyHoursAgo = Instant.now().minus(Duration.ofHours(20));
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyHoursAgo, "SP");
+	void documentWithinTheTwentyFourHourDefaultWindowIsCancelled() {
+		final Instant twentyHoursAgo = Instant.now().minus(Duration.ofHours(20));
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, twentyHoursAgo, "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
-		NfeDocument result = service.execute(command());
+		final NfeDocument result = service.execute(command());
 
 		assertThat(result.getStatus()).isEqualTo(NfeDocumentStatus.CANCELLED);
 	}
 
 	@Test
 	@DisplayName("Honors a state's longer legal window past the default twenty-four hours")
-	void aStateWithALongerLegalWindowIsHonoredPastTheDefaultTwentyFourHours() {
+	void stateWithALongerLegalWindowIsHonoredPastTheDefaultTwentyFourHours() {
 		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company("AM")));
-		Instant thirtyHoursAgo = Instant.now().minus(Duration.ofHours(30));
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, thirtyHoursAgo, "AM");
+		final Instant thirtyHoursAgo = Instant.now().minus(Duration.ofHours(30));
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, thirtyHoursAgo, "AM");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
-		NfeDocument result = service.execute(command());
+		final NfeDocument result = service.execute(command());
 
 		assertThat(result.getStatus()).isEqualTo(NfeDocumentStatus.CANCELLED);
 	}
 
 	@Test
 	@DisplayName("Rejects cancellation once a state's longer legal window has also expired")
-	void aStateWithALongerLegalWindowStillExpiresPastItsOwnLimit() {
+	void stateWithALongerLegalWindowStillExpiresPastItsOwnLimit() {
 		lenient().when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company("AM")));
-		Instant fortyNineHoursAgo = Instant.now().minus(Duration.ofHours(49));
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, fortyNineHoursAgo, "AM");
+		final Instant fortyNineHoursAgo = Instant.now().minus(Duration.ofHours(49));
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, fortyNineHoursAgo, "AM");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(BusinessRuleException.class)
@@ -155,13 +155,13 @@ class CancelNfeServiceTest {
 	@Test
 	@DisplayName("Transmits the cancellation to SEFAZ with the justification and persists it")
 	void successfulCancellationTransmitsToSefazWithTheJustificationAndPersistsIt() {
-		Instant fiveHoursAgo = Instant.now().minus(Duration.ofHours(5));
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, fiveHoursAgo, "SP");
+		final Instant fiveHoursAgo = Instant.now().minus(Duration.ofHours(5));
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, fiveHoursAgo, "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
-		NfeDocument result = service.execute(command());
+		final NfeDocument result = service.execute(command());
 
-		ArgumentCaptor<SefazCancellationRequest> requestCaptor = ArgumentCaptor.forClass(SefazCancellationRequest.class);
+		final ArgumentCaptor<SefazCancellationRequest> requestCaptor = ArgumentCaptor.forClass(SefazCancellationRequest.class);
 		verify(submitToSefazPort).cancel(requestCaptor.capture());
 		assertThat(requestCaptor.getValue().accessKey()).isEqualTo(document.getAccessKey());
 		assertThat(requestCaptor.getValue().protocol()).isEqualTo(document.getSefazProtocol());
@@ -175,7 +175,7 @@ class CancelNfeServiceTest {
 
 	@Test
 	@DisplayName("Rejects cancelling a document that does not exist")
-	void aNonExistentDocumentIsRejected() {
+	void nonExistentDocumentIsRejected() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(ResourceNotFoundException.class);
@@ -186,7 +186,7 @@ class CancelNfeServiceTest {
 	@Test
 	@DisplayName("Rejects cancelling when the issuing company does not exist")
 	void anIssuingCompanyThatDoesNotExistIsRejected() {
-		NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, Instant.now(), "SP");
+		final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, Instant.now(), "SP");
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 
@@ -199,30 +199,70 @@ class CancelNfeServiceTest {
 		return new CancelNfeCommand(documentId.value(), "customer changed their mind");
 	}
 
-	private Company company(String state) {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", state,
-				"nfe@example.com", "11999999999", null, null);
+	private Company company(final String state) {
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj(VALID_CNPJ))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state(state)
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private NfeItem item() {
-		UUID productId = UUID.randomUUID();
-		TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+		final UUID productId = UUID.randomUUID();
+		final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
 				new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-		ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
+		final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
 		return new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO,
 				breakdown);
 	}
 
-	private NfeDocument documentWithStatus(NfeDocumentStatus status, Instant authorizedAt, String recipientState) {
-		NfeItem item = item();
-		NfeRecipient recipient = NfeRecipient.of(null, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste", "123456789",
+	private NfeDocument documentWithStatus(final NfeDocumentStatus status, final Instant authorizedAt, final String recipientState) {
+		final NfeItem item = item();
+		final NfeRecipient recipient = NfeRecipient.of(null, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste", "123456789",
 				recipientState);
-		TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
+		final TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
 
-		return NfeDocument.of(documentId, companyId, null, NaturezaOperacao.VENDA, new Cfop("5102"), recipient,
-				List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, totals, status,
-				Instant.now(), "001", 42L, "3".repeat(44), "PROTOCOL-1", false, null, "xml-ref", "danfe-ref",
-				List.of(), authorizedAt, null, null);
+		return NfeDocument.builder()
+				.id(documentId)
+				.issuerCompanyId(companyId)
+				.originSalesOrderId(null)
+				.naturezaOperacao(NaturezaOperacao.VENDA)
+				.cfop(new Cfop("5102"))
+				.recipient(recipient)
+				.items(List.of(item))
+				.freight(BigDecimal.ZERO)
+				.insurance(BigDecimal.ZERO)
+				.otherExpenses(BigDecimal.ZERO)
+				.transport(null)
+				.referencedAccessKey(null)
+				.additionalInfo(null)
+				.taxTotals(totals)
+				.status(status)
+				.createdAt(Instant.now())
+				.documentSeries("001")
+				.documentNumber(42L)
+				.accessKey("3".repeat(44))
+				.sefazProtocol("PROTOCOL-1")
+				.contingencyMode(false)
+				.rejectionReason(null)
+				.xmlStorageRef("xml-ref")
+				.danfeStorageRef("danfe-ref")
+				.correctionLetters(List.of())
+				.authorizedAt(authorizedAt)
+				.cancellationJustification(null)
+				.cancelledAt(null)
+				.build();
 	}
 }

@@ -19,21 +19,21 @@ public class OpenPosSessionService implements OpenPosSessionUseCase {
 	private final PosSessionRepositoryPort posSessionRepositoryPort;
 	private final CompanyRepositoryPort companyRepositoryPort;
 
-	public OpenPosSessionService(PosSessionRepositoryPort posSessionRepositoryPort,
-			CompanyRepositoryPort companyRepositoryPort) {
+	public OpenPosSessionService(final PosSessionRepositoryPort posSessionRepositoryPort,
+			final CompanyRepositoryPort companyRepositoryPort) {
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 	}
 
 	@Override
-	public PosSessionId execute(OpenPosSessionCommand command) {
+	public PosSessionId execute(final OpenPosSessionCommand command) {
 		if (posSessionRepositoryPort.existsByRegisterIdAndStatus(command.registerId(), PosSessionStatus.OPEN)) {
 			throw new BusinessRuleException("Register " + command.registerId() + " already has an open session");
 		}
 		companyRepositoryPort.findById(command.companyId())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.companyId().value()));
 
-		PosSession session = PosSession.open(PosSessionId.of(UUID.randomUUID()), command.registerId(),
+		final PosSession session = PosSession.open(PosSessionId.of(UUID.randomUUID()), command.registerId(),
 				command.operatorId(), command.companyId(), command.openingChangeAmount(), Instant.now());
 
 		return posSessionRepositoryPort.save(session).getId();

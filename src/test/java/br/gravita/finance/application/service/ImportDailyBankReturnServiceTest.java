@@ -36,7 +36,7 @@ class ImportDailyBankReturnServiceTest {
 	@Test
 	@DisplayName("Imports the file the bank published")
 	void importsTheFileTheBankPublished() {
-		BankReturnImportResult expected = new BankReturnImportResult(2, 0, List.of());
+		final BankReturnImportResult expected = new BankReturnImportResult(2, 0, List.of());
 		when(bankIntegrationPort.fetchReturnFile(BankIntegration.SICOOB)).thenReturn(Optional.of("cnab"));
 		when(importBankReturnUseCase.execute(new ImportBankReturnCommand(BankIntegration.SICOOB, "cnab")))
 				.thenReturn(expected);

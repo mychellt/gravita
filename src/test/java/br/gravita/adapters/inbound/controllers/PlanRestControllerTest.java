@@ -72,7 +72,7 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns 201 Created when a plan is created")
 	void shouldReturn201WhenCreatingPlan() throws Exception {
-		PlanDomain created = request.toDomain(UUID.randomUUID());
+		final PlanDomain created = request.toDomain(UUID.randomUUID());
 		when(createPlanPort.execute(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/plans")
@@ -92,9 +92,9 @@ class PlanRestControllerTest {
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isCreated());
 
-		ArgumentCaptor<Context> captor = ArgumentCaptor.forClass(Context.class);
+		final ArgumentCaptor<Context> captor = ArgumentCaptor.forClass(Context.class);
 		verify(createPlanPort).execute(captor.capture());
-		PlanDomain sent = captor.getValue().getData(PlanDomain.class);
+		final PlanDomain sent = captor.getValue().getData(PlanDomain.class);
 		assertThat(sent.getDescription()).isEqualTo("Para quem está começando");
 		assertThat(sent.isActivePlan()).isTrue();
 		assertThat(sent.isFeatured()).isTrue();
@@ -107,7 +107,7 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns every plan field, with null limits meaning unlimited and features in display order")
 	void shouldReturnFullPlanShape() throws Exception {
-		PlanDomain plan = request.toDomain(UUID.randomUUID());
+		final PlanDomain plan = request.toDomain(UUID.randomUUID());
 		plan.setFeatures(List.of(new PlanFeature("Second", false, 1), new PlanFeature("First", true, 0)));
 		when(findPlanPort.execute(any())).thenReturn(plan);
 
@@ -135,8 +135,8 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns 400 Bad Request when the description, active flag, limits, features or support are missing")
 	void shouldReturn400WhenRequiredFieldsAreMissing() throws Exception {
-		for (String field : List.of("description", "active", "limits", "features", "support")) {
-			ObjectNode body = objectMapper.valueToTree(request);
+		for (final String field : List.of("description", "active", "limits", "features", "support")) {
+			final ObjectNode body = objectMapper.valueToTree(request);
 			body.remove(field);
 
 			mockMvc.perform(post("/api/plans")
@@ -170,7 +170,7 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when an existing plan is found")
 	void shouldReturn200WhenFindingExistingPlan() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(findPlanPort.execute(any())).thenReturn(request.toDomain(id));
 
 		mockMvc.perform(get("/api/plans/" + id))
@@ -181,7 +181,7 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when a plan is updated")
 	void shouldReturn200WhenUpdatingPlan() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(updatePlanPort.execute(any())).thenReturn(request.toDomain(id));
 
 		mockMvc.perform(put("/api/plans/" + id)

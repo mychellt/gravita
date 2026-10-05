@@ -43,7 +43,7 @@ class ActivateAccountServiceTest {
         issued = ActivationToken.issue(user.getId(), ISSUED_AT);
     }
 
-    private ActivateAccountService serviceAt(LocalDateTime now) {
+    private ActivateAccountService serviceAt(final LocalDateTime now) {
         return new ActivateAccountService(tokenRepository, userRepository,
                 Clock.fixed(now.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
     }
@@ -77,7 +77,7 @@ class ActivateAccountServiceTest {
     void shouldRejectAReplayedToken() {
         givenStoredToken();
         givenStoredUser();
-        ActivateAccountService service = serviceAt(ISSUED_AT.plusSeconds(60));
+        final ActivateAccountService service = serviceAt(ISSUED_AT.plusSeconds(60));
         service.execute(issued.rawToken());
 
         assertThatThrownBy(() -> service.execute(issued.rawToken()))
@@ -117,7 +117,7 @@ class ActivateAccountServiceTest {
     @Test
     @DisplayName("A missing or blank token is rejected as invalid without touching the database")
     void shouldRejectAMissingToken() {
-        for (String token : new String[]{null, "", "   "}) {
+        for (final String token : new String[]{null, "", "   "}) {
             assertThatThrownBy(() -> serviceAt(ISSUED_AT).execute(token))
                     .isInstanceOfSatisfying(ActivationRejectedException.class,
                             e -> assertThat(e.getReason()).isEqualTo(Reason.INVALID));

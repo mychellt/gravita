@@ -12,17 +12,17 @@ public class ConfigureDocumentSeriesService implements ConfigureDocumentSeriesUs
 
 	private final DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
-	public ConfigureDocumentSeriesService(DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
+	public ConfigureDocumentSeriesService(final DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
 		this.documentSeriesRepositoryPort = documentSeriesRepositoryPort;
 	}
 
 	@Override
-	public void execute(ConfigureDocumentSeriesCommand command) {
-		DocumentSeries existing = documentSeriesRepositoryPort
+	public void execute(final ConfigureDocumentSeriesCommand command) {
+		final DocumentSeries existing = documentSeriesRepositoryPort
 				.findByCompanyIdAndDocumentType(command.companyId(), command.documentType())
 				.orElseThrow(() -> new DocumentSeriesNotFoundException(command.companyId().value(), command.documentType()));
 
-		DocumentSeries reconfigured = existing.reconfigure(command.series(), command.nextNumber());
+		final DocumentSeries reconfigured = existing.reconfigure(command.series(), command.nextNumber());
 		documentSeriesRepositoryPort.save(reconfigured);
 	}
 }

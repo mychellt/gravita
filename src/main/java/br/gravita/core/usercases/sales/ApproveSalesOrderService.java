@@ -35,36 +35,36 @@ public class ApproveSalesOrderService implements ApproveSalesOrderUseCase {
 
 	@Override
 	@Transactional
-	public SalesOrderView execute(ApproveSalesOrderCommand command) {
-		SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
+	public SalesOrderView execute(final ApproveSalesOrderCommand command) {
+		final SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
 				.orElseThrow(() -> new SalesOrderNotFoundException(command.orderId()));
 
-		Optional<ApprovalAlcada> alcada = approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES);
+		final Optional<ApprovalAlcada> alcada = approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES);
 		if (alcada.filter(a -> exceedsAlcada(order, a)).isPresent()) {
 			requireElevatedApprover(command.approvedBy(), alcada.get());
 		}
 
-		SalesOrder approved = order.approve(command.approvedBy(), alcada.map(ApprovalAlcada::getId).orElse(null));
+		final SalesOrder approved = order.approve(command.approvedBy(), alcada.map(ApprovalAlcada::getId).orElse(null));
 
-		for (SalesOrderItem item : order.getItems()) {
+		for (final SalesOrderItem item : order.getItems()) {
 			reserveStockPort.reserve(new ReserveStockPort.ReserveStockForOrderCommand(order.getId().value(),
 					item.productOrServiceId(), item.quantity()));
 		}
 
-		SalesOrder saved = salesOrderRepositoryPort.save(approved);
+		final SalesOrder saved = salesOrderRepositoryPort.save(approved);
 		return SalesOrderView.from(saved);
 	}
 
-	private boolean exceedsAlcada(SalesOrder order, ApprovalAlcada alcada) {
-		boolean exceedsValue = alcada.getThresholdValue() != null
+	private boolean exceedsAlcada(final SalesOrder order, final ApprovalAlcada alcada) {
+		final boolean exceedsValue = alcada.getThresholdValue() != null
 				&& order.totalValue().compareTo(alcada.getThresholdValue()) >= 0;
-		boolean exceedsDiscount = alcada.getThresholdDiscountPercent() != null
+		final boolean exceedsDiscount = alcada.getThresholdDiscountPercent() != null
 				&& order.discountPercent().compareTo(alcada.getThresholdDiscountPercent()) >= 0;
 		return exceedsValue || exceedsDiscount;
 	}
 
-	private void requireElevatedApprover(UUID approvedBy, ApprovalAlcada alcada) {
-		User approver = userRepositoryPort.findById(UserId.of(approvedBy))
+	private void requireElevatedApprover(final UUID approvedBy, final ApprovalAlcada alcada) {
+		final User approver = userRepositoryPort.findById(UserId.of(approvedBy))
 				.orElseThrow(() -> new UserNotFoundException(approvedBy));
 		if (!approver.getProfileId().equals(alcada.getApproverProfileId())) {
 			throw new BusinessRuleException(

@@ -12,14 +12,14 @@ public class SetCustomerCreditStatusAdapter implements SetCustomerCreditStatusPo
 
 	private final CustomerRepositoryPort customerRepositoryPort;
 
-	public SetCustomerCreditStatusAdapter(CustomerRepositoryPort customerRepositoryPort) {
+	public SetCustomerCreditStatusAdapter(final CustomerRepositoryPort customerRepositoryPort) {
 		this.customerRepositoryPort = customerRepositoryPort;
 	}
 
 	@Override
-	public CustomerDomain execute(Context context) {
-		CustomerDomain command = context.getData(CustomerDomain.class);
-		CustomerDomain customer = customerRepositoryPort.get(command.getId())
+	public CustomerDomain execute(final Context context) {
+		final CustomerDomain command = context.getData(CustomerDomain.class);
+		final CustomerDomain customer = customerRepositoryPort.get(command.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + command.getId()));
 
 		customer.applyCreditStatus(command.getCurrentBalance(), command.getStatus());

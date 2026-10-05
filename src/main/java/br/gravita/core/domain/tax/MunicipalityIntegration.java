@@ -25,9 +25,9 @@ public final class MunicipalityIntegration {
 	private List<String> requiredFields;
 	private boolean homologated;
 
-	public MunicipalityIntegration(MunicipalityIntegrationId id, String ibgeCode, NfseStandard standard,
-			String version, String webserviceUrl, CertificateType requiredCertificateType,
-			List<String> requiredFields, boolean homologated) {
+	public MunicipalityIntegration(final MunicipalityIntegrationId id, final String ibgeCode, final NfseStandard standard,
+			final String version, final String webserviceUrl, final CertificateType requiredCertificateType,
+			final List<String> requiredFields, final boolean homologated) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		if (ibgeCode == null || !IBGE_CODE.matcher(ibgeCode).matches()) {
 			throw new BusinessRuleException("ibgeCode must have 7 digits");
@@ -36,21 +36,21 @@ public final class MunicipalityIntegration {
 		apply(standard, version, webserviceUrl, requiredCertificateType, requiredFields, homologated);
 	}
 
-	public static MunicipalityIntegration of(MunicipalityIntegrationId id, String ibgeCode, NfseStandard standard,
-			String version, String webserviceUrl, CertificateType requiredCertificateType,
-			List<String> requiredFields, boolean homologated) {
+	public static MunicipalityIntegration of(final MunicipalityIntegrationId id, final String ibgeCode, final NfseStandard standard,
+			final String version, final String webserviceUrl, final CertificateType requiredCertificateType,
+			final List<String> requiredFields, final boolean homologated) {
 		return new MunicipalityIntegration(id, ibgeCode, standard, version, webserviceUrl, requiredCertificateType,
 				requiredFields, homologated);
 	}
 
 	/** Re-registration of the same IBGE code: replaces the configuration, keeping identity. */
-	public void update(NfseStandard standard, String version, String webserviceUrl,
-			CertificateType requiredCertificateType, List<String> requiredFields, boolean homologated) {
+	public void update(final NfseStandard standard, final String version, final String webserviceUrl,
+			final CertificateType requiredCertificateType, final List<String> requiredFields, final boolean homologated) {
 		apply(standard, version, webserviceUrl, requiredCertificateType, requiredFields, homologated);
 	}
 
-	private void apply(NfseStandard standard, String version, String webserviceUrl,
-			CertificateType requiredCertificateType, List<String> requiredFields, boolean homologated) {
+	private void apply(final NfseStandard standard, final String version, final String webserviceUrl,
+			final CertificateType requiredCertificateType, final List<String> requiredFields, final boolean homologated) {
 		if (standard == null) {
 			throw new BusinessRuleException("standard is required");
 		}
@@ -70,7 +70,7 @@ public final class MunicipalityIntegration {
 		this.homologated = homologated;
 	}
 
-	private static void requireNonBlank(String value, String field) {
+	private static void requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required for a homologated integration");
 		}

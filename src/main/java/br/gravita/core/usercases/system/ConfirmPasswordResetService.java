@@ -21,13 +21,13 @@ public class ConfirmPasswordResetService implements ConfirmPasswordResetUseCase 
     private final Clock clock;
 
     @Autowired
-    public ConfirmPasswordResetService(PasswordResetTokenRepositoryPort tokenRepositoryPort,
-                                       UserRepositoryPort userRepositoryPort) {
+    public ConfirmPasswordResetService(final PasswordResetTokenRepositoryPort tokenRepositoryPort,
+                                       final UserRepositoryPort userRepositoryPort) {
         this(tokenRepositoryPort, userRepositoryPort, Clock.systemDefaultZone());
     }
 
-    ConfirmPasswordResetService(PasswordResetTokenRepositoryPort tokenRepositoryPort,
-                                UserRepositoryPort userRepositoryPort, Clock clock) {
+    ConfirmPasswordResetService(final PasswordResetTokenRepositoryPort tokenRepositoryPort,
+                                final UserRepositoryPort userRepositoryPort, final Clock clock) {
         this.tokenRepositoryPort = tokenRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
         this.clock = clock;
@@ -55,14 +55,14 @@ public class ConfirmPasswordResetService implements ConfirmPasswordResetUseCase 
     }
 
     /** The reset is done: no other e-mailed link of this user may change the password again. */
-    private void invalidateOtherLinks(UserId userId, LocalDateTime now) {
+    private void invalidateOtherLinks(final UserId userId, final LocalDateTime now) {
         tokenRepositoryPort.findUnusedByUserId(userId.value()).forEach(other -> {
             other.expire(now);
             tokenRepositoryPort.save(other);
         });
     }
 
-    private PasswordResetToken findToken(String rawToken) {
+    private PasswordResetToken findToken(final String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             throw invalidToken();
         }

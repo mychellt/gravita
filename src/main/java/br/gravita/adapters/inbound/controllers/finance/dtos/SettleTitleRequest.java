@@ -15,7 +15,7 @@ public record SettleTitleRequest(
 		@PositiveOrZero BigDecimal surcharge,
 		boolean partial) {
 
-	public SettleTitleCommand toCommand(UUID receivableId) {
+	public SettleTitleCommand toCommand(final UUID receivableId) {
 		return new SettleTitleCommand(receivableId, amount, interest, fine, discount, surcharge, partial);
 	}
 }

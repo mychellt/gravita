@@ -12,16 +12,16 @@ public class LogInteractionService implements LogInteractionUseCase {
 
 	private final InteractionRepositoryPort interactionRepositoryPort;
 
-	public LogInteractionService(InteractionRepositoryPort interactionRepositoryPort) {
+	public LogInteractionService(final InteractionRepositoryPort interactionRepositoryPort) {
 		this.interactionRepositoryPort = interactionRepositoryPort;
 	}
 
 	@Override
-	public InteractionView execute(LogInteractionCommand command) {
-		Interaction interaction = Interaction.log(command.opportunityId(), command.customerId(), command.channel(),
+	public InteractionView execute(final LogInteractionCommand command) {
+		final Interaction interaction = Interaction.log(command.opportunityId(), command.customerId(), command.channel(),
 				command.summary(), command.timestamp());
 
-		Interaction saved = interactionRepositoryPort.save(interaction);
+		final Interaction saved = interactionRepositoryPort.save(interaction);
 		return InteractionView.from(saved);
 	}
 }

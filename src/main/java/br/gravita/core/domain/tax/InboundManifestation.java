@@ -26,8 +26,8 @@ public final class InboundManifestation {
 	private final String sefazProtocol;
 	private final Instant manifestedAt;
 
-	public InboundManifestation(InboundManifestationId id, String accessKey, ManifestationType type,
-			InboundNfeId inboundNfeId, String sefazProtocol, Instant manifestedAt) {
+	public InboundManifestation(final InboundManifestationId id, final String accessKey, final ManifestationType type,
+			final InboundNfeId inboundNfeId, final String sefazProtocol, final Instant manifestedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.accessKey = requireAccessKey(accessKey);
 		this.type = Objects.requireNonNull(type, "type is required");
@@ -36,8 +36,8 @@ public final class InboundManifestation {
 		this.manifestedAt = Objects.requireNonNull(manifestedAt, "manifestedAt is required");
 	}
 
-	public static InboundManifestation of(InboundManifestationId id, String accessKey, ManifestationType type,
-			InboundNfeId inboundNfeId, String sefazProtocol, Instant manifestedAt) {
+	public static InboundManifestation of(final InboundManifestationId id, final String accessKey, final ManifestationType type,
+			final InboundNfeId inboundNfeId, final String sefazProtocol, final Instant manifestedAt) {
 		return new InboundManifestation(id, accessKey, type, inboundNfeId, sefazProtocol, manifestedAt);
 	}
 
@@ -45,14 +45,14 @@ public final class InboundManifestation {
 		return Optional.ofNullable(inboundNfeId);
 	}
 
-	private static String requireAccessKey(String accessKey) {
+	private static String requireAccessKey(final String accessKey) {
 		if (accessKey == null || !ACCESS_KEY_PATTERN.matcher(accessKey).matches()) {
 			throw new BusinessRuleException("NFe access key must be 44 digits: " + accessKey);
 		}
 		return accessKey;
 	}
 
-	private static String requireNonBlank(String value, String field) {
+	private static String requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required");
 		}

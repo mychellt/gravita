@@ -11,12 +11,12 @@ class ServiceTaxRuleRepositoryAdapter implements ServiceTaxRuleRepositoryPort {
 
 	private final ServiceTaxRuleJpaRepository jpaRepository;
 
-	ServiceTaxRuleRepositoryAdapter(ServiceTaxRuleJpaRepository jpaRepository) {
+	ServiceTaxRuleRepositoryAdapter(final ServiceTaxRuleJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public List<ServiceTaxRule> findCandidates(String serviceCode, String municipalityIbgeCode) {
+	public List<ServiceTaxRule> findCandidates(final String serviceCode, final String municipalityIbgeCode) {
 		return jpaRepository.findCandidates(serviceCode, municipalityIbgeCode).stream()
 				.map(e -> new ServiceTaxRule(e.getServiceCode(), e.getMunicipalityIbge(), e.getRegime(),
 						e.getTaxType(), e.getRatePercentage(), e.getWithholding()))

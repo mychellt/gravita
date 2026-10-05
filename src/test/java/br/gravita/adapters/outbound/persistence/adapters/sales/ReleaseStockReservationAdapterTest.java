@@ -22,16 +22,16 @@ class ReleaseStockReservationAdapterTest {
 	@Test
 	@DisplayName("Delegates to the real use case by order reference")
 	void delegatesToTheRealUseCaseByOrderRef() {
-		ReleaseStockReservationAdapter adapter = new ReleaseStockReservationAdapter(releaseStockReservationUseCase);
-		UUID orderId = UUID.randomUUID();
+		final ReleaseStockReservationAdapter adapter = new ReleaseStockReservationAdapter(releaseStockReservationUseCase);
+		final UUID orderId = UUID.randomUUID();
 
 		adapter.releaseByOrderRef(orderId);
 
-		ArgumentCaptor<ReleaseStockReservationCommand> captor =
+		final ArgumentCaptor<ReleaseStockReservationCommand> captor =
 				ArgumentCaptor.forClass(ReleaseStockReservationCommand.class);
 		verify(releaseStockReservationUseCase).execute(captor.capture());
 
-		ReleaseStockReservationCommand command = captor.getValue();
+		final ReleaseStockReservationCommand command = captor.getValue();
 		assertThat(command.orderRef()).isEqualTo(orderId);
 		assertThat(command.reservationId()).isNull();
 	}

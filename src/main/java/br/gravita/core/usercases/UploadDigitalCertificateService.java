@@ -19,22 +19,22 @@ public class UploadDigitalCertificateService implements UploadDigitalCertificate
 	private final CertificateStoragePort certificateStoragePort;
 	private final CertificateReaderPort certificateReaderPort;
 
-	public UploadDigitalCertificateService(CompanyRepositoryPort companyRepositoryPort,
-			CertificateStoragePort certificateStoragePort, CertificateReaderPort certificateReaderPort) {
+	public UploadDigitalCertificateService(final CompanyRepositoryPort companyRepositoryPort,
+			final CertificateStoragePort certificateStoragePort, final CertificateReaderPort certificateReaderPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.certificateStoragePort = certificateStoragePort;
 		this.certificateReaderPort = certificateReaderPort;
 	}
 
 	@Override
-	public void execute(UploadDigitalCertificateCommand command) {
+	public void execute(final UploadDigitalCertificateCommand command) {
 		companyRepositoryPort.findById(command.companyId())
 				.orElseThrow(() -> new CompanyNotFoundException(command.companyId().value()));
 
-		CertificateType type = CertificateType.fromCode(command.certificateType());
-		Instant expiresAt = certificateReaderPort.readExpiryDate(command.pfxFile(), command.password());
+		final CertificateType type = CertificateType.fromCode(command.certificateType());
+		final Instant expiresAt = certificateReaderPort.readExpiryDate(command.pfxFile(), command.password());
 
-		DigitalCertificate certificate = DigitalCertificate.upload(command.companyId(), type, command.pfxFile(),
+		final DigitalCertificate certificate = DigitalCertificate.upload(command.companyId(), type, command.pfxFile(),
 				command.password(), expiresAt);
 
 		certificateStoragePort.save(certificate);

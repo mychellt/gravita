@@ -8,7 +8,7 @@ import java.util.UUID;
 public record BoletoResponse(UUID id, UUID receivableId, BankIntegration bankIntegration, String barcodeLine,
 		BoletoStatus status) {
 
-	public static BoletoResponse from(Boleto boleto) {
+	public static BoletoResponse from(final Boleto boleto) {
 		return new BoletoResponse(boleto.getId().value(), boleto.getReceivableId().value(),
 				boleto.getBankIntegration(), boleto.getBarcodeLine(), boleto.getStatus());
 	}

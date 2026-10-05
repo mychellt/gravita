@@ -55,28 +55,28 @@ class UpdateCustomerCreditStatusAdapterTest {
 
 	private final UUID customerId = UUID.randomUUID();
 
-	private void customerWithLimit(String creditLimit) {
-		CustomerDomain customer = CustomerDomain.builder().id(customerId)
+	private void customerWithLimit(final String creditLimit) {
+		final CustomerDomain customer = CustomerDomain.builder().id(customerId)
 				.creditLimit(creditLimit == null ? null : new BigDecimal(creditLimit)).build();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(customer));
 	}
 
-	private Receivable unsettled(String amount, LocalDate dueDate, String alreadyCredited) {
-		Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), customerId, ReceivableOrigin.MANUAL,
+	private Receivable unsettled(final String amount, final LocalDate dueDate, final String alreadyCredited) {
+		final Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), customerId, ReceivableOrigin.MANUAL,
 				new BigDecimal(amount), dueDate, null, ReceivableStatus.OPEN, null, null);
-		List<Settlement> settlements = alreadyCredited == null ? List.of()
+		final List<Settlement> settlements = alreadyCredited == null ? List.of()
 				: List.of(Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
 						new BigDecimal(alreadyCredited), null, null, null, null, Instant.now()));
 		lenient().when(settlementRepositoryPort.findByReceivableId(receivable.getId())).thenReturn(settlements);
 		return receivable;
 	}
 
-	private void unsettledTitles(Receivable... receivables) {
+	private void unsettledTitles(final Receivable... receivables) {
 		when(receivableRepositoryPort.findUnsettledByCustomerId(customerId)).thenReturn(List.of(receivables));
 	}
 
 	private CustomerDomain pushed() {
-		ArgumentCaptor<Context> captured = ArgumentCaptor.forClass(Context.class);
+		final ArgumentCaptor<Context> captured = ArgumentCaptor.forClass(Context.class);
 		verify(setCustomerCreditStatusPort).execute(captured.capture());
 		return captured.getValue().getData(CustomerDomain.class);
 	}
@@ -90,7 +90,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 
 		adapter.update(customerId);
 
-		CustomerDomain position = pushed();
+		final CustomerDomain position = pushed();
 		assertThat(position.getId()).isEqualTo(customerId);
 		assertThat(position.getCurrentBalance()).isEqualByComparingTo("110.00");
 		assertThat(position.getStatus()).isEqualTo(CustomerStatus.REGULAR);
@@ -98,13 +98,13 @@ class UpdateCustomerCreditStatusAdapterTest {
 
 	@Test
 	@DisplayName("Marks a customer with nothing left to pay as regular with a zero balance")
-	void aCustomerWithNothingLeftToPayIsRegularWithAZeroBalance() {
+	void customerWithNothingLeftToPayIsRegularWithAZeroBalance() {
 		customerWithLimit("1000.00");
 		unsettledTitles();
 
 		adapter.update(customerId);
 
-		CustomerDomain position = pushed();
+		final CustomerDomain position = pushed();
 		assertThat(position.getCurrentBalance()).isEqualByComparingTo("0");
 		assertThat(position.getStatus()).isEqualTo(CustomerStatus.REGULAR);
 	}
@@ -133,8 +133,8 @@ class UpdateCustomerCreditStatusAdapterTest {
 
 	@Test
 	@DisplayName("Does not enforce the credit limit when it is missing or zero")
-	void aMissingOrZeroCreditLimitIsNotEnforced() {
-		for (String limit : new String[] { null, "0.00" }) {
+	void missingOrZeroCreditLimitIsNotEnforced() {
+		for (final String limit : new String[] {null, "0.00" }) {
 			org.mockito.Mockito.reset(setCustomerCreditStatusPort);
 			customerWithLimit(limit);
 			unsettledTitles(unsettled("500.00", LocalDate.now().plusDays(5), null));
@@ -156,7 +156,7 @@ class UpdateCustomerCreditStatusAdapterTest {
 
 	@Test
 	@DisplayName("Swallows failures so they never break the settlement flow")
-	void aFailureNeverPropagatesToTheSettlementFlow() {
+	void failureNeverPropagatesToTheSettlementFlow() {
 		when(customerRepositoryPort.get(customerId)).thenThrow(new IllegalStateException("db down"));
 
 		assertThatCode(() -> adapter.update(customerId)).doesNotThrowAnyException();

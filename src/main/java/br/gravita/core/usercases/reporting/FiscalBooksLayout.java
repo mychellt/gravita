@@ -42,8 +42,8 @@ final class FiscalBooksLayout {
 	private final BigDecimal icmsDebit;
 	private final BigDecimal icmsCredit;
 
-	FiscalBooksLayout(YearMonth period, List<FiscalBookEntry> entries, List<FiscalBookEntry> exits,
-			List<FiscalBookEntry> icmsAssessment, BigDecimal icmsDebit, BigDecimal icmsCredit) {
+	FiscalBooksLayout(final YearMonth period, final List<FiscalBookEntry> entries, final List<FiscalBookEntry> exits,
+			final List<FiscalBookEntry> icmsAssessment, final BigDecimal icmsDebit, final BigDecimal icmsCredit) {
 		this.period = period;
 		this.entries = entries;
 		this.exits = exits;
@@ -57,9 +57,9 @@ final class FiscalBooksLayout {
 	}
 
 	String txt() {
-		StringBuilder txt = new StringBuilder("LIVROS FISCAIS - ").append(period.format(MONTH)).append('\n')
+		final StringBuilder txt = new StringBuilder("LIVROS FISCAIS - ").append(period.format(MONTH)).append('\n')
 				.append(periodLine()).append('\n');
-		for (Section section : sections()) {
+		for (final Section section : sections()) {
 			txt.append('\n').append(section.heading().toUpperCase(PT_BR)).append('\n');
 			appendTable(txt, section);
 			section.footerLines().forEach(line -> txt.append(line).append('\n'));
@@ -83,19 +83,19 @@ final class FiscalBooksLayout {
 		return "Período: " + period.atDay(1).format(DATE) + " a " + period.atEndOfMonth().format(DATE);
 	}
 
-	private static List<List<String>> rows(List<FiscalBookEntry> book,
-			Function<FiscalBookEntry, List<String>> row) {
+	private static List<List<String>> rows(final List<FiscalBookEntry> book,
+			final Function<FiscalBookEntry, List<String>> row) {
 		return book.stream().map(row).toList();
 	}
 
-	private static List<String> documentRow(FiscalBookEntry entry) {
+	private static List<String> documentRow(final FiscalBookEntry entry) {
 		return List.of(date(entry.date()), text(entry.documentModel()), text(entry.series()), text(entry.number()),
 				text(entry.accessKey()), text(entry.counterpartName()), text(entry.counterpartDocument()),
 				text(entry.cfop()), amount(entry.totalValue()), amount(entry.icmsValue()));
 	}
 
-	private static List<String> assessmentRow(FiscalBookEntry entry) {
-		String nature = switch (entry.flow()) {
+	private static List<String> assessmentRow(final FiscalBookEntry entry) {
+		final String nature = switch (entry.flow()) {
 			case EXIT -> "Débito";
 			case ENTRY -> "Crédito";
 		};
@@ -104,18 +104,18 @@ final class FiscalBooksLayout {
 				amount(entry.icmsValue()));
 	}
 
-	private static String documentTotals(List<FiscalBookEntry> book, BigDecimal icms) {
-		BigDecimal total = book.stream().map(FiscalBookEntry::totalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+	private static String documentTotals(final List<FiscalBookEntry> book, final BigDecimal icms) {
+		final BigDecimal total = book.stream().map(FiscalBookEntry::totalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
 		return "Documentos: " + book.size() + " | Valor total: " + amount(total) + " | ICMS: " + amount(icms);
 	}
 
 	/** Fixed-width columns sized to their widest cell, amounts flush right. */
-	private static void appendTable(StringBuilder txt, Section section) {
-		List<Column> columns = section.columns();
-		int[] widths = new int[columns.size()];
+	private static void appendTable(final StringBuilder txt, final Section section) {
+		final List<Column> columns = section.columns();
+		final int[] widths = new int[columns.size()];
 		for (int i = 0; i < widths.length; i++) {
 			widths[i] = columns.get(i).header().length();
-			for (List<String> row : section.rows()) {
+			for (final List<String> row : section.rows()) {
 				widths[i] = Math.max(widths[i], row.get(i).length());
 			}
 		}
@@ -123,25 +123,25 @@ final class FiscalBooksLayout {
 		section.rows().forEach(row -> appendRow(txt, columns, widths, row));
 	}
 
-	private static void appendRow(StringBuilder txt, List<Column> columns, int[] widths, List<String> cells) {
-		StringBuilder line = new StringBuilder();
+	private static void appendRow(final StringBuilder txt, final List<Column> columns, final int[] widths, final List<String> cells) {
+		final StringBuilder line = new StringBuilder();
 		for (int i = 0; i < widths.length; i++) {
-			String format = "%" + (columns.get(i).rightAligned() ? "" : "-") + widths[i] + "s";
+			final String format = "%" + (columns.get(i).rightAligned() ? "" : "-") + widths[i] + "s";
 			line.append(i == 0 ? "" : "  ").append(String.format(format, cells.get(i)));
 		}
 		txt.append(line.toString().stripTrailing()).append('\n');
 	}
 
-	private static String date(LocalDate date) {
+	private static String date(final LocalDate date) {
 		return date.format(DATE);
 	}
 
-	private static String text(String value) {
+	private static String text(final String value) {
 		return value == null || value.isBlank() ? NONE : value;
 	}
 
-	private static String amount(BigDecimal value) {
-		NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
+	private static String amount(final BigDecimal value) {
+		final NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
 		format.setMinimumFractionDigits(2);
 		format.setMaximumFractionDigits(2);
 		return format.format(value);

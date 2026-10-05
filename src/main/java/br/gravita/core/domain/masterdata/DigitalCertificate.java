@@ -18,8 +18,8 @@ public final class DigitalCertificate {
 	private final Instant expiresAt;
 	private final Instant uploadedAt;
 
-	public DigitalCertificate(UUID id, CompanyId companyId, CertificateType type, byte[] pfxPayload, String password,
-			Instant expiresAt, Instant uploadedAt) {
+	public DigitalCertificate(final UUID id, final CompanyId companyId, final CertificateType type, final byte[] pfxPayload, final String password,
+			final Instant expiresAt, final Instant uploadedAt) {
 		this.id = id;
 		this.companyId = requireCompanyId(companyId);
 		this.type = requireA1(type);
@@ -29,18 +29,18 @@ public final class DigitalCertificate {
 		this.uploadedAt = uploadedAt;
 	}
 
-	public static DigitalCertificate upload(CompanyId companyId, CertificateType type, byte[] pfxPayload,
-			String password, Instant expiresAt) {
+	public static DigitalCertificate upload(final CompanyId companyId, final CertificateType type, final byte[] pfxPayload,
+			final String password, final Instant expiresAt) {
 		return new DigitalCertificate(UUID.randomUUID(), companyId, type, pfxPayload, password, expiresAt,
 				Instant.now());
 	}
 
-	public static DigitalCertificate of(UUID id, CompanyId companyId, CertificateType type, byte[] pfxPayload,
-			String password, Instant expiresAt, Instant uploadedAt) {
+	public static DigitalCertificate of(final UUID id, final CompanyId companyId, final CertificateType type, final byte[] pfxPayload,
+			final String password, final Instant expiresAt, final Instant uploadedAt) {
 		return new DigitalCertificate(id, companyId, type, pfxPayload, password, expiresAt, uploadedAt);
 	}
 
-	public boolean isExpired(Instant asOf) {
+	public boolean isExpired(final Instant asOf) {
 		return expiresAt.isBefore(asOf);
 	}
 
@@ -48,14 +48,14 @@ public final class DigitalCertificate {
 		return Arrays.copyOf(pfxPayload, pfxPayload.length);
 	}
 
-	private static CompanyId requireCompanyId(CompanyId companyId) {
+	private static CompanyId requireCompanyId(final CompanyId companyId) {
 		if (companyId == null) {
 			throw new BusinessRuleException("Company id is required");
 		}
 		return companyId;
 	}
 
-	private static CertificateType requireA1(CertificateType type) {
+	private static CertificateType requireA1(final CertificateType type) {
 		if (type != CertificateType.A1) {
 			throw new BusinessRuleException(
 					"Only A1 certificates are accepted in this release; A3 (token) support is not available yet");
@@ -63,21 +63,21 @@ public final class DigitalCertificate {
 		return type;
 	}
 
-	private static byte[] requirePfxPayload(byte[] pfxPayload) {
+	private static byte[] requirePfxPayload(final byte[] pfxPayload) {
 		if (pfxPayload == null || pfxPayload.length == 0) {
 			throw new BusinessRuleException("Certificate file is required");
 		}
 		return Arrays.copyOf(pfxPayload, pfxPayload.length);
 	}
 
-	private static String requirePassword(String password) {
+	private static String requirePassword(final String password) {
 		if (password == null || password.isBlank()) {
 			throw new BusinessRuleException("Certificate password is required");
 		}
 		return password;
 	}
 
-	private static Instant requireExpiresAt(Instant expiresAt) {
+	private static Instant requireExpiresAt(final Instant expiresAt) {
 		if (expiresAt == null) {
 			throw new BusinessRuleException("Certificate expiry date is required");
 		}

@@ -197,8 +197,8 @@ public interface BankIntegrationPort {
 			}
 		}
 
-		public BankReturnLine(int lineNumber, String titleIdentifier, boolean paid, BigDecimal amount,
-				BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, LocalDate paidAt) {
+		public BankReturnLine(final int lineNumber, final String titleIdentifier, final boolean paid, final BigDecimal amount,
+				final BigDecimal interest, final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final LocalDate paidAt) {
 			this(lineNumber, titleIdentifier, paid, amount, interest, fine, discount, surcharge, paidAt, null);
 		}
 

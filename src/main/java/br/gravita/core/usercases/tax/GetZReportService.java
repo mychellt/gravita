@@ -14,12 +14,12 @@ public class GetZReportService implements GetZReportUseCase {
 
 	private final CashClosingReportRepositoryPort cashClosingReportRepositoryPort;
 
-	public GetZReportService(CashClosingReportRepositoryPort cashClosingReportRepositoryPort) {
+	public GetZReportService(final CashClosingReportRepositoryPort cashClosingReportRepositoryPort) {
 		this.cashClosingReportRepositoryPort = cashClosingReportRepositoryPort;
 	}
 
 	@Override
-	public CashClosingReport execute(UUID sessionId) {
+	public CashClosingReport execute(final UUID sessionId) {
 		return cashClosingReportRepositoryPort.findBySessionId(PosSessionId.of(sessionId))
 				.orElseThrow(() -> new ResourceNotFoundException("Z report not found for session: " + sessionId));
 	}

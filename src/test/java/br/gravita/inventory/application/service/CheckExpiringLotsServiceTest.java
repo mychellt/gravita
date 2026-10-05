@@ -52,14 +52,14 @@ class CheckExpiringLotsServiceTest {
 
 		service.execute(CheckExpiringLotsQuery.of(15));
 
-		ArgumentCaptor<LocalDate> cutoff = ArgumentCaptor.forClass(LocalDate.class);
+		final ArgumentCaptor<LocalDate> cutoff = ArgumentCaptor.forClass(LocalDate.class);
 		verify(lotRepositoryPort).findByExpiryDateLessThanEqual(cutoff.capture());
 		assertThat(cutoff.getValue()).isEqualTo(LocalDate.now().plusDays(15));
 	}
 
 	@Test
 	@DisplayName("A different within-days value produces a different cutoff date")
-	void aDifferentWithinDaysProducesADifferentCutoff() {
+	void differentWithinDaysProducesADifferentCutoff() {
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(any())).thenReturn(List.of());
 
 		service.execute(CheckExpiringLotsQuery.of(3));
@@ -70,11 +70,11 @@ class CheckExpiringLotsServiceTest {
 	@Test
 	@DisplayName("Includes a lot that expires exactly on the cutoff date")
 	void includesALotExpiringExactlyOnTheCutoffDate() {
-		LocalDate cutoff = LocalDate.now().plusDays(30);
-		Lot lot = lotOf(cutoff, "10");
+		final LocalDate cutoff = LocalDate.now().plusDays(30);
+		final Lot lot = lotOf(cutoff, "10");
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(cutoff)).thenReturn(List.of(lot));
 
-		List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
+		final List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
 
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0).expiryDate()).isEqualTo(cutoff);
@@ -83,11 +83,11 @@ class CheckExpiringLotsServiceTest {
 	@Test
 	@DisplayName("Excludes a lot that has no remaining quantity")
 	void excludesALotWithZeroRemainingQuantity() {
-		LocalDate cutoff = LocalDate.now().plusDays(30);
-		Lot expired = lotOf(cutoff, "0");
+		final LocalDate cutoff = LocalDate.now().plusDays(30);
+		final Lot expired = lotOf(cutoff, "0");
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(cutoff)).thenReturn(List.of(expired));
 
-		List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
+		final List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
 
 		assertThat(result).isEmpty();
 	}
@@ -95,11 +95,11 @@ class CheckExpiringLotsServiceTest {
 	@Test
 	@DisplayName("Filters the lots by warehouse when a warehouse id is provided")
 	void filtersByWarehouseWhenAWarehouseIdIsProvided() {
-		LocalDate cutoff = LocalDate.now().plusDays(7);
-		Lot lot = lotOf(cutoff, "5");
+		final LocalDate cutoff = LocalDate.now().plusDays(7);
+		final Lot lot = lotOf(cutoff, "5");
 		when(lotRepositoryPort.findByExpiryDateLessThanEqualAndWarehouseId(cutoff, warehouseId)).thenReturn(List.of(lot));
 
-		List<ExpiringLotView> result = service.execute(new CheckExpiringLotsQuery(7, warehouseId));
+		final List<ExpiringLotView> result = service.execute(new CheckExpiringLotsQuery(7, warehouseId));
 
 		assertThat(result).hasSize(1);
 		verify(lotRepositoryPort, never()).findByExpiryDateLessThanEqual(any());
@@ -108,11 +108,11 @@ class CheckExpiringLotsServiceTest {
 	@Test
 	@DisplayName("Pushes the expiring lots through the notification port")
 	void pushesTheResultThroughTheNotificationPort() {
-		LocalDate cutoff = LocalDate.now().plusDays(30);
-		Lot lot = lotOf(cutoff, "10");
+		final LocalDate cutoff = LocalDate.now().plusDays(30);
+		final Lot lot = lotOf(cutoff, "10");
 		when(lotRepositoryPort.findByExpiryDateLessThanEqual(cutoff)).thenReturn(List.of(lot));
 
-		List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
+		final List<ExpiringLotView> result = service.execute(CheckExpiringLotsQuery.of(30));
 
 		verify(notifyExpiringLotPort).notify(eq(result));
 	}
@@ -124,7 +124,7 @@ class CheckExpiringLotsServiceTest {
 				.isInstanceOf(IllegalArgumentException.class);
 	}
 
-	private Lot lotOf(LocalDate expiryDate, String quantity) {
+	private Lot lotOf(final LocalDate expiryDate, final String quantity) {
 		return Lot.of(LotId.of(UUID.randomUUID()), productId, warehouseId, "LOT-1", expiryDate,
 				new BigDecimal(quantity));
 	}

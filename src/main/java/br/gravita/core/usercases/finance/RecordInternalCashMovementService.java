@@ -18,17 +18,17 @@ public class RecordInternalCashMovementService implements RecordInternalCashMove
 
 	private final InternalCashBoxRepositoryPort internalCashBoxRepositoryPort;
 
-	public RecordInternalCashMovementService(InternalCashBoxRepositoryPort internalCashBoxRepositoryPort) {
+	public RecordInternalCashMovementService(final InternalCashBoxRepositoryPort internalCashBoxRepositoryPort) {
 		this.internalCashBoxRepositoryPort = internalCashBoxRepositoryPort;
 	}
 
 	@Override
 	@Transactional
-	public CashMovement execute(RecordInternalCashMovementCommand command) {
-		InternalCashBox cashBox = internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN)
+	public CashMovement execute(final RecordInternalCashMovementCommand command) {
+		final InternalCashBox cashBox = internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN)
 				.orElseThrow(() -> new ResourceNotFoundException("Internal cash box not found"));
 
-		CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()), cashBox.getId(),
+		final CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()), cashBox.getId(),
 				command.direction(), command.amount(), command.justification(), Instant.now());
 
 		internalCashBoxRepositoryPort.save(cashBox.apply(movement));

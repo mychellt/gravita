@@ -27,7 +27,7 @@ public record UpdateCustomerRequest(
 		BigDecimal currentBalance,
 		@Valid List<RegisterCustomerRequest.PriceTableLinkRequest> priceTables) {
 
-	public UpdateCustomerCommand toCommand(UUID customerId) {
+	public UpdateCustomerCommand toCommand(final UUID customerId) {
 		return new UpdateCustomerCommand(
 				customerId,
 				toDocument(),

@@ -29,8 +29,8 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("Only the hash of the secret is kept, and every token is different")
     void shouldKeepOnlyTheHashOfAUniqueSecret() {
-        IssuedPasswordResetToken first = PasswordResetToken.issue(userId, NOW);
-        IssuedPasswordResetToken second = PasswordResetToken.issue(userId, NOW);
+        final IssuedPasswordResetToken first = PasswordResetToken.issue(userId, NOW);
+        final IssuedPasswordResetToken second = PasswordResetToken.issue(userId, NOW);
 
         assertThat(first.rawToken()).isNotEqualTo(second.rawToken()).hasSizeGreaterThanOrEqualTo(43);
         assertThat(first.token().getTokenHash()).isNotEqualTo(first.rawToken())
@@ -50,7 +50,7 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("Consuming a valid token marks it used")
     void shouldMarkTheTokenUsedWhenConsumed() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
 
         token.consume(NOW.plusSeconds(60));
 
@@ -61,7 +61,7 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("A token can be used until the instant it expires")
     void shouldAcceptATokenJustBeforeItExpires() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
 
         token.consume(NOW.plus(Duration.ofHours(1)).minusSeconds(1));
 
@@ -71,7 +71,7 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("A token is expired from the instant it reaches its expiry, and stays unused")
     void shouldRejectAnExpiredToken() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
 
         assertThatThrownBy(() -> token.consume(NOW.plus(Duration.ofHours(1))))
                 .isInstanceOfSatisfying(PasswordResetRejectedException.class,
@@ -82,7 +82,7 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("A token is single-use: replaying it is rejected and keeps the first use time")
     void shouldRejectAReplayedToken() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
         token.consume(NOW.plusSeconds(10));
 
         assertThatThrownBy(() -> token.consume(NOW.plusSeconds(20)))
@@ -94,7 +94,7 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("A used token reports as used even after it has expired")
     void shouldReportUsedBeforeExpired() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
         token.consume(NOW.plusSeconds(10));
 
         assertThatThrownBy(() -> token.consume(NOW.plus(Duration.ofDays(2))))
@@ -105,8 +105,8 @@ class PasswordResetTokenTest {
     @Test
     @DisplayName("Expiring an open token cuts its life to now, so the old link is refused as expired")
     void shouldExpireAnOpenTokenImmediately() {
-        PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
-        LocalDateTime later = NOW.plusSeconds(90);
+        final PasswordResetToken token = PasswordResetToken.issue(userId, NOW).token();
+        final LocalDateTime later = NOW.plusSeconds(90);
 
         token.expire(later);
 
@@ -123,7 +123,7 @@ class PasswordResetTokenTest {
         stale.expire(originalExpiry.plusSeconds(1));
         assertThat(stale.getExpiresAt()).isEqualTo(originalExpiry);
 
-        PasswordResetToken spent = PasswordResetToken.issue(userId, NOW).token();
+        final PasswordResetToken spent = PasswordResetToken.issue(userId, NOW).token();
         spent.consume(NOW.plusSeconds(1));
         spent.expire(NOW.plusSeconds(2));
         assertThat(spent.getExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(1)));

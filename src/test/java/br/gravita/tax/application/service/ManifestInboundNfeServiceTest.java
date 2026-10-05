@@ -63,17 +63,17 @@ class ManifestInboundNfeServiceTest {
 
 	@Test
 	@DisplayName("Offers exactly the three manifestation types from the spec and no others")
-	void ac1_exactlyTheThreeManifestationTypesFromTheSpecExistNoOthers() {
+	void ac1ExactlyTheThreeManifestationTypesFromTheSpecExistNoOthers() {
 		assertThat(ManifestationType.values()).containsExactlyInAnyOrder(ManifestationType.CONFIRMED,
 				ManifestationType.UNKNOWN, ManifestationType.OPERATION_NOT_PERFORMED);
 	}
 
 	@Test
 	@DisplayName("Records the manifestation with a timestamp and forwards it to SEFAZ")
-	void ac2_theManifestationIsRecordedWithATimestampAndForwardedToSefaz() {
-		InboundManifestation result = service.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.CONFIRMED));
+	void ac2TheManifestationIsRecordedWithATimestampAndForwardedToSefaz() {
+		final InboundManifestation result = service.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.CONFIRMED));
 
-		ArgumentCaptor<SefazManifestationRequest> captor = ArgumentCaptor.forClass(SefazManifestationRequest.class);
+		final ArgumentCaptor<SefazManifestationRequest> captor = ArgumentCaptor.forClass(SefazManifestationRequest.class);
 		verify(submitToSefazPort).manifest(captor.capture());
 		assertThat(captor.getValue().accessKey()).isEqualTo(ACCESS_KEY);
 		assertThat(captor.getValue().type()).isEqualTo(ManifestationType.CONFIRMED);
@@ -88,8 +88,8 @@ class ManifestInboundNfeServiceTest {
 
 	@Test
 	@DisplayName("Works by access key alone even when no matching inbound NF-e exists yet")
-	void ac3_worksByAccessKeyAloneEvenWhenNoMatchingInboundNfeRowExistsYet() {
-		InboundManifestation result = service
+	void ac3WorksByAccessKeyAloneEvenWhenNoMatchingInboundNfeRowExistsYet() {
+		final InboundManifestation result = service
 				.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.UNKNOWN));
 
 		assertThat(result.getInboundNfeId()).isEmpty();
@@ -99,24 +99,34 @@ class ManifestInboundNfeServiceTest {
 	@Test
 	@DisplayName("Links the manifestation back to the matching inbound NF-e when one exists")
 	void whenAMatchingInboundNfeExistsTheManifestationLinksBackToIt() {
-		InboundNfe inboundNfe = existingInboundNfe();
+		final InboundNfe inboundNfe = existingInboundNfe();
 		when(inboundNfeRepositoryPort.findByAccessKey(ACCESS_KEY)).thenReturn(Optional.of(inboundNfe));
 
-		InboundManifestation result = service
+		final InboundManifestation result = service
 				.execute(new ManifestInboundNfeCommand(ACCESS_KEY, ManifestationType.OPERATION_NOT_PERFORMED));
 
 		assertThat(result.getInboundNfeId()).contains(inboundNfe.getId());
 	}
 
 	private InboundNfe existingInboundNfe() {
-		return InboundNfe.of(InboundNfeId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), ACCESS_KEY, "001",
-				"123", Document.cnpj("11.222.333/0001-81"), "Supplier Ltda", Instant.parse("2026-01-10T12:00:00Z"),
-				List.of(new InboundNfeItem("SKU-1", "Product", "12341234", "5102", "UN", BigDecimal.ONE,
+		return InboundNfe.builder()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(CompanyId.of(UUID.randomUUID()))
+				.accessKey(ACCESS_KEY)
+				.series("001")
+				.number("123")
+				.supplierDocument(Document.cnpj("11.222.333/0001-81"))
+				.supplierName("Supplier Ltda")
+				.issuedAt(Instant.parse("2026-01-10T12:00:00Z"))
+				.items(List.of(new InboundNfeItem("SKU-1", "Product", "12341234", "5102", "UN", BigDecimal.ONE,
 						BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-						BigDecimal.ZERO)),
-				new InboundNfeTotals(BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+						BigDecimal.ZERO)))
+				.totals(new InboundNfeTotals(BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-						BigDecimal.TEN),
-				"MANUAL_ENTRY", InboundNfeStatus.PENDING_CONFERENCE, Instant.now());
+						BigDecimal.TEN))
+				.xmlStorageRef("MANUAL_ENTRY")
+				.status(InboundNfeStatus.PENDING_CONFERENCE)
+				.importedAt(Instant.now())
+				.build();
 	}
 }

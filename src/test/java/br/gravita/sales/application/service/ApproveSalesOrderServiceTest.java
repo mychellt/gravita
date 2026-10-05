@@ -60,28 +60,28 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("Approves a draft order below the approval limit and reserves stock for every item")
 	void approvesADraftOrderBelowTheAlcadaAndReservesStockForEveryItem() {
-		UUID productA = UUID.randomUUID();
-		UUID productB = UUID.randomUUID();
-		SalesOrder order = draftOrder(
+		final UUID productA = UUID.randomUUID();
+		final UUID productB = UUID.randomUUID();
+		final SalesOrder order = draftOrder(
 				List.of(item(productA, new BigDecimal("2"), new BigDecimal("10.00"), BigDecimal.ZERO),
 						item(productB, BigDecimal.ONE, new BigDecimal("5.00"), BigDecimal.ZERO)));
-		UUID approvedBy = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.empty());
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesOrderView view = service.execute(new ApproveSalesOrderCommand(order.getId().value(), approvedBy));
+		final SalesOrderView view = service.execute(new ApproveSalesOrderCommand(order.getId().value(), approvedBy));
 
 		assertThat(view.status()).isEqualTo(SalesOrderStatus.APPROVED);
 		assertThat(view.approvedBy()).isEqualTo(approvedBy);
 		assertThat(view.alcadaId()).isNull();
 
-		ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
+		final ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(SalesOrderStatus.APPROVED);
 		assertThat(savedOrder.getValue().getApprovedBy()).isEqualTo(approvedBy);
 
-		ArgumentCaptor<ReserveStockPort.ReserveStockForOrderCommand> reservations = ArgumentCaptor
+		final ArgumentCaptor<ReserveStockPort.ReserveStockForOrderCommand> reservations = ArgumentCaptor
 				.forClass(ReserveStockPort.ReserveStockForOrderCommand.class);
 		verify(reserveStockPort, times(2)).reserve(reservations.capture());
 		assertThat(reservations.getAllValues()).extracting(ReserveStockPort.ReserveStockForOrderCommand::productOrServiceId)
@@ -95,7 +95,7 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects approving an order that does not exist")
 	void rejectsApprovingAnOrderThatDoesNotExist() {
-		UUID orderId = UUID.randomUUID();
+		final UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ApproveSalesOrderCommand(orderId, UUID.randomUUID())))
@@ -108,7 +108,7 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects approving an order that is not in DRAFT")
 	void rejectsApprovingAnOrderThatIsNotDraft() {
-		SalesOrder approvedOrder = draftOrder(List.of(item(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN,
+		final SalesOrder approvedOrder = draftOrder(List.of(item(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN,
 				BigDecimal.ZERO))).approve(UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(approvedOrder.getId())).thenReturn(Optional.of(approvedOrder));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.empty());
@@ -124,10 +124,10 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("An order above the value approval limit can be approved by an approver with the elevated profile")
 	void ordersExceedingTheValueAlcadaRequireAnApproverWithTheElevatedProfile() {
-		SalesOrder order = draftOrder(
+		final SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));
-		UUID elevatedProfileId = UUID.randomUUID();
-		UUID approvedBy = UUID.randomUUID();
+		final UUID elevatedProfileId = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.of(
 				ApprovalAlcada.builder().id(UUID.randomUUID()).thresholdValue(new BigDecimal("100.00"))
@@ -136,7 +136,7 @@ class ApproveSalesOrderServiceTest {
 				Optional.of(User.builder().id(UserId.of(approvedBy)).profileId(elevatedProfileId).build()));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesOrderView view = service.execute(new ApproveSalesOrderCommand(order.getId().value(), approvedBy));
+		final SalesOrderView view = service.execute(new ApproveSalesOrderCommand(order.getId().value(), approvedBy));
 
 		assertThat(view.status()).isEqualTo(SalesOrderStatus.APPROVED);
 		assertThat(view.approvedBy()).isEqualTo(approvedBy);
@@ -145,9 +145,9 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects approving an order above the approval limit when the approver lacks the elevated profile")
 	void rejectsApprovingAnOrderExceedingTheAlcadaWhenTheApproverLacksTheElevatedProfile() {
-		SalesOrder order = draftOrder(
+		final SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));
-		UUID approvedBy = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.of(
 				ApprovalAlcada.builder().id(UUID.randomUUID()).thresholdValue(new BigDecimal("100.00"))
@@ -165,9 +165,9 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("An order above the discount approval limit requires an approver with the elevated profile")
 	void ordersExceedingTheDiscountAlcadaRequireAnApproverWithTheElevatedProfile() {
-		SalesOrder order = draftOrder(
+		final SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"), new BigDecimal("30.00"))));
-		UUID approvedBy = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.of(
 				ApprovalAlcada.builder().id(UUID.randomUUID()).thresholdDiscountPercent(new BigDecimal("20.00"))
@@ -184,9 +184,9 @@ class ApproveSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects approving an order when the approver does not exist")
 	void rejectsApprovingWhenTheApproverDoesNotExist() {
-		SalesOrder order = draftOrder(
+		final SalesOrder order = draftOrder(
 				List.of(item(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("50.00"), BigDecimal.ZERO)));
-		UUID approvedBy = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.of(
 				ApprovalAlcada.builder().id(UUID.randomUUID()).thresholdValue(new BigDecimal("100.00"))
@@ -199,13 +199,13 @@ class ApproveSalesOrderServiceTest {
 		verify(salesOrderRepositoryPort, never()).save(any());
 	}
 
-	private static SalesOrder draftOrder(List<SalesOrderItem> items) {
+	private static SalesOrder draftOrder(final List<SalesOrderItem> items) {
 		return SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), items);
 	}
 
-	private static SalesOrderItem item(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
-			BigDecimal discount) {
+	private static SalesOrderItem item(final UUID productOrServiceId, final BigDecimal quantity, final BigDecimal unitPrice,
+			final BigDecimal discount) {
 		return new SalesOrderItem(productOrServiceId, quantity, unitPrice, discount);
 	}
 }

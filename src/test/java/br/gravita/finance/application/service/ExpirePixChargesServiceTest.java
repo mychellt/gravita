@@ -47,10 +47,10 @@ class ExpirePixChargesServiceTest {
 		when(pixChargeRepositoryPort.findPendingExpiredBefore(any()))
 				.thenReturn(List.of(pendingCharge(), pendingCharge()));
 
-		int expired = service.execute();
+		final int expired = service.execute();
 
 		assertThat(expired).isEqualTo(2);
-		ArgumentCaptor<PixCharge> saved = ArgumentCaptor.forClass(PixCharge.class);
+		final ArgumentCaptor<PixCharge> saved = ArgumentCaptor.forClass(PixCharge.class);
 		verify(pixChargeRepositoryPort, org.mockito.Mockito.times(2)).save(saved.capture());
 		assertThat(saved.getAllValues()).allSatisfy(c -> assertThat(c.getStatus()).isEqualTo(PixChargeStatus.EXPIRED));
 	}

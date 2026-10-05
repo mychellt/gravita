@@ -22,10 +22,10 @@ class QuoteTest {
 
 	@Test
 	@DisplayName("A new quote starts as DRAFT with the given validity date")
-	void aNewlyCreatedQuoteStartsAsDraftWithTheGivenValidity() {
-		LocalDate validUntil = TODAY.plusDays(15);
+	void newlyCreatedQuoteStartsAsDraftWithTheGivenValidity() {
+		final LocalDate validUntil = TODAY.plusDays(15);
 
-		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), validUntil);
+		final Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), validUntil);
 
 		assertThat(quote.getStatus()).isEqualTo(QuoteStatus.DRAFT);
 		assertThat(quote.getValidUntil()).isEqualTo(validUntil);
@@ -34,10 +34,10 @@ class QuoteTest {
 	@Test
 	@DisplayName("Keeps items, prices and discounts exactly as submitted")
 	void keepsItemsPricesAndDiscountsExactlyAsSubmitted() {
-		QuoteItem first = item(new BigDecimal("3"), new BigDecimal("12.34"), new BigDecimal("1.50"));
-		QuoteItem second = item(new BigDecimal("0.5"), new BigDecimal("99.90"), BigDecimal.ZERO);
+		final QuoteItem first = item(new BigDecimal("3"), new BigDecimal("12.34"), new BigDecimal("1.50"));
+		final QuoteItem second = item(new BigDecimal("0.5"), new BigDecimal("99.90"), BigDecimal.ZERO);
 
-		Quote quote = create(List.of(first, second), TODAY.plusDays(1));
+		final Quote quote = create(List.of(first, second), TODAY.plusDays(1));
 
 		assertThat(quote.getItems()).containsExactly(first, second);
 	}
@@ -45,9 +45,9 @@ class QuoteTest {
 	@Test
 	@DisplayName("Does not share the caller's item list (defensive copy)")
 	void doesNotShareTheCallersItemList() {
-		List<QuoteItem> items = new ArrayList<>(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
+		final List<QuoteItem> items = new ArrayList<>(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 
-		Quote quote = create(items, TODAY.plusDays(1));
+		final Quote quote = create(items, TODAY.plusDays(1));
 		items.clear();
 
 		assertThat(quote.getItems()).hasSize(1);
@@ -56,7 +56,7 @@ class QuoteTest {
 	@Test
 	@DisplayName("Total value sums each line's subtotal minus its discount")
 	void totalValueSumsEachLinesSubtotalMinusItsDiscount() {
-		Quote quote = create(List.of(
+		final Quote quote = create(List.of(
 				item(BigDecimal.TEN, new BigDecimal("2.00"), new BigDecimal("5.00")),
 				item(new BigDecimal("3"), new BigDecimal("1.50"), BigDecimal.ZERO)), TODAY.plusDays(1));
 
@@ -99,9 +99,9 @@ class QuoteTest {
 	@Test
 	@DisplayName("Sending a quote before its validity date moves it to SENT")
 	void sendingAQuoteBeforeItsValidityDateMovesItToSent() {
-		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+		final Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
-		Quote sent = quote.send(TODAY);
+		final Quote sent = quote.send(TODAY);
 
 		assertThat(sent.getStatus()).isEqualTo(QuoteStatus.SENT);
 	}
@@ -109,9 +109,9 @@ class QuoteTest {
 	@Test
 	@DisplayName("Sending a quote on its validity date still succeeds")
 	void sendingAQuoteOnItsValidityDateStillSucceeds() {
-		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+		final Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
-		Quote sent = quote.send(TODAY.plusDays(1));
+		final Quote sent = quote.send(TODAY.plusDays(1));
 
 		assertThat(sent.getStatus()).isEqualTo(QuoteStatus.SENT);
 	}
@@ -119,7 +119,7 @@ class QuoteTest {
 	@Test
 	@DisplayName("Rejects sending a quote whose validity date has passed")
 	void rejectsSendingAQuoteWhoseValidityDateHasPassed() {
-		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
+		final Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1));
 
 		assertThatThrownBy(() -> quote.send(TODAY.plusDays(2)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -129,7 +129,7 @@ class QuoteTest {
 	@Test
 	@DisplayName("An item without a discount defaults to a zero discount")
 	void anItemWithoutADiscountDefaultsToZero() {
-		QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null);
+		final QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null);
 
 		assertThat(item.discount()).isEqualByComparingTo(BigDecimal.ZERO);
 	}
@@ -169,10 +169,10 @@ class QuoteTest {
 	@Test
 	@DisplayName("Converting a draft quote moves it to CONVERTED and keeps its data")
 	void convertingADraftQuoteTransitionsItToConvertedAndKeepsItsData() {
-		QuoteItem item = item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
-		Quote quote = create(List.of(item), TODAY.plusDays(1));
+		final QuoteItem item = item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO);
+		final Quote quote = create(List.of(item), TODAY.plusDays(1));
 
-		Quote converted = quote.convert(TODAY);
+		final Quote converted = quote.convert(TODAY);
 
 		assertThat(converted.getStatus()).isEqualTo(QuoteStatus.CONVERTED);
 		assertThat(converted.getId()).isEqualTo(quote.getId());
@@ -184,10 +184,10 @@ class QuoteTest {
 	@Test
 	@DisplayName("Converting on the last valid day is allowed")
 	void convertingOnTheLastValidDayIsAllowed() {
-		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+		final Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY, QuoteStatus.DRAFT);
 
-		Quote converted = quote.convert(TODAY);
+		final Quote converted = quote.convert(TODAY);
 
 		assertThat(converted.getStatus()).isEqualTo(QuoteStatus.CONVERTED);
 	}
@@ -195,7 +195,7 @@ class QuoteTest {
 	@Test
 	@DisplayName("Rejects converting a quote that is already converted")
 	void rejectsConvertingAnAlreadyConvertedQuote() {
-		Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1))
+		final Quote quote = create(List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.plusDays(1))
 				.convert(TODAY);
 
 		assertThatThrownBy(() -> quote.convert(TODAY))
@@ -206,7 +206,7 @@ class QuoteTest {
 	@Test
 	@DisplayName("Rejects converting an expired quote")
 	void rejectsConvertingAnExpiredQuote() {
-		Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+		final Quote quote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)), TODAY.minusDays(1),
 				QuoteStatus.DRAFT);
 
@@ -215,11 +215,11 @@ class QuoteTest {
 				.hasMessageContaining("expired");
 	}
 
-	private static QuoteItem item(BigDecimal quantity, BigDecimal unitPrice, BigDecimal discount) {
+	private static QuoteItem item(final BigDecimal quantity, final BigDecimal unitPrice, final BigDecimal discount) {
 		return new QuoteItem(UUID.randomUUID(), quantity, unitPrice, discount);
 	}
 
-	private static Quote create(List<QuoteItem> items, LocalDate validUntil) {
+	private static Quote create(final List<QuoteItem> items, final LocalDate validUntil) {
 		return Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), items, validUntil,
 				TODAY);
 	}

@@ -27,9 +27,9 @@ class QuotationTest {
 	@Test
 	@DisplayName("Registering a response from a supplier the quotation was sent to adds it")
 	void registeringAResponseFromASentSupplierAddsIt() {
-		Quotation quotation = sentQuotation();
+		final Quotation quotation = sentQuotation();
 
-		Quotation updated = quotation.registerResponse(supplierOne,
+		final Quotation updated = quotation.registerResponse(supplierOne,
 				List.of(new QuotationItemPrice(productA, BigDecimal.TEN), new QuotationItemPrice(productB, BigDecimal.ONE)),
 				LocalDate.now().plusDays(5));
 
@@ -40,8 +40,8 @@ class QuotationTest {
 	@Test
 	@DisplayName("Rejects a response from a supplier the quotation was not sent to")
 	void registeringAResponseFromASupplierNotSentTheQuotationIsRejected() {
-		Quotation quotation = sentQuotation();
-		SupplierId strangerSupplier = SupplierId.of(UUID.randomUUID());
+		final Quotation quotation = sentQuotation();
+		final SupplierId strangerSupplier = SupplierId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> quotation.registerResponse(strangerSupplier,
 				List.of(new QuotationItemPrice(productA, BigDecimal.TEN), new QuotationItemPrice(productB, BigDecimal.ONE)),
@@ -53,7 +53,7 @@ class QuotationTest {
 	@Test
 	@DisplayName("Rejects a response that does not price every quotation item")
 	void registeringAResponseMissingAnItemIsRejected() {
-		Quotation quotation = sentQuotation();
+		final Quotation quotation = sentQuotation();
 
 		assertThatThrownBy(() -> quotation.registerResponse(supplierOne,
 				List.of(new QuotationItemPrice(productA, BigDecimal.TEN)), LocalDate.now()))
@@ -64,11 +64,11 @@ class QuotationTest {
 	@Test
 	@DisplayName("Re-submitting a response from the same supplier replaces the prior one")
 	void reSubmittingAResponseFromTheSameSupplierReplacesThePriorOne() {
-		Quotation quotation = sentQuotation().registerResponse(supplierOne,
+		final Quotation quotation = sentQuotation().registerResponse(supplierOne,
 				List.of(new QuotationItemPrice(productA, BigDecimal.TEN), new QuotationItemPrice(productB, BigDecimal.ONE)),
 				LocalDate.now().plusDays(5));
 
-		Quotation resubmitted = quotation.registerResponse(supplierOne,
+		final Quotation resubmitted = quotation.registerResponse(supplierOne,
 				List.of(new QuotationItemPrice(productA, BigDecimal.ONE), new QuotationItemPrice(productB, BigDecimal.ONE)),
 				LocalDate.now().plusDays(1));
 
@@ -80,7 +80,7 @@ class QuotationTest {
 	@Test
 	@DisplayName("Responses from different suppliers are both retained")
 	void responsesFromDifferentSuppliersAreBothRetained() {
-		Quotation quotation = sentQuotation()
+		final Quotation quotation = sentQuotation()
 				.registerResponse(supplierOne,
 						List.of(new QuotationItemPrice(productA, BigDecimal.TEN), new QuotationItemPrice(productB, BigDecimal.ONE)),
 						LocalDate.now().plusDays(5))
@@ -95,7 +95,7 @@ class QuotationTest {
 
 	@Test
 	@DisplayName("A quotation must be sent to at least one supplier")
-	void aQuotationMustBeSentToAtLeastOneSupplier() {
+	void quotationMustBeSentToAtLeastOneSupplier() {
 		assertThatThrownBy(() -> Quotation.send(QuotationId.of(UUID.randomUUID()),
 				PurchaseRequestId.of(UUID.randomUUID()),
 				List.of(new QuotationItem(productA, BigDecimal.ONE)), List.of()))

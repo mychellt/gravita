@@ -60,14 +60,14 @@ class StartPhysicalCountServiceTest {
 	@Test
 	@DisplayName("A TOTAL count snapshots every product in the warehouse")
 	void totalScopeSnapshotsEveryProductInTheWarehouse() {
-		UUID productA = UUID.randomUUID();
-		UUID productB = UUID.randomUUID();
+		final UUID productA = UUID.randomUUID();
+		final UUID productB = UUID.randomUUID();
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of(
 				balance(productA, "30"),
 				balance(productB, "70")));
 		when(physicalCountRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PhysicalCount result = service
+		final PhysicalCount result = service
 				.execute(new StartPhysicalCountCommand(PhysicalCountScope.TOTAL, null, warehouseId, user));
 
 		assertThat(result.getStatus()).isEqualTo(PhysicalCountStatus.IN_PROGRESS);
@@ -79,8 +79,8 @@ class StartPhysicalCountServiceTest {
 	@Test
 	@DisplayName("A PARTIAL_BY_GROUP count snapshots only the products of that group")
 	void partialByGroupScopeOnlySnapshotsProductsInThatGroup() {
-		UUID productInGroup = UUID.randomUUID();
-		UUID productOutsideGroup = UUID.randomUUID();
+		final UUID productInGroup = UUID.randomUUID();
+		final UUID productOutsideGroup = UUID.randomUUID();
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of(
 				balance(productInGroup, "15"),
 				balance(productOutsideGroup, "25")));
@@ -89,7 +89,7 @@ class StartPhysicalCountServiceTest {
 				productIn(productOutsideGroup, "Snacks")));
 		when(physicalCountRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PhysicalCount result = service.execute(
+		final PhysicalCount result = service.execute(
 				new StartPhysicalCountCommand(PhysicalCountScope.PARTIAL_BY_GROUP, "Beverages", warehouseId, user));
 
 		assertThat(result.getLines()).hasSize(1);
@@ -109,7 +109,7 @@ class StartPhysicalCountServiceTest {
 	@DisplayName("The saved count always starts IN_PROGRESS")
 	void savedCountAlwaysStartsInProgress() {
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of());
-		ArgumentCaptor<PhysicalCount> captor = ArgumentCaptor.forClass(PhysicalCount.class);
+		final ArgumentCaptor<PhysicalCount> captor = ArgumentCaptor.forClass(PhysicalCount.class);
 		when(physicalCountRepositoryPort.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new StartPhysicalCountCommand(PhysicalCountScope.TOTAL, null, warehouseId, user));
@@ -119,12 +119,12 @@ class StartPhysicalCountServiceTest {
 		assertThat(captor.getValue().getId()).isEqualTo(PhysicalCountId.of(captor.getValue().getId().value()));
 	}
 
-	private StockBalance balance(UUID productId, String onHand) {
+	private StockBalance balance(final UUID productId, final String onHand) {
 		return StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId, new BigDecimal(onHand),
 				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 	}
 
-	private ProductDomain productIn(UUID productId, String group) {
+	private ProductDomain productIn(final UUID productId, final String group) {
 		return ProductDomain.builder()
 				.id(productId)
 				.internalCode("SKU-" + productId)

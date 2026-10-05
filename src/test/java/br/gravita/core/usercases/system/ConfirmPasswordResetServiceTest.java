@@ -45,7 +45,7 @@ class ConfirmPasswordResetServiceTest {
         issued = PasswordResetToken.issue(user.getId(), ISSUED_AT);
     }
 
-    private ConfirmPasswordResetService serviceAt(LocalDateTime now) {
+    private ConfirmPasswordResetService serviceAt(final LocalDateTime now) {
         return new ConfirmPasswordResetService(tokenRepository, userRepository,
                 Clock.fixed(now.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
     }
@@ -59,7 +59,7 @@ class ConfirmPasswordResetServiceTest {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     }
 
-    private void assertRejectedWith(Reason reason, Runnable call) {
+    private void assertRejectedWith(final Reason reason, final Runnable call) {
         assertThatThrownBy(call::run).isInstanceOfSatisfying(PasswordResetRejectedException.class,
                 e -> assertThat(e.getReason()).isEqualTo(reason));
     }
@@ -115,7 +115,7 @@ class ConfirmPasswordResetServiceTest {
         givenStoredToken();
         givenStoredUser();
         when(tokenRepository.findUnusedByUserId(user.getId().value())).thenReturn(List.of());
-        ConfirmPasswordResetService service = serviceAt(ISSUED_AT.plusMinutes(1));
+        final ConfirmPasswordResetService service = serviceAt(ISSUED_AT.plusMinutes(1));
         service.execute(issued.rawToken(), "n3w-pass");
 
         assertRejectedWith(Reason.ALREADY_USED, () -> service.execute(issued.rawToken(), "other-pass"));
@@ -164,7 +164,7 @@ class ConfirmPasswordResetServiceTest {
     @Test
     @DisplayName("AC11: a missing or blank token is rejected as invalid without touching the database")
     void shouldRejectAMissingToken() {
-        for (String token : new String[]{null, "", "   "}) {
+        for (final String token : new String[]{null, "", "   "}) {
             assertRejectedWith(Reason.INVALID, () -> serviceAt(ISSUED_AT).execute(token, "n3w-pass"));
         }
         verifyNoInteractions(tokenRepository, userRepository);

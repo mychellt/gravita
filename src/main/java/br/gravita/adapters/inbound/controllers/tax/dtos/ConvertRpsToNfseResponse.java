@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record ConvertRpsToNfseResponse(List<UUID> ids) {
 
-	public static ConvertRpsToNfseResponse from(List<NfseId> ids) {
+	public static ConvertRpsToNfseResponse from(final List<NfseId> ids) {
 		return new ConvertRpsToNfseResponse(ids.stream().map(NfseId::value).toList());
 	}
 }

@@ -25,15 +25,15 @@ public class CustomerStatementController {
 	private final GetCustomerStatementUseCase getCustomerStatementUseCase;
 
 	@GetMapping("/{id}/statement")
-	public ResponseEntity<CustomerStatementResponse> statement(@PathVariable UUID id,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+	public ResponseEntity<CustomerStatementResponse> statement(@PathVariable final UUID id,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate to) {
 		return ResponseEntity.ok(CustomerStatementResponse
 				.from(getCustomerStatementUseCase.execute(new GetCustomerStatementQuery(id, from, to))));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

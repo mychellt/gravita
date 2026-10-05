@@ -42,7 +42,7 @@ public record UpdateProductRequest(
 		@Valid List<@Valid KitComponentRequest> kitComponents,
 		@Valid List<@Valid VariantRequest> variants) {
 
-	public ProductDomain toDomain(UUID id) {
+	public ProductDomain toDomain(final UUID id) {
 		return ProductDomain.builder()
 				.id(id)
 				.internalCode(internalCode)

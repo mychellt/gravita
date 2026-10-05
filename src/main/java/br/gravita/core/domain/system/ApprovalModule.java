@@ -8,7 +8,7 @@ public enum ApprovalModule {
 
 	private final String code;
 
-	ApprovalModule(String code) {
+	ApprovalModule(final String code) {
 		this.code = code;
 	}
 
@@ -16,9 +16,9 @@ public enum ApprovalModule {
 		return code;
 	}
 
-	public static ApprovalModule fromCode(String code) {
+	public static ApprovalModule fromCode(final String code) {
 		if (code != null) {
-			for (ApprovalModule value : values()) {
+			for (final ApprovalModule value : values()) {
 				if (value.code.equalsIgnoreCase(code)) {
 					return value;
 				}

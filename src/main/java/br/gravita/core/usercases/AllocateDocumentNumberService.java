@@ -16,30 +16,30 @@ public class AllocateDocumentNumberService implements AllocateDocumentNumberUseC
 
 	private final DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
-	public AllocateDocumentNumberService(DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
+	public AllocateDocumentNumberService(final DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
 		this.documentSeriesRepositoryPort = documentSeriesRepositoryPort;
 	}
 
 	@Override
-	public DocumentNumber execute(AllocateDocumentNumberCommand command) {
+	public DocumentNumber execute(final AllocateDocumentNumberCommand command) {
 		ObjectOptimisticLockingFailureException lastConflict = null;
 		for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
 			try {
 				return allocate(command);
-			} catch (ObjectOptimisticLockingFailureException conflict) {
+			} catch (final ObjectOptimisticLockingFailureException conflict) {
 				lastConflict = conflict;
 			}
 		}
 		throw lastConflict;
 	}
 
-	private DocumentNumber allocate(AllocateDocumentNumberCommand command) {
-		DocumentSeries existing = documentSeriesRepositoryPort
+	private DocumentNumber allocate(final AllocateDocumentNumberCommand command) {
+		final DocumentSeries existing = documentSeriesRepositoryPort
 				.findByCompanyIdAndDocumentType(command.companyId(), command.documentType())
 				.orElseThrow(() -> new DocumentSeriesNotFoundException(command.companyId().value(), command.documentType()));
 
-		String series = existing.getSeries();
-		Long allocatedNumber = existing.getNextNumber();
+		final String series = existing.getSeries();
+		final Long allocatedNumber = existing.getNextNumber();
 
 		documentSeriesRepositoryPort.save(existing.allocateNext());
 

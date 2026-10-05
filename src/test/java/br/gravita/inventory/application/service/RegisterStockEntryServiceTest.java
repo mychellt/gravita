@@ -72,16 +72,16 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC1: Recalculates the average cost as a weighted average across entries")
-	void ac1_recalculatesAverageCostAsAWeightedAverageAcrossEntries() {
+	void ac1RecalculatesAverageCostAsAWeightedAverageAcrossEntries() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
-		StockBalance afterFirstEntry = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance afterFirstEntry = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(afterFirstEntry));
 
 		service.execute(entryCommand(new BigDecimal("50"), new BigDecimal("14.00")));
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("150");
 		assertThat(savedBalance.getValue().getAverageCost()).isEqualByComparingTo("13.00");
@@ -89,14 +89,14 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC1: Starts the average cost at the entry unit cost when no balance exists yet")
-	void ac1_startsTheAverageCostAtTheEntryUnitCostWhenNoBalanceExistsYet() {
+	void ac1StartsTheAverageCostAtTheEntryUnitCostWhenNoBalanceExistsYet() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
 
 		service.execute(entryCommand(new BigDecimal("100"), new BigDecimal("12.50")));
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("100");
 		assertThat(savedBalance.getValue().getAverageCost()).isEqualByComparingTo("12.50");
@@ -104,20 +104,20 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC2: The stock movement repository port exposes no update or delete operation (append-only)")
-	void ac2_stockMovementRepositoryPortExposesNoUpdateOrDeleteMethod() {
+	void ac2StockMovementRepositoryPortExposesNoUpdateOrDeleteMethod() {
 		assertThat(StockMovementRepositoryPort.class.getMethods()).extracting(java.lang.reflect.Method::getName)
 				.containsExactly("save");
 	}
 
 	@Test
 	@DisplayName("AC2: The created movement is an ENTRY appended through save only")
-	void ac2_theCreatedMovementIsReturnedAsAnEntryTypeAppendedThroughSaveOnly() {
+	void ac2TheCreatedMovementIsReturnedAsAnEntryTypeAppendedThroughSaveOnly() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(plainProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		StockMovement movement = service.execute(entryCommand(new BigDecimal("10"), new BigDecimal("5.00")));
+		final StockMovement movement = service.execute(entryCommand(new BigDecimal("10"), new BigDecimal("5.00")));
 
 		assertThat(movement.getType()).isEqualTo(StockMovementType.ENTRY);
 		verify(stockMovementRepositoryPort).save(movement);
@@ -125,10 +125,10 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC3: Requires an expiry date when the product has lot control active")
-	void ac3_requiresExpiryDateWhenTheProductHasLotControlActive() {
+	void ac3RequiresExpiryDateWhenTheProductHasLotControlActive() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 
-		RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("10"),
+		final RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("10"),
 				new BigDecimal("5.00"), new LotDetails("LOT-1", null), null, "PURCHASE:1", userId);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class)
@@ -138,20 +138,20 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC3: Creates a new lot when none exists for the product, warehouse and lot code")
-	void ac3_createsANewLotWhenNoneExistsYetForTheProductWarehouseCode() {
+	void ac3CreatesANewLotWhenNoneExistsYetForTheProductWarehouseCode() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
 		when(lotRepositoryPort.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, "LOT-1"))
 				.thenReturn(Optional.empty());
 
-		RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("10"),
+		final RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("10"),
 				new BigDecimal("5.00"), new LotDetails("LOT-1", LocalDate.now().plusMonths(6)), null, "PURCHASE:1",
 				userId);
 
 		service.execute(command);
 
-		ArgumentCaptor<Lot> savedLot = ArgumentCaptor.forClass(Lot.class);
+		final ArgumentCaptor<Lot> savedLot = ArgumentCaptor.forClass(Lot.class);
 		verify(lotRepositoryPort).save(savedLot.capture());
 		assertThat(savedLot.getValue().getCode()).isEqualTo("LOT-1");
 		assertThat(savedLot.getValue().getQuantity()).isEqualByComparingTo("10");
@@ -159,40 +159,40 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC3: Increments the existing lot quantity on a repeat entry for the same lot")
-	void ac3_incrementsAnExistingLotOnARepeatEntry() {
+	void ac3IncrementsAnExistingLotOnARepeatEntry() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(true, false)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
-		Lot existingLot = Lot.of(LotId.of(UUID.randomUUID()), productId, warehouseId, "LOT-1",
+		final Lot existingLot = Lot.of(LotId.of(UUID.randomUUID()), productId, warehouseId, "LOT-1",
 				LocalDate.now().plusMonths(6), new BigDecimal("10"));
 		when(lotRepositoryPort.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, "LOT-1"))
 				.thenReturn(Optional.of(existingLot));
 
-		RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("5"),
+		final RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("5"),
 				new BigDecimal("5.00"), new LotDetails("LOT-1", LocalDate.now().plusMonths(6)), null, "PURCHASE:1",
 				userId);
 
 		service.execute(command);
 
-		ArgumentCaptor<Lot> savedLot = ArgumentCaptor.forClass(Lot.class);
+		final ArgumentCaptor<Lot> savedLot = ArgumentCaptor.forClass(Lot.class);
 		verify(lotRepositoryPort).save(savedLot.capture());
 		assertThat(savedLot.getValue().getQuantity()).isEqualByComparingTo("15");
 	}
 
 	@Test
 	@DisplayName("AC4: Records each serial number as an individual unit when serial control is active")
-	void ac4_recordsEachSerialAsAnIndividualUnitWhenSerialControlIsActive() {
+	void ac4RecordsEachSerialAsAnIndividualUnitWhenSerialControlIsActive() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(false, true)));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
 		when(serialUnitRepositoryPort.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("3"),
+		final RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("3"),
 				new BigDecimal("100.00"), null, List.of("SN-1", "SN-2", "SN-3"), "PURCHASE:1", userId);
 
 		service.execute(command);
 
-		ArgumentCaptor<List<SerialUnit>> savedSerials = ArgumentCaptor.forClass(List.class);
+		final ArgumentCaptor<List<SerialUnit>> savedSerials = ArgumentCaptor.forClass(List.class);
 		verify(serialUnitRepositoryPort).saveAll(savedSerials.capture());
 		assertThat(savedSerials.getValue()).extracting(SerialUnit::getSerialNumber)
 				.containsExactlyInAnyOrder("SN-1", "SN-2", "SN-3");
@@ -200,10 +200,10 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC4: Rejects a serial-controlled entry whose serial count differs from the quantity")
-	void ac4_rejectsASerialControlledEntryWhoseSerialCountDoesNotMatchQuantity() {
+	void ac4RejectsASerialControlledEntryWhoseSerialCountDoesNotMatchQuantity() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWith(false, true)));
 
-		RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("3"),
+		final RegisterStockEntryCommand command = new RegisterStockEntryCommand(productId, warehouseId, new BigDecimal("3"),
 				new BigDecimal("100.00"), null, List.of("SN-1", "SN-2"), "PURCHASE:1", userId);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class)
@@ -213,8 +213,8 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC5: Rejects an entry with zero quantity")
-	void ac5_rejectsAZeroQuantity() {
-		RegisterStockEntryCommand command = entryCommand(BigDecimal.ZERO, new BigDecimal("5.00"));
+	void ac5RejectsAZeroQuantity() {
+		final RegisterStockEntryCommand command = entryCommand(BigDecimal.ZERO, new BigDecimal("5.00"));
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
 		verify(productRepositoryPort, never()).get(any());
@@ -222,8 +222,8 @@ class RegisterStockEntryServiceTest {
 
 	@Test
 	@DisplayName("AC5: Rejects an entry with a negative quantity")
-	void ac5_rejectsANegativeQuantity() {
-		RegisterStockEntryCommand command = entryCommand(new BigDecimal("-1"), new BigDecimal("5.00"));
+	void ac5RejectsANegativeQuantity() {
+		final RegisterStockEntryCommand command = entryCommand(new BigDecimal("-1"), new BigDecimal("5.00"));
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
 		verify(productRepositoryPort, never()).get(any());
@@ -239,7 +239,7 @@ class RegisterStockEntryServiceTest {
 				.hasMessageContaining(productId.toString());
 	}
 
-	private RegisterStockEntryCommand entryCommand(BigDecimal quantity, BigDecimal unitCost) {
+	private RegisterStockEntryCommand entryCommand(final BigDecimal quantity, final BigDecimal unitCost) {
 		return new RegisterStockEntryCommand(productId, warehouseId, quantity, unitCost, null, null, "PURCHASE:1",
 				userId);
 	}
@@ -248,7 +248,7 @@ class RegisterStockEntryServiceTest {
 		return productWith(false, false);
 	}
 
-	private ProductDomain productWith(boolean lotControl, boolean serialControl) {
+	private ProductDomain productWith(final boolean lotControl, final boolean serialControl) {
 		return ProductDomain.builder()
 				.id(productId)
 				.type(ProductType.SIMPLE)

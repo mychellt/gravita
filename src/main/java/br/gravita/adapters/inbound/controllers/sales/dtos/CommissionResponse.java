@@ -7,7 +7,7 @@ import java.util.UUID;
 public record CommissionResponse(UUID id, UUID salespersonId, UUID productId, UUID orderId, BigDecimal rate,
 		BigDecimal amount) {
 
-	public static CommissionResponse from(CommissionView view) {
+	public static CommissionResponse from(final CommissionView view) {
 		return new CommissionResponse(view.id(), view.salespersonId(), view.productId(), view.orderId(),
 				view.rate(), view.amount());
 	}

@@ -9,7 +9,7 @@ public record MunicipalityIntegrationId(UUID value) {
 		Objects.requireNonNull(value, "MunicipalityIntegrationId value is required");
 	}
 
-	public static MunicipalityIntegrationId of(UUID value) {
+	public static MunicipalityIntegrationId of(final UUID value) {
 		return new MunicipalityIntegrationId(value);
 	}
 }

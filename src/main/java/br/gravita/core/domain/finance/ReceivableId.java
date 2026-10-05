@@ -9,7 +9,7 @@ public record ReceivableId(UUID value) {
 		Objects.requireNonNull(value, "ReceivableId value is required");
 	}
 
-	public static ReceivableId of(UUID value) {
+	public static ReceivableId of(final UUID value) {
 		return new ReceivableId(value);
 	}
 }

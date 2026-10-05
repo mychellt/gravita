@@ -23,8 +23,8 @@ public final class Supplier {
 	private final Integer averageLeadTimeDays;
 	private final String defaultPurchaseCfop;
 
-	public Supplier(SupplierId id, Document document, String name, List<Address> addresses, List<Contact> contacts,
-			BankAccount bankAccount, PixKey pixKey, Integer averageLeadTimeDays, String defaultPurchaseCfop) {
+	public Supplier(final SupplierId id, final Document document, final String name, final List<Address> addresses, final List<Contact> contacts,
+			final BankAccount bankAccount, final PixKey pixKey, final Integer averageLeadTimeDays, final String defaultPurchaseCfop) {
 		this.id = Objects.requireNonNull(id, "SupplierId is required");
 		this.document = requireDocument(document);
 		this.name = requireName(name);
@@ -36,9 +36,9 @@ public final class Supplier {
 		this.defaultPurchaseCfop = requireValidCfop(defaultPurchaseCfop);
 	}
 
-	public static Supplier of(SupplierId id, Document document, String name, List<Address> addresses,
-			List<Contact> contacts, BankAccount bankAccount, PixKey pixKey, Integer averageLeadTimeDays,
-			String defaultPurchaseCfop) {
+	public static Supplier of(final SupplierId id, final Document document, final String name, final List<Address> addresses,
+			final List<Contact> contacts, final BankAccount bankAccount, final PixKey pixKey, final Integer averageLeadTimeDays,
+			final String defaultPurchaseCfop) {
 		return new Supplier(id, document, name, addresses, contacts, bankAccount, pixKey, averageLeadTimeDays,
 				defaultPurchaseCfop);
 	}
@@ -56,28 +56,28 @@ public final class Supplier {
 		}
 	}
 
-	private static Document requireDocument(Document document) {
+	private static Document requireDocument(final Document document) {
 		if (document == null) {
 			throw new BusinessRuleException("Supplier document is required");
 		}
 		return document;
 	}
 
-	private static String requireName(String name) {
+	private static String requireName(final String name) {
 		if (name == null || name.isBlank()) {
 			throw new BusinessRuleException("Supplier name is required");
 		}
 		return name;
 	}
 
-	private static List<Address> requireAddresses(List<Address> addresses) {
+	private static List<Address> requireAddresses(final List<Address> addresses) {
 		if (addresses == null || addresses.isEmpty()) {
 			throw new BusinessRuleException("At least one address is required");
 		}
 		return List.copyOf(addresses);
 	}
 
-	private static Integer requireValidLeadTime(Integer averageLeadTimeDays) {
+	private static Integer requireValidLeadTime(final Integer averageLeadTimeDays) {
 		if (averageLeadTimeDays == null) {
 			return null;
 		}
@@ -87,11 +87,11 @@ public final class Supplier {
 		return averageLeadTimeDays;
 	}
 
-	private static String requireValidCfop(String defaultPurchaseCfop) {
+	private static String requireValidCfop(final String defaultPurchaseCfop) {
 		if (defaultPurchaseCfop == null || defaultPurchaseCfop.isBlank()) {
 			return null;
 		}
-		String trimmed = defaultPurchaseCfop.trim();
+		final String trimmed = defaultPurchaseCfop.trim();
 		if (!CFOP.matcher(trimmed).matches()) {
 			throw new BusinessRuleException("Invalid CFOP: " + defaultPurchaseCfop);
 		}

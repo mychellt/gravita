@@ -34,18 +34,18 @@ class SetSalespersonTargetServiceTest {
 	@Test
 	@DisplayName("Persists the target for the given salesperson and month")
 	void persistsTheTargetForTheGivenSalespersonAndMonth() {
-		UUID salesperson = UUID.randomUUID();
-		YearMonth month = YearMonth.of(2026, 1);
-		SetSalespersonTargetCommand command =
+		final UUID salesperson = UUID.randomUUID();
+		final YearMonth month = YearMonth.of(2026, 1);
+		final SetSalespersonTargetCommand command =
 				new SetSalespersonTargetCommand(salesperson, month, new BigDecimal("15000.00"), 30);
 		when(salespersonTargetRepositoryPort.save(any(SalespersonTarget.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(command);
 
-		ArgumentCaptor<SalespersonTarget> captor = ArgumentCaptor.forClass(SalespersonTarget.class);
+		final ArgumentCaptor<SalespersonTarget> captor = ArgumentCaptor.forClass(SalespersonTarget.class);
 		verify(salespersonTargetRepositoryPort).save(captor.capture());
-		SalespersonTarget saved = captor.getValue();
+		final SalespersonTarget saved = captor.getValue();
 		assertThat(saved.salespersonId()).isEqualTo(salesperson);
 		assertThat(saved.month()).isEqualTo(month);
 		assertThat(saved.valueTarget()).isEqualByComparingTo("15000.00");
@@ -55,7 +55,7 @@ class SetSalespersonTargetServiceTest {
 	@Test
 	@DisplayName("Rejects a target with a negative value")
 	void rejectsNegativeValueTarget() {
-		SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
+		final SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
 				YearMonth.of(2026, 1), new BigDecimal("-1"), 10);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
@@ -64,7 +64,7 @@ class SetSalespersonTargetServiceTest {
 	@Test
 	@DisplayName("Rejects a target with a negative order count")
 	void rejectsNegativeOrderCountTarget() {
-		SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
+		final SetSalespersonTargetCommand command = new SetSalespersonTargetCommand(UUID.randomUUID(),
 				YearMonth.of(2026, 1), new BigDecimal("100"), -5);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);

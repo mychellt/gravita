@@ -69,24 +69,24 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	@Test
 	@DisplayName("Reconciles the NF-e against the order and receipt and completes the conference")
 	void reconcilesAgainstTheOrderAndReceiptAndCompletesConference() {
-		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
-		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
-		InboundNfe inboundNfe = inboundNfe(new BigDecimal("50.00"));
+		final PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
+		final PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
+		final InboundNfe inboundNfe = inboundNfe(new BigDecimal("50.00"));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findById(receipt.getId())).thenReturn(Optional.of(receipt));
 		when(importSupplierNfeXmlUseCase.execute(any())).thenReturn(inboundNfe);
 		when(purchaseReceiptRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ConferenceResult result = service.execute(command(order, receipt));
+		final ConferenceResult result = service.execute(command(order, receipt));
 
 		assertThat(result.hasDivergences()).isFalse();
 		assertThat(result.lines()).hasSize(1);
 		assertThat(result.orderedValue()).isEqualByComparingTo("50.00");
 		assertThat(result.invoicedValue()).isEqualByComparingTo("50.00");
 
-		ArgumentCaptor<PurchaseReceipt> savedCaptor = ArgumentCaptor.forClass(PurchaseReceipt.class);
+		final ArgumentCaptor<PurchaseReceipt> savedCaptor = ArgumentCaptor.forClass(PurchaseReceipt.class);
 		verify(purchaseReceiptRepositoryPort).save(savedCaptor.capture());
-		PurchaseReceipt saved = savedCaptor.getValue();
+		final PurchaseReceipt saved = savedCaptor.getValue();
 		assertThat(saved.getStatus()).isEqualTo(PurchaseReceiptStatus.CONFERENCE_COMPLETED);
 		assertThat(saved.getInstallmentTerms()).hasSize(1);
 		assertThat(saved.getInstallmentTerms().get(0).amount()).isEqualByComparingTo("50.00");
@@ -96,15 +96,15 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	@Test
 	@DisplayName("Flags a quantity divergence between ordered and received quantities")
 	void flagsAQuantityDivergenceBetweenOrderedAndReceived() {
-		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
-		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("8"));
-		InboundNfe inboundNfe = inboundNfe(new BigDecimal("50.00"));
+		final PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
+		final PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("8"));
+		final InboundNfe inboundNfe = inboundNfe(new BigDecimal("50.00"));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findById(receipt.getId())).thenReturn(Optional.of(receipt));
 		when(importSupplierNfeXmlUseCase.execute(any())).thenReturn(inboundNfe);
 		when(purchaseReceiptRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ConferenceResult result = service.execute(command(order, receipt));
+		final ConferenceResult result = service.execute(command(order, receipt));
 
 		assertThat(result.hasDivergences()).isTrue();
 		assertThat(result.lines().get(0).isDivergent()).isTrue();
@@ -113,15 +113,15 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	@Test
 	@DisplayName("Flags a value divergence between ordered and invoiced values")
 	void flagsAValueDivergenceBetweenOrderedAndInvoiced() {
-		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
-		PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
-		InboundNfe inboundNfe = inboundNfe(new BigDecimal("45.00"));
+		final PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
+		final PurchaseReceipt receipt = pendingReceiptFor(order.getId(), new BigDecimal("10"), new BigDecimal("10"));
+		final InboundNfe inboundNfe = inboundNfe(new BigDecimal("45.00"));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findById(receipt.getId())).thenReturn(Optional.of(receipt));
 		when(importSupplierNfeXmlUseCase.execute(any())).thenReturn(inboundNfe);
 		when(purchaseReceiptRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ConferenceResult result = service.execute(command(order, receipt));
+		final ConferenceResult result = service.execute(command(order, receipt));
 
 		assertThat(result.hasDivergences()).isTrue();
 		assertThat(result.lines().get(0).isDivergent()).isFalse();
@@ -130,32 +130,32 @@ class ImportSupplierNfeAtReceivingServiceTest {
 	@Test
 	@DisplayName("Rejects the import when the order does not exist")
 	void rejectsAnUnknownOrder() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeAtReceivingCommand(orderId,
-				PurchaseReceiptId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), new byte[] { 1 })))
+				PurchaseReceiptId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), new byte[] {1 })))
 				.isInstanceOf(PurchaseOrderNotFoundException.class);
 	}
 
 	@Test
 	@DisplayName("Rejects the import when the receipt does not exist")
 	void rejectsAnUnknownReceipt() {
-		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
-		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
+		final PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
+		final PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findById(receiptId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeAtReceivingCommand(order.getId(), receiptId,
-				CompanyId.of(UUID.randomUUID()), new byte[] { 1 })))
+				CompanyId.of(UUID.randomUUID()), new byte[] {1 })))
 				.isInstanceOf(PurchaseReceiptNotFoundException.class);
 	}
 
 	@Test
 	@DisplayName("Rejects the import when the receipt does not belong to the given order")
 	void rejectsAReceiptThatDoesNotBelongToTheGivenOrder() {
-		PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
-		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+		final PurchaseOrder order = order(new BigDecimal("10"), new BigDecimal("5.00"));
+		final PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
 				PurchaseOrderId.of(UUID.randomUUID()),
 				List.of(new PurchaseReceiptItem(productId, new BigDecimal("10"), new BigDecimal("10"))));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -164,30 +164,37 @@ class ImportSupplierNfeAtReceivingServiceTest {
 		assertThatThrownBy(() -> service.execute(command(order, receipt))).isInstanceOf(BusinessRuleException.class);
 	}
 
-	private PurchaseOrder order(BigDecimal quantity, BigDecimal unitPrice) {
+	private PurchaseOrder order(final BigDecimal quantity, final BigDecimal unitPrice) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, SupplierId.of(UUID.randomUUID()), List.of(new PurchaseOrderItem(productId, quantity, unitPrice)),
 				false);
 	}
 
-	private PurchaseReceipt pendingReceiptFor(PurchaseOrderId orderId, BigDecimal orderedQty, BigDecimal receivedQty) {
+	private PurchaseReceipt pendingReceiptFor(final PurchaseOrderId orderId, final BigDecimal orderedQty, final BigDecimal receivedQty) {
 		return PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
 				List.of(new PurchaseReceiptItem(productId, orderedQty, receivedQty)));
 	}
 
-	private ImportSupplierNfeAtReceivingCommand command(PurchaseOrder order, PurchaseReceipt receipt) {
+	private ImportSupplierNfeAtReceivingCommand command(final PurchaseOrder order, final PurchaseReceipt receipt) {
 		return new ImportSupplierNfeAtReceivingCommand(order.getId(), receipt.getId(), CompanyId.of(UUID.randomUUID()),
-				new byte[] { 1 });
+				new byte[] {1 });
 	}
 
-	private InboundNfe inboundNfe(BigDecimal totalValue) {
-		return InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()),
-				"35240111222333000181550010000012345123456789", "1", "12345", Document.cnpj("11222333000181"),
-				"Fornecedor Exemplo LTDA", Instant.parse("2026-01-15T13:00:00Z"),
-				List.of(new InboundNfeItem("SKU-001", "Parafuso Sextavado M8", "73181500", "5102", "UN",
+	private InboundNfe inboundNfe(final BigDecimal totalValue) {
+		return InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(CompanyId.of(UUID.randomUUID()))
+				.accessKey("35240111222333000181550010000012345123456789")
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor Exemplo LTDA")
+				.issuedAt(Instant.parse("2026-01-15T13:00:00Z"))
+				.items(List.of(new InboundNfeItem("SKU-001", "Parafuso Sextavado M8", "73181500", "5102", "UN",
 						BigDecimal.TEN, new BigDecimal("5.00"), totalValue, BigDecimal.ZERO, BigDecimal.ZERO,
-						BigDecimal.ZERO, BigDecimal.ZERO)),
-				new InboundNfeTotals(totalValue, null, null, null, null, null, null, null, null, totalValue),
-				"xml-object-ref-1");
+						BigDecimal.ZERO, BigDecimal.ZERO)))
+				.totals(new InboundNfeTotals(totalValue, null, null, null, null, null, null, null, null, totalValue))
+				.xmlStorageRef("xml-object-ref-1")
+				.build();
 	}
 }

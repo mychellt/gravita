@@ -9,7 +9,7 @@ public record StageTransitionId(UUID value) {
 		Objects.requireNonNull(value, "StageTransitionId value is required");
 	}
 
-	public static StageTransitionId of(UUID value) {
+	public static StageTransitionId of(final UUID value) {
 		return new StageTransitionId(value);
 	}
 }

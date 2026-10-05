@@ -12,7 +12,7 @@ public class SignupRejectedException extends BusinessRuleException {
 
 	private final String field;
 
-	public SignupRejectedException(String field, String message) {
+	public SignupRejectedException(final String field, final String message) {
 		super(message);
 		this.field = field;
 	}

@@ -4,7 +4,7 @@ import br.gravita.core.domain.masterdata.PriceTableId;
 import java.util.UUID;
 
 public record PriceTableResponse(UUID id) {
-	public static PriceTableResponse from(PriceTableId id) {
+	public static PriceTableResponse from(final PriceTableId id) {
 		return new PriceTableResponse(id.value());
 	}
 }

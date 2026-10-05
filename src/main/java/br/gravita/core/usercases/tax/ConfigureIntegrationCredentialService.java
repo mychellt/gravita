@@ -12,15 +12,15 @@ public class ConfigureIntegrationCredentialService implements ConfigureIntegrati
 
 	private final IntegrationCredentialRepositoryPort repositoryPort;
 
-	public ConfigureIntegrationCredentialService(IntegrationCredentialRepositoryPort repositoryPort) {
+	public ConfigureIntegrationCredentialService(final IntegrationCredentialRepositoryPort repositoryPort) {
 		this.repositoryPort = repositoryPort;
 	}
 
 	@Override
-	public void execute(ConfigureIntegrationCredentialCommand command) {
-		IntegrationName integrationName = IntegrationName.fromCode(command.integrationName());
+	public void execute(final ConfigureIntegrationCredentialCommand command) {
+		final IntegrationName integrationName = IntegrationName.fromCode(command.integrationName());
 
-		IntegrationCredential credential = repositoryPort
+		final IntegrationCredential credential = repositoryPort
 				.findByIntegrationNameAndEnvironment(integrationName, command.environment())
 				.map(existing -> {
 					existing.rotate(command.endpoint(), command.credentialPayload());

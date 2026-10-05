@@ -10,14 +10,14 @@ import java.util.UUID;
 public record SalesInvoiceResponse(UUID id, UUID orderId, List<FiscalDocumentResponse> fiscalDocuments,
 		SalesInvoiceStatus status) {
 
-	public static SalesInvoiceResponse from(SalesInvoiceView view) {
+	public static SalesInvoiceResponse from(final SalesInvoiceView view) {
 		return new SalesInvoiceResponse(view.id(), view.orderId(),
 				view.fiscalDocuments().stream().map(FiscalDocumentResponse::from).toList(), view.status());
 	}
 
 	public record FiscalDocumentResponse(FiscalDocumentType type, UUID documentId) {
 
-		static FiscalDocumentResponse from(FiscalDocumentRef ref) {
+		static FiscalDocumentResponse from(final FiscalDocumentRef ref) {
 			return new FiscalDocumentResponse(ref.type(), ref.documentId());
 		}
 	}

@@ -28,9 +28,9 @@ public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 	private final RenegotiationRepositoryPort renegotiationRepositoryPort;
 	private final UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort;
 
-	public RenegotiateTitleService(ReceivableRepositoryPort receivableRepositoryPort,
-			RenegotiationRepositoryPort renegotiationRepositoryPort,
-			UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort) {
+	public RenegotiateTitleService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final RenegotiationRepositoryPort renegotiationRepositoryPort,
+			final UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.renegotiationRepositoryPort = renegotiationRepositoryPort;
 		this.updateCustomerCreditStatusPort = updateCustomerCreditStatusPort;
@@ -43,7 +43,7 @@ public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 	 */
 	@Override
 	@Transactional
-	public Renegotiation execute(RenegotiateTitleCommand command) {
+	public Renegotiation execute(final RenegotiateTitleCommand command) {
 		if (command.originalReceivableIds().isEmpty()) {
 			throw new BusinessRuleException("At least one receivable to renegotiate is required");
 		}
@@ -54,18 +54,18 @@ public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 			throw new BusinessRuleException("A receivable can only be renegotiated once per renegotiation");
 		}
 
-		LocalDate today = LocalDate.now();
-		List<Receivable> originals = command.originalReceivableIds().stream().map(this::load).toList();
-		UUID customerId = originals.get(0).getCustomerId();
+		final LocalDate today = LocalDate.now();
+		final List<Receivable> originals = command.originalReceivableIds().stream().map(this::load).toList();
+		final UUID customerId = originals.get(0).getCustomerId();
 		if (originals.stream().anyMatch(original -> !original.getCustomerId().equals(customerId))) {
 			throw new BusinessRuleException("All renegotiated receivables must belong to the same customer");
 		}
-		List<Receivable> renegotiated = originals.stream().map(original -> original.renegotiate(today)).toList();
+		final List<Receivable> renegotiated = originals.stream().map(original -> original.renegotiate(today)).toList();
 
-		int total = command.newInstallmentPlan().size();
-		List<Receivable> created = new ArrayList<>(total);
+		final int total = command.newInstallmentPlan().size();
+		final List<Receivable> created = new ArrayList<>(total);
 		for (int i = 0; i < total; i++) {
-			Installment installment = command.newInstallmentPlan().get(i);
+			final Installment installment = command.newInstallmentPlan().get(i);
 			if (installment.dueDate().isBefore(today)) {
 				throw new BusinessRuleException("Installment " + (i + 1) + " is already due: " + installment.dueDate());
 			}
@@ -73,19 +73,19 @@ public class RenegotiateTitleService implements RenegotiateTitleUseCase {
 					installment.amount(), installment.dueDate(), i + 1, total));
 		}
 
-		Renegotiation renegotiation = Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), customerId,
+		final Renegotiation renegotiation = Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), customerId,
 				renegotiated.stream().map(Receivable::getId).toList(),
 				created.stream().map(Receivable::getId).toList(), Instant.now());
 
 		renegotiated.forEach(receivableRepositoryPort::save);
 		created.forEach(receivableRepositoryPort::save);
-		Renegotiation saved = renegotiationRepositoryPort.save(renegotiation);
+		final Renegotiation saved = renegotiationRepositoryPort.save(renegotiation);
 
 		updateCustomerCreditStatusPort.update(customerId);
 		return saved;
 	}
 
-	private Receivable load(UUID receivableId) {
+	private Receivable load(final UUID receivableId) {
 		return receivableRepositoryPort.findById(ReceivableId.of(receivableId))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + receivableId));
 	}

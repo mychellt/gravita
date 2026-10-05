@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record CancelNfceRequest(@NotBlank String supervisorCredential, String reason) {
 
-	public CancelNfceCommand toCommand(UUID nfceSaleId) {
+	public CancelNfceCommand toCommand(final UUID nfceSaleId) {
 		return new CancelNfceCommand(nfceSaleId, supervisorCredential, reason);
 	}
 }

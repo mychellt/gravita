@@ -17,26 +17,26 @@ class SalesReturnRepositoryAdapter implements SalesReturnRepositoryPort {
 	private final SalesReturnJpaRepository jpaRepository;
 	private final SalesReturnPersistenceMapper mapper;
 
-	SalesReturnRepositoryAdapter(SalesReturnJpaRepository jpaRepository, SalesReturnPersistenceMapper mapper) {
+	SalesReturnRepositoryAdapter(final SalesReturnJpaRepository jpaRepository, final SalesReturnPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public SalesReturn save(SalesReturn salesReturn) {
-		SalesReturnJpaEntity entity = mapper.map(salesReturn);
+	public SalesReturn save(final SalesReturn salesReturn) {
+		final SalesReturnJpaEntity entity = mapper.map(salesReturn);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		SalesReturnJpaEntity saved = jpaRepository.save(entity);
+		final SalesReturnJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<SalesReturn> findById(SalesReturnId id) {
+	public Optional<SalesReturn> findById(final SalesReturnId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<SalesReturn> findByOrderId(SalesOrderId orderId) {
+	public List<SalesReturn> findByOrderId(final SalesOrderId orderId) {
 		return jpaRepository.findBySalesOrderId(orderId.value()).stream().map(mapper::map).toList();
 	}
 }

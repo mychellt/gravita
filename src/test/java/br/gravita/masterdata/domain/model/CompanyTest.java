@@ -22,7 +22,7 @@ class CompanyTest {
 	@Test
 	@DisplayName("Creates a company with valid data")
 	void shouldCreateCompanyWithValidData() {
-		Company company = validCompanyBuilder().build();
+		final Company company = validCompanyBuilder().build();
 
 		assertThat(company.getCnpj()).isEqualTo(VALID_CNPJ);
 		assertThat(company.getIe()).isEqualTo("123456789");
@@ -35,7 +35,7 @@ class CompanyTest {
 	@Test
 	@DisplayName("A signup draft holds only name, CNPJ and phone, and its fiscal profile is incomplete")
 	void shouldCreateAnIncompleteDraft() {
-		Company draft = Company.draft(CompanyId.of(UUID.randomUUID()), " Acme Ltda ", VALID_CNPJ, "(11) 91234-5678");
+		final Company draft = Company.draft(CompanyId.of(UUID.randomUUID()), " Acme Ltda ", VALID_CNPJ, "(11) 91234-5678");
 
 		assertThat(draft.getName()).isEqualTo("Acme Ltda");
 		assertThat(draft.getCnpj()).isEqualTo(VALID_CNPJ);
@@ -52,7 +52,7 @@ class CompanyTest {
 	@Test
 	@DisplayName("A draft still needs a name and a CNPJ")
 	void shouldRequireNameAndCnpjForADraft() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> Company.draft(id, " ", VALID_CNPJ, null)).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> Company.draft(id, "Acme", null, null)).isInstanceOf(BusinessRuleException.class);
@@ -61,23 +61,53 @@ class CompanyTest {
 	@Test
 	@DisplayName("A stored draft can be read back, while the regular constructor keeps requiring the fiscal profile")
 	void shouldRehydrateADraftButStayStrictOtherwise() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 
-		Company stored = Company.rehydrate(id, "Acme", VALID_CNPJ, null, null, null, TaxRegime.SIMPLES_NACIONAL, false,
-				SefazEnvironment.HOMOLOGATION, null, null, null, null, null, null);
+		final Company stored = Company.rehydrate()
+				.id(id)
+				.name("Acme")
+				.cnpj(VALID_CNPJ)
+				.ie(null)
+				.im(null)
+				.cnae(null)
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address(null)
+				.state(null)
+				.issuingEmail(null)
+				.phone(null)
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 
 		assertThat(stored.isProfileComplete()).isFalse();
-		assertThatThrownBy(() -> Company.of(id, "Acme", VALID_CNPJ, null, "1", null, TaxRegime.SIMPLES_NACIONAL, false,
-				SefazEnvironment.HOMOLOGATION, null, "SP", null, null, null, null))
+		assertThatThrownBy(() -> Company.builder()
+				.id(id)
+				.name("Acme")
+				.cnpj(VALID_CNPJ)
+				.ie(null)
+				.im("1")
+				.cnae(null)
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address(null)
+				.state("SP")
+				.issuingEmail(null)
+				.phone(null)
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build())
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("IE");
 	}
 
 	@Test
 	@DisplayName("Allows registering a branch with a parent company id")
 	void shouldAllowRegisteringBranchWithParentCompanyId() {
-		CompanyId parentId = CompanyId.of(UUID.randomUUID());
+		final CompanyId parentId = CompanyId.of(UUID.randomUUID());
 
-		Company branch = validCompanyBuilder().parentCompanyId(parentId).build();
+		final Company branch = validCompanyBuilder().parentCompanyId(parentId).build();
 
 		assertThat(branch.getParentCompanyId()).isEqualTo(parentId);
 	}
@@ -178,13 +208,13 @@ class CompanyTest {
 	@Test
 	@DisplayName("Normalizes the state to uppercase")
 	void shouldNormalizeStateToUppercase() {
-		Company company = build(b -> b.state("sp"));
+		final Company company = build(b -> b.state("sp"));
 
 		assertThat(company.getState()).isEqualTo("SP");
 	}
 
-	private Company build(java.util.function.Consumer<Builder> customize) {
-		Builder builder = validCompanyBuilder();
+	private Company build(final java.util.function.Consumer<Builder> customize) {
+		final Builder builder = validCompanyBuilder();
 		customize.accept(builder);
 		return builder.build();
 	}
@@ -210,49 +240,64 @@ class CompanyTest {
 		private String logoUrl = null;
 		private CompanyId parentCompanyId = null;
 
-		Builder name(String name) {
+		Builder name(final String name) {
 			this.name = name;
 			return this;
 		}
 
-		Builder cnpj(Document cnpj) {
+		Builder cnpj(final Document cnpj) {
 			this.cnpj = cnpj;
 			return this;
 		}
 
-		Builder ie(String ie) {
+		Builder ie(final String ie) {
 			this.ie = ie;
 			return this;
 		}
 
-		Builder im(String im) {
+		Builder im(final String im) {
 			this.im = im;
 			return this;
 		}
 
-		Builder taxRegime(TaxRegime taxRegime) {
+		Builder taxRegime(final TaxRegime taxRegime) {
 			this.taxRegime = taxRegime;
 			return this;
 		}
 
-		Builder sefazEnvironment(SefazEnvironment sefazEnvironment) {
+		Builder sefazEnvironment(final SefazEnvironment sefazEnvironment) {
 			this.sefazEnvironment = sefazEnvironment;
 			return this;
 		}
 
-		Builder parentCompanyId(CompanyId parentCompanyId) {
+		Builder parentCompanyId(final CompanyId parentCompanyId) {
 			this.parentCompanyId = parentCompanyId;
 			return this;
 		}
 
-		Builder state(String state) {
+		Builder state(final String state) {
 			this.state = state;
 			return this;
 		}
 
 		Company build() {
-			return Company.of(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
-					issuingEmail, phone, logoUrl, parentCompanyId);
+			return Company.builder()
+					.id(id)
+					.name(name)
+					.cnpj(cnpj)
+					.ie(ie)
+					.im(im)
+					.cnae(cnae)
+					.taxRegime(taxRegime)
+					.simplesOptante(simplesOptante)
+					.sefazEnvironment(sefazEnvironment)
+					.address(address)
+					.state(state)
+					.issuingEmail(issuingEmail)
+					.phone(phone)
+					.logoUrl(logoUrl)
+					.parentCompanyId(parentCompanyId)
+					.build();
 		}
 	}
 }

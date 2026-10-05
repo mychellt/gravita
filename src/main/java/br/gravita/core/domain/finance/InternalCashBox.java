@@ -16,17 +16,17 @@ public final class InternalCashBox {
 	private final InternalCashBoxId id;
 	private final BigDecimal balance;
 
-	public InternalCashBox(InternalCashBoxId id, BigDecimal balance) {
+	public InternalCashBox(final InternalCashBoxId id, final BigDecimal balance) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.balance = Objects.requireNonNull(balance, "balance is required");
 	}
 
-	public static InternalCashBox of(InternalCashBoxId id, BigDecimal balance) {
+	public static InternalCashBox of(final InternalCashBoxId id, final BigDecimal balance) {
 		return new InternalCashBox(id, balance);
 	}
 
 	/** The box after {@code movement}: {@code FROM_BANK} adds to the balance, {@code TO_BANK} subtracts from it. */
-	public InternalCashBox apply(CashMovement movement) {
+	public InternalCashBox apply(final CashMovement movement) {
 		if (!id.equals(movement.getCashBoxId())) {
 			throw new BusinessRuleException("Movement " + movement.getId().value()
 					+ " belongs to another cash box: " + movement.getCashBoxId().value());

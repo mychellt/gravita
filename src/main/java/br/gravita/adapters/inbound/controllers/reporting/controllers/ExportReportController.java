@@ -40,17 +40,17 @@ public class ExportReportController {
 	 * {@code customer}) for the ABC curve; and the optional {@code companyId} and {@code salesperson} filters.
 	 */
 	@GetMapping
-	public ResponseEntity<byte[]> export(@AuthenticatedUser UserId callerId, @PathVariable String reportId,
-			@RequestParam String format,
-			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth period,
-			@RequestParam(required = false) DashboardPeriod dashboardPeriod,
-			@RequestParam(required = false) String type, @RequestParam(required = false) UUID companyId,
-			@RequestParam(required = false) UUID salesperson) {
-		ReportId report = ReportId.fromSlug(reportId)
+	public ResponseEntity<byte[]> export(@AuthenticatedUser final UserId callerId, @PathVariable final String reportId,
+			@RequestParam final String format,
+			@RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period,
+			@RequestParam(required = false) final DashboardPeriod dashboardPeriod,
+			@RequestParam(required = false) final String type, @RequestParam(required = false) final UUID companyId,
+			@RequestParam(required = false) final UUID salesperson) {
+		final ReportId report = ReportId.fromSlug(reportId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown report " + reportId));
-		ExportFormat exportFormat = ExportFormat.fromExtension(format)
+		final ExportFormat exportFormat = ExportFormat.fromExtension(format)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "format must be pdf or xlsx"));
-		ExportedFile file = exportReportUseCase.execute(query(callerId, report, exportFormat, period, dashboardPeriod,
+		final ExportedFile file = exportReportUseCase.execute(query(callerId, report, exportFormat, period, dashboardPeriod,
 				type, companyId, salesperson));
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION,
@@ -58,23 +58,23 @@ public class ExportReportController {
 				.contentType(MediaType.parseMediaType(file.contentType())).body(file.content());
 	}
 
-	private ExportReportQuery query(UserId callerId, ReportId report, ExportFormat format, YearMonth period,
-			DashboardPeriod dashboardPeriod, String type, UUID companyId, UUID salesperson) {
+	private ExportReportQuery query(final UserId callerId, final ReportId report, final ExportFormat format, final YearMonth period,
+			final DashboardPeriod dashboardPeriod, final String type, final UUID companyId, final UUID salesperson) {
 		try {
 			return new ExportReportQuery(callerId, report, format, period, dashboardPeriod, abcType(type), companyId,
 					salesperson);
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
 		}
 	}
 
-	private AbcCurveType abcType(String type) {
+	private AbcCurveType abcType(final String type) {
 		if (type == null) {
 			return null;
 		}
 		try {
 			return AbcCurveType.valueOf(type.trim().toUpperCase(Locale.ROOT));
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type must be product or customer");
 		}
 	}

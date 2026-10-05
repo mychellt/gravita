@@ -9,7 +9,7 @@ public record NfceSaleId(UUID value) implements TransmissionQueueId {
 		Objects.requireNonNull(value, "NfceSaleId value is required");
 	}
 
-	public static NfceSaleId of(UUID value) {
+	public static NfceSaleId of(final UUID value) {
 		return new NfceSaleId(value);
 	}
 }

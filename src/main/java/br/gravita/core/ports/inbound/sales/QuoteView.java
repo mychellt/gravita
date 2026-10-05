@@ -12,7 +12,7 @@ import java.util.UUID;
 public record QuoteView(UUID id, UUID customerId, UUID salespersonId, QuoteStatus status, List<QuoteItem> items,
 		LocalDate validUntil, BigDecimal totalValue) {
 
-	public static QuoteView from(Quote quote) {
+	public static QuoteView from(final Quote quote) {
 		return new QuoteView(quote.getId().value(), quote.getCustomerId(), quote.getSalespersonId(),
 				quote.getStatus(), quote.getItems(), quote.getValidUntil(), quote.totalValue());
 	}

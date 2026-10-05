@@ -29,7 +29,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Considers the table active within its validity window")
 	void shouldConsiderTableActiveWithinItsValidityWindow() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), null, null,
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31), null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThat(table.isActive(LocalDate.of(2026, 6, 1))).isTrue();
@@ -38,7 +38,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Automatically excludes the table once validTo is in the past")
 	void shouldExcludeTableAutomaticallyOnceValidToIsInThePast() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 12, 31), null, null,
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), LocalDate.of(2020, 12, 31), null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThat(table.isActive(LocalDate.of(2026, 1, 1))).isFalse();
@@ -47,7 +47,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Considers the table active indefinitely when validTo is absent")
 	void shouldConsiderTableActiveIndefinitelyWhenValidToIsAbsent() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), null, null, null,
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2020, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThat(table.isActive(LocalDate.of(2099, 1, 1))).isTrue();
@@ -56,10 +56,10 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Resolves a fixed price directly from the entry value")
 	void shouldResolveFixedPriceDirectlyFromEntryValue() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, new BigDecimal("99.90"))));
 
-		BigDecimal resolved = table.resolvePrice(PRODUCT_REF, new BigDecimal("50.00"), new BigDecimal("70.00"));
+		final BigDecimal resolved = table.resolvePrice(PRODUCT_REF, new BigDecimal("50.00"), new BigDecimal("70.00"));
 
 		assertThat(resolved).isEqualByComparingTo("99.90");
 	}
@@ -67,11 +67,11 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Resolves a percent-over-cost price from the product's current cost at resolution time")
 	void shouldResolvePercentOverCostFromCurrentProductCostAtResolutionTime() {
-		PriceTable table = table(PriceFormation.PERCENT_OVER_COST, LocalDate.of(2026, 1, 1), null, null, null,
+		final PriceTable table = table(PriceFormation.PERCENT_OVER_COST, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(20))));
 
-		BigDecimal resolvedBefore = table.resolvePrice(PRODUCT_REF, new BigDecimal("100.00"), null);
-		BigDecimal resolvedAfterCostIncrease = table.resolvePrice(PRODUCT_REF, new BigDecimal("200.00"), null);
+		final BigDecimal resolvedBefore = table.resolvePrice(PRODUCT_REF, new BigDecimal("100.00"), null);
+		final BigDecimal resolvedAfterCostIncrease = table.resolvePrice(PRODUCT_REF, new BigDecimal("200.00"), null);
 
 		assertThat(resolvedBefore).isEqualByComparingTo("120.00");
 		assertThat(resolvedAfterCostIncrease).isEqualByComparingTo("240.00");
@@ -80,10 +80,10 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Resolves a percent-over-base price from the product's current base price")
 	void shouldResolvePercentOverBaseFromCurrentProductBasePrice() {
-		PriceTable table = table(PriceFormation.PERCENT_OVER_BASE, LocalDate.of(2026, 1, 1), null, null, null,
+		final PriceTable table = table(PriceFormation.PERCENT_OVER_BASE, LocalDate.of(2026, 1, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(-10))));
 
-		BigDecimal resolved = table.resolvePrice(PRODUCT_REF, null, new BigDecimal("100.00"));
+		final BigDecimal resolved = table.resolvePrice(PRODUCT_REF, null, new BigDecimal("100.00"));
 
 		assertThat(resolved).isEqualByComparingTo("90.00");
 	}
@@ -100,7 +100,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Allows a discount below the maximum when the behavior is BLOCK")
 	void shouldAllowDiscountBelowMaxWithBlockBehavior() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.BLOCK, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThat(table.evaluateDiscount(BigDecimal.valueOf(5))).isEqualTo(DiscountCheckResult.ALLOWED);
@@ -109,7 +109,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Blocks a discount exceeding the maximum when the behavior is BLOCK")
 	void shouldBlockDiscountExceedingMaxWhenBehaviorIsBlock() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.BLOCK, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThatThrownBy(() -> table.evaluateDiscount(BigDecimal.valueOf(15)))
@@ -120,7 +120,7 @@ class PriceTableTest {
 	@Test
 	@DisplayName("Alerts without blocking when the behavior is ALERT")
 	void shouldAlertWithoutBlockingWhenBehaviorIsAlert() {
-		PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
+		final PriceTable table = table(PriceFormation.FIXED, LocalDate.of(2026, 1, 1), null, BigDecimal.valueOf(10),
 				MaxDiscountBehavior.ALERT, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThatCode(() -> assertThat(table.evaluateDiscount(BigDecimal.valueOf(15))).isEqualTo(DiscountCheckResult.ALERT))
@@ -153,8 +153,8 @@ class PriceTableTest {
 				.doesNotThrowAnyException();
 	}
 
-	private PriceTable table(PriceFormation formation, LocalDate validFrom, LocalDate validTo,
-			BigDecimal maxDiscountPercent, MaxDiscountBehavior maxDiscountBehavior, List<PriceTableEntry> entries) {
+	private PriceTable table(final PriceFormation formation, final LocalDate validFrom, final LocalDate validTo,
+			final BigDecimal maxDiscountPercent, final MaxDiscountBehavior maxDiscountBehavior, final List<PriceTableEntry> entries) {
 		return PriceTable.of(PriceTableId.of(UUID.randomUUID()), formation, validFrom, validTo, maxDiscountPercent,
 				maxDiscountBehavior, entries);
 	}

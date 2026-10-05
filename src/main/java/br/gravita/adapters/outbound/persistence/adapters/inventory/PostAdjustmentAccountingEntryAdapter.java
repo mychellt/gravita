@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 class PostAdjustmentAccountingEntryAdapter implements PostAdjustmentAccountingEntryPort {
 
 	@Override
-	public void postAdjustmentEntry(PostAdjustmentAccountingEntryCommand command) {
+	public void postAdjustmentEntry(final PostAdjustmentAccountingEntryCommand command) {
 	}
 }

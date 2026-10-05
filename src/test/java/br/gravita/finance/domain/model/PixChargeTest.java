@@ -25,7 +25,7 @@ class PixChargeTest {
 	private final Receivable receivable = Receivable.createManual(ReceivableId.of(UUID.randomUUID()),
 			UUID.randomUUID(), new BigDecimal("150.00"), LocalDate.of(2026, 10, 30), null);
 
-	private PixCharge issue(String payload, Instant expiresAt) {
+	private PixCharge issue(final String payload, final Instant expiresAt) {
 		return PixCharge.issue(PixChargeId.of(UUID.randomUUID()), receivable, payload, expiresAt, NOW);
 	}
 
@@ -36,7 +36,7 @@ class PixChargeTest {
 	@Test
 	@DisplayName("Starts an issued charge as pending, carrying the receivable's amount and due date")
 	void anIssuedChargeCarriesTheReceivablesAmountAndDueDateAndStartsPending() {
-		PixCharge charge = pending();
+		final PixCharge charge = pending();
 
 		assertThat(charge.getReceivableId()).isEqualTo(receivable.getId());
 		assertThat(charge.getAmount()).isEqualByComparingTo("150.00");
@@ -69,8 +69,8 @@ class PixChargeTest {
 	@Test
 	@DisplayName("Rejects a payload with an invalid CRC")
 	void rejectsAPayloadWithABadCrc() {
-		String valid = PixPayloads.valid();
-		String corrupted = valid.substring(0, valid.length() - 4) + "0000";
+		final String valid = PixPayloads.valid();
+		final String corrupted = valid.substring(0, valid.length() - 4) + "0000";
 
 		assertThatThrownBy(() -> issue(corrupted, NOW.plusSeconds(60))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("invalid CRC16");
@@ -86,7 +86,7 @@ class PixChargeTest {
 	@Test
 	@DisplayName("Expires the charge only once its expiry time has passed")
 	void expiresOnlyOncePastExpiresAt() {
-		PixCharge charge = pending();
+		final PixCharge charge = pending();
 
 		assertThat(charge.expireIfDue(charge.getExpiresAt()).getStatus()).isEqualTo(PixChargeStatus.PENDING);
 		assertThat(charge.expireIfDue(charge.getExpiresAt().plusSeconds(1)).getStatus())
@@ -95,8 +95,8 @@ class PixChargeTest {
 
 	@Test
 	@DisplayName("Never expires a charge that is already paid")
-	void aPaidChargeNeverExpires() {
-		PixCharge paid = pending().markPaid();
+	void paidChargeNeverExpires() {
+		final PixCharge paid = pending().markPaid();
 
 		assertThat(paid.isDueForExpiry(paid.getExpiresAt().plusSeconds(1))).isFalse();
 		assertThat(paid.expireIfDue(paid.getExpiresAt().plusSeconds(1)).getStatus())
@@ -106,7 +106,7 @@ class PixChargeTest {
 	@Test
 	@DisplayName("Moves the charge to paid even when it has already expired")
 	void payingMovesToPaidEvenWhenAlreadyExpired() {
-		PixCharge expired = pending().expireIfDue(NOW.plus(2, ChronoUnit.DAYS));
+		final PixCharge expired = pending().expireIfDue(NOW.plus(2, ChronoUnit.DAYS));
 
 		assertThat(expired.getStatus()).isEqualTo(PixChargeStatus.EXPIRED);
 		assertThat(expired.markPaid().getStatus()).isEqualTo(PixChargeStatus.PAID);

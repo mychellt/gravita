@@ -21,25 +21,25 @@ public class BatchPaymentConfirmationScheduler {
 	private final ConfirmDailyBatchPaymentUseCase confirmDailyBatchPaymentUseCase;
 	private final List<BankIntegration> banks;
 
-	public BatchPaymentConfirmationScheduler(ConfirmDailyBatchPaymentUseCase confirmDailyBatchPaymentUseCase,
-			@Value("${gravita.finance.payment-return.banks:}") List<BankIntegration> banks) {
+	public BatchPaymentConfirmationScheduler(final ConfirmDailyBatchPaymentUseCase confirmDailyBatchPaymentUseCase,
+			@Value("${gravita.finance.payment-return.banks:}") final List<BankIntegration> banks) {
 		this.confirmDailyBatchPaymentUseCase = confirmDailyBatchPaymentUseCase;
 		this.banks = banks;
 	}
 
 	@Scheduled(cron = "${gravita.finance.payment-return.confirm-cron:0 0 7 * * *}")
 	public void confirmPayments() {
-		for (BankIntegration bank : banks) {
+		for (final BankIntegration bank : banks) {
 			try {
 				confirmDailyBatchPaymentUseCase.execute(bank).ifPresentOrElse(result -> report(bank, result),
 						() -> log.info("No payment return file to confirm for {}", bank));
-			} catch (RuntimeException e) {
+			} catch (final RuntimeException e) {
 				log.error("Payment return confirmation failed for {}", bank, e);
 			}
 		}
 	}
 
-	private void report(BankIntegration bank, BankReturnImportResult result) {
+	private void report(final BankIntegration bank, final BankReturnImportResult result) {
 		log.info("Payment return confirmed for {}: {} settled, {} skipped, {} rejected, {} unmatched", bank,
 				result.settledCount(), result.skippedCount(), result.rejectedLines().size(),
 				result.unmatchedLines().size());

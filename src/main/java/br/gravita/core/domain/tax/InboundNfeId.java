@@ -9,7 +9,7 @@ public record InboundNfeId(UUID value) {
 		Objects.requireNonNull(value, "InboundNfeId value is required");
 	}
 
-	public static InboundNfeId of(UUID value) {
+	public static InboundNfeId of(final UUID value) {
 		return new InboundNfeId(value);
 	}
 }

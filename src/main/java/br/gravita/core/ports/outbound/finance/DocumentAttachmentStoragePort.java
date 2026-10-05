@@ -23,11 +23,11 @@ public interface DocumentAttachmentStoragePort {
 
 	class DocumentStorageUnavailableException extends RuntimeException {
 
-		public DocumentStorageUnavailableException(String message) {
+		public DocumentStorageUnavailableException(final String message) {
 			super(message);
 		}
 
-		public DocumentStorageUnavailableException(String message, Throwable cause) {
+		public DocumentStorageUnavailableException(final String message, final Throwable cause) {
 			super(message, cause);
 		}
 	}

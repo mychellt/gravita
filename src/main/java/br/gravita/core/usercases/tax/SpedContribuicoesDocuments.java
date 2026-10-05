@@ -49,22 +49,22 @@ final class SpedContribuicoesDocuments {
 	private final Incidence incidence;
 	private final ZoneId zone;
 
-	SpedContribuicoesDocuments(Incidence incidence, ZoneId zone) {
+	SpedContribuicoesDocuments(final Incidence incidence, final ZoneId zone) {
 		this.incidence = incidence;
 		this.zone = zone;
 	}
 
 	/** An NFe the company issued: a sale under an exit CFOP (5, 6, 7), a purchase of its own under an entry one (1, 2, 3). */
-	SpedContribuicoesDocument fromIssued(NfeDocument nfe) {
-		String cfop = nfe.getCfop().code();
-		Operation operation = switch (cfop.charAt(0)) {
+	SpedContribuicoesDocument fromIssued(final NfeDocument nfe) {
+		final String cfop = nfe.getCfop().code();
+		final Operation operation = switch (cfop.charAt(0)) {
 			case '1', '2', '3' -> Operation.ENTRY;
 			default -> Operation.EXIT;
 		};
-		List<Item> items = nfe.getItems().stream().map(item -> issuedItem(item, operation, cfop)).toList();
-		Document recipient = nfe.getRecipient().document();
-		BigDecimal pis = stated(nfe, SpedTax.PIS);
-		BigDecimal cofins = stated(nfe, SpedTax.COFINS);
+		final List<Item> items = nfe.getItems().stream().map(item -> issuedItem(item, operation, cfop)).toList();
+		final Document recipient = nfe.getRecipient().document();
+		final BigDecimal pis = stated(nfe, SpedTax.PIS);
+		final BigDecimal cofins = stated(nfe, SpedTax.COFINS);
 		return new SpedContribuicoesDocument(operation, true,
 				party(recipient, nfe.getRecipient().name()), nfe.getDocumentSeries(),
 				nfe.getDocumentNumber() == null ? null : String.valueOf(nfe.getDocumentNumber()), nfe.getAccessKey(),
@@ -75,11 +75,11 @@ final class SpedContribuicoesDocuments {
 	}
 
 	/** An NFe the company received: always a purchase. */
-	SpedContribuicoesDocument fromReceived(InboundNfe nfe) {
-		Document supplier = nfe.getSupplierDocument();
-		InboundNfeTotals totals = nfe.getTotals();
-		List<Item> items = nfe.getItems().stream().map(item -> receivedItem(item, supplier)).toList();
-		LocalDate date = nfe.getIssuedAt().atZone(zone).toLocalDate();
+	SpedContribuicoesDocument fromReceived(final InboundNfe nfe) {
+		final Document supplier = nfe.getSupplierDocument();
+		final InboundNfeTotals totals = nfe.getTotals();
+		final List<Item> items = nfe.getItems().stream().map(item -> receivedItem(item, supplier)).toList();
+		final LocalDate date = nfe.getIssuedAt().atZone(zone).toLocalDate();
 		return new SpedContribuicoesDocument(Operation.ENTRY, false, party(supplier, nfe.getSupplierName()),
 				nfe.getSeries(), nfe.getNumber(), nfe.getAccessKey(), date, money(totals.totalValue()),
 				money(totals.discountValue()), money(totals.productsValue()), money(totals.freightValue()),
@@ -87,47 +87,47 @@ final class SpedContribuicoesDocuments {
 				money(totals.cofinsValue()), items);
 	}
 
-	private Item issuedItem(NfeItem item, Operation operation, String cfop) {
-		BigDecimal base = item.lineTotal();
+	private Item issuedItem(final NfeItem item, final Operation operation, final String cfop) {
+		final BigDecimal base = item.lineTotal();
 		return new Item(item.productId().toString(), item.description(), null, DEFAULT_UNIT, item.quantity(),
 				money(item.subtotal()), money(item.discount()), cfop,
 				levy(SpedTax.PIS, operation, item, base, cfop), levy(SpedTax.COFINS, operation, item, base, cfop));
 	}
 
-	private Item receivedItem(InboundNfeItem item, Document supplier) {
-		String unit = item.unit() == null || item.unit().isBlank() ? DEFAULT_UNIT : item.unit();
+	private Item receivedItem(final InboundNfeItem item, final Document supplier) {
+		final String unit = item.unit() == null || item.unit().isBlank() ? DEFAULT_UNIT : item.unit();
 		return new Item(supplier.number() + "-" + item.supplierProductCode(), item.description(), item.ncm(), unit,
 				item.quantity(), money(item.totalValue()), BigDecimal.ZERO.setScale(2), item.cfop(),
 				purchase(SpedTax.PIS, item.totalValue(), item.pisValue(), item.cfop()),
 				purchase(SpedTax.COFINS, item.totalValue(), item.cofinsValue(), item.cfop()));
 	}
 
-	private Levy levy(SpedTax tax, Operation operation, NfeItem item, BigDecimal base, String cfop) {
-		Optional<TaxLineBreakdown> line = item.taxBreakdown().taxLines().stream()
+	private Levy levy(final SpedTax tax, final Operation operation, final NfeItem item, final BigDecimal base, final String cfop) {
+		final Optional<TaxLineBreakdown> line = item.taxBreakdown().taxLines().stream()
 				.filter(candidate -> candidate.taxType() == tax.taxType()).findFirst();
 		return operation == Operation.EXIT ? sale(tax, line.orElse(null), base)
 				: purchase(tax, base, line.map(TaxLineBreakdown::finalAmount).orElse(null), cfop);
 	}
 
-	private Levy sale(SpedTax tax, TaxLineBreakdown line, BigDecimal itemRevenue) {
+	private Levy sale(final SpedTax tax, final TaxLineBreakdown line, final BigDecimal itemRevenue) {
 		if (line == null || line.finalAmount() == null || line.finalAmount().signum() <= 0) {
 			return Levy.none(UNTAXED_SALE_CST);
 		}
-		BigDecimal basic = tax.basicRate(incidence);
-		BigDecimal rate = rate(line.ratePercentage() == null ? basic : line.ratePercentage());
-		BigDecimal base = line.base() == null ? itemRevenue : line.base();
-		String cst = rate.compareTo(rate(basic)) == 0 ? BASIC_RATE_SALE_CST : OTHER_RATE_SALE_CST;
+		final BigDecimal basic = tax.basicRate(incidence);
+		final BigDecimal rate = rate(line.ratePercentage() == null ? basic : line.ratePercentage());
+		final BigDecimal base = line.base() == null ? itemRevenue : line.base();
+		final String cst = rate.compareTo(rate(basic)) == 0 ? BASIC_RATE_SALE_CST : OTHER_RATE_SALE_CST;
 		return new Levy(cst, money(base), rate, money(line.finalAmount()), null);
 	}
 
 	/** {@code stated} is the contribution the supplier's NFe bore on the item, {@code null} if it states none. */
-	private Levy purchase(SpedTax tax, BigDecimal base, BigDecimal stated, String cfop) {
-		String nature = creditNature(cfop);
+	private Levy purchase(final SpedTax tax, final BigDecimal base, final BigDecimal stated, final String cfop) {
+		final String nature = creditNature(cfop);
 		if (incidence == Incidence.CUMULATIVE || nature == null || stated == null || stated.signum() <= 0) {
 			return Levy.none(UNCREDITED_PURCHASE_CST);
 		}
-		BigDecimal rate = rate(tax.basicRate(Incidence.NON_CUMULATIVE));
-		BigDecimal credit = money(base.multiply(rate).divide(HUNDRED));
+		final BigDecimal rate = rate(tax.basicRate(Incidence.NON_CUMULATIVE));
+		final BigDecimal credit = money(base.multiply(rate).divide(HUNDRED));
 		if (credit.signum() <= 0) {
 			return Levy.none(UNCREDITED_PURCHASE_CST);
 		}
@@ -138,8 +138,8 @@ final class SpedContribuicoesDocuments {
 	 * {@code NAT_BC_CRED} of a purchase whose CFOP says it is for resale ({@code x102}, {@code x403}, {@code x405}) or
 	 * as an input ({@code x101}, {@code x401}); {@code null} for anything else, which earns no credit.
 	 */
-	private static String creditNature(String cfop) {
-		String digits = cfop == null ? "" : Document.digitsOnly(cfop);
+	private static String creditNature(final String cfop) {
+		final String digits = cfop == null ? "" : Document.digitsOnly(cfop);
 		if (digits.length() != 4 || "123".indexOf(digits.charAt(0)) < 0) {
 			return null;
 		}
@@ -150,21 +150,21 @@ final class SpedContribuicoesDocuments {
 		};
 	}
 
-	private static BigDecimal stated(NfeDocument nfe, SpedTax tax) {
+	private static BigDecimal stated(final NfeDocument nfe, final SpedTax tax) {
 		return money(nfe.getTaxTotals().byTaxType().getOrDefault(tax.taxType(), BigDecimal.ZERO));
 	}
 
-	private static Party party(Document document, String name) {
-		boolean company = document.personType() == PersonType.COMPANY;
+	private static Party party(final Document document, final String name) {
+		final boolean company = document.personType() == PersonType.COMPANY;
 		return new Party(document.number(), name, company ? document.number() : null,
 				company ? null : document.number());
 	}
 
-	static BigDecimal money(BigDecimal value) {
+	static BigDecimal money(final BigDecimal value) {
 		return value.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	static BigDecimal rate(BigDecimal percent) {
+	static BigDecimal rate(final BigDecimal percent) {
 		return percent.setScale(4, RoundingMode.HALF_UP);
 	}
 }

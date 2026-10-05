@@ -26,15 +26,15 @@ public class RequestPasswordResetService implements RequestPasswordResetUseCase 
     private final Clock clock;
 
     @Autowired
-    public RequestPasswordResetService(UserRepositoryPort userRepositoryPort,
-                                       PasswordResetTokenRepositoryPort tokenRepositoryPort,
-                                       NotifyPasswordResetProducerPort notifyPasswordResetProducerPort) {
+    public RequestPasswordResetService(final UserRepositoryPort userRepositoryPort,
+                                       final PasswordResetTokenRepositoryPort tokenRepositoryPort,
+                                       final NotifyPasswordResetProducerPort notifyPasswordResetProducerPort) {
         this(userRepositoryPort, tokenRepositoryPort, notifyPasswordResetProducerPort, Clock.systemDefaultZone());
     }
 
-    RequestPasswordResetService(UserRepositoryPort userRepositoryPort,
-                                PasswordResetTokenRepositoryPort tokenRepositoryPort,
-                                NotifyPasswordResetProducerPort notifyPasswordResetProducerPort, Clock clock) {
+    RequestPasswordResetService(final UserRepositoryPort userRepositoryPort,
+                                final PasswordResetTokenRepositoryPort tokenRepositoryPort,
+                                final NotifyPasswordResetProducerPort notifyPasswordResetProducerPort, final Clock clock) {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenRepositoryPort = tokenRepositoryPort;
         this.notifyPasswordResetProducerPort = notifyPasswordResetProducerPort;
@@ -43,7 +43,7 @@ public class RequestPasswordResetService implements RequestPasswordResetUseCase 
 
     @Override
     @Transactional
-    public void execute(String email) {
+    public void execute(final String email) {
         if (email == null || email.isBlank()) {
             return;
         }
@@ -54,7 +54,7 @@ public class RequestPasswordResetService implements RequestPasswordResetUseCase 
     }
 
     /** Only the newest link may work, so the user's previous unused links are cut short before a new one is issued. */
-    private void issueNewLink(User user) {
+    private void issueNewLink(final User user) {
         final var now = LocalDateTime.now(clock);
         tokenRepositoryPort.findUnusedByUserId(user.getId().value()).forEach(previous -> {
             previous.expire(now);
@@ -71,7 +71,7 @@ public class RequestPasswordResetService implements RequestPasswordResetUseCase 
                 .build()));
     }
 
-    private boolean isOutsideCooldown(User user) {
+    private boolean isOutsideCooldown(final User user) {
         return tokenRepositoryPort.findLatestByUserId(user.getId().value())
                 .map(latest -> !latest.wasIssuedWithin(COOLDOWN, LocalDateTime.now(clock)))
                 .orElse(true);

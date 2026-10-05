@@ -19,7 +19,7 @@ class NfeXmlParserTest {
 	@Test
 	@DisplayName("Parses supplier name, items and taxes from an nfeProc XML")
 	void parsesSupplierNameItemsAndTaxesFromANfeProcXml() {
-		ParsedSupplierNfe parsed = parser.parse(nfeProcXml().getBytes(StandardCharsets.UTF_8));
+		final ParsedSupplierNfe parsed = parser.parse(nfeProcXml().getBytes(StandardCharsets.UTF_8));
 
 		assertThat(parsed.accessKey()).isEqualTo("35240111222333000181550010000012345123456789");
 		assertThat(parsed.series()).isEqualTo("1");
@@ -29,7 +29,7 @@ class NfeXmlParserTest {
 		assertThat(parsed.issuedAt()).isEqualTo(OffsetDateTime.parse("2026-01-15T10:00:00-03:00").toInstant());
 
 		assertThat(parsed.items()).hasSize(2);
-		InboundNfeItem first = parsed.items().get(0);
+		final InboundNfeItem first = parsed.items().get(0);
 		assertThat(first.supplierProductCode()).isEqualTo("SKU-001");
 		assertThat(first.description()).isEqualTo("Parafuso Sextavado M8");
 		assertThat(first.ncm()).isEqualTo("73181500");
@@ -43,11 +43,11 @@ class NfeXmlParserTest {
 		assertThat(first.pisValue()).isEqualByComparingTo("2.48");
 		assertThat(first.cofinsValue()).isEqualByComparingTo("11.40");
 
-		InboundNfeItem second = parsed.items().get(1);
+		final InboundNfeItem second = parsed.items().get(1);
 		assertThat(second.supplierProductCode()).isEqualTo("SKU-002");
 		assertThat(second.quantity()).isEqualByComparingTo("10.0000");
 
-		var totals = parsed.totals();
+		final var totals = parsed.totals();
 		assertThat(totals.productsValue()).isEqualByComparingTo("250.00");
 		assertThat(totals.freightValue()).isEqualByComparingTo("15.00");
 		assertThat(totals.icmsValue()).isEqualByComparingTo("45.00");
@@ -57,7 +57,7 @@ class NfeXmlParserTest {
 	@Test
 	@DisplayName("Falls back to the infNFe Id when the document has no protNFe")
 	void fallsBackToInfNFeIdWhenTheDocumentHasNoProtNFe() {
-		ParsedSupplierNfe parsed = parser.parse(bareNfeXml().getBytes(StandardCharsets.UTF_8));
+		final ParsedSupplierNfe parsed = parser.parse(bareNfeXml().getBytes(StandardCharsets.UTF_8));
 
 		assertThat(parsed.accessKey()).isEqualTo("35240111222333000181550010000012345123456789");
 	}
@@ -72,7 +72,7 @@ class NfeXmlParserTest {
 	@Test
 	@DisplayName("Rejects XML missing required sections")
 	void rejectsXmlMissingRequiredSections() {
-		String incomplete = """
+		final String incomplete = """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<NFe><infNFe Id="NFe1"></infNFe></NFe>
 				""";
@@ -84,7 +84,7 @@ class NfeXmlParserTest {
 	@Test
 	@DisplayName("Rejects XML with a DOCTYPE declaration to prevent XXE")
 	void rejectsXmlWithADoctypeDeclarationToPreventXxe() {
-		String withDoctype = """
+		final String withDoctype = """
 				<?xml version="1.0"?>
 				<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
 				<NFe><infNFe Id="NFe35240111222333000181550010000012345123456789"></infNFe></NFe>

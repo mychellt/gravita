@@ -9,7 +9,7 @@ import java.util.UUID;
 class InventoryLotSerialRepositoryAdapter implements InventoryLotSerialRepositoryPort {
 
 	@Override
-	public boolean hasOpenLotsOrSerials(UUID productId) {
+	public boolean hasOpenLotsOrSerials(final UUID productId) {
 		return false;
 	}
 }

@@ -14,13 +14,13 @@ public record FunnelConversionResponse(List<StageConversionRateResponse> convers
 	public record StageConversionRateResponse(OpportunityStage fromStage, OpportunityStage toStage,
 			BigDecimal conversionRate) {
 
-		public static StageConversionRateResponse from(FunnelConversionView.StageConversionRate rate) {
+		public static StageConversionRateResponse from(final FunnelConversionView.StageConversionRate rate) {
 			return new StageConversionRateResponse(rate.fromStage(), rate.toStage(), rate.conversionRate());
 		}
 	}
 
-	public static FunnelConversionResponse from(FunnelConversionView view) {
-		List<StageConversionRateResponse> rates = view.conversionRateByStage().stream()
+	public static FunnelConversionResponse from(final FunnelConversionView view) {
+		final List<StageConversionRateResponse> rates = view.conversionRateByStage().stream()
 				.map(StageConversionRateResponse::from)
 				.toList();
 		return new FunnelConversionResponse(rates, view.averageCycleTime(), view.volumeBySalesperson());

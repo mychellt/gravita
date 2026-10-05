@@ -26,7 +26,7 @@ class SqsEmailNotificationAdapterTest {
 	private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
 	private JsonNode publishedMessage() {
-		ArgumentCaptor<SendMessageRequest> request = ArgumentCaptor.forClass(SendMessageRequest.class);
+		final ArgumentCaptor<SendMessageRequest> request = ArgumentCaptor.forClass(SendMessageRequest.class);
 		verify(sqsClient).sendMessage(request.capture());
 		assertThat(request.getValue().queueUrl()).isEqualTo(QUEUE_URL);
 		return objectMapper.readTree(request.getValue().messageBody());
@@ -37,7 +37,7 @@ class SqsEmailNotificationAdapterTest {
 	void shouldKeepThePlainMessageShape() {
 		new SqsEmailNotificationAdapter(sqsClient, objectMapper, QUEUE_URL).send("a@b.com", "Subject", "Body");
 
-		JsonNode message = publishedMessage();
+		final JsonNode message = publishedMessage();
 		assertThat(message.get("to").asString()).isEqualTo("a@b.com");
 		assertThat(message.get("subject").asString()).isEqualTo("Subject");
 		assertThat(message.get("body").asString()).isEqualTo("Body");
@@ -50,7 +50,7 @@ class SqsEmailNotificationAdapterTest {
 		new SqsEmailNotificationAdapter(sqsClient, objectMapper, QUEUE_URL)
 				.sendHtml("a@b.com", "Subject", "<p>Hi</p>", "Hi");
 
-		JsonNode message = publishedMessage();
+		final JsonNode message = publishedMessage();
 		assertThat(message.get("htmlBody").asString()).isEqualTo("<p>Hi</p>");
 		assertThat(message.get("body").asString()).isEqualTo("Hi");
 	}

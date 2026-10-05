@@ -39,7 +39,7 @@ public record ProductResponse(
 		List<KitComponentDomain> kitComponents,
 		List<ProductVariantDomain> variants) {
 
-	public static ProductResponse from(ProductDomain domain) {
+	public static ProductResponse from(final ProductDomain domain) {
 		return new ProductResponse(
 				domain.getId(),
 				domain.getInternalCode(),

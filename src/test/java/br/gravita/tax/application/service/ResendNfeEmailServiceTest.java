@@ -67,8 +67,8 @@ class ResendNfeEmailServiceTest {
 
     @Test
     @DisplayName("Resends the already stored XML and DANFE to the recipient rather than regenerating them")
-    void ac5_resendsTheAlreadyStoredXmlAndDanfeToTheRecipientRatherThanRegeneratingThem() {
-        NfeDocument document = authorizedDocument();
+    void ac5ResendsTheAlreadyStoredXmlAndDanfeToTheRecipientRatherThanRegeneratingThem() {
+        final NfeDocument document = authorizedDocument();
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(customerRepositoryPort.get(recipientRef.id()))
                 .thenReturn(Optional.of(CustomerDomain.builder().email("cliente@example.com").build()));
@@ -77,7 +77,7 @@ class ResendNfeEmailServiceTest {
 
         service.execute(new ResendNfeEmailCommand(documentId.value()));
 
-        ArgumentCaptor<FiscalDocumentEmailRequest> captor = ArgumentCaptor.forClass(FiscalDocumentEmailRequest.class);
+        final ArgumentCaptor<FiscalDocumentEmailRequest> captor = ArgumentCaptor.forClass(FiscalDocumentEmailRequest.class);
         verify(sendFiscalDocumentByEmailPort).send(captor.capture());
         assertThat(captor.getValue().to()).isEqualTo("cliente@example.com");
         assertThat(captor.getValue().xmlContent()).isEqualTo("xml-bytes".getBytes());
@@ -87,8 +87,8 @@ class ResendNfeEmailServiceTest {
     @ParameterizedTest
     @EnumSource(value = NfeDocumentStatus.class, names = {"DRAFT", "QUEUED", "SENT", "REJECTED", "CANCELLED", "VOIDED"})
     @DisplayName("Only an authorized document can have its email resent")
-    void onlyAnAuthorizedDocumentCanHaveItsEmailResent(NfeDocumentStatus status) {
-        NfeDocument document = documentWithStatus(status);
+    void onlyAnAuthorizedDocumentCanHaveItsEmailResent(final NfeDocumentStatus status) {
+        final NfeDocument document = documentWithStatus(status);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
         assertThatThrownBy(() -> service.execute(new ResendNfeEmailCommand(documentId.value())))
@@ -99,8 +99,8 @@ class ResendNfeEmailServiceTest {
 
     @Test
     @DisplayName("Rejects a recipient with no email on file rather than silently skipping")
-    void aRecipientWithNoEmailOnFileIsRejectedRatherThanSilentlySkipped() {
-        NfeDocument document = authorizedDocument();
+    void recipientWithNoEmailOnFileIsRejectedRatherThanSilentlySkipped() {
+        final NfeDocument document = authorizedDocument();
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(customerRepositoryPort.get(recipientRef.id())).thenReturn(Optional.empty());
 
@@ -123,25 +123,51 @@ class ResendNfeEmailServiceTest {
         return documentWithStatus(NfeDocumentStatus.AUTHORIZED);
     }
 
-    private NfeDocument documentWithStatus(NfeDocumentStatus status) {
-        UUID productId = UUID.randomUUID();
-        TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+    private NfeDocument documentWithStatus(final NfeDocumentStatus status) {
+        final UUID productId = UUID.randomUUID();
+        final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
                 new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-        ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
-        NfeItem item = new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"),
+        final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
+        final NfeItem item = new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"),
                 BigDecimal.ZERO, breakdown);
-        NfeRecipient recipient = NfeRecipient.of(recipientRef, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste",
+        final NfeRecipient recipient = NfeRecipient.of(recipientRef, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste",
                 "123456789", "RJ");
-        TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
+        final TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
 
-        String xmlRef = status == NfeDocumentStatus.AUTHORIZED ? "xml-ref" : null;
-        String danfeRef = status == NfeDocumentStatus.AUTHORIZED ? "danfe-ref" : null;
-        String sefazProtocol = status == NfeDocumentStatus.DRAFT || status == NfeDocumentStatus.QUEUED ? null
+        final String xmlRef = status == NfeDocumentStatus.AUTHORIZED ? "xml-ref" : null;
+        final String danfeRef = status == NfeDocumentStatus.AUTHORIZED ? "danfe-ref" : null;
+        final String sefazProtocol = status == NfeDocumentStatus.DRAFT || status == NfeDocumentStatus.QUEUED ? null
                 : "PROTOCOL-1";
 
-        return NfeDocument.of(documentId, CompanyId.of(UUID.randomUUID()), null, NaturezaOperacao.VENDA,
-                new Cfop("5102"), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
-                null, null, totals, status, Instant.now(), "001", 42L, "3".repeat(44), sefazProtocol, false, null,
-                xmlRef, danfeRef, List.of(), null, null, null);
+        return NfeDocument.builder()
+        		.id(documentId)
+        		.issuerCompanyId(CompanyId.of(UUID.randomUUID()))
+        		.originSalesOrderId(null)
+        		.naturezaOperacao(NaturezaOperacao.VENDA)
+        		.cfop(new Cfop("5102"))
+        		.recipient(recipient)
+        		.items(List.of(item))
+        		.freight(BigDecimal.ZERO)
+        		.insurance(BigDecimal.ZERO)
+        		.otherExpenses(BigDecimal.ZERO)
+        		.transport(null)
+        		.referencedAccessKey(null)
+        		.additionalInfo(null)
+        		.taxTotals(totals)
+        		.status(status)
+        		.createdAt(Instant.now())
+        		.documentSeries("001")
+        		.documentNumber(42L)
+        		.accessKey("3".repeat(44))
+        		.sefazProtocol(sefazProtocol)
+        		.contingencyMode(false)
+        		.rejectionReason(null)
+        		.xmlStorageRef(xmlRef)
+        		.danfeStorageRef(danfeRef)
+        		.correctionLetters(List.of())
+        		.authorizedAt(null)
+        		.cancellationJustification(null)
+        		.cancelledAt(null)
+        		.build();
     }
 }

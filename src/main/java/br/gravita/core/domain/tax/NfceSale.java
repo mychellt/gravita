@@ -1,5 +1,6 @@
 package br.gravita.core.domain.tax;
 
+import lombok.Builder;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
 import java.math.BigDecimal;
@@ -26,10 +27,11 @@ public final class NfceSale {
 	private final String sefazProtocol;
 	private final boolean contingencyMode;
 
-	public NfceSale(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
-			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
-			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
-			boolean contingencyMode) {
+	@Builder
+	public NfceSale(final NfceSaleId id, final PosSessionId sessionId, final List<SaleItem> items, final BigDecimal totalDiscount,
+			final List<Payment> payments, final BigDecimal changeGiven, final String customerCpf, final NfceSaleStatus status,
+			final Instant createdAt, final String documentSeries, final Long documentNumber, final String accessKey, final String sefazProtocol,
+			final boolean contingencyMode) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.sessionId = Objects.requireNonNull(sessionId, "sessionId is required");
 		this.items = requireNonEmptyItems(items);
@@ -46,34 +48,26 @@ public final class NfceSale {
 		this.contingencyMode = contingencyMode;
 	}
 
-	public static NfceSale register(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items,
-			BigDecimal totalDiscount, List<Payment> payments, String customerCpf, Instant createdAt) {
-		BigDecimal normalizedDiscount = totalDiscount == null ? BigDecimal.ZERO : totalDiscount;
-		BigDecimal subtotal = sumLineTotals(items);
+	public static NfceSale register(final NfceSaleId id, final PosSessionId sessionId, final List<SaleItem> items,
+			final BigDecimal totalDiscount, final List<Payment> payments, final String customerCpf, final Instant createdAt) {
+		final BigDecimal normalizedDiscount = totalDiscount == null ? BigDecimal.ZERO : totalDiscount;
+		final BigDecimal subtotal = sumLineTotals(items);
 		if (normalizedDiscount.compareTo(subtotal) > 0) {
 			throw new BusinessRuleException("totalDiscount (" + normalizedDiscount + ") cannot exceed the sale subtotal ("
 					+ subtotal + ")");
 		}
-		BigDecimal saleTotal = subtotal.subtract(normalizedDiscount);
-		BigDecimal paymentsSum = sumPayments(payments);
+		final BigDecimal saleTotal = subtotal.subtract(normalizedDiscount);
+		final BigDecimal paymentsSum = sumPayments(payments);
 		if (paymentsSum.compareTo(saleTotal) < 0) {
 			throw new BusinessRuleException(
 					"Total payments (" + paymentsSum + ") do not cover the sale total (" + saleTotal + ")");
 		}
-		BigDecimal changeGiven = paymentsSum.subtract(saleTotal);
+		final BigDecimal changeGiven = paymentsSum.subtract(saleTotal);
 		return new NfceSale(id, sessionId, items, normalizedDiscount, payments, changeGiven, customerCpf,
 				NfceSaleStatus.DRAFT, createdAt, null, null, null, null, false);
 	}
 
-	public static NfceSale of(NfceSaleId id, PosSessionId sessionId, List<SaleItem> items, BigDecimal totalDiscount,
-			List<Payment> payments, BigDecimal changeGiven, String customerCpf, NfceSaleStatus status,
-			Instant createdAt, String documentSeries, Long documentNumber, String accessKey, String sefazProtocol,
-			boolean contingencyMode) {
-		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf, status, createdAt,
-				documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode);
-	}
-
-	public NfceSale authorize(String documentSeries, Long documentNumber, String accessKey, String sefazProtocol) {
+	public NfceSale authorize(final String documentSeries, final Long documentNumber, final String accessKey, final String sefazProtocol) {
 		requireDraft();
 		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
 				NfceSaleStatus.AUTHORIZED, createdAt, requireText(documentSeries, "documentSeries"),
@@ -82,7 +76,7 @@ public final class NfceSale {
 				false);
 	}
 
-	public NfceSale queueForContingency(String documentSeries, Long documentNumber, String accessKey) {
+	public NfceSale queueForContingency(final String documentSeries, final Long documentNumber, final String accessKey) {
 		requireDraft();
 		return new NfceSale(id, sessionId, items, totalDiscount, payments, changeGiven, customerCpf,
 				NfceSaleStatus.PENDING_SYNC, createdAt, requireText(documentSeries, "documentSeries"),
@@ -106,7 +100,7 @@ public final class NfceSale {
 		}
 	}
 
-	private static String requireText(String value, String field) {
+	private static String requireText(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required");
 		}
@@ -117,37 +111,37 @@ public final class NfceSale {
 		return sumLineTotals(items).subtract(totalDiscount);
 	}
 
-	private static BigDecimal sumLineTotals(List<SaleItem> items) {
+	private static BigDecimal sumLineTotals(final List<SaleItem> items) {
 		return requireNonEmptyItems(items).stream().map(SaleItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	private static BigDecimal sumPayments(List<Payment> payments) {
+	private static BigDecimal sumPayments(final List<Payment> payments) {
 		return requireNonEmptyPayments(payments).stream().map(Payment::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	private static List<SaleItem> requireNonEmptyItems(List<SaleItem> items) {
+	private static List<SaleItem> requireNonEmptyItems(final List<SaleItem> items) {
 		if (items == null || items.isEmpty()) {
 			throw new BusinessRuleException("A sale must have at least one item");
 		}
 		return List.copyOf(items);
 	}
 
-	private static List<Payment> requireNonEmptyPayments(List<Payment> payments) {
+	private static List<Payment> requireNonEmptyPayments(final List<Payment> payments) {
 		if (payments == null || payments.isEmpty()) {
 			throw new BusinessRuleException("A sale must have at least one payment");
 		}
 		return List.copyOf(payments);
 	}
 
-	private static BigDecimal requireNonNegative(BigDecimal value, String fieldName) {
-		BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
+	private static BigDecimal requireNonNegative(final BigDecimal value, final String fieldName) {
+		final BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
 		if (resolved.compareTo(BigDecimal.ZERO) < 0) {
 			throw new BusinessRuleException(fieldName + " cannot be negative: " + resolved);
 		}
 		return resolved;
 	}
 
-	private static String normalizeCpf(String customerCpf) {
+	private static String normalizeCpf(final String customerCpf) {
 		if (customerCpf == null || customerCpf.isBlank()) {
 			return null;
 		}

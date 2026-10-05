@@ -16,7 +16,7 @@ class ProductDomainTest {
 	@DisplayName("Rejects a product with more than five images")
 	@Test
 	void shouldRejectMoreThanFiveImages() {
-		ProductDomain product = simpleProductBuilder()
+		final ProductDomain product = simpleProductBuilder()
 				.images(List.of("1", "2", "3", "4", "5", "6"))
 				.build();
 
@@ -28,7 +28,7 @@ class ProductDomainTest {
 	@DisplayName("Accepts a product with exactly five images")
 	@Test
 	void shouldAcceptExactlyFiveImages() {
-		ProductDomain product = simpleProductBuilder()
+		final ProductDomain product = simpleProductBuilder()
 				.images(List.of("1", "2", "3", "4", "5"))
 				.build();
 
@@ -38,7 +38,7 @@ class ProductDomainTest {
 	@DisplayName("Rejects a barcode with an invalid format")
 	@Test
 	void shouldRejectInvalidBarcodeFormat() {
-		ProductDomain product = simpleProductBuilder()
+		final ProductDomain product = simpleProductBuilder()
 				.barcodes(List.of("not-a-barcode"))
 				.build();
 
@@ -48,7 +48,7 @@ class ProductDomainTest {
 	@DisplayName("Accepts EAN-13 and DUN-14 barcodes")
 	@Test
 	void shouldAcceptEan13AndDun14Barcodes() {
-		ProductDomain product = simpleProductBuilder()
+		final ProductDomain product = simpleProductBuilder()
 				.barcodes(List.of("7891234567895", "17891234567892"))
 				.build();
 
@@ -58,7 +58,7 @@ class ProductDomainTest {
 	@DisplayName("Rejects a service that carries stock fields")
 	@Test
 	void shouldRejectServiceWithStockFields() {
-		ProductDomain service = ProductDomain.builder()
+		final ProductDomain service = ProductDomain.builder()
 				.type(ProductType.SERVICE)
 				.internalCode("SVC-1")
 				.stock(new StockParametersDomain(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ONE))
@@ -72,7 +72,7 @@ class ProductDomainTest {
 	@DisplayName("Rejects a service that carries units of measure")
 	@Test
 	void shouldRejectServiceWithUnits() {
-		ProductDomain service = ProductDomain.builder()
+		final ProductDomain service = ProductDomain.builder()
 				.type(ProductType.SERVICE)
 				.internalCode("SVC-1")
 				.purchaseUnit("UN")
@@ -84,7 +84,7 @@ class ProductDomainTest {
 	@DisplayName("Accepts a service without stock fields or units")
 	@Test
 	void shouldAcceptServiceWithoutStockOrUnits() {
-		ProductDomain service = ProductDomain.builder()
+		final ProductDomain service = ProductDomain.builder()
 				.type(ProductType.SERVICE)
 				.internalCode("SVC-1")
 				.build();
@@ -95,7 +95,7 @@ class ProductDomainTest {
 	@DisplayName("A kit requires at least one component")
 	@Test
 	void shouldRequireAtLeastOneComponentForKit() {
-		ProductDomain kit = ProductDomain.builder()
+		final ProductDomain kit = ProductDomain.builder()
 				.type(ProductType.KIT)
 				.internalCode("KIT-1")
 				.kitComponents(List.of())
@@ -107,7 +107,7 @@ class ProductDomainTest {
 	@DisplayName("Accepts a kit that has components")
 	@Test
 	void shouldAcceptKitWithComponents() {
-		ProductDomain kit = ProductDomain.builder()
+		final ProductDomain kit = ProductDomain.builder()
 				.type(ProductType.KIT)
 				.internalCode("KIT-1")
 				.kitComponents(List.of(new KitComponentDomain(UUID.randomUUID(), BigDecimal.ONE)))
@@ -119,7 +119,7 @@ class ProductDomainTest {
 	@DisplayName("A variant product requires a variant grid")
 	@Test
 	void shouldRequireVariantGridForVariantType() {
-		ProductDomain variant = ProductDomain.builder()
+		final ProductDomain variant = ProductDomain.builder()
 				.type(ProductType.VARIANT)
 				.internalCode("VAR-1")
 				.variants(List.of())
@@ -131,7 +131,7 @@ class ProductDomainTest {
 	@DisplayName("Accepts a variant product with a color and size grid")
 	@Test
 	void shouldAcceptVariantWithColorSizeGrid() {
-		ProductDomain variant = ProductDomain.builder()
+		final ProductDomain variant = ProductDomain.builder()
 				.type(ProductType.VARIANT)
 				.internalCode("VAR-1")
 				.variants(List.of(new ProductVariantDomain("Red", "M", null), new ProductVariantDomain("Blue", "G", null)))

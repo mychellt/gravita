@@ -23,13 +23,13 @@ public class BankStatementController {
 
 	@PostMapping("/import")
 	public ResponseEntity<ReconciliationResponse> importStatement(
-			@Valid @RequestBody ReconcileBankStatementRequest request) {
+			@Valid @RequestBody final ReconcileBankStatementRequest request) {
 		return ResponseEntity
 				.ok(ReconciliationResponse.from(reconcileBankStatementUseCase.execute(request.toCommand())));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

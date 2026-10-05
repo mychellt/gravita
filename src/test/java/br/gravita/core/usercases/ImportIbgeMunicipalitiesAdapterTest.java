@@ -27,8 +27,8 @@ class ImportIbgeMunicipalitiesAdapterTest {
 	@DisplayName("Importing a municipality not seen before assigns it a new id")
 	@Test
 	void shouldAssignNewIdForUnseenMunicipality() {
-		ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);
-		IbgeMunicipalityDomain incoming = IbgeMunicipalityDomain.builder().ibgeCode("3550308").name("São Paulo").stateCode("SP").build();
+		final ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);
+		final IbgeMunicipalityDomain incoming = IbgeMunicipalityDomain.builder().ibgeCode("3550308").name("São Paulo").stateCode("SP").build();
 		when(ibgeMunicipalityRepositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
 		when(ibgeMunicipalityRepositoryPort.saveAll(List.of(incoming))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -40,9 +40,9 @@ class ImportIbgeMunicipalitiesAdapterTest {
 	@DisplayName("Upserts by IBGE code so that re-importing does not duplicate municipalities")
 	@Test
 	void shouldUpsertByIbgeCodeSoReimportIsIdempotent() {
-		ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);
-		UUID existingId = UUID.randomUUID();
-		IbgeMunicipalityDomain incoming = IbgeMunicipalityDomain.builder().ibgeCode("3550308").name("São Paulo").stateCode("SP").build();
+		final ImportIbgeMunicipalitiesAdapter adapter = new ImportIbgeMunicipalitiesAdapter(ibgeMunicipalityRepositoryPort);
+		final UUID existingId = UUID.randomUUID();
+		final IbgeMunicipalityDomain incoming = IbgeMunicipalityDomain.builder().ibgeCode("3550308").name("São Paulo").stateCode("SP").build();
 		when(ibgeMunicipalityRepositoryPort.findByIbgeCode("3550308"))
 				.thenReturn(Optional.of(IbgeMunicipalityDomain.builder().id(existingId).ibgeCode("3550308").build()));
 		when(ibgeMunicipalityRepositoryPort.saveAll(List.of(incoming))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -50,7 +50,7 @@ class ImportIbgeMunicipalitiesAdapterTest {
 		adapter.execute(new Context(List.of(incoming)));
 
 		assertThat(incoming.getId()).isEqualTo(existingId);
-		ArgumentCaptor<List<IbgeMunicipalityDomain>> captor = ArgumentCaptor.forClass(List.class);
+		final ArgumentCaptor<List<IbgeMunicipalityDomain>> captor = ArgumentCaptor.forClass(List.class);
 		verify(ibgeMunicipalityRepositoryPort).saveAll(captor.capture());
 		assertThat(captor.getValue()).containsExactly(incoming);
 	}

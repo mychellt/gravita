@@ -33,8 +33,8 @@ class DeleteCostCenterAdapterTest {
 	@DisplayName("Fails with not found when the cost center to delete does not exist")
 	@Test
 	void shouldFailWhenCostCenterNotFound() {
-		DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id)))
@@ -44,8 +44,8 @@ class DeleteCostCenterAdapterTest {
 	@DisplayName("Rejects deleting a cost center that still has children")
 	@Test
 	void shouldRejectDeletionWhenCostCenterHasChildren() {
-		DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		lenient().when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 		when(costCenterRepositoryPort.existsByParentId(id)).thenReturn(true);
 
@@ -58,8 +58,8 @@ class DeleteCostCenterAdapterTest {
 	@DisplayName("Rejects deleting a cost center that Finance reports as in use")
 	@Test
 	void shouldRejectDeletionWhenInUseByFinance() {
-		DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 		when(costCenterRepositoryPort.existsByParentId(id)).thenReturn(false);
 		when(financeUsageQueryPort.isCostCenterInUse(id)).thenReturn(true);
@@ -73,8 +73,8 @@ class DeleteCostCenterAdapterTest {
 	@DisplayName("Deletes a leaf cost center that is not in use by Finance")
 	@Test
 	void shouldDeleteWhenLeafAndNotInUse() {
-		DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteCostCenterAdapter adapter = new DeleteCostCenterAdapter(costCenterRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 		when(costCenterRepositoryPort.existsByParentId(id)).thenReturn(false);
 		when(financeUsageQueryPort.isCostCenterInUse(id)).thenReturn(false);

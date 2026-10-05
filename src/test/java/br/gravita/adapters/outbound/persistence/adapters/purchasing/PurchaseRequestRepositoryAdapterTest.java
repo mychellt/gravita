@@ -87,11 +87,11 @@ class PurchaseRequestRepositoryAdapterTest {
 	@DisplayName("Returns true when an open request exists for the origin and product")
 	void returnsTrueWhenAnOpenRequestExistsForTheOriginAndProduct() {
 		final UUID productId = UUID.randomUUID();
-		when(repository.existsByOriginAndStatusAndItems_ProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
+		when(repository.existsByOriginAndStatusAndItemsProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				PurchaseRequestStatus.OPEN, productId)).thenReturn(true);
 
 		assertThat(adapter.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER, productId)).isTrue();
-		verify(repository).existsByOriginAndStatusAndItems_ProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
+		verify(repository).existsByOriginAndStatusAndItemsProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				PurchaseRequestStatus.OPEN, productId);
 	}
 
@@ -99,7 +99,7 @@ class PurchaseRequestRepositoryAdapterTest {
 	@DisplayName("Returns false when no open request exists for the origin and product")
 	void returnsFalseWhenNoOpenRequestExistsForTheOriginAndProduct() {
 		final UUID productId = UUID.randomUUID();
-		when(repository.existsByOriginAndStatusAndItems_ProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
+		when(repository.existsByOriginAndStatusAndItemsProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				PurchaseRequestStatus.OPEN, productId)).thenReturn(false);
 
 		assertThat(adapter.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER, productId)).isFalse();

@@ -11,8 +11,8 @@ class PaymentTermDomainTest {
 
 	@DisplayName("The number of installments is free and not fixed to 30/60/90 days")
 	@Test
-	void numberOfInstallmentsIsFreeAndNotFixedTo30_60_90() {
-		PaymentTermDomain fiveInstallments = PaymentTermDomain.builder()
+	void numberOfInstallmentsIsFreeAndNotFixedTo306090() {
+		final PaymentTermDomain fiveInstallments = PaymentTermDomain.builder()
 				.name("5x custom")
 				.installmentIntervalsDays(List.of(15, 45, 75, 105, 135))
 				.build();
@@ -24,7 +24,7 @@ class PaymentTermDomainTest {
 	@DisplayName("The number of installments is zero when no intervals are set")
 	@Test
 	void numberOfInstallmentsIsZeroWhenIntervalsNotSet() {
-		PaymentTermDomain term = PaymentTermDomain.builder().name("Undefined").build();
+		final PaymentTermDomain term = PaymentTermDomain.builder().name("Undefined").build();
 
 		assertThat(term.getNumberOfInstallments()).isZero();
 	}

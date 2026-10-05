@@ -22,26 +22,26 @@ public class RecordCashMovementService implements RecordCashMovementUseCase {
 	private final PosSessionRepositoryPort posSessionRepositoryPort;
 	private final CashMovementRepositoryPort cashMovementRepositoryPort;
 
-	public RecordCashMovementService(PosSessionRepositoryPort posSessionRepositoryPort,
-			CashMovementRepositoryPort cashMovementRepositoryPort) {
+	public RecordCashMovementService(final PosSessionRepositoryPort posSessionRepositoryPort,
+			final CashMovementRepositoryPort cashMovementRepositoryPort) {
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.cashMovementRepositoryPort = cashMovementRepositoryPort;
 	}
 
 	@Override
-	public CashMovementId execute(RecordCashMovementCommand command) {
+	public CashMovementId execute(final RecordCashMovementCommand command) {
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("Cash movement justification is required");
 		}
 
-		PosSessionId sessionId = PosSessionId.of(command.sessionId());
-		PosSession session = posSessionRepositoryPort.findById(sessionId)
+		final PosSessionId sessionId = PosSessionId.of(command.sessionId());
+		final PosSession session = posSessionRepositoryPort.findById(sessionId)
 				.orElseThrow(() -> new ResourceNotFoundException("PosSession not found: " + command.sessionId()));
 		if (session.getStatus() != PosSessionStatus.OPEN) {
 			throw new BusinessRuleException("PosSession " + command.sessionId() + " is not open");
 		}
 
-		CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId, command.type(),
+		final CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId, command.type(),
 				command.amount(), command.justification(), Instant.now());
 
 		return cashMovementRepositoryPort.save(movement).getId();

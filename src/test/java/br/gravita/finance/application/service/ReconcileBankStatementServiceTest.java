@@ -62,46 +62,46 @@ class ReconcileBankStatementServiceTest {
 	private final UUID bankAccount = UUID.randomUUID();
 	private final ReconcileBankStatementCommand command = new ReconcileBankStatementCommand(bankAccount, "statement");
 
-	private static BankStatementLine line(int number, LocalDate date, String amount) {
+	private static BankStatementLine line(final int number, final LocalDate date, final String amount) {
 		return BankStatementLine.unmatched(number, date, new BigDecimal(amount), "entry " + number, null);
 	}
 
-	private static Settlement receivableSettlement(String amount, Instant at) {
+	private static Settlement receivableSettlement(final String amount, final Instant at) {
 		return Settlement.of(SettlementId.of(UUID.randomUUID()), ReceivableId.of(UUID.randomUUID()),
 				new BigDecimal(amount), null, null, null, null, SettlementMethod.AUTOMATIC_CNAB, at);
 	}
 
-	private static Settlement payableSettlement(String amount, Instant at) {
+	private static Settlement payableSettlement(final String amount, final Instant at) {
 		return Settlement.ofPayable(SettlementId.of(UUID.randomUUID()), PayableId.of(UUID.randomUUID()),
 				new BigDecimal(amount), null, null, null, null, SettlementMethod.MANUAL, at);
 	}
 
-	private static CashMovement movement(CashMovementDirection direction, String amount, Instant at) {
+	private static CashMovement movement(final CashMovementDirection direction, final String amount, final Instant at) {
 		return CashMovement.of(CashMovementId.of(UUID.randomUUID()), InternalCashBoxId.MAIN, direction,
 				new BigDecimal(amount), "transfer", at);
 	}
 
-	private void statement(BankStatementLine... lines) {
+	private void statement(final BankStatementLine... lines) {
 		when(importBankStatementPort.parse("statement")).thenReturn(List.of(lines));
 	}
 
-	private void settlements(Settlement... settlements) {
+	private void settlements(final Settlement... settlements) {
 		when(settlementRepositoryPort.findRealizedBetween(any(), any(), any())).thenReturn(List.of(settlements));
 	}
 
-	private void movements(CashMovement... movements) {
+	private void movements(final CashMovement... movements) {
 		when(internalCashBoxRepositoryPort.findMovementsBetween(any(), any())).thenReturn(List.of(movements));
 	}
 
 	@Test
 	@DisplayName("Matches a credit line to the receivable settlement of the same value and date")
-	void aCreditMatchesTheReceivableSettlementOfTheSameValueAndDate() {
-		Settlement received = receivableSettlement("100.00", NOON);
+	void creditMatchesTheReceivableSettlementOfTheSameValueAndDate() {
+		final Settlement received = receivableSettlement("100.00", NOON);
 		statement(line(1, DAY, "100.00"));
 		settlements(received);
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.unmatched()).isEmpty();
 		assertThat(result.matched()).singleElement().satisfies(matched -> {
@@ -113,13 +113,13 @@ class ReconcileBankStatementServiceTest {
 
 	@Test
 	@DisplayName("Matches a debit line to the payable settlement of the same value and date")
-	void aDebitMatchesThePayableSettlementOfTheSameValueAndDate() {
-		Settlement paid = payableSettlement("80.00", NOON);
+	void debitMatchesThePayableSettlementOfTheSameValueAndDate() {
+		final Settlement paid = payableSettlement("80.00", NOON);
 		statement(line(1, DAY, "-80.00"));
 		settlements(paid);
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).singleElement()
 				.satisfies(matched -> assertThat(matched.getSettlementId()).isEqualTo(paid.getId()));
@@ -132,7 +132,7 @@ class ReconcileBankStatementServiceTest {
 		settlements(receivableSettlement("100.00", NOON), payableSettlement("80.00", NOON));
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).isEmpty();
 		assertThat(result.unmatched()).extracting(BankStatementLine::getLineNumber).containsExactly(1, 2);
@@ -141,7 +141,7 @@ class ReconcileBankStatementServiceTest {
 	@Test
 	@DisplayName("Counts what was paid on top of the principal toward the matching value")
 	void whatWasPaidOnTopOfThePrincipalCountsTowardsTheValue() {
-		Settlement withInterest = Settlement.manual(SettlementId.of(UUID.randomUUID()),
+		final Settlement withInterest = Settlement.manual(SettlementId.of(UUID.randomUUID()),
 				ReceivableId.of(UUID.randomUUID()), new BigDecimal("100.00"), new BigDecimal("2.50"),
 				new BigDecimal("1.00"), new BigDecimal("50.00"), new BigDecimal("0.50"), NOON);
 		statement(line(1, DAY, "104.0"));
@@ -153,14 +153,14 @@ class ReconcileBankStatementServiceTest {
 
 	@Test
 	@DisplayName("Matches a deposit to a to-bank movement and a withdrawal to a from-bank movement")
-	void aDepositMatchesAToBankMovementAndAWithdrawalAFromBankMovement() {
-		CashMovement deposit = movement(CashMovementDirection.TO_BANK, "300.00", NOON);
-		CashMovement withdrawal = movement(CashMovementDirection.FROM_BANK, "50.00", NOON);
+	void depositMatchesAToBankMovementAndAWithdrawalAFromBankMovement() {
+		final CashMovement deposit = movement(CashMovementDirection.TO_BANK, "300.00", NOON);
+		final CashMovement withdrawal = movement(CashMovementDirection.FROM_BANK, "50.00", NOON);
 		statement(line(1, DAY, "300.00"), line(2, DAY, "-50.00"));
 		settlements();
 		movements(deposit, withdrawal);
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.unmatched()).isEmpty();
 		assertThat(result.matched()).extracting(BankStatementLine::getCashMovementId)
@@ -170,12 +170,12 @@ class ReconcileBankStatementServiceTest {
 
 	@Test
 	@DisplayName("Reports a line without a counterpart as unmatched instead of dropping it")
-	void aLineWithoutACounterpartIsReportedAsUnmatchedNotDropped() {
+	void lineWithoutACounterpartIsReportedAsUnmatchedNotDropped() {
 		statement(line(1, DAY, "100.00"), line(2, DAY, "999.99"), line(3, DAY.plusDays(1), "100.00"));
 		settlements(receivableSettlement("100.00", NOON));
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).extracting(BankStatementLine::getLineNumber).containsExactly(1);
 		assertThat(result.unmatched()).extracting(BankStatementLine::getLineNumber).containsExactly(2, 3);
@@ -184,13 +184,13 @@ class ReconcileBankStatementServiceTest {
 
 	@Test
 	@DisplayName("Lets a counterpart be taken by at most one line")
-	void aCounterpartIsTakenByAtMostOneLine() {
-		Settlement only = receivableSettlement("100.00", NOON);
+	void counterpartIsTakenByAtMostOneLine() {
+		final Settlement only = receivableSettlement("100.00", NOON);
 		statement(line(1, DAY, "100.00"), line(2, DAY, "100.00"));
 		settlements(only);
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).extracting(BankStatementLine::getLineNumber).containsExactly(1);
 		assertThat(result.unmatched()).extracting(BankStatementLine::getLineNumber).containsExactly(2);
@@ -199,13 +199,13 @@ class ReconcileBankStatementServiceTest {
 	@Test
 	@DisplayName("Matches identical lines to the oldest counterparts in order")
 	void identicalLinesAreMatchedToTheOldestCounterpartsInOrder() {
-		Settlement first = receivableSettlement("100.00", NOON);
-		Settlement second = receivableSettlement("100.00", NOON.plusSeconds(60));
+		final Settlement first = receivableSettlement("100.00", NOON);
+		final Settlement second = receivableSettlement("100.00", NOON.plusSeconds(60));
 		statement(line(1, DAY, "100.00"), line(2, DAY, "100.0"));
 		settlements(first, second);
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).extracting(BankStatementLine::getSettlementId)
 				.containsExactly(first.getId(), second.getId());
@@ -213,14 +213,14 @@ class ReconcileBankStatementServiceTest {
 
 	@Test
 	@DisplayName("Prefers a settlement over a cash movement of the same value and date")
-	void aSettlementIsPreferredOverACashMovementOfTheSameValueAndDate() {
-		Settlement settlement = receivableSettlement("100.00", NOON);
-		CashMovement deposit = movement(CashMovementDirection.TO_BANK, "100.00", NOON);
+	void settlementIsPreferredOverACashMovementOfTheSameValueAndDate() {
+		final Settlement settlement = receivableSettlement("100.00", NOON);
+		final CashMovement deposit = movement(CashMovementDirection.TO_BANK, "100.00", NOON);
 		statement(line(1, DAY, "100.00"), line(2, DAY, "100.00"));
 		settlements(settlement);
 		movements(deposit);
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).extracting(BankStatementLine::getSettlementId, BankStatementLine::getCashMovementId)
 				.containsExactly(tuple(settlement.getId(), null),
@@ -230,13 +230,13 @@ class ReconcileBankStatementServiceTest {
 	@Test
 	@DisplayName("Compares dates on the UTC calendar day")
 	void datesAreComparedOnTheUtcCalendarDay() {
-		Settlement lateEvening = receivableSettlement("10.00", Instant.parse("2026-09-25T23:59:59Z"));
-		Settlement justAfterMidnight = receivableSettlement("20.00", Instant.parse("2026-09-26T00:00:00Z"));
+		final Settlement lateEvening = receivableSettlement("10.00", Instant.parse("2026-09-25T23:59:59Z"));
+		final Settlement justAfterMidnight = receivableSettlement("20.00", Instant.parse("2026-09-26T00:00:00Z"));
 		statement(line(1, DAY, "10.00"), line(2, DAY, "20.00"));
 		settlements(lateEvening, justAfterMidnight);
 		movements();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).extracting(BankStatementLine::getLineNumber).containsExactly(1);
 		assertThat(result.unmatched()).extracting(BankStatementLine::getLineNumber).containsExactly(2);
@@ -251,7 +251,7 @@ class ReconcileBankStatementServiceTest {
 
 		service.execute(command);
 
-		ArgumentCaptor<CashFlowFilter> filter = ArgumentCaptor.forClass(CashFlowFilter.class);
+		final ArgumentCaptor<CashFlowFilter> filter = ArgumentCaptor.forClass(CashFlowFilter.class);
 		verify(settlementRepositoryPort).findRealizedBetween(eq(Instant.parse("2026-09-25T00:00:00Z")),
 				eq(Instant.parse("2026-09-30T00:00:00Z")), filter.capture());
 		assertThat(filter.getValue()).isEqualTo(new CashFlowFilter(null, null, bankAccount, null));
@@ -264,7 +264,7 @@ class ReconcileBankStatementServiceTest {
 	void anEmptyStatementReconcilesNothingWithoutQueryingTheLedger() {
 		statement();
 
-		ReconciliationResult result = service.execute(command);
+		final ReconciliationResult result = service.execute(command);
 
 		assertThat(result.matched()).isEmpty();
 		assertThat(result.unmatched()).isEmpty();

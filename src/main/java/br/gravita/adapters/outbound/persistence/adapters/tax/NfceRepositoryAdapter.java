@@ -19,21 +19,21 @@ class NfceRepositoryAdapter implements NfceRepositoryPort {
 	private final NfceSaleJpaRepository jpaRepository;
 	private final NfceSalePersistenceMapper mapper;
 
-	NfceRepositoryAdapter(NfceSaleJpaRepository jpaRepository, NfceSalePersistenceMapper mapper) {
+	NfceRepositoryAdapter(final NfceSaleJpaRepository jpaRepository, final NfceSalePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public NfceSale save(NfceSale sale) {
-		NfceSaleJpaEntity entity = mapper.map(sale);
+	public NfceSale save(final NfceSale sale) {
+		final NfceSaleJpaEntity entity = mapper.map(sale);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		NfceSaleJpaEntity saved = jpaRepository.save(entity);
+		final NfceSaleJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<NfceSale> findById(NfceSaleId id) {
+	public Optional<NfceSale> findById(final NfceSaleId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
@@ -43,12 +43,12 @@ class NfceRepositoryAdapter implements NfceRepositoryPort {
 	}
 
 	@Override
-	public List<NfceSale> findBySessionId(PosSessionId sessionId) {
+	public List<NfceSale> findBySessionId(final PosSessionId sessionId) {
 		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<NfceSale> findAuthorizedBetween(Instant from, Instant to) {
+	public List<NfceSale> findAuthorizedBetween(final Instant from, final Instant to) {
 		return jpaRepository
 				.findByStatusAndRegisteredAtGreaterThanEqualAndRegisteredAtLessThanOrderByRegisteredAt(
 						NfceSaleStatus.AUTHORIZED, from, to)

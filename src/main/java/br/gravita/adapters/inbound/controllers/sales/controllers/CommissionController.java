@@ -27,9 +27,9 @@ public class CommissionController {
 
 	@GetMapping
 	public ResponseEntity<List<CommissionResponse>> calculate(
-			@RequestParam(required = false) UUID salesperson,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
-		List<CommissionResponse> commissions = calculateCommissionUseCase
+			@RequestParam(required = false) final UUID salesperson,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
+		final List<CommissionResponse> commissions = calculateCommissionUseCase
 				.execute(new CalculateCommissionQuery(salesperson, period)).stream().map(CommissionResponse::from)
 				.toList();
 		return ResponseEntity.ok(commissions);
@@ -37,7 +37,7 @@ public class CommissionController {
 
 	@ExceptionHandler(CommissionRateNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleCommissionRateNotFoundException(
-			CommissionRateNotFoundException exception) {
+			final CommissionRateNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 }

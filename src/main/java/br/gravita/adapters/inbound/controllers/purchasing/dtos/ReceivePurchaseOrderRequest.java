@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public record ReceivePurchaseOrderRequest(@NotEmpty List<@Valid ItemRequest> receivedItems) {
 
-	public ReceivePurchaseOrderCommand toCommand(UUID orderId) {
+	public ReceivePurchaseOrderCommand toCommand(final UUID orderId) {
 		return new ReceivePurchaseOrderCommand(PurchaseOrderId.of(orderId),
 				receivedItems.stream().map(ItemRequest::toDomain).toList());
 	}

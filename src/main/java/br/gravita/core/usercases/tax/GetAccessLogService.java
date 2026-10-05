@@ -15,18 +15,18 @@ public class GetAccessLogService implements GetAccessLogUseCase {
 
 	private final AccessLogRepositoryPort accessLogRepositoryPort;
 
-	public GetAccessLogService(AccessLogRepositoryPort accessLogRepositoryPort) {
+	public GetAccessLogService(final AccessLogRepositoryPort accessLogRepositoryPort) {
 		this.accessLogRepositoryPort = accessLogRepositoryPort;
 	}
 
 	@Override
-	public Page<AccessLog> execute(GetAccessLogQuery query) {
-		Instant retentionCutoff = Instant.now().atZone(ZoneOffset.UTC).minusMonths(AccessLog.RETENTION_MONTHS).toInstant();
-		Instant effectiveDateFrom = query.dateFrom() == null || query.dateFrom().isBefore(retentionCutoff)
+	public Page<AccessLog> execute(final GetAccessLogQuery query) {
+		final Instant retentionCutoff = Instant.now().atZone(ZoneOffset.UTC).minusMonths(AccessLog.RETENTION_MONTHS).toInstant();
+		final Instant effectiveDateFrom = query.dateFrom() == null || query.dateFrom().isBefore(retentionCutoff)
 				? retentionCutoff
 				: query.dateFrom();
 
-		GetAccessLogQuery effectiveQuery = new GetAccessLogQuery(
+		final GetAccessLogQuery effectiveQuery = new GetAccessLogQuery(
 				query.userId(), effectiveDateFrom, query.dateTo(), query.ip(), query.device(), query.page(), query.size());
 
 		return accessLogRepositoryPort.search(effectiveQuery);

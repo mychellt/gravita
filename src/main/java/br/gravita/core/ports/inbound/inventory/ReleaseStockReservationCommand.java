@@ -11,11 +11,11 @@ public record ReleaseStockReservationCommand(UUID reservationId, UUID orderRef) 
 		}
 	}
 
-	public ReleaseStockReservationCommand(UUID reservationId) {
+	public ReleaseStockReservationCommand(final UUID reservationId) {
 		this(reservationId, null);
 	}
 
-	public static ReleaseStockReservationCommand byOrderRef(UUID orderRef) {
+	public static ReleaseStockReservationCommand byOrderRef(final UUID orderRef) {
 		Objects.requireNonNull(orderRef, "orderRef is required");
 		return new ReleaseStockReservationCommand(null, orderRef);
 	}

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record ProfileResponse(UUID id, String name, List<PermissionResponse> permissions) {
 
-	public static ProfileResponse from(ProfileDomain domain) {
+	public static ProfileResponse from(final ProfileDomain domain) {
 		return new ProfileResponse(
 				domain.getId(),
 				domain.getName(),

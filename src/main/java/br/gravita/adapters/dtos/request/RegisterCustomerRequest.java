@@ -32,7 +32,7 @@ public record RegisterCustomerRequest(
 		@Valid List<PriceTableLinkRequest> priceTables) {
 
 	public CustomerDomain toDomain() {
-		Document documentDomain = type == PersonType.COMPANY ? Document.cnpj(document) : Document.cpf(document);
+		final Document documentDomain = type == PersonType.COMPANY ? Document.cnpj(document) : Document.cpf(document);
 		return CustomerDomain.builder()
 				.name(name)
 				.documentDomain(documentDomain)

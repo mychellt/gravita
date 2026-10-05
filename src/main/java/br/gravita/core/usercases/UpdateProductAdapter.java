@@ -15,16 +15,16 @@ public class UpdateProductAdapter implements UpdateProductPort {
 	private final ProductRepositoryPort productRepositoryPort;
 	private final InventoryLotSerialRepositoryPort inventoryLotSerialRepositoryPort;
 
-	public UpdateProductAdapter(ProductRepositoryPort productRepositoryPort,
-			InventoryLotSerialRepositoryPort inventoryLotSerialRepositoryPort) {
+	public UpdateProductAdapter(final ProductRepositoryPort productRepositoryPort,
+			final InventoryLotSerialRepositoryPort inventoryLotSerialRepositoryPort) {
 		this.productRepositoryPort = productRepositoryPort;
 		this.inventoryLotSerialRepositoryPort = inventoryLotSerialRepositoryPort;
 	}
 
 	@Override
-	public ProductDomain execute(Context context) {
-		ProductDomain patch = context.getData(ProductDomain.class);
-		ProductDomain existing = productRepositoryPort.get(patch.getId())
+	public ProductDomain execute(final Context context) {
+		final ProductDomain patch = context.getData(ProductDomain.class);
+		final ProductDomain existing = productRepositoryPort.get(patch.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found: " + patch.getId()));
 
 		validateBarcodesAreUnique(patch, existing);
@@ -36,21 +36,21 @@ public class UpdateProductAdapter implements UpdateProductPort {
 		return productRepositoryPort.save(existing);
 	}
 
-	private void validateBarcodesAreUnique(ProductDomain patch, ProductDomain existing) {
+	private void validateBarcodesAreUnique(final ProductDomain patch, final ProductDomain existing) {
 		if (patch.getBarcodes() == null) {
 			return;
 		}
-		for (String barcode : patch.getBarcodes()) {
-			boolean alreadyOwnedByThisProduct = existing.getBarcodes() != null && existing.getBarcodes().contains(barcode);
+		for (final String barcode : patch.getBarcodes()) {
+			final boolean alreadyOwnedByThisProduct = existing.getBarcodes() != null && existing.getBarcodes().contains(barcode);
 			if (!alreadyOwnedByThisProduct && productRepositoryPort.existsByBarcode(barcode)) {
 				throw new BusinessRuleException("Barcode is already registered to another product: " + barcode);
 			}
 		}
 	}
 
-	private void validateLotSerialControlDowngrade(ProductDomain patch, ProductDomain existing) {
-		boolean disablingLotControl = Boolean.TRUE.equals(existing.getLotControl()) && Boolean.FALSE.equals(patch.getLotControl());
-		boolean disablingSerialControl =
+	private void validateLotSerialControlDowngrade(final ProductDomain patch, final ProductDomain existing) {
+		final boolean disablingLotControl = Boolean.TRUE.equals(existing.getLotControl()) && Boolean.FALSE.equals(patch.getLotControl());
+		final boolean disablingSerialControl =
 				Boolean.TRUE.equals(existing.getSerialControl()) && Boolean.FALSE.equals(patch.getSerialControl());
 		if (!disablingLotControl && !disablingSerialControl) {
 			return;

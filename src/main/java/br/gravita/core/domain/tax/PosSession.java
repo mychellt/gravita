@@ -21,8 +21,8 @@ public final class PosSession {
 	private final Instant openedAt;
 	private final Instant closedAt;
 
-	public PosSession(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
-			BigDecimal openingChangeAmount, PosSessionStatus status, Instant openedAt, Instant closedAt) {
+	public PosSession(final PosSessionId id, final UUID registerId, final UUID operatorId, final CompanyId companyId,
+			final BigDecimal openingChangeAmount, final PosSessionStatus status, final Instant openedAt, final Instant closedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.registerId = Objects.requireNonNull(registerId, "registerId is required");
 		this.operatorId = Objects.requireNonNull(operatorId, "operatorId is required");
@@ -33,18 +33,18 @@ public final class PosSession {
 		this.closedAt = closedAt;
 	}
 
-	public static PosSession open(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
-			BigDecimal openingChangeAmount, Instant openedAt) {
+	public static PosSession open(final PosSessionId id, final UUID registerId, final UUID operatorId, final CompanyId companyId,
+			final BigDecimal openingChangeAmount, final Instant openedAt) {
 		return new PosSession(id, registerId, operatorId, companyId, openingChangeAmount, PosSessionStatus.OPEN,
 				openedAt, null);
 	}
 
-	public static PosSession of(PosSessionId id, UUID registerId, UUID operatorId, CompanyId companyId,
-			BigDecimal openingChangeAmount, PosSessionStatus status, Instant openedAt, Instant closedAt) {
+	public static PosSession of(final PosSessionId id, final UUID registerId, final UUID operatorId, final CompanyId companyId,
+			final BigDecimal openingChangeAmount, final PosSessionStatus status, final Instant openedAt, final Instant closedAt) {
 		return new PosSession(id, registerId, operatorId, companyId, openingChangeAmount, status, openedAt, closedAt);
 	}
 
-	public PosSession close(Instant closedAt) {
+	public PosSession close(final Instant closedAt) {
 		if (status != PosSessionStatus.OPEN) {
 			throw new BusinessRuleException("PosSession " + id.value() + " is not open (current status: " + status + ")");
 		}
@@ -52,7 +52,7 @@ public final class PosSession {
 				openedAt, Objects.requireNonNull(closedAt, "closedAt is required"));
 	}
 
-	private static BigDecimal requireNonNegative(BigDecimal openingChangeAmount) {
+	private static BigDecimal requireNonNegative(final BigDecimal openingChangeAmount) {
 		if (openingChangeAmount == null || openingChangeAmount.compareTo(BigDecimal.ZERO) < 0) {
 			throw new BusinessRuleException("openingChangeAmount must not be negative");
 		}

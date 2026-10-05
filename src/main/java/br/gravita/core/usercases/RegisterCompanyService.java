@@ -20,19 +20,19 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final DocumentSeriesRepositoryPort documentSeriesRepositoryPort;
 
-	public RegisterCompanyService(CompanyRepositoryPort companyRepositoryPort,
-			DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
+	public RegisterCompanyService(final CompanyRepositoryPort companyRepositoryPort,
+			final DocumentSeriesRepositoryPort documentSeriesRepositoryPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.documentSeriesRepositoryPort = documentSeriesRepositoryPort;
 	}
 
 	@Override
-	public CompanyId execute(RegisterCompanyCommand command) {
+	public CompanyId execute(final RegisterCompanyCommand command) {
 		validateParentCompany(command.parentCompanyId());
 
-		boolean isNewCompany = command.id() == null;
-		Company company = isNewCompany ? registerNewCompany(command) : updateExistingCompany(command);
-		Company saved = companyRepositoryPort.save(company);
+		final boolean isNewCompany = command.id() == null;
+		final Company company = isNewCompany ? registerNewCompany(command) : updateExistingCompany(command);
+		final Company saved = companyRepositoryPort.save(company);
 
 		if (isNewCompany) {
 			createInitialDocumentSeries(saved.getId());
@@ -40,39 +40,66 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 		return saved.getId();
 	}
 
-	private Company registerNewCompany(RegisterCompanyCommand command) {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
-		return Company.of(id, command.name(), command.cnpj(), command.ie(), command.im(), command.cnae(), command.taxRegime(),
-				command.simplesOptante(), SefazEnvironment.HOMOLOGATION, command.address(), command.state(),
-				command.issuingEmail(), command.phone(), command.logoUrl(), command.parentCompanyId());
+	private Company registerNewCompany(final RegisterCompanyCommand command) {
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
+		return Company.builder()
+				.id(id)
+				.name(command.name())
+				.cnpj(command.cnpj())
+				.ie(command.ie())
+				.im(command.im())
+				.cnae(command.cnae())
+				.taxRegime(command.taxRegime())
+				.simplesOptante(command.simplesOptante())
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address(command.address())
+				.state(command.state())
+				.issuingEmail(command.issuingEmail())
+				.phone(command.phone())
+				.logoUrl(command.logoUrl())
+				.parentCompanyId(command.parentCompanyId())
+				.build();
 	}
 
-	private Company updateExistingCompany(RegisterCompanyCommand command) {
-		Company existing = companyRepositoryPort.findById(command.id())
+	private Company updateExistingCompany(final RegisterCompanyCommand command) {
+		final Company existing = companyRepositoryPort.findById(command.id())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.id().value()));
 		rejectCnpjChange(existing, command);
-		return Company.of(existing.getId(), command.name(), existing.getCnpj(), command.ie(), command.im(),
-				command.cnae(), command.taxRegime(), command.simplesOptante(), existing.getSefazEnvironment(), command.address(),
-				command.state(), command.issuingEmail(), command.phone(), command.logoUrl(),
-				command.parentCompanyId());
+		return Company.builder()
+				.id(existing.getId())
+				.name(command.name())
+				.cnpj(existing.getCnpj())
+				.ie(command.ie())
+				.im(command.im())
+				.cnae(command.cnae())
+				.taxRegime(command.taxRegime())
+				.simplesOptante(command.simplesOptante())
+				.sefazEnvironment(existing.getSefazEnvironment())
+				.address(command.address())
+				.state(command.state())
+				.issuingEmail(command.issuingEmail())
+				.phone(command.phone())
+				.logoUrl(command.logoUrl())
+				.parentCompanyId(command.parentCompanyId())
+				.build();
 	}
 
 	/** The CNPJ identifies the legal entity: a different one is a new company, not an edit. Omitting it is fine. */
-	private void rejectCnpjChange(Company existing, RegisterCompanyCommand command) {
+	private void rejectCnpjChange(final Company existing, final RegisterCompanyCommand command) {
 		if (command.cnpj() != null && !command.cnpj().equals(existing.getCnpj())) {
 			throw new BusinessRuleException(
 					"CNPJ cannot be changed: it identifies the legal entity, register a new company instead");
 		}
 	}
 
-	private void validateParentCompany(CompanyId parentCompanyId) {
+	private void validateParentCompany(final CompanyId parentCompanyId) {
 		if (parentCompanyId != null && companyRepositoryPort.findById(parentCompanyId).isEmpty()) {
 			throw new BusinessRuleException("Parent company not found: " + parentCompanyId.value());
 		}
 	}
 
-	private void createInitialDocumentSeries(CompanyId companyId) {
-		for (FiscalDocumentType documentType : FiscalDocumentType.values()) {
+	private void createInitialDocumentSeries(final CompanyId companyId) {
+		for (final FiscalDocumentType documentType : FiscalDocumentType.values()) {
 			documentSeriesRepositoryPort.save(DocumentSeries.placeholder(companyId, documentType));
 		}
 	}

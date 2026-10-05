@@ -22,12 +22,12 @@ public class DefaultPlansSeeder implements ApplicationRunner {
 
 	private final DataSource dataSource;
 
-	public DefaultPlansSeeder(DataSource dataSource) {
+	public DefaultPlansSeeder(final DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
 	@Override
-	public void run(ApplicationArguments args) {
+	public void run(final ApplicationArguments args) {
 		new ResourceDatabasePopulator(new ClassPathResource(SEED_SCRIPT)).execute(dataSource);
 	}
 }

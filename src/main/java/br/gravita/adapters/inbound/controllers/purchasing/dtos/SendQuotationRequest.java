@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record SendQuotationRequest(@NotEmpty List<UUID> suppliers) {
 
-	public SendQuotationCommand toCommand(UUID requestId) {
+	public SendQuotationCommand toCommand(final UUID requestId) {
 		return new SendQuotationCommand(
 				PurchaseRequestId.of(requestId),
 				suppliers.stream().map(SupplierId::of).toList());

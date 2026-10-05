@@ -21,19 +21,19 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	private final InboundNfeJpaRepository jpaRepository;
 	private final InboundNfePersistenceMapper mapper;
 
-	InboundNfeRepositoryAdapter(InboundNfeJpaRepository jpaRepository, InboundNfePersistenceMapper mapper) {
+	InboundNfeRepositoryAdapter(final InboundNfeJpaRepository jpaRepository, final InboundNfePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public InboundNfe save(InboundNfe inboundNfe) {
-		InboundNfeJpaEntity entity = mapper.map(inboundNfe);
+	public InboundNfe save(final InboundNfe inboundNfe) {
+		final InboundNfeJpaEntity entity = mapper.map(inboundNfe);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		try {
-			InboundNfeJpaEntity saved = jpaRepository.saveAndFlush(entity);
+			final InboundNfeJpaEntity saved = jpaRepository.saveAndFlush(entity);
 			return mapper.map(saved);
-		} catch (DataIntegrityViolationException e) {
+		} catch (final DataIntegrityViolationException e) {
 			if (violatesAccessKeyUniqueness(e)) {
 				throw new DuplicateResourceException(
 						"An NFe with access key " + entity.getAccessKey() + " has already been imported");
@@ -43,28 +43,28 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
-	public Optional<InboundNfe> findById(InboundNfeId id) {
+	public Optional<InboundNfe> findById(final InboundNfeId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public Optional<InboundNfe> findByAccessKey(String accessKey) {
+	public Optional<InboundNfe> findByAccessKey(final String accessKey) {
 		return jpaRepository.findByAccessKey(accessKey).map(mapper::map);
 	}
 
-	private boolean violatesAccessKeyUniqueness(DataIntegrityViolationException e) {
-		String message = e.getMostSpecificCause().getMessage();
+	private boolean violatesAccessKeyUniqueness(final DataIntegrityViolationException e) {
+		final String message = e.getMostSpecificCause().getMessage();
 		return message != null && message.contains("access_key");
 	}
 
 	@Override
-	public List<InboundNfe> findIssuedBetween(Instant from, Instant to) {
+	public List<InboundNfe> findIssuedBetween(final Instant from, final Instant to) {
 		return jpaRepository.findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(from, to).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public List<InboundNfe> findIssuedByCompanyBetween(CompanyId companyId, Instant from, Instant to) {
+	public List<InboundNfe> findIssuedByCompanyBetween(final CompanyId companyId, final Instant from, final Instant to) {
 		return jpaRepository
 				.findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(companyId.value(), from,
 						to)
@@ -72,7 +72,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
-	public List<InboundNfe> findConfirmedByCompanyBetween(CompanyId companyId, Instant from, Instant to) {
+	public List<InboundNfe> findConfirmedByCompanyBetween(final CompanyId companyId, final Instant from, final Instant to) {
 		return jpaRepository
 				.findByCompanyIdAndStatusAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(
 						companyId.value(), InboundNfeStatus.CONFIRMED, from, to)

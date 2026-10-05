@@ -102,7 +102,7 @@ class IssueNfceServiceTest {
 	}
 
 	private NfceSale draftSale() {
-		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		final SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
 		return NfceSale.register(NfceSaleId.of(saleId), sessionId, List.of(item), null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
 	}
@@ -113,9 +113,23 @@ class IssueNfceServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfce@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfce@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private TaxCalculationResult emptyTaxResult() {
@@ -126,17 +140,17 @@ class IssueNfceServiceTest {
 
 	@Test
 	@DisplayName("Moves the sale to authorized with the SEFAZ protocol on online authorization")
-	void ac1_onlineAuthorizationMovesTheSaleToAuthorizedWithTheSefazProtocol() {
+	void ac1OnlineAuthorizationMovesTheSaleToAuthorizedWithTheSefazProtocol() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
-		NfceIssuanceResult result = service.execute(new IssueNfceCommand(saleId));
+		final NfceIssuanceResult result = service.execute(new IssueNfceCommand(saleId));
 
 		assertThat(result.status()).isEqualTo(NfceSaleStatus.AUTHORIZED);
 		assertThat(result.protocol()).isEqualTo("protocol-123");
 		assertThat(result.accessKey()).hasSize(44);
 		verify(transmissionQueuePort, never()).enqueue(any());
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getStatus()).isEqualTo(NfceSaleStatus.AUTHORIZED);
 		assertThat(captor.getValue().isContingencyMode()).isFalse();
@@ -144,16 +158,16 @@ class IssueNfceServiceTest {
 
 	@Test
 	@DisplayName("Queues the sale for contingency instead of blocking when SEFAZ is unavailable")
-	void ac2_sefazUnavailableQueuesTheSaleForContingencyInsteadOfBlocking() {
+	void ac2SefazUnavailableQueuesTheSaleForContingencyInsteadOfBlocking() {
 		when(submitToSefazPort.submit(any())).thenThrow(new SefazUnavailableException("timeout", null));
 
-		NfceIssuanceResult result = service.execute(new IssueNfceCommand(saleId));
+		final NfceIssuanceResult result = service.execute(new IssueNfceCommand(saleId));
 
 		assertThat(result.status()).isEqualTo(NfceSaleStatus.PENDING_SYNC);
 		assertThat(result.protocol()).isNull();
 		verify(transmissionQueuePort).enqueue(NfceSaleId.of(saleId));
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getStatus()).isEqualTo(NfceSaleStatus.PENDING_SYNC);
 		assertThat(captor.getValue().isContingencyMode()).isTrue();
@@ -161,12 +175,12 @@ class IssueNfceServiceTest {
 
 	@Test
 	@DisplayName("Always takes the tax totals from the shared CalculateTax use case")
-	void ac3_theTaxTotalsAlwaysComeFromTheSharedCalculateTaxUseCase() {
+	void ac3TheTaxTotalsAlwaysComeFromTheSharedCalculateTaxUseCase() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
 		service.execute(new IssueNfceCommand(saleId));
 
-		ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
+		final ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
 		verify(calculateTaxUseCase).execute(captor.capture());
 		assertThat(captor.getValue().items()).hasSize(1);
 		assertThat(captor.getValue().operationType()).isEqualTo("VENDA_PDV");
@@ -176,12 +190,12 @@ class IssueNfceServiceTest {
 
 	@Test
 	@DisplayName("Allocates document numbering exactly once per sale")
-	void ac4_documentNumberingIsAllocatedExactlyOncePerSale() {
+	void ac4DocumentNumberingIsAllocatedExactlyOncePerSale() {
 		when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("protocol-123"));
 
 		service.execute(new IssueNfceCommand(saleId));
 
-		ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor.forClass(AllocateDocumentNumberCommand.class);
+		final ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor.forClass(AllocateDocumentNumberCommand.class);
 		verify(allocateDocumentNumberUseCase, org.mockito.Mockito.times(1)).execute(captor.capture());
 		assertThat(captor.getValue().companyId()).isEqualTo(companyId);
 		assertThat(captor.getValue().documentType()).isEqualTo(FiscalDocumentType.NFCE);
@@ -189,7 +203,7 @@ class IssueNfceServiceTest {
 
 	@Test
 	@DisplayName("Rejects issuing a sale that does not exist")
-	void aNonExistentSaleIsRejected() {
+	void nonExistentSaleIsRejected() {
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new IssueNfceCommand(saleId)))
@@ -201,7 +215,7 @@ class IssueNfceServiceTest {
 	@Test
 	@DisplayName("Rejects issuing a sale that was already issued")
 	void anAlreadyIssuedSaleCannotBeIssuedAgain() {
-		NfceSale alreadyAuthorized = draftSale().authorize("001", 1L, "3".repeat(44), "protocol-1");
+		final NfceSale alreadyAuthorized = draftSale().authorize("001", 1L, "3".repeat(44), "protocol-1");
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(alreadyAuthorized));
 
 		assertThatThrownBy(() -> service.execute(new IssueNfceCommand(saleId)))

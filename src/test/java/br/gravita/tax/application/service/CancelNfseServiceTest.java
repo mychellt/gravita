@@ -68,18 +68,31 @@ class CancelNfseServiceTest {
 		service = new CancelNfseService(nfseRepositoryPort, integrationRepositoryPort, List.of(abrasf, betha));
 	}
 
-	private static IssueNfsePort issuer(NfseStandard standard) {
-		IssueNfsePort port = mock(IssueNfsePort.class);
+	private static IssueNfsePort issuer(final NfseStandard standard) {
+		final IssueNfsePort port = mock(IssueNfsePort.class);
 		when(port.standard()).thenReturn(standard);
 		return port;
 	}
 
 	private NfseDocument rps() {
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), companyId, SP,
-				NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null),
-				ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, SP, new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(), "Consultoria", "RPS", 1L,
-				Instant.now());
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(companyId)
+				.providerMunicipalityIbgeCode(SP)
+				.tomador(NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null))
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode(SP)
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("Consultoria")
+				.rpsSeries("RPS")
+				.rpsNumber(1L)
+				.createdAt(Instant.now())
+				.build();
 	}
 
 	private NfseDocument draft() {
@@ -90,32 +103,32 @@ class CancelNfseServiceTest {
 		return draft().send(Instant.now()).authorize("PROT-1", Instant.now(), "xml/ref-1");
 	}
 
-	private MunicipalityIntegration integration(NfseStandard standard, boolean homologated) {
+	private MunicipalityIntegration integration(final NfseStandard standard, final boolean homologated) {
 		return MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), SP, standard,
 				homologated ? "2.04" : null, homologated ? "https://nfse.example/ws" : null, CertificateType.A1,
 				List.of("inscricaoMunicipal"), homologated);
 	}
 
-	private void stored(NfseDocument document, MunicipalityIntegration integration) {
+	private void stored(final NfseDocument document, final MunicipalityIntegration integration) {
 		when(nfseRepositoryPort.findByIdForUpdate(document.getId())).thenReturn(Optional.of(document));
 		when(integrationRepositoryPort.findByIbgeCode(SP)).thenReturn(Optional.of(integration));
 	}
 
-	private static CancelNfseCommand commandFor(NfseDocument document) {
+	private static CancelNfseCommand commandFor(final NfseDocument document) {
 		return new CancelNfseCommand(document.getId(), JUSTIFICATION);
 	}
 
 	@Test
 	@DisplayName("Cancels an authorized document through the adapter of its municipality's standard")
-	void ac1and3_anAuthorizedDocumentIsCancelledThroughTheAdapterOfItsMunicipalitysStandard() {
-		NfseDocument authorized = authorized();
-		MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
+	void ac1and3AnAuthorizedDocumentIsCancelledThroughTheAdapterOfItsMunicipalitysStandard() {
+		final NfseDocument authorized = authorized();
+		final MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
 		stored(authorized, integration);
 		when(betha.cancel(any())).thenReturn(NfseCancellationResult.confirmed(CANCELLED_AT));
 
 		service.execute(commandFor(authorized));
 
-		ArgumentCaptor<NfseCancellationRequest> request = ArgumentCaptor.forClass(NfseCancellationRequest.class);
+		final ArgumentCaptor<NfseCancellationRequest> request = ArgumentCaptor.forClass(NfseCancellationRequest.class);
 		verify(betha).cancel(request.capture());
 		assertThat(request.getValue().integration()).isSameAs(integration);
 		assertThat(request.getValue().document().getId()).isEqualTo(authorized.getId());
@@ -125,14 +138,14 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Saves the confirmed cancellation as cancelled with the justification, keeping the same record")
-	void ac2and4_theConfirmedCancellationIsSavedAsCancelledWithTheJustificationAndTheSameRecord() {
-		NfseDocument authorized = authorized();
+	void ac2and4TheConfirmedCancellationIsSavedAsCancelledWithTheJustificationAndTheSameRecord() {
+		final NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
 		when(abrasf.cancel(any())).thenReturn(NfseCancellationResult.confirmed(CANCELLED_AT));
 
 		service.execute(commandFor(authorized));
 
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(authorized.getId());
 		assertThat(saved.getValue().getStatus()).isEqualTo(NfseStatus.CANCELLED);
@@ -143,8 +156,8 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Refuses a missing or blank justification before loading or sending anything")
-	void ac2_aMissingOrBlankJustificationIsRefusedBeforeAnythingIsLoadedOrSent() {
-		NfseId id = NfseId.of(UUID.randomUUID());
+	void ac2AMissingOrBlankJustificationIsRefusedBeforeAnythingIsLoadedOrSent() {
+		final NfseId id = NfseId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> service.execute(new CancelNfseCommand(id, null)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("justification");
@@ -158,10 +171,10 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Only an authorized document can be cancelled")
-	void ac1_onlyAnAuthorizedDocumentCanBeCancelled() {
-		NfseDocument draft = draft();
-		NfseDocument cancelled = authorized().cancel("motivo", Instant.now());
-		NfseDocument rps = rps();
+	void ac1OnlyAnAuthorizedDocumentCanBeCancelled() {
+		final NfseDocument draft = draft();
+		final NfseDocument cancelled = authorized().cancel("motivo", Instant.now());
+		final NfseDocument rps = rps();
 		when(nfseRepositoryPort.findByIdForUpdate(draft.getId())).thenReturn(Optional.of(draft));
 		when(nfseRepositoryPort.findByIdForUpdate(cancelled.getId())).thenReturn(Optional.of(cancelled));
 		when(nfseRepositoryPort.findByIdForUpdate(rps.getId())).thenReturn(Optional.of(rps));
@@ -181,8 +194,8 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Reports a municipality refusal with its reason and saves nothing")
-	void aMunicipalityRefusalIsReportedWithItsReasonAndNothingIsSaved() {
-		NfseDocument authorized = authorized();
+	void municipalityRefusalIsReportedWithItsReasonAndNothingIsSaved() {
+		final NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
 		when(abrasf.cancel(any())).thenReturn(NfseCancellationResult.rejected("E79 - Prazo de cancelamento expirado"));
 
@@ -194,8 +207,8 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Propagates a municipality that does not answer and saves nothing")
-	void aMunicipalityThatDoesNotAnswerPropagatesAndNothingIsSaved() {
-		NfseDocument authorized = authorized();
+	void municipalityThatDoesNotAnswerPropagatesAndNothingIsSaved() {
+		final NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.ABRASF, true));
 		when(abrasf.cancel(any())).thenThrow(new NfseMunicipalityUnavailableException("timeout", null));
 
@@ -207,8 +220,8 @@ class CancelNfseServiceTest {
 
 	@Test
 	@DisplayName("Treats a standard without an adapter or a non-homologated municipality as a business rule violation")
-	void aStandardWithoutAnAdapterOrANonHomologatedMunicipalityIsABusinessRuleViolation() {
-		NfseDocument authorized = authorized();
+	void standardWithoutAnAdapterOrANonHomologatedMunicipalityIsABusinessRuleViolation() {
+		final NfseDocument authorized = authorized();
 		stored(authorized, integration(NfseStandard.NFSE_NACIONAL, true));
 		assertThatThrownBy(() -> service.execute(commandFor(authorized))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("NFSE_NACIONAL");
@@ -235,7 +248,7 @@ class CancelNfseServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown document")
 	void anUnknownDocumentIsNotFound() {
-		NfseId id = NfseId.of(UUID.randomUUID());
+		final NfseId id = NfseId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new CancelNfseCommand(id, JUSTIFICATION)))

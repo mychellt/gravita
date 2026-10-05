@@ -16,14 +16,14 @@ public class DeleteCostCenterAdapter implements DeleteCostCenterPort {
 	private final CostCenterRepositoryPort costCenterRepositoryPort;
 	private final FinanceUsageQueryPort financeUsageQueryPort;
 
-	public DeleteCostCenterAdapter(CostCenterRepositoryPort costCenterRepositoryPort, FinanceUsageQueryPort financeUsageQueryPort) {
+	public DeleteCostCenterAdapter(final CostCenterRepositoryPort costCenterRepositoryPort, final FinanceUsageQueryPort financeUsageQueryPort) {
 		this.costCenterRepositoryPort = costCenterRepositoryPort;
 		this.financeUsageQueryPort = financeUsageQueryPort;
 	}
 
 	@Override
-	public Void execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public Void execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		costCenterRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Cost center not found: " + id));
 		if (costCenterRepositoryPort.existsByParentId(id)) {

@@ -33,16 +33,17 @@ public final class Company {
     private final String logoUrl;
     private final CompanyId parentCompanyId;
 
-    public Company(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
-                   boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
-                   String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
+    public Company(final CompanyId id, final String name, final Document cnpj, final String ie, final String im, final String cnae, final TaxRegime taxRegime,
+                   final boolean simplesOptante, final SefazEnvironment sefazEnvironment, final String address, final String state,
+                   final String issuingEmail, final String phone, final String logoUrl, final CompanyId parentCompanyId) {
         this(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state, issuingEmail,
                 phone, logoUrl, parentCompanyId, false);
     }
 
-    private Company(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
-                    boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
-                    String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId, boolean lenient) {
+    @Builder(builderMethodName = "rehydrate", builderClassName = "RehydrateBuilder")
+    private Company(final CompanyId id, final String name, final Document cnpj, final String ie, final String im, final String cnae, final TaxRegime taxRegime,
+                    final boolean simplesOptante, final SefazEnvironment sefazEnvironment, final String address, final String state,
+                    final String issuingEmail, final String phone, final String logoUrl, final CompanyId parentCompanyId, final boolean lenient) {
         this.id = id;
         this.name = requireName(name);
         this.cnpj = requireCnpj(cnpj);
@@ -60,18 +61,16 @@ public final class Company {
         this.parentCompanyId = parentCompanyId;
     }
 
-    public static Company draft(CompanyId id, String name, Document cnpj, String phone) {
+    /** Rebuilds a stored company as it is, including a draft whose fiscal profile is still incomplete. */
+    public static class RehydrateBuilder {
+        private boolean lenient = true;
+    }
+
+    public static Company draft(final CompanyId id, final String name, final Document cnpj, final String phone) {
         return new Company(id, requireName(name), requireCnpj(cnpj), null, null, null, TaxRegime.SIMPLES_NACIONAL, false,
                 SefazEnvironment.HOMOLOGATION, null, null, null, phone, null, null, true);
     }
 
-
-    public static Company rehydrate(CompanyId id, String name, Document cnpj, String ie, String im, String cnae,
-                                    TaxRegime taxRegime, boolean simplesOptante, SefazEnvironment sefazEnvironment, String address,
-                                    String state, String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
-        return new Company(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
-                issuingEmail, phone, logoUrl, parentCompanyId, true);
-    }
 
     /**
      * True once the fiscal profile has everything the strict rules require.
@@ -80,72 +79,65 @@ public final class Company {
         return ie != null && im != null && state != null;
     }
 
-    public static Company of(CompanyId id, String name, Document cnpj, String ie, String im, String cnae, TaxRegime taxRegime,
-                             boolean simplesOptante, SefazEnvironment sefazEnvironment, String address, String state,
-                             String issuingEmail, String phone, String logoUrl, CompanyId parentCompanyId) {
-        return new Company(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
-                issuingEmail, phone, logoUrl, parentCompanyId);
-    }
-
-    private static boolean isBlank(String value) {
+    private static boolean isBlank(final String value) {
         return value == null || value.isBlank();
     }
 
-    private static String requireName(String name) {
+    private static String requireName(final String name) {
         if (name == null || name.isBlank()) {
             throw new BusinessRuleException("Name is required");
         }
         return name.trim();
     }
 
-    private static Document requireCnpj(Document cnpj) {
+    private static Document requireCnpj(final Document cnpj) {
         if (cnpj == null) {
             throw new BusinessRuleException("CNPJ is required");
         }
         return cnpj;
     }
 
-    private static TaxRegime requireTaxRegime(TaxRegime taxRegime) {
+    private static TaxRegime requireTaxRegime(final TaxRegime taxRegime) {
         if (taxRegime == null) {
             throw new BusinessRuleException("Tax regime is required");
         }
         return taxRegime;
     }
 
-    private static SefazEnvironment requireSefazEnvironment(SefazEnvironment sefazEnvironment) {
+    private static SefazEnvironment requireSefazEnvironment(final SefazEnvironment sefazEnvironment) {
         if (sefazEnvironment == null) {
             throw new BusinessRuleException("SEFAZ environment is required");
         }
         return sefazEnvironment;
     }
 
-    private static String validateIe(String ie) {
+    private static String validateIe(final String ie) {
         if (ie == null || ie.isBlank()) {
             throw new BusinessRuleException("IE is required");
         }
-        String trimmed = ie.trim();
+        final String trimmed = ie.trim();
         if (!ISENTO.equalsIgnoreCase(trimmed) && !IE_DIGITS.matcher(trimmed).matches()) {
             throw new BusinessRuleException("Invalid IE: " + ie);
         }
         return trimmed;
     }
 
-    private static String validateIm(String im) {
+    private static String validateIm(final String im) {
         if (im == null || im.isBlank()) {
             throw new BusinessRuleException("IM is required");
         }
-        String trimmed = im.trim();
+        final String trimmed = im.trim();
         if (!IM_DIGITS.matcher(trimmed).matches()) {
             throw new BusinessRuleException("Invalid IM: " + im);
         }
         return trimmed;
     }
 
-    private static String validateState(String state) {
+    private static String validateState(final String state) {
         if (state == null || state.isBlank()) {
             throw new BusinessRuleException("State (UF) is required");
         }
-        String trimmed = state.trim().toUpperCase();
+        final String trimmed = state.trim().toUpperCase();
         if (!UF_CODE.matcher(trimmed).matches()) {
             throw new BusinessRuleException("Invalid state (UF): " + state);
         }

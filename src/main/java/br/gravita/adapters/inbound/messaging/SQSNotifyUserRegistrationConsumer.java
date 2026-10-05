@@ -25,7 +25,7 @@ public class SQSNotifyUserRegistrationConsumer {
         final NotifyUserRegistrationMessage registration;
         try {
             registration = objectMapper.readValue(body, NotifyUserRegistrationMessage.class);
-        } catch (JacksonException e) {
+        } catch (final JacksonException e) {
             log.error("Discarding malformed user registration message");
             return;
         }

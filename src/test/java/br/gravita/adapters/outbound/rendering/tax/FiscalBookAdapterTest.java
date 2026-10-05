@@ -35,13 +35,13 @@ class FiscalBookAdapterTest {
 	@Test
 	@DisplayName("Renders the PDF and the TXT with the same books, totals and voided ranges")
 	void rendersThePdfAndTheTxtWithTheSameBooksTotalsAndVoidedRanges() throws IOException {
-		FiscalBookFiles files = adapter.generate(books());
+		final FiscalBookFiles files = adapter.generate(books());
 
 		assertThat(files.pdf()).startsWith("%PDF".getBytes());
-		String pdf = textOf(files.pdf());
-		String txt = new String(files.txt(), StandardCharsets.UTF_8);
+		final String pdf = textOf(files.pdf());
+		final String txt = new String(files.txt(), StandardCharsets.UTF_8);
 		// The TXT prints its headings in capitals, the PDF as written: the same words either way.
-		for (String text : List.of(pdf.toLowerCase(Locale.ROOT), txt.toLowerCase(Locale.ROOT))) {
+		for (final String text : List.of(pdf.toLowerCase(Locale.ROOT), txt.toLowerCase(Locale.ROOT))) {
 			assertThat(text).containsSubsequence("03/2028", "cnpj: 11222333000181", "inscrição estadual: 123456789",
 					"01/03/2028 a 31/03/2028", "livro de entradas", "fornecedor alfa", "1102/1403",
 					"documentos: 1 | valor total: 165,00", "livro de saídas", "cliente sa", "5102",
@@ -56,7 +56,7 @@ class FiscalBookAdapterTest {
 	@Test
 	@DisplayName("Prints the TXT as fixed-width columns with amounts flush right")
 	void printsTheTxtAsFixedWidthColumnsWithAmountsFlushRight() {
-		String txt = new String(adapter.generate(books()).txt(), StandardCharsets.UTF_8);
+		final String txt = new String(adapter.generate(books()).txt(), StandardCharsets.UTF_8);
 
 		assertThat(txt).startsWith("LIVROS FISCAIS - 03/2028\n");
 		assertThat(txt).contains("LIVRO DE ENTRADAS\n", "LIVRO DE SAÍDAS\n", "LIVRO DE APURAÇÃO DO ICMS\n",
@@ -68,13 +68,13 @@ class FiscalBookAdapterTest {
 	@Test
 	@DisplayName("States that a book has no documents when none exist in the period")
 	void saysSoWhereABookHasNoDocumentsInThePeriod() throws IOException {
-		LivrosFiscaisBooks empty = new LivrosFiscaisBooks(CompanyId.of(UUID.randomUUID()), "11222333000181", null,
+		final LivrosFiscaisBooks empty = new LivrosFiscaisBooks(CompanyId.of(UUID.randomUUID()), "11222333000181", null,
 				YearMonth.of(2028, 3), new Book(List.of(), List.of(), BigDecimal.ZERO),
 				new Book(List.of(), List.of(), BigDecimal.ZERO),
 				new IcmsAssessment(List.of(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
 				new TaxSummary(zero(), zero(), zero(), zero()));
 
-		FiscalBookFiles files = adapter.generate(empty);
+		final FiscalBookFiles files = adapter.generate(empty);
 
 		assertThat(new String(files.txt(), StandardCharsets.UTF_8)).contains("(sem registros no período)")
 				.contains("Documentos: 0 | Valor total: 0,00").contains("Inscrição estadual: -");
@@ -82,13 +82,13 @@ class FiscalBookAdapterTest {
 	}
 
 	private static LivrosFiscaisBooks books() {
-		Line entry = new Line(Flow.ENTRY, LocalDate.of(2028, 3, 1), "1", "100", "3528" + "0".repeat(40),
+		final Line entry = new Line(Flow.ENTRY, LocalDate.of(2028, 3, 1), "1", "100", "3528" + "0".repeat(40),
 				"Fornecedor Alfa", "11222333000181", "1102/1403", new BigDecimal("165.00"), new BigDecimal("27.00"),
 				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
-		Line exit = new Line(Flow.EXIT, LocalDate.of(2028, 3, 10), "1", "20", "3528" + "1".repeat(40), "Cliente SA",
+		final Line exit = new Line(Flow.EXIT, LocalDate.of(2028, 3, 10), "1", "20", "3528" + "1".repeat(40), "Cliente SA",
 				"11222333000181", "5102", new BigDecimal("1015.00"), new BigDecimal("18.00"), new BigDecimal("5.00"),
 				new BigDecimal("1.65"), new BigDecimal("7.60"));
-		VoidedRange voided = new VoidedRange("1", 101L, 110L, "formulários danificados", "protocolo-inut-1",
+		final VoidedRange voided = new VoidedRange("1", 101L, 110L, "formulários danificados", "protocolo-inut-1",
 				Instant.parse("2028-03-12T15:00:00Z"));
 		return new LivrosFiscaisBooks(CompanyId.of(UUID.randomUUID()), "11222333000181", "123456789",
 				YearMonth.of(2028, 3), new Book(List.of(entry), List.of(), new BigDecimal("165.00")),
@@ -103,7 +103,7 @@ class FiscalBookAdapterTest {
 		return new Totals(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 	}
 
-	private static String textOf(byte[] pdf) throws IOException {
+	private static String textOf(final byte[] pdf) throws IOException {
 		try (PDDocument document = Loader.loadPDF(pdf)) {
 			return new PDFTextStripper().getText(document);
 		}

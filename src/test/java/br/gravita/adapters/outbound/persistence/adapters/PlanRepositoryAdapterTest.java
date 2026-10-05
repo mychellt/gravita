@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.same;
@@ -142,6 +142,6 @@ class PlanRepositoryAdapterTest {
 	}
 
 	private PlanDomain buildPlan(final String name) {
-		return aPlan().name(name).build();
+		return plan().name(name).build();
 	}
 }

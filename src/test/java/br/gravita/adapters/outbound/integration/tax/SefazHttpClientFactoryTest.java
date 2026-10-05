@@ -20,7 +20,7 @@ class SefazHttpClientFactoryTest {
 	@Test
 	@DisplayName("Builds a mutual-TLS REST client from a valid certificate")
 	void buildsAMutualTlsRestClientFromAValidCertificate() throws Exception {
-		RestClient client = factory.build(loadFixture(), CORRECT_PASSWORD, "https://localhost:0", Duration.ofSeconds(1));
+		final RestClient client = factory.build(loadFixture(), CORRECT_PASSWORD, "https://localhost:0", Duration.ofSeconds(1));
 
 		assertThat(client).isNotNull();
 	}
@@ -28,7 +28,7 @@ class SefazHttpClientFactoryTest {
 	@Test
 	@DisplayName("Rejects the client build when the certificate password is wrong")
 	void rejectsTheWrongCertificatePassword() throws Exception {
-		byte[] pfxFile = loadFixture();
+		final byte[] pfxFile = loadFixture();
 
 		assertThatThrownBy(() -> factory.build(pfxFile, "not-the-password", "https://localhost:0", Duration.ofSeconds(1)))
 				.isInstanceOf(BusinessRuleException.class);
@@ -37,7 +37,7 @@ class SefazHttpClientFactoryTest {
 	@Test
 	@DisplayName("Rejects the client build when the certificate file is corrupt")
 	void rejectsACorruptCertificateFile() {
-		byte[] garbage = {1, 2, 3, 4, 5};
+		final byte[] garbage = {1, 2, 3, 4, 5};
 
 		assertThatThrownBy(() -> factory.build(garbage, CORRECT_PASSWORD, "https://localhost:0", Duration.ofSeconds(1)))
 				.isInstanceOf(BusinessRuleException.class);

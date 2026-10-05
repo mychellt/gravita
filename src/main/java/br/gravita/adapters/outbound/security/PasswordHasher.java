@@ -9,12 +9,12 @@ public class PasswordHasher implements PasswordVerificationPort {
 
 	private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-	public String hash(String rawPassword) {
+	public String hash(final String rawPassword) {
 		return encoder.encode(rawPassword);
 	}
 
 	@Override
-	public boolean matches(String rawPassword, String hash) {
+	public boolean matches(final String rawPassword, final String hash) {
 		return encoder.matches(rawPassword, hash);
 	}
 }

@@ -9,7 +9,7 @@ public record SupplierId(UUID value) {
 		Objects.requireNonNull(value, "SupplierId value is required");
 	}
 
-	public static SupplierId of(UUID value) {
+	public static SupplierId of(final UUID value) {
 		return new SupplierId(value);
 	}
 }

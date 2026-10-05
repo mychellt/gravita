@@ -44,13 +44,13 @@ class CreateManualReceivableServiceTest {
 	@Test
 	@DisplayName("Creates an open manual receivable for a registered customer")
 	void createsAnOpenManualReceivableForARegisteredCustomer() {
-		UUID customerId = UUID.randomUUID();
-		LocalDate dueDate = LocalDate.now().plusDays(30);
+		final UUID customerId = UUID.randomUUID();
+		final LocalDate dueDate = LocalDate.now().plusDays(30);
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));
 		when(receivableRepositoryPort.save(any(Receivable.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		Receivable created = service
+		final Receivable created = service
 				.execute(new CreateManualReceivableCommand(customerId, new BigDecimal("150.00"), dueDate, null));
 
 		assertThat(created.getOrigin()).isEqualTo(ReceivableOrigin.MANUAL);
@@ -63,7 +63,7 @@ class CreateManualReceivableServiceTest {
 	@Test
 	@DisplayName("Saves the created receivable")
 	void savesTheCreatedReceivable() {
-		UUID customerId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));
 		when(receivableRepositoryPort.save(any(Receivable.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -71,7 +71,7 @@ class CreateManualReceivableServiceTest {
 		service.execute(
 				new CreateManualReceivableCommand(customerId, BigDecimal.TEN, LocalDate.now().plusDays(1), 3));
 
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getInstallments()).isEqualTo(3);
 	}
@@ -79,7 +79,7 @@ class CreateManualReceivableServiceTest {
 	@Test
 	@DisplayName("Rejects an unregistered customer without saving anything")
 	void rejectsAnUnregisteredCustomerWithoutSavingAnything() {
-		UUID customerId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -92,7 +92,7 @@ class CreateManualReceivableServiceTest {
 	@Test
 	@DisplayName("Rejects a zero amount without saving anything")
 	void rejectsAZeroAmountWithoutSavingAnything() {
-		UUID customerId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));
 
 		assertThatThrownBy(() -> service.execute(

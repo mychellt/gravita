@@ -34,7 +34,7 @@ public record SaleItem(UUID productId, BigDecimal quantity, BigDecimal unitPrice
 		return subtotal().subtract(itemDiscount);
 	}
 
-	private static BigDecimal subtotal(BigDecimal quantity, BigDecimal unitPrice) {
+	private static BigDecimal subtotal(final BigDecimal quantity, final BigDecimal unitPrice) {
 		return unitPrice.multiply(quantity);
 	}
 }

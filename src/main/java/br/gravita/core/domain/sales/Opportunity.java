@@ -18,8 +18,8 @@ public final class Opportunity {
 	private final UUID owner;
 	private final OpportunityStage stage;
 
-	public Opportunity(OpportunityId id, UUID customerId, BigDecimal estimatedValue, Integer probability,
-			LocalDate expectedCloseDate, UUID owner, OpportunityStage stage) {
+	public Opportunity(final OpportunityId id, final UUID customerId, final BigDecimal estimatedValue, final Integer probability,
+			final LocalDate expectedCloseDate, final UUID owner, final OpportunityStage stage) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");
 		this.estimatedValue = requireNonNegative(estimatedValue);
@@ -29,19 +29,19 @@ public final class Opportunity {
 		this.stage = Objects.requireNonNull(stage, "stage is required");
 	}
 
-	public static Opportunity create(OpportunityId id, UUID customerId, BigDecimal estimatedValue,
-			Integer probability, LocalDate expectedCloseDate, UUID owner) {
+	public static Opportunity create(final OpportunityId id, final UUID customerId, final BigDecimal estimatedValue,
+			final Integer probability, final LocalDate expectedCloseDate, final UUID owner) {
 		return new Opportunity(id, customerId, estimatedValue, probability, expectedCloseDate, owner,
 				OpportunityStage.PROSPECTING);
 	}
 
-	public static Opportunity of(OpportunityId id, UUID customerId, BigDecimal estimatedValue, Integer probability,
-			LocalDate expectedCloseDate, UUID owner, OpportunityStage stage) {
+	public static Opportunity of(final OpportunityId id, final UUID customerId, final BigDecimal estimatedValue, final Integer probability,
+			final LocalDate expectedCloseDate, final UUID owner, final OpportunityStage stage) {
 		return new Opportunity(id, customerId, estimatedValue, probability, expectedCloseDate, owner, stage);
 	}
 
-	public Opportunity withUpdatedFields(UUID customerId, BigDecimal estimatedValue, Integer probability,
-			LocalDate expectedCloseDate, UUID owner) {
+	public Opportunity withUpdatedFields(final UUID customerId, final BigDecimal estimatedValue, final Integer probability,
+			final LocalDate expectedCloseDate, final UUID owner) {
 		assertNotTerminal("update");
 		return new Opportunity(id,
 				coalesce(customerId, this.customerId),
@@ -52,7 +52,7 @@ public final class Opportunity {
 				stage);
 	}
 
-	public Opportunity moveToStage(OpportunityStage newStage) {
+	public Opportunity moveToStage(final OpportunityStage newStage) {
 		assertNotTerminal("change the stage of");
 		Objects.requireNonNull(newStage, "newStage is required");
 		if (newStage == stage) {
@@ -61,17 +61,17 @@ public final class Opportunity {
 		return new Opportunity(id, customerId, estimatedValue, probability, expectedCloseDate, owner, newStage);
 	}
 
-	private void assertNotTerminal(String action) {
+	private void assertNotTerminal(final String action) {
 		if (stage.isTerminal()) {
 			throw new BusinessRuleException("Cannot " + action + " an opportunity in a terminal stage: " + stage);
 		}
 	}
 
-	private static <T> T coalesce(T newValue, T currentValue) {
+	private static <T> T coalesce(final T newValue, final T currentValue) {
 		return newValue != null ? newValue : currentValue;
 	}
 
-	private static BigDecimal requireNonNegative(BigDecimal estimatedValue) {
+	private static BigDecimal requireNonNegative(final BigDecimal estimatedValue) {
 		if (estimatedValue == null) {
 			throw new BusinessRuleException("estimatedValue is required");
 		}
@@ -81,7 +81,7 @@ public final class Opportunity {
 		return estimatedValue;
 	}
 
-	private static Integer requireValidProbability(Integer probability) {
+	private static Integer requireValidProbability(final Integer probability) {
 		if (probability == null) {
 			throw new BusinessRuleException("probability is required");
 		}

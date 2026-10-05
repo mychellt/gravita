@@ -33,9 +33,9 @@ public class CancelNfceService implements CancelNfceUseCase {
 	private final SupervisorAuthorizationPort supervisorAuthorizationPort;
 	private final SubmitToSefazPort submitToSefazPort;
 
-	public CancelNfceService(NfceRepositoryPort nfceRepositoryPort, PosSessionRepositoryPort posSessionRepositoryPort,
-			CompanyRepositoryPort companyRepositoryPort, SupervisorAuthorizationPort supervisorAuthorizationPort,
-			SubmitToSefazPort submitToSefazPort) {
+	public CancelNfceService(final NfceRepositoryPort nfceRepositoryPort, final PosSessionRepositoryPort posSessionRepositoryPort,
+			final CompanyRepositoryPort companyRepositoryPort, final SupervisorAuthorizationPort supervisorAuthorizationPort,
+			final SubmitToSefazPort submitToSefazPort) {
 		this.nfceRepositoryPort = nfceRepositoryPort;
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
@@ -44,13 +44,13 @@ public class CancelNfceService implements CancelNfceUseCase {
 	}
 
 	@Override
-	public void execute(CancelNfceCommand command) {
+	public void execute(final CancelNfceCommand command) {
 		if (!supervisorAuthorizationPort.authorize(command.supervisorCredential())) {
 			throw new UnauthorizedException("Invalid supervisor credential");
 		}
 
-		NfceSaleId saleId = NfceSaleId.of(command.nfceSaleId());
-		NfceSale sale = nfceRepositoryPort.findById(saleId)
+		final NfceSaleId saleId = NfceSaleId.of(command.nfceSaleId());
+		final NfceSale sale = nfceRepositoryPort.findById(saleId)
 				.orElseThrow(() -> new ResourceNotFoundException("NfceSale not found: " + command.nfceSaleId()));
 
 		if (sale.getStatus() != NfceSaleStatus.AUTHORIZED) {
@@ -67,23 +67,23 @@ public class CancelNfceService implements CancelNfceUseCase {
 			throw new BusinessRuleException("Cancellation window has expired for NfceSale " + saleId.value());
 		}
 
-		Company company = resolveIssuingCompany(sale);
+		final Company company = resolveIssuingCompany(sale);
 		submitToSefazPort.cancel(new SefazCancellationRequest(company.getId(), company.getSefazEnvironment(),
 				sale.getAccessKey(), sale.getSefazProtocol(), command.reason()));
 
 		nfceRepositoryPort.save(sale.cancel());
 	}
 
-	private boolean isEligibleForCancellation(NfceSale sale) {
-		boolean isLastSale = nfceRepositoryPort.findMostRecent().map(NfceSale::getId)
+	private boolean isEligibleForCancellation(final NfceSale sale) {
+		final boolean isLastSale = nfceRepositoryPort.findMostRecent().map(NfceSale::getId)
 				.map(mostRecentId -> mostRecentId.equals(sale.getId())).orElse(false);
-		boolean isFromToday = sale.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate()
+		final boolean isFromToday = sale.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDate()
 				.equals(LocalDate.now(ZoneId.systemDefault()));
 		return isLastSale || isFromToday;
 	}
 
-	private Company resolveIssuingCompany(NfceSale sale) {
-		PosSession session = posSessionRepositoryPort.findById(sale.getSessionId())
+	private Company resolveIssuingCompany(final NfceSale sale) {
+		final PosSession session = posSessionRepositoryPort.findById(sale.getSessionId())
 				.orElseThrow(() -> new BusinessRuleException("PosSession not found: " + sale.getSessionId().value()));
 		return companyRepositoryPort.findById(session.getCompanyId())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + session.getCompanyId().value()));

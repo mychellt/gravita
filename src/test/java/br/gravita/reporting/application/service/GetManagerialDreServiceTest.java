@@ -64,7 +64,7 @@ class GetManagerialDreServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "dre")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new DreQuery(stranger, PERIOD, null, company)))
@@ -76,7 +76,7 @@ class GetManagerialDreServiceTest {
 	@DisplayName("Composes the month's DRE and reconciles the net result")
 	@Test
 	void composesTheDreOfTheMonthAndReconcilesTheNetResult() {
-		UUID product = UUID.randomUUID();
+		final UUID product = UUID.randomUUID();
 		when(sales.dailyRevenue(FROM, TO, company)).thenReturn(
 				Map.of(LocalDate.of(2028, 2, 3), new BigDecimal("600.00"), LocalDate.of(2028, 2, 20), new BigDecimal("400.00")));
 		when(sales.productSales(FROM, TO, company))
@@ -91,7 +91,7 @@ class GetManagerialDreServiceTest {
 		when(finance.expensesByCostCenter(FROM, TO, null, company)).thenReturn(
 				List.of(new CostCenterExpense(rent, new BigDecimal("120.00")), new CostCenterExpense(marketing, new BigDecimal("80.00"))));
 
-		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, company));
+		final ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, company));
 
 		assertThat(dre.period()).isEqualTo(PERIOD);
 		assertThat(dre.costCenter()).isNull();
@@ -112,7 +112,7 @@ class GetManagerialDreServiceTest {
 				new CostCenterExpense(null, new BigDecimal("900.00")), new CostCenterExpense(marketing, new BigDecimal("80.00")),
 				new CostCenterExpense(rent, new BigDecimal("120.00"))));
 
-		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
+		final ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
 
 		assertThat(dre.expensesByCostCenter()).extracting(expense -> expense.costCenterId()).containsExactly(rent,
 				marketing, null);
@@ -126,7 +126,7 @@ class GetManagerialDreServiceTest {
 		when(finance.expensesByCostCenter(FROM, TO, rent, company))
 				.thenReturn(List.of(new CostCenterExpense(rent, new BigDecimal("120.00"))));
 
-		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, rent, company));
+		final ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, rent, company));
 
 		verify(finance).expensesByCostCenter(FROM, TO, rent, company);
 		assertThat(dre.costCenter()).isEqualTo(rent);
@@ -139,7 +139,7 @@ class GetManagerialDreServiceTest {
 	@DisplayName("Reports a zero DRE for a period without activity")
 	@Test
 	void reportsAZeroDreForAPeriodWithoutActivity() {
-		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
+		final ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
 
 		assertThat(dre.grossRevenue()).isEqualByComparingTo("0");
 		assertThat(dre.deductions()).isEqualByComparingTo("0");
@@ -155,7 +155,7 @@ class GetManagerialDreServiceTest {
 		when(finance.expensesByCostCenter(any(), any(), any(), any()))
 				.thenReturn(List.of(new CostCenterExpense(rent, new BigDecimal("250.00"))));
 
-		ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
+		final ManagerialDre dre = service.execute(new DreQuery(user, PERIOD, null, null));
 
 		assertThat(dre.netResult()).isEqualByComparingTo("-150.00");
 	}

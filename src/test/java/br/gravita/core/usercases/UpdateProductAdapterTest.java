@@ -38,9 +38,9 @@ class UpdateProductAdapterTest {
 	@DisplayName("Rejects updating a product that does not exist")
 	@Test
 	void shouldRejectUpdateWhenProductDoesNotExist() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain patch = ProductDomain.builder().id(id).internalCode("SKU-2").build();
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain patch = ProductDomain.builder().id(id).internalCode("SKU-2").build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(patch))).isInstanceOf(ResourceNotFoundException.class);
@@ -50,20 +50,20 @@ class UpdateProductAdapterTest {
 	@DisplayName("A partial update applies only the fields that were provided")
 	@Test
 	void shouldApplyOnlyProvidedFieldsOnPartialUpdate() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder()
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
 				.id(id)
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.basePrice(java.math.BigDecimal.TEN)
 				.status(ProductStatus.ACTIVE)
 				.build();
-		ProductDomain patch = ProductDomain.builder().id(id).status(ProductStatus.OUT_OF_STOCK).build();
+		final ProductDomain patch = ProductDomain.builder().id(id).status(ProductStatus.OUT_OF_STOCK).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ProductDomain updated = adapter.execute(new Context(patch));
+		final ProductDomain updated = adapter.execute(new Context(patch));
 
 		assertThat(updated.getStatus()).isEqualTo(ProductStatus.OUT_OF_STOCK);
 		assertThat(updated.getInternalCode()).isEqualTo("SKU-1");
@@ -73,10 +73,10 @@ class UpdateProductAdapterTest {
 	@DisplayName("Rejects a barcode that already belongs to another product")
 	@Test
 	void shouldRejectBarcodeAlreadyOwnedByAnotherProduct() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder().id(id).type(ProductType.SIMPLE).internalCode("SKU-1").build();
-		ProductDomain patch = ProductDomain.builder().id(id).barcodes(List.of("7891234567895")).build();
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder().id(id).type(ProductType.SIMPLE).internalCode("SKU-1").build();
+		final ProductDomain patch = ProductDomain.builder().id(id).barcodes(List.of("7891234567895")).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(productRepositoryPort.existsByBarcode("7891234567895")).thenReturn(true);
 
@@ -89,19 +89,19 @@ class UpdateProductAdapterTest {
 	@DisplayName("Allows a product to keep its own barcode when updating")
 	@Test
 	void shouldAllowKeepingItsOwnBarcodeUnchanged() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder()
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
 				.id(id)
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.barcodes(List.of("7891234567895"))
 				.build();
-		ProductDomain patch = ProductDomain.builder().id(id).barcodes(List.of("7891234567895")).build();
+		final ProductDomain patch = ProductDomain.builder().id(id).barcodes(List.of("7891234567895")).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ProductDomain updated = adapter.execute(new Context(patch));
+		final ProductDomain updated = adapter.execute(new Context(patch));
 
 		assertThat(updated.getBarcodes()).containsExactly("7891234567895");
 		verify(productRepositoryPort, never()).existsByBarcode(any());
@@ -110,15 +110,15 @@ class UpdateProductAdapterTest {
 	@DisplayName("Rejects disabling lot control while the product has open lots")
 	@Test
 	void shouldRejectDisablingLotControlWhenOpenLotsExist() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder()
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
 				.id(id)
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.lotControl(true)
 				.build();
-		ProductDomain patch = ProductDomain.builder().id(id).lotControl(false).build();
+		final ProductDomain patch = ProductDomain.builder().id(id).lotControl(false).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(inventoryLotSerialRepositoryPort.hasOpenLotsOrSerials(id)).thenReturn(true);
 
@@ -129,20 +129,20 @@ class UpdateProductAdapterTest {
 	@DisplayName("Allows disabling lot control when the product has no open lots")
 	@Test
 	void shouldAllowDisablingLotControlWhenNoOpenLotsExist() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder()
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
 				.id(id)
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.lotControl(true)
 				.build();
-		ProductDomain patch = ProductDomain.builder().id(id).lotControl(false).build();
+		final ProductDomain patch = ProductDomain.builder().id(id).lotControl(false).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(inventoryLotSerialRepositoryPort.hasOpenLotsOrSerials(id)).thenReturn(false);
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ProductDomain updated = adapter.execute(new Context(patch));
+		final ProductDomain updated = adapter.execute(new Context(patch));
 
 		assertThat(updated.getLotControl()).isFalse();
 	}
@@ -150,21 +150,21 @@ class UpdateProductAdapterTest {
 	@DisplayName("An unrelated update does not change the product's tax profile fields")
 	@Test
 	void shouldNotChangeTaxProfileFieldsOnUnrelatedUpdate() {
-		UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProductDomain existing = ProductDomain.builder()
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
 				.id(id)
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.ncm("12345678")
 				.build();
-		ProductDomain patch = ProductDomain.builder().id(id).basePrice(java.math.BigDecimal.ONE).build();
+		final ProductDomain patch = ProductDomain.builder().id(id).basePrice(java.math.BigDecimal.ONE).build();
 		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		adapter.execute(new Context(patch));
 
-		ArgumentCaptor<ProductDomain> captor = ArgumentCaptor.forClass(ProductDomain.class);
+		final ArgumentCaptor<ProductDomain> captor = ArgumentCaptor.forClass(ProductDomain.class);
 		verify(productRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getNcm()).isEqualTo("12345678");
 	}

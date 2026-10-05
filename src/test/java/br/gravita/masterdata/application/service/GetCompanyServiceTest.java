@@ -34,10 +34,24 @@ class GetCompanyServiceTest {
 	@Test
 	@DisplayName("Returns the stored company")
 	void shouldReturnTheStoredCompany() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
-		Company company = Company.of(id, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654",
-				"6201-5/01", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfe@acme.com", "11999999999", null, null);
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
+		final Company company = Company.builder()
+				.id(id)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11222333000181"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@acme.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(company));
 
 		assertThat(service.execute(id)).isSameAs(company);
@@ -46,7 +60,7 @@ class GetCompanyServiceTest {
 	@Test
 	@DisplayName("Fails with company-not-found for an unknown id")
 	void shouldFailForAnUnknownCompany() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(id)).isInstanceOf(CompanyNotFoundException.class)

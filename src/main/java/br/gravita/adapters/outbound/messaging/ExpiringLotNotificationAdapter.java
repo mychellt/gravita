@@ -15,24 +15,24 @@ public class ExpiringLotNotificationAdapter implements NotifyExpiringLotPort {
 	private final EmailNotificationPort emailNotificationPort;
 	private final String recipientEmail;
 
-	public ExpiringLotNotificationAdapter(EmailNotificationPort emailNotificationPort,
-			@Value("${notifications.inventory.expiring-lots-email}") String recipientEmail) {
+	public ExpiringLotNotificationAdapter(final EmailNotificationPort emailNotificationPort,
+			@Value("${notifications.inventory.expiring-lots-email}") final String recipientEmail) {
 		this.emailNotificationPort = emailNotificationPort;
 		this.recipientEmail = recipientEmail;
 	}
 
 	@Override
-	public void notify(List<ExpiringLotView> expiringLots) {
+	public void notify(final List<ExpiringLotView> expiringLots) {
 		if (expiringLots.isEmpty()) {
 			return;
 		}
 
-		String subject = expiringLots.size() + " lot(s) approaching expiry";
-		String body = expiringLots.stream().map(this::describe).collect(Collectors.joining("\n"));
+		final String subject = expiringLots.size() + " lot(s) approaching expiry";
+		final String body = expiringLots.stream().map(this::describe).collect(Collectors.joining("\n"));
 		emailNotificationPort.send(recipientEmail, subject, body);
 	}
 
-	private String describe(ExpiringLotView lot) {
+	private String describe(final ExpiringLotView lot) {
 		return "Product " + lot.productId() + ", lot " + lot.lotCode() + ", expires " + lot.expiryDate()
 				+ ", remaining quantity " + lot.remainingQuantity();
 	}

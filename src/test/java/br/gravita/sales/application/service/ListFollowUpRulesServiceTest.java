@@ -30,13 +30,13 @@ class ListFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Lists both active and inactive follow-up rules")
 	void listsBothActiveAndInactiveRules() {
-		FollowUpRule active =
+		final FollowUpRule active =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 7, FollowUpTarget.CUSTOMER, true, true);
-		FollowUpRule inactive =
+		final FollowUpRule inactive =
 				FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 14, FollowUpTarget.OPPORTUNITY, false, false);
 		when(followUpRuleRepositoryPort.findAll()).thenReturn(List.of(active, inactive));
 
-		List<FollowUpRuleView> views = service.execute();
+		final List<FollowUpRuleView> views = service.execute();
 
 		assertThat(views).hasSize(2);
 		assertThat(views).extracting(FollowUpRuleView::active).containsExactly(true, false);

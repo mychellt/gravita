@@ -21,46 +21,46 @@ class InternalCashBoxRepositoryAdapter implements InternalCashBoxRepositoryPort 
 	private final InternalCashMovementJpaRepository movementJpaRepository;
 	private final InternalCashBoxPersistenceMapper mapper;
 
-	InternalCashBoxRepositoryAdapter(InternalCashBoxJpaRepository cashBoxJpaRepository,
-			InternalCashMovementJpaRepository movementJpaRepository, InternalCashBoxPersistenceMapper mapper) {
+	InternalCashBoxRepositoryAdapter(final InternalCashBoxJpaRepository cashBoxJpaRepository,
+			final InternalCashMovementJpaRepository movementJpaRepository, final InternalCashBoxPersistenceMapper mapper) {
 		this.cashBoxJpaRepository = cashBoxJpaRepository;
 		this.movementJpaRepository = movementJpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Optional<InternalCashBox> findById(InternalCashBoxId id) {
+	public Optional<InternalCashBox> findById(final InternalCashBoxId id) {
 		return cashBoxJpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public Optional<InternalCashBox> findByIdForUpdate(InternalCashBoxId id) {
+	public Optional<InternalCashBox> findByIdForUpdate(final InternalCashBoxId id) {
 		return cashBoxJpaRepository.findByIdForUpdate(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public InternalCashBox save(InternalCashBox cashBox) {
-		InternalCashBoxJpaEntity entity = mapper.map(cashBox);
+	public InternalCashBox save(final InternalCashBox cashBox) {
+		final InternalCashBoxJpaEntity entity = mapper.map(cashBox);
 		entity.setNew(!cashBoxJpaRepository.existsById(entity.getId()));
 		return mapper.map(cashBoxJpaRepository.save(entity));
 	}
 
 	@Override
-	public CashMovement saveMovement(CashMovement movement) {
-		InternalCashMovementJpaEntity entity = mapper.map(movement);
+	public CashMovement saveMovement(final CashMovement movement) {
+		final InternalCashMovementJpaEntity entity = mapper.map(movement);
 		entity.setNew(!movementJpaRepository.existsById(entity.getId()));
 		return mapper.map(movementJpaRepository.save(entity));
 	}
 
 	@Override
-	public List<CashMovement> findMovementsFrom(InternalCashBoxId cashBoxId, Instant from) {
+	public List<CashMovement> findMovementsFrom(final InternalCashBoxId cashBoxId, final Instant from) {
 		return movementJpaRepository
 				.findByCashBoxIdAndTimestampGreaterThanEqualOrderByTimestampAsc(cashBoxId.value(), from)
 				.stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<CashMovement> findMovementsBetween(Instant from, Instant until) {
+	public List<CashMovement> findMovementsBetween(final Instant from, final Instant until) {
 		return movementJpaRepository
 				.findByTimestampGreaterThanEqualAndTimestampLessThanOrderByTimestampAscIdAsc(from, until).stream()
 				.map(mapper::map).toList();

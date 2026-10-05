@@ -12,7 +12,7 @@ public record PaymentTermRequest(
 		@NotBlank String name,
 		@NotEmpty List<@PositiveOrZero Integer> installmentIntervalsDays) {
 
-	public PaymentTermDomain toDomain(UUID id) {
+	public PaymentTermDomain toDomain(final UUID id) {
 		return PaymentTermDomain.builder()
 				.id(id)
 				.name(name)

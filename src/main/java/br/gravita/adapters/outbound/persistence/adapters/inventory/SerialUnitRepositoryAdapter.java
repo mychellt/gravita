@@ -15,14 +15,14 @@ class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
 	private final SerialUnitJpaRepository jpaRepository;
 	private final SerialUnitPersistenceMapper mapper;
 
-	SerialUnitRepositoryAdapter(SerialUnitJpaRepository jpaRepository, SerialUnitPersistenceMapper mapper) {
+	SerialUnitRepositoryAdapter(final SerialUnitJpaRepository jpaRepository, final SerialUnitPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public List<SerialUnit> saveAll(List<SerialUnit> serialUnits) {
-		List<SerialUnitJpaEntity> entities = serialUnits.stream().map(mapper::map).toList();
+	public List<SerialUnit> saveAll(final List<SerialUnit> serialUnits) {
+		final List<SerialUnitJpaEntity> entities = serialUnits.stream().map(mapper::map).toList();
 		entities.forEach(entity -> entity.setNew(!jpaRepository.existsById(entity.getId())));
 		return jpaRepository.saveAll(entities).stream()
 				.map(mapper::map)
@@ -30,8 +30,8 @@ class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
 	}
 
 	@Override
-	public List<SerialUnit> findByProductIdAndWarehouseIdAndSerialNumberIn(UUID productId, UUID warehouseId,
-			List<String> serialNumbers) {
+	public List<SerialUnit> findByProductIdAndWarehouseIdAndSerialNumberIn(final UUID productId, final UUID warehouseId,
+			final List<String> serialNumbers) {
 		return jpaRepository.findByProductIdAndWarehouseIdAndSerialNumberIn(productId, warehouseId, serialNumbers)
 				.stream()
 				.map(mapper::map)

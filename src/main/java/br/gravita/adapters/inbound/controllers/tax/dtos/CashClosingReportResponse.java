@@ -24,8 +24,8 @@ public record CashClosingReportResponse(
 		Instant openedAt,
 		Instant closedAt) {
 
-	public static CashClosingReportResponse from(CashClosingReport report) {
-		Map<PaymentMethodType, BigDecimal> differences = new EnumMap<>(PaymentMethodType.class);
+	public static CashClosingReportResponse from(final CashClosingReport report) {
+		final Map<PaymentMethodType, BigDecimal> differences = new EnumMap<>(PaymentMethodType.class);
 		report.getCountedAmountsByPaymentMethod().keySet()
 				.forEach(method -> differences.put(method, report.differenceFor(method)));
 

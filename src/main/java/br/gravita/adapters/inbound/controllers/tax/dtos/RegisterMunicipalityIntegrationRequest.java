@@ -10,7 +10,7 @@ public record RegisterMunicipalityIntegrationRequest(@NotNull NfseStandard stand
 		String webserviceUrl, @NotNull CertificateType requiredCertificateType, List<String> requiredFields,
 		Boolean homologated) {
 
-	public RegisterMunicipalityIntegrationCommand toCommand(String ibgeCode) {
+	public RegisterMunicipalityIntegrationCommand toCommand(final String ibgeCode) {
 		return new RegisterMunicipalityIntegrationCommand(ibgeCode, standard, version, webserviceUrl,
 				requiredCertificateType, requiredFields, Boolean.TRUE.equals(homologated));
 	}

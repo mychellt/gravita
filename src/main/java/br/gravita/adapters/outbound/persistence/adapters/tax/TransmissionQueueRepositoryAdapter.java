@@ -16,14 +16,14 @@ class TransmissionQueueRepositoryAdapter implements TransmissionQueuePort {
 
 	private final NfceContingencyQueueJpaRepository jpaRepository;
 
-	TransmissionQueueRepositoryAdapter(NfceContingencyQueueJpaRepository jpaRepository) {
+	TransmissionQueueRepositoryAdapter(final NfceContingencyQueueJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public void enqueue(TransmissionQueueId id) {
-		Instant now = Instant.now();
-		NfceContingencyQueueJpaEntity entity = NfceContingencyQueueJpaEntity.builder()
+	public void enqueue(final TransmissionQueueId id) {
+		final Instant now = Instant.now();
+		final NfceContingencyQueueJpaEntity entity = NfceContingencyQueueJpaEntity.builder()
 				.id(UUID.randomUUID())
 				.documentId(id.value())
 				.queuedAt(now)
@@ -35,7 +35,7 @@ class TransmissionQueueRepositoryAdapter implements TransmissionQueuePort {
 	}
 
 	@Override
-	public List<TransmissionQueueEntry> findDue(Instant asOf) {
+	public List<TransmissionQueueEntry> findDue(final Instant asOf) {
 		return jpaRepository.findByNextRetryAtLessThanEqual(asOf).stream()
 				.map(entity -> new TransmissionQueueEntry(entity.getDocumentId(), entity.getAttempts(),
 						entity.getNextRetryAt()))
@@ -43,8 +43,8 @@ class TransmissionQueueRepositoryAdapter implements TransmissionQueuePort {
 	}
 
 	@Override
-	public void reschedule(UUID documentId, int attempts, Instant nextRetryAt) {
-		NfceContingencyQueueJpaEntity entity = jpaRepository.findByDocumentId(documentId)
+	public void reschedule(final UUID documentId, final int attempts, final Instant nextRetryAt) {
+		final NfceContingencyQueueJpaEntity entity = jpaRepository.findByDocumentId(documentId)
 				.orElseThrow(() -> new ResourceNotFoundException("Transmission queue entry not found: " + documentId));
 		entity.setAttempts(attempts);
 		entity.setNextRetryAt(nextRetryAt);
@@ -52,7 +52,7 @@ class TransmissionQueueRepositoryAdapter implements TransmissionQueuePort {
 	}
 
 	@Override
-	public void remove(UUID documentId) {
+	public void remove(final UUID documentId) {
 		jpaRepository.findByDocumentId(documentId).ifPresent(jpaRepository::delete);
 	}
 }

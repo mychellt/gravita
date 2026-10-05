@@ -41,15 +41,15 @@ public class ConfirmBatchPaymentService implements ConfirmBatchPaymentUseCase {
 	 */
 	@Override
 	@Transactional
-	public BankReturnImportResult execute(ConfirmBatchPaymentCommand command) {
-		List<BankReturnLine> lines = bankIntegrationPort.parseReturnFile(command.bankIntegration(),
+	public BankReturnImportResult execute(final ConfirmBatchPaymentCommand command) {
+		final List<BankReturnLine> lines = bankIntegrationPort.parseReturnFile(command.bankIntegration(),
 				command.fileContent());
 
 		int settled = 0;
 		int skipped = 0;
-		List<UnmatchedLine> unmatched = new ArrayList<>();
-		List<RejectedLine> rejected = new ArrayList<>();
-		for (BankReturnLine line : lines) {
+		final List<UnmatchedLine> unmatched = new ArrayList<>();
+		final List<RejectedLine> rejected = new ArrayList<>();
+		for (final BankReturnLine line : lines) {
 			if (line.rejected()) {
 				// The payable is left as it is: still APPROVED, so it can be sent to the bank again.
 				rejected.add(new RejectedLine(line.lineNumber(), line.titleIdentifier(), line.rejectionReason()));
@@ -59,7 +59,7 @@ public class ConfirmBatchPaymentService implements ConfirmBatchPaymentUseCase {
 				skipped++;
 				continue;
 			}
-			Optional<String> failure = confirm(line);
+			final Optional<String> failure = confirm(line);
 			if (failure.isPresent()) {
 				unmatched.add(new UnmatchedLine(line.lineNumber(), line.titleIdentifier(), line.amount(),
 						failure.get()));
@@ -71,19 +71,19 @@ public class ConfirmBatchPaymentService implements ConfirmBatchPaymentUseCase {
 	}
 
 	/** @return why the line could not be confirmed, or empty once it has been */
-	private Optional<String> confirm(BankReturnLine line) {
-		Optional<PayableId> payableId = parseTitleIdentifier(line.titleIdentifier());
+	private Optional<String> confirm(final BankReturnLine line) {
+		final Optional<PayableId> payableId = parseTitleIdentifier(line.titleIdentifier());
 		if (payableId.isEmpty()) {
 			return Optional.of("Title identifier is not a payable id");
 		}
-		Optional<Payable> found = payableRepositoryPort.findById(payableId.get());
+		final Optional<Payable> found = payableRepositoryPort.findById(payableId.get());
 		if (found.isEmpty()) {
 			return Optional.of("No payable found for the title identifier");
 		}
-		Payable payable = found.get();
+		final Payable payable = found.get();
 
-		Settlement settlement;
-		Payable paid;
+		final Settlement settlement;
+		final Payable paid;
 		try {
 			settlement = Settlement.automaticCnabForPayable(SettlementId.of(UUID.randomUUID()), payable.getId(),
 					line.amount(), line.interest(), line.fine(), line.discount(), line.surcharge(),
@@ -101,7 +101,7 @@ public class ConfirmBatchPaymentService implements ConfirmBatchPaymentUseCase {
 						+ payable.getAmount());
 			}
 			paid = payable.pay(null);
-		} catch (BusinessRuleException e) {
+		} catch (final BusinessRuleException e) {
 			return Optional.of(e.getMessage());
 		}
 
@@ -110,10 +110,10 @@ public class ConfirmBatchPaymentService implements ConfirmBatchPaymentUseCase {
 		return Optional.empty();
 	}
 
-	private static Optional<PayableId> parseTitleIdentifier(String titleIdentifier) {
+	private static Optional<PayableId> parseTitleIdentifier(final String titleIdentifier) {
 		try {
 			return Optional.of(PayableId.of(UUID.fromString(titleIdentifier.trim())));
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			return Optional.empty();
 		}
 	}

@@ -15,21 +15,21 @@ class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 	private final SupplierJpaRepository jpaRepository;
 	private final SupplierPersistenceMapper mapper;
 
-	SupplierRepositoryAdapter(SupplierJpaRepository jpaRepository, SupplierPersistenceMapper mapper) {
+	SupplierRepositoryAdapter(final SupplierJpaRepository jpaRepository, final SupplierPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Supplier save(Supplier supplier) {
-		SupplierJpaEntity entity = mapper.map(supplier);
+	public Supplier save(final Supplier supplier) {
+		final SupplierJpaEntity entity = mapper.map(supplier);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		SupplierJpaEntity saved = jpaRepository.save(entity);
+		final SupplierJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<Supplier> findById(SupplierId id) {
+	public Optional<Supplier> findById(final SupplierId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 }

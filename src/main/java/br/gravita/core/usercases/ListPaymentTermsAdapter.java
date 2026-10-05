@@ -13,12 +13,12 @@ public class ListPaymentTermsAdapter implements ListPaymentTermsPort {
 
 	private final PaymentTermRepositoryPort paymentTermRepositoryPort;
 
-	public ListPaymentTermsAdapter(PaymentTermRepositoryPort paymentTermRepositoryPort) {
+	public ListPaymentTermsAdapter(final PaymentTermRepositoryPort paymentTermRepositoryPort) {
 		this.paymentTermRepositoryPort = paymentTermRepositoryPort;
 	}
 
 	@Override
-	public List<PaymentTermDomain> execute(Context context) {
+	public List<PaymentTermDomain> execute(final Context context) {
 		return paymentTermRepositoryPort.findAll();
 	}
 }

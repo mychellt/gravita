@@ -17,7 +17,7 @@ class BoletoTest {
 
 	static final String VALID_LINE = "00190500954014481606906809350314437370000000100";
 
-	private static Boleto issue(String barcodeLine) {
+	private static Boleto issue(final String barcodeLine) {
 		return Boleto.issue(BoletoId.of(UUID.randomUUID()), ReceivableId.of(UUID.randomUUID()),
 				BankIntegration.BANCO_DO_BRASIL, barcodeLine);
 	}
@@ -25,7 +25,7 @@ class BoletoTest {
 	@Test
 	@DisplayName("Starts an issued boleto in the issued status carrying its barcode line")
 	void anIssuedBoletoCarriesItsBarcodeLineAndStartsIssued() {
-		Boleto boleto = issue(VALID_LINE);
+		final Boleto boleto = issue(VALID_LINE);
 
 		assertThat(boleto.getBarcodeLine()).isEqualTo(VALID_LINE);
 		assertThat(boleto.getStatus()).isEqualTo(BoletoStatus.ISSUED);
@@ -35,7 +35,7 @@ class BoletoTest {
 	@Test
 	@DisplayName("Strips punctuation from the barcode line")
 	void punctuationInTheBarcodeLineIsStripped() {
-		Boleto boleto = issue("00190.50095 40144.816069 06809.350314 4 37370000000100");
+		final Boleto boleto = issue("00190.50095 40144.816069 06809.350314 4 37370000000100");
 
 		assertThat(boleto.getBarcodeLine()).isEqualTo(VALID_LINE);
 	}

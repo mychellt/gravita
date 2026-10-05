@@ -14,14 +14,14 @@ public class GetStockBalanceService implements GetStockBalanceUseCase {
 	private final StockBalanceRepositoryPort stockBalanceRepositoryPort;
 	private final ProductRepositoryPort productRepositoryPort;
 
-	public GetStockBalanceService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			ProductRepositoryPort productRepositoryPort) {
+	public GetStockBalanceService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final ProductRepositoryPort productRepositoryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.productRepositoryPort = productRepositoryPort;
 	}
 
 	@Override
-	public StockBalanceView execute(GetStockBalanceQuery query) {
+	public StockBalanceView execute(final GetStockBalanceQuery query) {
 		productRepositoryPort.get(query.productId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found: " + query.productId()));
 

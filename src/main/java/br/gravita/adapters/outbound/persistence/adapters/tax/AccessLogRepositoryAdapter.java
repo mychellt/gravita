@@ -17,19 +17,19 @@ class AccessLogRepositoryAdapter implements AccessLogRepositoryPort {
 	private final AccessLogJpaRepository jpaRepository;
 	private final AccessLogPersistenceMapper mapper;
 
-	AccessLogRepositoryAdapter(AccessLogJpaRepository jpaRepository, AccessLogPersistenceMapper mapper) {
+	AccessLogRepositoryAdapter(final AccessLogJpaRepository jpaRepository, final AccessLogPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public AccessLog save(AccessLog accessLog) {
+	public AccessLog save(final AccessLog accessLog) {
 		return mapper.map(jpaRepository.save(mapper.map(accessLog)));
 	}
 
 	@Override
-	public Page<AccessLog> search(GetAccessLogQuery query) {
-		org.springframework.data.domain.Page<AccessLogJpaEntity> result = jpaRepository.search(
+	public Page<AccessLog> search(final GetAccessLogQuery query) {
+		final org.springframework.data.domain.Page<AccessLogJpaEntity> result = jpaRepository.search(
 				query.userId() == null ? null : query.userId().value(),
 				query.dateFrom(),
 				query.dateTo(),

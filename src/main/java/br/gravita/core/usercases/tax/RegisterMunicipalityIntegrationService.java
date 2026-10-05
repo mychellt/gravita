@@ -13,13 +13,13 @@ public class RegisterMunicipalityIntegrationService implements RegisterMunicipal
 
 	private final MunicipalityIntegrationRepositoryPort repositoryPort;
 
-	public RegisterMunicipalityIntegrationService(MunicipalityIntegrationRepositoryPort repositoryPort) {
+	public RegisterMunicipalityIntegrationService(final MunicipalityIntegrationRepositoryPort repositoryPort) {
 		this.repositoryPort = repositoryPort;
 	}
 
 	@Override
-	public MunicipalityIntegrationId execute(RegisterMunicipalityIntegrationCommand command) {
-		MunicipalityIntegration integration = repositoryPort.findByIbgeCode(command.ibgeCode())
+	public MunicipalityIntegrationId execute(final RegisterMunicipalityIntegrationCommand command) {
+		final MunicipalityIntegration integration = repositoryPort.findByIbgeCode(command.ibgeCode())
 				.map(existing -> {
 					existing.update(command.standard(), command.version(), command.webserviceUrl(),
 							command.requiredCertificateType(), command.requiredFields(), command.homologated());

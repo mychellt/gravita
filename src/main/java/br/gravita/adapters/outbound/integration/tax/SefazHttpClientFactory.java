@@ -14,19 +14,19 @@ import org.springframework.web.client.RestClient;
 
 class SefazHttpClientFactory {
 
-	RestClient build(byte[] pfxPayload, String password, String baseUrl, Duration timeout) {
+	RestClient build(final byte[] pfxPayload, final String password, final String baseUrl, final Duration timeout) {
 		try {
-			KeyStore keyStore = KeyStore.getInstance("PKCS12");
+			final KeyStore keyStore = KeyStore.getInstance("PKCS12");
 			keyStore.load(new ByteArrayInputStream(pfxPayload), password.toCharArray());
 
-			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 			keyManagerFactory.init(keyStore, password.toCharArray());
 
-			SSLContext sslContext = SSLContext.getInstance("TLS");
+			final SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(keyManagerFactory.getKeyManagers(), null, null);
 
-			HttpClient httpClient = HttpClient.newBuilder().sslContext(sslContext).connectTimeout(timeout).build();
-			JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+			final HttpClient httpClient = HttpClient.newBuilder().sslContext(sslContext).connectTimeout(timeout).build();
+			final JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
 			requestFactory.setReadTimeout(timeout);
 
 			return RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();

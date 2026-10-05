@@ -12,6 +12,6 @@ import org.springframework.stereotype.Component;
 class AdjustReceivableForReturnAdapter implements AdjustReceivableForReturnPort {
 
 	@Override
-	public void adjust(AdjustReceivableForReturnCommand command) {
+	public void adjust(final AdjustReceivableForReturnCommand command) {
 	}
 }

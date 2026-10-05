@@ -2,7 +2,7 @@ package br.gravita.core.usercases.system;
 
 public record AuthResult(AuthStatus status, String sessionToken) {
 
-	public static AuthResult authenticated(String sessionToken) {
+	public static AuthResult authenticated(final String sessionToken) {
 		return new AuthResult(AuthStatus.AUTHENTICATED, sessionToken);
 	}
 

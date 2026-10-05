@@ -28,19 +28,19 @@ public class ProfileRestController {
     private final ListProfilesUseCase listProfilesUseCase;
 
     @GetMapping
-    public ResponseEntity<List<ProfileSummaryResponse>> findAll(@AuthenticatedUser UserId callerId) {
+    public ResponseEntity<List<ProfileSummaryResponse>> findAll(@AuthenticatedUser final UserId callerId) {
         return ResponseEntity.ok(listProfilesUseCase.execute().stream().map(ProfileSummaryResponse::from).toList());
     }
 
     @PutMapping("/{id}/permissions")
     public ResponseEntity<ProfileResponse> assignPermissions(
-            @PathVariable UUID id, @Valid @RequestBody AssignProfilePermissionsRequest request) {
-        ProfileDomain updated = assignProfilePort.execute(new Context(request.toDomain(id)));
+            @PathVariable final UUID id, @Valid @RequestBody final AssignProfilePermissionsRequest request) {
+        final ProfileDomain updated = assignProfilePort.execute(new Context(request.toDomain(id)));
         return ResponseEntity.ok(ProfileResponse.from(updated));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProfileResponse> findById(@PathVariable UUID id) {
+    public ResponseEntity<ProfileResponse> findById(@PathVariable final UUID id) {
         return ResponseEntity.ok(ProfileResponse.from(findProfilePort.execute(new Context(id))));
     }
 }

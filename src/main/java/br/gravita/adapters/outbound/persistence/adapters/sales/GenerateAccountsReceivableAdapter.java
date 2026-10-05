@@ -5,9 +5,8 @@ import br.gravita.core.ports.inbound.finance.GenerateReceivableFromInvoicingComm
 import br.gravita.core.ports.inbound.finance.GenerateReceivableFromInvoicingUseCase;
 import br.gravita.core.ports.outbound.sales.GenerateAccountsReceivablePort;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Bridges M7's invoicing to {@code finance}'s
@@ -21,23 +20,22 @@ import org.springframework.stereotype.Component;
  * M4 NFSe-authorization flow will call the use case directly once it exists.
  */
 @Component
+@Slf4j
 class GenerateAccountsReceivableAdapter implements GenerateAccountsReceivablePort {
-
-	private static final Logger log = LoggerFactory.getLogger(GenerateAccountsReceivableAdapter.class);
 
 	private final GenerateReceivableFromInvoicingUseCase generateReceivableFromInvoicingUseCase;
 
-	GenerateAccountsReceivableAdapter(GenerateReceivableFromInvoicingUseCase generateReceivableFromInvoicingUseCase) {
+	GenerateAccountsReceivableAdapter(final GenerateReceivableFromInvoicingUseCase generateReceivableFromInvoicingUseCase) {
 		this.generateReceivableFromInvoicingUseCase = generateReceivableFromInvoicingUseCase;
 	}
 
 	@Override
-	public void generate(GenerateAccountsReceivableCommand command) {
+	public void generate(final GenerateAccountsReceivableCommand command) {
 		try {
 			generateReceivableFromInvoicingUseCase.execute(new GenerateReceivableFromInvoicingCommand(
 					command.customerId(), command.originDocument().documentId(),
 					List.of(new Installment(command.dueDate(), command.amount()))));
-		} catch (RuntimeException e) {
+		} catch (final RuntimeException e) {
 			log.error("Failed to generate receivable for {} {} (customer {}); needs retry",
 					command.originDocument().type(), command.originDocument().documentId(), command.customerId(), e);
 		}

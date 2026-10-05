@@ -56,14 +56,14 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Receiving the full ordered quantity records a total receipt pending conference")
 	void receivingTheFullOrderedQuantityRecordsATotalReceiptPendingConference() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.save(any(PurchaseReceipt.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new ReceivePurchaseOrderCommand(order.getId(), List.of(new ReceivedItem(productId, BigDecimal.TEN))));
 
-		ArgumentCaptor<PurchaseReceipt> saved = ArgumentCaptor.forClass(PurchaseReceipt.class);
+		final ArgumentCaptor<PurchaseReceipt> saved = ArgumentCaptor.forClass(PurchaseReceipt.class);
 		verify(purchaseReceiptRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getOrderId()).isEqualTo(order.getId());
 		assertThat(saved.getValue().getStatus()).isEqualTo(PurchaseReceiptStatus.PENDING_CONFERENCE);
@@ -75,7 +75,7 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Receiving less than the ordered quantity records a partial receipt")
 	void receivingLessThanTheOrderedQuantityRecordsAPartialReceipt() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.save(any(PurchaseReceipt.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -83,7 +83,7 @@ class ReceivePurchaseOrderServiceTest {
 		service.execute(
 				new ReceivePurchaseOrderCommand(order.getId(), List.of(new ReceivedItem(productId, new BigDecimal("4")))));
 
-		ArgumentCaptor<PurchaseReceipt> saved = ArgumentCaptor.forClass(PurchaseReceipt.class);
+		final ArgumentCaptor<PurchaseReceipt> saved = ArgumentCaptor.forClass(PurchaseReceipt.class);
 		verify(purchaseReceiptRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().isTotal()).isFalse();
 	}
@@ -91,7 +91,7 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects receiving against an order that does not exist")
 	void rejectsReceivingAgainstAnOrderThatDoesNotExist() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -104,7 +104,7 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects receiving against a closed order")
 	void rejectsReceivingAgainstAClosedOrder() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN).afterReceiptConfirmed(true);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN).afterReceiptConfirmed(true);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 
 		assertThatThrownBy(() -> service.execute(
@@ -118,7 +118,7 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects receiving against an order pending approval")
 	void rejectsReceivingAgainstAnOrderPendingApproval() {
-		PurchaseOrder order = PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()),
+		final PurchaseOrder order = PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()),
 				PurchaseRequestId.of(UUID.randomUUID()), null, supplierId,
 				List.of(new PurchaseOrderItem(productId, BigDecimal.TEN, new BigDecimal("5.00"))), true);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -134,9 +134,9 @@ class ReceivePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects a received item for a product that is not part of the order")
 	void rejectsAReceivedItemForAProductNotPartOfTheOrder() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
-		UUID unknownProductId = UUID.randomUUID();
+		final UUID unknownProductId = UUID.randomUUID();
 
 		assertThatThrownBy(() -> service.execute(new ReceivePurchaseOrderCommand(order.getId(),
 				List.of(new ReceivedItem(unknownProductId, BigDecimal.TEN)))))
@@ -146,7 +146,7 @@ class ReceivePurchaseOrderServiceTest {
 		verify(purchaseReceiptRepositoryPort, never()).save(any());
 	}
 
-	private PurchaseOrder openOrder(BigDecimal orderedQty) {
+	private PurchaseOrder openOrder(final BigDecimal orderedQty) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, supplierId, List.of(new PurchaseOrderItem(productId, orderedQty, new BigDecimal("5.00"))), false);
 	}

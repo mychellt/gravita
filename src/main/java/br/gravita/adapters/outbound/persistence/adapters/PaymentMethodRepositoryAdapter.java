@@ -17,21 +17,21 @@ class PaymentMethodRepositoryAdapter implements PaymentMethodRepositoryPort {
 	private final PaymentMethodJpaRepository jpaRepository;
 	private final PaymentMethodPersistenceMapper mapper;
 
-	PaymentMethodRepositoryAdapter(PaymentMethodJpaRepository jpaRepository, PaymentMethodPersistenceMapper mapper) {
+	PaymentMethodRepositoryAdapter(final PaymentMethodJpaRepository jpaRepository, final PaymentMethodPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PaymentMethodDomain save(PaymentMethodDomain model) {
-		PaymentMethodJpaEntity entity = mapper.map(model);
+	public PaymentMethodDomain save(final PaymentMethodDomain model) {
+		final PaymentMethodJpaEntity entity = mapper.map(model);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PaymentMethodJpaEntity saved = jpaRepository.save(entity);
+		final PaymentMethodJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PaymentMethodDomain> get(UUID id) {
+	public Optional<PaymentMethodDomain> get(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
@@ -41,7 +41,7 @@ class PaymentMethodRepositoryAdapter implements PaymentMethodRepositoryPort {
 	}
 
 	@Override
-	public void deleteById(UUID id) {
+	public void deleteById(final UUID id) {
 		jpaRepository.findById(id).ifPresent(entity -> {
 			entity.setNew(false);
 			jpaRepository.delete(entity);

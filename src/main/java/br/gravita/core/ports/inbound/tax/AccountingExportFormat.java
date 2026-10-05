@@ -8,7 +8,7 @@ public enum AccountingExportFormat {
 	private final String extension;
 	private final String contentType;
 
-	AccountingExportFormat(String extension, String contentType) {
+	AccountingExportFormat(final String extension, final String contentType) {
 		this.extension = extension;
 		this.contentType = contentType;
 	}

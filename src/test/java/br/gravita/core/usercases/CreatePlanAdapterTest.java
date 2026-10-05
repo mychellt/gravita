@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.UUID;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,14 +44,14 @@ class CreatePlanAdapterTest {
 	@DisplayName("Creating a plan assigns a new id and saves every field")
 	@Test
 	void shouldAssignIdAndSaveNewPlan() {
-		PlanDomain plan = aPlan().id(null).build();
+		final PlanDomain plan = plan().id(null).build();
 
-		PlanDomain created = adapter.execute(new Context(plan));
+		final PlanDomain created = adapter.execute(new Context(plan));
 
 		assertThat(created.getId()).isNotNull();
-		ArgumentCaptor<PlanDomain> captor = ArgumentCaptor.forClass(PlanDomain.class);
+		final ArgumentCaptor<PlanDomain> captor = ArgumentCaptor.forClass(PlanDomain.class);
 		verify(planRepositoryPort).save(captor.capture());
-		PlanDomain saved = captor.getValue();
+		final PlanDomain saved = captor.getValue();
 		assertThat(saved.getId()).isEqualTo(created.getId());
 		assertThat(saved.getName()).isEqualTo("Bronze");
 		assertThat(saved.getDescription()).isEqualTo("Para quem está começando");
@@ -64,9 +64,9 @@ class CreatePlanAdapterTest {
 	@DisplayName("Creating a plan that already has an id keeps that id")
 	@Test
 	void shouldKeepExistingIdWhenAlreadySet() {
-		UUID existingId = UUID.randomUUID();
+		final UUID existingId = UUID.randomUUID();
 
-		PlanDomain created = adapter.execute(new Context(aPlan().id(existingId).build()));
+		final PlanDomain created = adapter.execute(new Context(plan().id(existingId).build()));
 
 		assertThat(created.getId()).isEqualTo(existingId);
 	}
@@ -74,11 +74,11 @@ class CreatePlanAdapterTest {
 	@DisplayName("Featuring a new plan clears the featured flag of the plan that had it")
 	@Test
 	void shouldClearFeaturedOnOtherPlans() {
-		PlanDomain previouslyFeatured = aPlan().name("Silver").featured(true).build();
-		PlanDomain notFeatured = aPlan().name("Gold").build();
+		final PlanDomain previouslyFeatured = plan().name("Silver").featured(true).build();
+		final PlanDomain notFeatured = plan().name("Gold").build();
 		when(planRepositoryPort.findAll()).thenReturn(List.of(previouslyFeatured, notFeatured));
 
-		adapter.execute(new Context(aPlan().id(null).featured(true).build()));
+		adapter.execute(new Context(plan().id(null).featured(true).build()));
 
 		assertThat(previouslyFeatured.isFeatured()).isFalse();
 		verify(planRepositoryPort).save(previouslyFeatured);
@@ -88,10 +88,10 @@ class CreatePlanAdapterTest {
 	@DisplayName("Creating a plan that is not featured leaves the other plans untouched")
 	@Test
 	void shouldNotTouchOtherPlansWhenNotFeatured() {
-		PlanDomain featured = aPlan().name("Silver").featured(true).build();
+		final PlanDomain featured = plan().name("Silver").featured(true).build();
 		when(planRepositoryPort.findAll()).thenReturn(List.of(featured));
 
-		adapter.execute(new Context(aPlan().id(null).build()));
+		adapter.execute(new Context(plan().id(null).build()));
 
 		assertThat(featured.isFeatured()).isTrue();
 		verify(planRepositoryPort, times(1)).save(any());
@@ -100,9 +100,9 @@ class CreatePlanAdapterTest {
 	@DisplayName("Rejects a name that another plan already uses, ignoring case and surrounding spaces")
 	@Test
 	void shouldRejectDuplicateNameIgnoringCase() {
-		when(planRepositoryPort.findAll()).thenReturn(List.of(aPlan().name("Bronze").build()));
+		when(planRepositoryPort.findAll()).thenReturn(List.of(plan().name("Bronze").build()));
 
-		assertThatThrownBy(() -> adapter.execute(new Context(aPlan().id(null).name("  bRoNzE ").build())))
+		assertThatThrownBy(() -> adapter.execute(new Context(plan().id(null).name("  bRoNzE ").build())))
 				.isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());
 	}
@@ -110,9 +110,9 @@ class CreatePlanAdapterTest {
 	@DisplayName("Rejects an inactive plan when no other plan is active")
 	@Test
 	void shouldRejectWhenNoPlanWouldBeActive() {
-		when(planRepositoryPort.findAll()).thenReturn(List.of(aPlan().name("Silver").active(false).build()));
+		when(planRepositoryPort.findAll()).thenReturn(List.of(plan().name("Silver").active(false).build()));
 
-		assertThatThrownBy(() -> adapter.execute(new Context(aPlan().id(null).active(false).build())))
+		assertThatThrownBy(() -> adapter.execute(new Context(plan().id(null).active(false).build())))
 				.isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());
 	}
@@ -120,16 +120,16 @@ class CreatePlanAdapterTest {
 	@DisplayName("Accepts an inactive plan while another plan is active")
 	@Test
 	void shouldAcceptInactivePlanWhenAnotherIsActive() {
-		when(planRepositoryPort.findAll()).thenReturn(List.of(aPlan().name("Silver").build()));
+		when(planRepositoryPort.findAll()).thenReturn(List.of(plan().name("Silver").build()));
 
-		PlanDomain created = adapter.execute(new Context(aPlan().id(null).active(false).build()));
+		final PlanDomain created = adapter.execute(new Context(plan().id(null).active(false).build()));
 
 		assertThat(created.isActivePlan()).isFalse();
 	}
 
 	@ParameterizedTest(name = "rejects {0}")
 	@MethodSource("br.gravita.core.domain.PlanFixtures#invalidPlans")
-	void shouldRejectInvalidPlan(String ignoredRule, PlanDomain plan) {
+	void shouldRejectInvalidPlan(final String ignoredRule, final PlanDomain plan) {
 		assertThatThrownBy(() -> adapter.execute(new Context(plan))).isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());
 	}

@@ -26,7 +26,7 @@ class RenegotiationTest {
 		return ReceivableId.of(UUID.randomUUID());
 	}
 
-	private static Receivable receivable(ReceivableStatus status, LocalDate dueDate) {
+	private static Receivable receivable(final ReceivableStatus status, final LocalDate dueDate) {
 		return Receivable.of(id(), UUID.randomUUID(), ReceivableOrigin.MANUAL, BigDecimal.TEN, dueDate, null,
 				status, null, null);
 	}
@@ -34,11 +34,11 @@ class RenegotiationTest {
 	@Test
 	@DisplayName("Allows renegotiating an overdue receivable that is open or partially settled")
 	void anOverdueOpenOrPartiallySettledReceivableCanBeRenegotiated() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
-			Receivable original = receivable(status, TODAY.minusDays(1));
+			final Receivable original = receivable(status, TODAY.minusDays(1));
 
-			Receivable renegotiated = original.renegotiate(TODAY);
+			final Receivable renegotiated = original.renegotiate(TODAY);
 
 			assertThat(renegotiated.getStatus()).isEqualTo(ReceivableStatus.RENEGOTIATED);
 			assertThat(renegotiated.getId()).isEqualTo(original.getId());
@@ -49,7 +49,7 @@ class RenegotiationTest {
 
 	@Test
 	@DisplayName("Does not treat a receivable due today or later as overdue")
-	void aReceivableDueTodayOrLaterIsNotOverdue() {
+	void receivableDueTodayOrLaterIsNotOverdue() {
 		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN, TODAY).renegotiate(TODAY))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("not overdue");
 		assertThatThrownBy(() -> receivable(ReceivableStatus.OPEN, TODAY.plusDays(5)).renegotiate(TODAY))
@@ -58,8 +58,8 @@ class RenegotiationTest {
 
 	@Test
 	@DisplayName("Rejects renegotiating a title that is not outstanding even if its due date has passed")
-	void aTitleThatIsNotOutstandingCannotBeRenegotiatedEvenIfItsDueDateHasPassed() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
+	void titleThatIsNotOutstandingCannotBeRenegotiatedEvenIfItsDueDateHasPassed() {
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.SETTLED,
 				ReceivableStatus.RENEGOTIATED, ReceivableStatus.CANCELLED }) {
 			assertThatThrownBy(() -> receivable(status, TODAY.minusDays(30)).renegotiate(TODAY))
 					.isInstanceOf(BusinessRuleException.class).hasMessageContaining("not overdue");
@@ -69,9 +69,9 @@ class RenegotiationTest {
 	@Test
 	@DisplayName("Creates each installment of a renegotiation plan as an open receivable with the renegotiation origin")
 	void anInstallmentOfARenegotiationPlanIsAnOpenRenegotiationOriginTitle() {
-		UUID customerId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
 
-		Receivable installment = Receivable.createFromRenegotiation(id(), customerId, new BigDecimal("50.00"),
+		final Receivable installment = Receivable.createFromRenegotiation(id(), customerId, new BigDecimal("50.00"),
 				TODAY.plusDays(30), 2, 3);
 
 		assertThat(installment.getOrigin()).isEqualTo(ReceivableOrigin.RENEGOTIATION);
@@ -91,10 +91,10 @@ class RenegotiationTest {
 	@Test
 	@DisplayName("Keeps the link from the original titles to the new ones")
 	void keepsTheLinkFromTheOriginalTitlesToTheNewOnes() {
-		List<ReceivableId> originals = List.of(id(), id());
-		List<ReceivableId> created = List.of(id(), id(), id());
+		final List<ReceivableId> originals = List.of(id(), id());
+		final List<ReceivableId> created = List.of(id(), id(), id());
 
-		Renegotiation renegotiation = Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final Renegotiation renegotiation = Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), UUID.randomUUID(),
 				originals, created, Instant.now());
 
 		assertThat(renegotiation.getOriginalReceivableIds()).containsExactlyElementsOf(originals);
@@ -112,8 +112,8 @@ class RenegotiationTest {
 
 	@Test
 	@DisplayName("Rejects a title that is both replaced and created")
-	void aTitleCannotBeBothReplacedAndCreated() {
-		ReceivableId shared = id();
+	void titleCannotBeBothReplacedAndCreated() {
+		final ReceivableId shared = id();
 
 		assertThatThrownBy(() -> Renegotiation.create(RenegotiationId.of(UUID.randomUUID()), UUID.randomUUID(),
 				List.of(shared), List.of(shared), Instant.now())).isInstanceOf(BusinessRuleException.class);

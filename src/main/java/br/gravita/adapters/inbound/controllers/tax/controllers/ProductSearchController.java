@@ -21,9 +21,9 @@ public class ProductSearchController {
 	private final SearchProductForSaleUseCase searchProductForSaleUseCase;
 
 	@GetMapping("/search")
-	public ResponseEntity<List<ProductSearchResultResponse>> search(@RequestParam("q") String q,
-			@RequestParam(required = false) UUID customerId) {
-		List<ProductSearchResultResponse> results = searchProductForSaleUseCase.execute(new SearchProductQuery(q, customerId))
+	public ResponseEntity<List<ProductSearchResultResponse>> search(@RequestParam("q") final String q,
+			@RequestParam(required = false) final UUID customerId) {
+		final List<ProductSearchResultResponse> results = searchProductForSaleUseCase.execute(new SearchProductQuery(q, customerId))
 				.stream()
 				.map(ProductSearchResultResponse::from)
 				.toList();

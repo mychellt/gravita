@@ -34,24 +34,39 @@ class SwitchSefazEnvironmentServiceTest {
 	@Mock
 	private CompanyRepositoryPort companyRepositoryPort;
 
-	private Company existingCompany(CompanyId id, SefazEnvironment environment) {
-		return Company.of(id, "Acme Ltda", VALID_CNPJ, "123456789", "987654", "6201-5/01", TaxRegime.SIMPLES_NACIONAL, true,
-				environment, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null, null);
+	private Company existingCompany(final CompanyId id, final SefazEnvironment environment) {
+		return Company.builder()
+				.id(id)
+				.name("Acme Ltda")
+				.cnpj(VALID_CNPJ)
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(environment)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("fiscal@empresa.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	@Test
 	@DisplayName("Switches a company from homologation to production")
 	void shouldSwitchCompanyFromHomologationToProduction() {
-		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id, SefazEnvironment.HOMOLOGATION)));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new SwitchSefazEnvironmentCommand(id, SefazEnvironment.PRODUCTION));
 
-		ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(savedCompany.capture());
-		Company saved = savedCompany.getValue();
+		final Company saved = savedCompany.getValue();
 		assertThat(saved.getSefazEnvironment()).isEqualTo(SefazEnvironment.PRODUCTION);
 		assertThat(saved.getId()).isEqualTo(id);
 		assertThat(saved.getCnpj()).isEqualTo(VALID_CNPJ);
@@ -60,14 +75,14 @@ class SwitchSefazEnvironmentServiceTest {
 	@Test
 	@DisplayName("Switches a company from production to homologation")
 	void shouldSwitchCompanyFromProductionToHomologation() {
-		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id, SefazEnvironment.PRODUCTION)));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new SwitchSefazEnvironmentCommand(id, SefazEnvironment.HOMOLOGATION));
 
-		ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(savedCompany.capture());
 		assertThat(savedCompany.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
 	}
@@ -75,8 +90,8 @@ class SwitchSefazEnvironmentServiceTest {
 	@Test
 	@DisplayName("Throws when the company does not exist")
 	void shouldThrowWhenCompanyDoesNotExist() {
-		SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final SwitchSefazEnvironmentService service = new SwitchSefazEnvironmentService(companyRepositoryPort);
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new SwitchSefazEnvironmentCommand(id, SefazEnvironment.PRODUCTION)))

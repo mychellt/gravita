@@ -26,8 +26,8 @@ public class PaymentMethodRestController {
     private final DeletePaymentMethodPort deletePaymentMethodPort;
 
     @PostMapping
-    public ResponseEntity<PaymentMethodResponse> create(@Valid @RequestBody PaymentMethodRequest request) {
-        PaymentMethodDomain created = createPaymentMethodPort.execute(new Context(request.toDomain(null)));
+    public ResponseEntity<PaymentMethodResponse> create(@Valid @RequestBody final PaymentMethodRequest request) {
+        final PaymentMethodDomain created = createPaymentMethodPort.execute(new Context(request.toDomain(null)));
         return ResponseEntity.created(URI.create("/api/auxiliary/payment-methods/" + created.getId()))
                 .body(PaymentMethodResponse.from(created));
     }
@@ -38,17 +38,17 @@ public class PaymentMethodRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PaymentMethodResponse> findById(@PathVariable UUID id) {
+    public ResponseEntity<PaymentMethodResponse> findById(@PathVariable final UUID id) {
         return ResponseEntity.ok(PaymentMethodResponse.from(findPaymentMethodPort.execute(new Context(id))));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PaymentMethodResponse> update(@PathVariable UUID id, @Valid @RequestBody PaymentMethodRequest request) {
+    public ResponseEntity<PaymentMethodResponse> update(@PathVariable final UUID id, @Valid @RequestBody final PaymentMethodRequest request) {
         return ResponseEntity.ok(PaymentMethodResponse.from(updatePaymentMethodPort.execute(new Context(request.toDomain(id)))));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable final UUID id) {
         deletePaymentMethodPort.execute(new Context(id));
         return ResponseEntity.noContent().build();
     }

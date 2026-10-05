@@ -75,17 +75,17 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 	private final Map<CacheKey, CachedView> cache = new ConcurrentHashMap<>();
 
 	@Autowired
-	public GetExecutiveDashboardService(SalesReadModelPort salesReadModelPort,
-			InventoryReadModelPort inventoryReadModelPort, FinanceReadModelPort financeReadModelPort,
-			TaxReadModelPort taxReadModelPort, PermissionCheckPort permissionCheckPort) {
+	public GetExecutiveDashboardService(final SalesReadModelPort salesReadModelPort,
+			final InventoryReadModelPort inventoryReadModelPort, final FinanceReadModelPort financeReadModelPort,
+			final TaxReadModelPort taxReadModelPort, final PermissionCheckPort permissionCheckPort) {
 		this(salesReadModelPort, inventoryReadModelPort, financeReadModelPort, taxReadModelPort,
 				permissionCheckPort, Clock.systemDefaultZone(), Executors.newVirtualThreadPerTaskExecutor());
 	}
 
-	public GetExecutiveDashboardService(SalesReadModelPort salesReadModelPort,
-			InventoryReadModelPort inventoryReadModelPort, FinanceReadModelPort financeReadModelPort,
-			TaxReadModelPort taxReadModelPort, PermissionCheckPort permissionCheckPort, Clock clock,
-			Executor executor) {
+	public GetExecutiveDashboardService(final SalesReadModelPort salesReadModelPort,
+			final InventoryReadModelPort inventoryReadModelPort, final FinanceReadModelPort financeReadModelPort,
+			final TaxReadModelPort taxReadModelPort, final PermissionCheckPort permissionCheckPort, final Clock clock,
+			final Executor executor) {
 		this.salesReadModelPort = salesReadModelPort;
 		this.inventoryReadModelPort = inventoryReadModelPort;
 		this.financeReadModelPort = financeReadModelPort;
@@ -96,86 +96,86 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 	}
 
 	@Override
-	public ExecutiveDashboardView execute(DashboardQuery query) {
+	public ExecutiveDashboardView execute(final DashboardQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the executive dashboard");
 		}
-		LocalDate today = LocalDate.now(clock);
-		CacheKey key = new CacheKey(query.companyId(), query.period(), today);
-		Instant now = clock.instant();
-		CachedView cached = cache.get(key);
+		final LocalDate today = LocalDate.now(clock);
+		final CacheKey key = new CacheKey(query.companyId(), query.period(), today);
+		final Instant now = clock.instant();
+		final CachedView cached = cache.get(key);
 		if (cached != null && now.isBefore(cached.expiresAt())) {
 			return cached.view();
 		}
-		ExecutiveDashboardView view = compose(query, today);
+		final ExecutiveDashboardView view = compose(query, today);
 		cache.values().removeIf(entry -> !now.isBefore(entry.expiresAt()));
 		cache.put(key, new CachedView(view, now.plus(CACHE_TTL)));
 		return view;
 	}
 
-	private ExecutiveDashboardView compose(DashboardQuery query, LocalDate today) {
-		UUID companyId = query.companyId();
-		Window selected = currentWindow(query.period(), today);
-		Window dayWindow = currentWindow(DashboardPeriod.DAY, today);
-		Window weekWindow = currentWindow(DashboardPeriod.WEEK, today);
-		Window monthWindow = currentWindow(DashboardPeriod.MONTH, today);
-		LocalDate earliest = List.of(previousWindow(DashboardPeriod.DAY, today).from(),
+	private ExecutiveDashboardView compose(final DashboardQuery query, final LocalDate today) {
+		final UUID companyId = query.companyId();
+		final Window selected = currentWindow(query.period(), today);
+		final Window dayWindow = currentWindow(DashboardPeriod.DAY, today);
+		final Window weekWindow = currentWindow(DashboardPeriod.WEEK, today);
+		final Window monthWindow = currentWindow(DashboardPeriod.MONTH, today);
+		final LocalDate earliest = List.of(previousWindow(DashboardPeriod.DAY, today).from(),
 				previousWindow(DashboardPeriod.WEEK, today).from(), previousWindow(DashboardPeriod.MONTH, today).from())
 				.stream().min(Comparator.naturalOrder()).orElseThrow();
-		YearMonth month = YearMonth.from(today);
+		final YearMonth month = YearMonth.from(today);
 
-		CompletableFuture<Map<LocalDate, BigDecimal>> dailyRevenue = async(
+		final CompletableFuture<Map<LocalDate, BigDecimal>> dailyRevenue = async(
 				() -> salesReadModelPort.dailyRevenue(earliest, today, companyId));
-		CompletableFuture<List<ProductSales>> productSales = async(
+		final CompletableFuture<List<ProductSales>> productSales = async(
 				() -> salesReadModelPort.productSales(selected.from(), selected.to(), companyId));
-		CompletableFuture<BigDecimal> cmv = productSales.thenApplyAsync(sales -> inventoryReadModelPort
+		final CompletableFuture<BigDecimal> cmv = productSales.thenApplyAsync(sales -> inventoryReadModelPort
 				.costOfGoodsSold(sales.stream().map(sale -> new SoldQuantity(sale.productId(), sale.quantity())).toList()),
 				executor);
-		CompletableFuture<List<SalespersonAchievement>> achievements = async(
+		final CompletableFuture<List<SalespersonAchievement>> achievements = async(
 				() -> salesReadModelPort.targetAchievement(month, companyId));
-		CompletableFuture<BigDecimal> invoiced = async(
+		final CompletableFuture<BigDecimal> invoiced = async(
 				() -> taxReadModelPort.invoicedTotal(selected.from(), selected.to(), companyId));
-		CompletableFuture<List<OverdueBalance>> overdue = async(
+		final CompletableFuture<List<OverdueBalance>> overdue = async(
 				() -> financeReadModelPort.overdueReceivables(today, companyId));
-		CompletableFuture<List<StockAlert>> stockAlerts = async(
+		final CompletableFuture<List<StockAlert>> stockAlerts = async(
 				() -> inventoryReadModelPort.criticalStock(today, NEAR_EXPIRY_DAYS, companyId));
 
-		Map<LocalDate, BigDecimal> revenueByDay = await(dailyRevenue);
-		BigDecimal selectedRevenue = sum(revenueByDay, selected);
-		Revenue revenue = new Revenue(comparison(revenueByDay, dayWindow, DashboardPeriod.DAY, today),
+		final Map<LocalDate, BigDecimal> revenueByDay = await(dailyRevenue);
+		final BigDecimal selectedRevenue = sum(revenueByDay, selected);
+		final Revenue revenue = new Revenue(comparison(revenueByDay, dayWindow, DashboardPeriod.DAY, today),
 				comparison(revenueByDay, weekWindow, DashboardPeriod.WEEK, today),
 				comparison(revenueByDay, monthWindow, DashboardPeriod.MONTH, today), await(invoiced),
 				selectedRevenue.subtract(await(invoiced)));
-		List<ProductSales> sales = await(productSales);
+		final List<ProductSales> sales = await(productSales);
 		return new ExecutiveDashboardView(query.period(), selected.from(), selected.to(), revenue,
 				margin(selectedRevenue, await(cmv)), delinquency(await(overdue), today), criticalStock(await(stockAlerts)),
 				topProducts(sales), targetProgress(month, await(achievements)));
 	}
 
-	private PeriodComparison comparison(Map<LocalDate, BigDecimal> revenueByDay, Window current,
-			DashboardPeriod period, LocalDate today) {
-		BigDecimal currentTotal = sum(revenueByDay, current);
-		BigDecimal previousTotal = sum(revenueByDay, previousWindow(period, today));
-		BigDecimal variation = percent(currentTotal.subtract(previousTotal), previousTotal);
+	private PeriodComparison comparison(final Map<LocalDate, BigDecimal> revenueByDay, final Window current,
+			final DashboardPeriod period, final LocalDate today) {
+		final BigDecimal currentTotal = sum(revenueByDay, current);
+		final BigDecimal previousTotal = sum(revenueByDay, previousWindow(period, today));
+		final BigDecimal variation = percent(currentTotal.subtract(previousTotal), previousTotal);
 		return new PeriodComparison(currentTotal, previousTotal, variation);
 	}
 
-	private Margin margin(BigDecimal revenue, BigDecimal cmv) {
-		BigDecimal grossMargin = revenue.subtract(cmv);
+	private Margin margin(final BigDecimal revenue, final BigDecimal cmv) {
+		final BigDecimal grossMargin = revenue.subtract(cmv);
 		return new Margin(revenue, cmv, grossMargin, percent(grossMargin, revenue));
 	}
 
 	/** Every title here is already past due: ≤30 days overdue, 31–60, and more than 60. */
-	private Delinquency delinquency(List<OverdueBalance> balances, LocalDate today) {
+	private Delinquency delinquency(final List<OverdueBalance> balances, final LocalDate today) {
 		BigDecimal upTo30 = BigDecimal.ZERO;
 		BigDecimal from31To60 = BigDecimal.ZERO;
 		BigDecimal over60 = BigDecimal.ZERO;
 		int titles = 0;
-		for (OverdueBalance balance : balances) {
+		for (final OverdueBalance balance : balances) {
 			if (balance.outstanding().signum() <= 0) {
 				continue;
 			}
-			long daysOverdue = ChronoUnit.DAYS.between(balance.dueDate(), today);
+			final long daysOverdue = ChronoUnit.DAYS.between(balance.dueDate(), today);
 			if (daysOverdue < 1) {
 				continue;
 			}
@@ -193,8 +193,8 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 	}
 
 	/** Below-minimum products first, then lots by earliest expiry. */
-	private List<CriticalStockItem> criticalStock(List<StockAlert> alerts) {
-		Comparator<StockAlert> order = Comparator.comparing((StockAlert alert) -> !alert.isBelowMinimum())
+	private List<CriticalStockItem> criticalStock(final List<StockAlert> alerts) {
+		final Comparator<StockAlert> order = Comparator.comparing((StockAlert alert) -> !alert.isBelowMinimum())
 				.thenComparing(StockAlert::expiryDate, Comparator.nullsLast(Comparator.naturalOrder()))
 				.thenComparing(StockAlert::productId);
 		return alerts.stream().sorted(order)
@@ -204,25 +204,25 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 				.toList();
 	}
 
-	private TopProducts topProducts(List<ProductSales> sales) {
-		List<TopProduct> products = sales.stream()
+	private TopProducts topProducts(final List<ProductSales> sales) {
+		final List<TopProduct> products = sales.stream()
 				.map(sale -> new TopProduct(sale.productId(), sale.quantity(), sale.value())).toList();
 		return new TopProducts(
 				top(products, Comparator.comparing(TopProduct::quantity).reversed()),
 				top(products, Comparator.comparing(TopProduct::value).reversed()));
 	}
 
-	private List<TopProduct> top(List<TopProduct> products, Comparator<TopProduct> ranking) {
+	private List<TopProduct> top(final List<TopProduct> products, final Comparator<TopProduct> ranking) {
 		return products.stream().sorted(ranking.thenComparing(TopProduct::productId)).limit(TOP_PRODUCTS_SIZE)
 				.toList();
 	}
 
-	private TargetProgress targetProgress(YearMonth month, List<SalespersonAchievement> achievements) {
-		BigDecimal companyTarget = achievements.stream().map(SalespersonAchievement::valueTarget)
+	private TargetProgress targetProgress(final YearMonth month, final List<SalespersonAchievement> achievements) {
+		final BigDecimal companyTarget = achievements.stream().map(SalespersonAchievement::valueTarget)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		BigDecimal companyAchieved = achievements.stream().map(SalespersonAchievement::valueAchieved)
+		final BigDecimal companyAchieved = achievements.stream().map(SalespersonAchievement::valueAchieved)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		List<SalespersonTarget> salespeople = achievements.stream()
+		final List<SalespersonTarget> salespeople = achievements.stream()
 				.sorted(Comparator.comparing(SalespersonAchievement::valueAchieved).reversed()
 						.thenComparing(SalespersonAchievement::salespersonId))
 				.map(achievement -> new SalespersonTarget(achievement.salespersonId(),
@@ -231,12 +231,12 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 		return new TargetProgress(month, target(companyTarget, companyAchieved), salespeople);
 	}
 
-	private Target target(BigDecimal valueTarget, BigDecimal valueAchieved) {
+	private Target target(final BigDecimal valueTarget, final BigDecimal valueAchieved) {
 		return new Target(valueTarget, valueAchieved, percent(valueAchieved, valueTarget));
 	}
 
 	/** The current window of {@code period}: from its first day (Monday, for a week) up to {@code today}. */
-	static Window currentWindow(DashboardPeriod period, LocalDate today) {
+	static Window currentWindow(final DashboardPeriod period, final LocalDate today) {
 		return switch (period) {
 			case DAY -> new Window(today, today);
 			case WEEK -> new Window(today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), today);
@@ -245,42 +245,42 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 	}
 
 	/** The prior period over the same elapsed span, so a half-way month is compared to the previous month's first half. */
-	static Window previousWindow(DashboardPeriod period, LocalDate today) {
-		Window current = currentWindow(period, today);
+	static Window previousWindow(final DashboardPeriod period, final LocalDate today) {
+		final Window current = currentWindow(period, today);
 		return switch (period) {
 			case DAY -> new Window(today.minusDays(1), today.minusDays(1));
 			case WEEK -> new Window(current.from().minusWeeks(1), current.to().minusWeeks(1));
 			case MONTH -> {
-				LocalDate from = current.from().minusMonths(1);
-				LocalDate sameSpanEnd = from.plusDays(ChronoUnit.DAYS.between(current.from(), current.to()));
-				LocalDate lastDay = YearMonth.from(from).atEndOfMonth();
+				final LocalDate from = current.from().minusMonths(1);
+				final LocalDate sameSpanEnd = from.plusDays(ChronoUnit.DAYS.between(current.from(), current.to()));
+				final LocalDate lastDay = YearMonth.from(from).atEndOfMonth();
 				yield new Window(from, sameSpanEnd.isAfter(lastDay) ? lastDay : sameSpanEnd);
 			}
 		};
 	}
 
-	private BigDecimal sum(Map<LocalDate, BigDecimal> revenueByDay, Window window) {
+	private BigDecimal sum(final Map<LocalDate, BigDecimal> revenueByDay, final Window window) {
 		return revenueByDay.entrySet().stream()
 				.filter(entry -> !entry.getKey().isBefore(window.from()) && !entry.getKey().isAfter(window.to()))
 				.map(Map.Entry::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
 	/** {@code part / whole} as a percentage; {@code null} when there is no whole to compare to. */
-	private BigDecimal percent(BigDecimal part, BigDecimal whole) {
+	private BigDecimal percent(final BigDecimal part, final BigDecimal whole) {
 		if (whole.signum() == 0) {
 			return null;
 		}
 		return part.multiply(HUNDRED).divide(whole, 2, RoundingMode.HALF_UP);
 	}
 
-	private <T> CompletableFuture<T> async(Supplier<T> read) {
+	private <T> CompletableFuture<T> async(final Supplier<T> read) {
 		return CompletableFuture.supplyAsync(read, executor);
 	}
 
-	private <T> T await(CompletableFuture<T> future) {
+	private <T> T await(final CompletableFuture<T> future) {
 		try {
 			return future.join();
-		} catch (CompletionException e) {
+		} catch (final CompletionException e) {
 			if (e.getCause() instanceof RuntimeException cause) {
 				throw cause;
 			}

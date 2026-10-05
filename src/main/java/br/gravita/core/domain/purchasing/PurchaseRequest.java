@@ -20,14 +20,14 @@ public final class PurchaseRequest {
     private UUID requestedBy;
     private PurchaseRequestStatus status;
 
-    public static PurchaseRequest open(PurchaseRequestId id, PurchaseRequestOrigin origin,
-                                       List<PurchaseRequestItem> items, UUID requestedBy) {
+    public static PurchaseRequest open(final PurchaseRequestId id, final PurchaseRequestOrigin origin,
+                                       final List<PurchaseRequestItem> items, final UUID requestedBy) {
         return new PurchaseRequest(id, origin, requireNonEmptyItems(items),
                 requireConsistentRequestedBy(origin, requestedBy), PurchaseRequestStatus.OPEN);
     }
 
-    public static PurchaseRequest of(PurchaseRequestId id, PurchaseRequestOrigin origin,
-                                     List<PurchaseRequestItem> items, UUID requestedBy, PurchaseRequestStatus status) {
+    public static PurchaseRequest of(final PurchaseRequestId id, final PurchaseRequestOrigin origin,
+                                     final List<PurchaseRequestItem> items, final UUID requestedBy, final PurchaseRequestStatus status) {
         return new PurchaseRequest(id, origin, items, requestedBy, status);
     }
 
@@ -47,15 +47,15 @@ public final class PurchaseRequest {
         return new PurchaseRequest(id, origin, items, requestedBy, PurchaseRequestStatus.CONVERTED);
     }
 
-    private static List<PurchaseRequestItem> requireNonEmptyItems(List<PurchaseRequestItem> items) {
-        List<PurchaseRequestItem> copy = items == null ? List.of() : List.copyOf(items);
+    private static List<PurchaseRequestItem> requireNonEmptyItems(final List<PurchaseRequestItem> items) {
+        final List<PurchaseRequestItem> copy = items == null ? List.of() : List.copyOf(items);
         if (copy.isEmpty()) {
             throw new BusinessRuleException("A purchase request must have at least one item");
         }
         return copy;
     }
 
-    private static UUID requireConsistentRequestedBy(PurchaseRequestOrigin origin, UUID requestedBy) {
+    private static UUID requireConsistentRequestedBy(final PurchaseRequestOrigin origin, final UUID requestedBy) {
         if (origin == PurchaseRequestOrigin.USER && requestedBy == null) {
             throw new BusinessRuleException("requestedBy is required when origin is USER");
         }

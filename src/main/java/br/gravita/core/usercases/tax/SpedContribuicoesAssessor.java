@@ -44,7 +44,7 @@ final class SpedContribuicoesAssessor {
 			BigDecimal creditUsed, BigDecimal creditBalance, BigDecimal payable) {
 
 		/** Whether nothing but the general rate is levied, which decides how the company declares its contribution type. */
-		boolean onlyGeneralRate(Incidence incidence) {
+		boolean onlyGeneralRate(final Incidence incidence) {
 			return levied.stream().allMatch(entry -> entry.rate().compareTo(rate(tax.basicRate(incidence))) == 0);
 		}
 	}
@@ -58,19 +58,19 @@ final class SpedContribuicoesAssessor {
 		private BigDecimal contribution = money(BigDecimal.ZERO);
 	}
 
-	static Result assess(SpedTax tax, Incidence incidence, List<SpedContribuicoesDocument> documents) {
-		Map<LevyKey, Sums> levied = new TreeMap<>(
+	static Result assess(final SpedTax tax, final Incidence incidence, final List<SpedContribuicoesDocument> documents) {
+		final Map<LevyKey, Sums> levied = new TreeMap<>(
 				Comparator.comparing(LevyKey::code).thenComparing(LevyKey::rate));
-		Map<String, BigDecimal> credited = new TreeMap<>();
+		final Map<String, BigDecimal> credited = new TreeMap<>();
 		BigDecimal credit = money(BigDecimal.ZERO);
-		for (SpedContribuicoesDocument document : documents) {
-			for (Item item : document.items()) {
-				Levy levy = item.levy(tax);
+		for (final SpedContribuicoesDocument document : documents) {
+			for (final Item item : document.items()) {
+				final Levy levy = item.levy(tax);
 				if (!levy.bearsAmount()) {
 					continue;
 				}
 				if (document.operation() == Operation.EXIT) {
-					Sums sums = levied.computeIfAbsent(new LevyKey(code(incidence, levy), levy.rate()),
+					final Sums sums = levied.computeIfAbsent(new LevyKey(code(incidence, levy), levy.rate()),
 							key -> new Sums());
 					sums.revenue = sums.revenue.add(item.revenue());
 					sums.base = sums.base.add(levy.base());
@@ -82,26 +82,26 @@ final class SpedContribuicoesAssessor {
 			}
 		}
 
-		List<Levied> levies = levied.entrySet().stream().map(entry -> new Levied(entry.getKey().code(),
+		final List<Levied> levies = levied.entrySet().stream().map(entry -> new Levied(entry.getKey().code(),
 				entry.getKey().rate(), entry.getValue().revenue, entry.getValue().base, entry.getValue().contribution))
 				.toList();
-		List<Credited> credits = credited.entrySet().stream()
+		final List<Credited> credits = credited.entrySet().stream()
 				.map(entry -> new Credited(entry.getKey(), entry.getValue())).toList();
 
-		BigDecimal contribution = sum(levies, Levied::contribution);
-		BigDecimal used = credit.min(contribution);
+		final BigDecimal contribution = sum(levies, Levied::contribution);
+		final BigDecimal used = credit.min(contribution);
 		return new Result(tax, levies, credits, sum(levies, Levied::revenue), sum(levies, Levied::base), contribution,
 				sum(credits, Credited::base), rate(tax.basicRate(Incidence.NON_CUMULATIVE)), credit, used,
 				credit.subtract(used), contribution.subtract(used));
 	}
 
 	/** The levy's {@code COD_CONT}: the general rate takes the basic code of its regime, any other the differentiated one. */
-	private static String code(Incidence incidence, Levy levy) {
-		boolean general = "01".equals(levy.cst());
+	private static String code(final Incidence incidence, final Levy levy) {
+		final boolean general = "01".equals(levy.cst());
 		return incidence == Incidence.NON_CUMULATIVE ? (general ? "01" : "02") : (general ? "51" : "52");
 	}
 
-	private static <T> BigDecimal sum(List<T> values, Function<T, BigDecimal> amount) {
+	private static <T> BigDecimal sum(final List<T> values, final Function<T, BigDecimal> amount) {
 		return values.stream().map(amount).reduce(money(BigDecimal.ZERO), BigDecimal::add);
 	}
 }

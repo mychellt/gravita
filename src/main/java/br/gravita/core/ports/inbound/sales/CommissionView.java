@@ -7,7 +7,7 @@ import java.util.UUID;
 public record CommissionView(UUID id, UUID salespersonId, UUID productId, UUID orderId, BigDecimal rate,
 		BigDecimal amount) {
 
-	public static CommissionView from(Commission commission) {
+	public static CommissionView from(final Commission commission) {
 		return new CommissionView(commission.id().value(), commission.salespersonId(), commission.productId(),
 				commission.orderId().value(), commission.rate(), commission.amount());
 	}

@@ -5,7 +5,7 @@ import br.gravita.core.usercases.system.AuthStatus;
 
 public record AuthResponse(AuthStatus status, String sessionToken) {
 
-	public static AuthResponse from(AuthResult result) {
+	public static AuthResponse from(final AuthResult result) {
 		return new AuthResponse(result.status(), result.sessionToken());
 	}
 }

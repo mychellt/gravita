@@ -35,9 +35,9 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 	private final ProductRepositoryPort productRepositoryPort;
 	private final StockMovementRepositoryPort stockMovementRepositoryPort;
 
-	InventoryReadModelAdapter(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			LotRepositoryPort lotRepositoryPort, ProductRepositoryPort productRepositoryPort,
-			StockMovementRepositoryPort stockMovementRepositoryPort) {
+	InventoryReadModelAdapter(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final LotRepositoryPort lotRepositoryPort, final ProductRepositoryPort productRepositoryPort,
+			final StockMovementRepositoryPort stockMovementRepositoryPort) {
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.lotRepositoryPort = lotRepositoryPort;
@@ -50,16 +50,16 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public BigDecimal costOfGoodsSold(List<SoldQuantity> sold) {
+	public BigDecimal costOfGoodsSold(final List<SoldQuantity> sold) {
 		if (sold.isEmpty()) {
 			return BigDecimal.ZERO;
 		}
-		Map<UUID, List<StockBalance>> balancesByProduct = new HashMap<>();
-		for (StockBalance balance : stockBalanceRepositoryPort.findAll()) {
+		final Map<UUID, List<StockBalance>> balancesByProduct = new HashMap<>();
+		for (final StockBalance balance : stockBalanceRepositoryPort.findAll()) {
 			balancesByProduct.computeIfAbsent(balance.getProductId(), id -> new ArrayList<>()).add(balance);
 		}
 		BigDecimal total = BigDecimal.ZERO;
-		for (SoldQuantity line : sold) {
+		for (final SoldQuantity line : sold) {
 			total = total.add(line.quantity().multiply(unitCost(line.productId(), balancesByProduct)));
 		}
 		return total.setScale(2, RoundingMode.HALF_UP);
@@ -67,17 +67,17 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<StockAlert> criticalStock(LocalDate today, int nearExpiryDays, UUID companyId) {
-		List<StockAlert> alerts = new ArrayList<>();
-		Map<UUID, BigDecimal> availableByProduct = new HashMap<>();
-		for (StockBalance balance : stockBalanceRepositoryPort.findAll()) {
+	public List<StockAlert> criticalStock(final LocalDate today, final int nearExpiryDays, final UUID companyId) {
+		final List<StockAlert> alerts = new ArrayList<>();
+		final Map<UUID, BigDecimal> availableByProduct = new HashMap<>();
+		for (final StockBalance balance : stockBalanceRepositoryPort.findAll()) {
 			availableByProduct.merge(balance.getProductId(), balance.available(), BigDecimal::add);
 		}
 		availableByProduct.forEach((productId, available) -> productRepositoryPort.get(productId)
 				.map(ProductDomain::getStock).map(StockParametersDomain::minimum)
 				.filter(minimum -> available.compareTo(minimum) < 0)
 				.ifPresent(minimum -> alerts.add(new StockAlert(productId, available, minimum, null, null, null))));
-		for (Lot lot : lotRepositoryPort.findByExpiryDateLessThanEqual(today.plusDays(nearExpiryDays))) {
+		for (final Lot lot : lotRepositoryPort.findByExpiryDateLessThanEqual(today.plusDays(nearExpiryDays))) {
 			if (lot.getQuantity().signum() > 0) {
 				alerts.add(new StockAlert(lot.getProductId(), null, null, lot.getWarehouseId(), lot.getCode(),
 						lot.getExpiryDate()));
@@ -94,18 +94,18 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public List<StockFlow> stockFlows(LocalDate from, LocalDate to, UUID companyId) {
-		Instant start = from.atStartOfDay(ZoneOffset.UTC).toInstant();
-		Instant end = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
-		Map<UUID, BigDecimal> onHandNow = new HashMap<>();
-		for (StockBalance balance : stockBalanceRepositoryPort.findAll()) {
+	public List<StockFlow> stockFlows(final LocalDate from, final LocalDate to, final UUID companyId) {
+		final Instant start = from.atStartOfDay(ZoneOffset.UTC).toInstant();
+		final Instant end = to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+		final Map<UUID, BigDecimal> onHandNow = new HashMap<>();
+		for (final StockBalance balance : stockBalanceRepositoryPort.findAll()) {
 			onHandNow.merge(balance.getProductId(), balance.getOnHand(), BigDecimal::add);
 		}
-		Map<UUID, BigDecimal> issued = new HashMap<>();
-		Map<UUID, BigDecimal> netInPeriod = new HashMap<>();
-		Map<UUID, BigDecimal> netAfterPeriod = new HashMap<>();
-		for (StockMovement movement : stockMovementRepositoryPort.findByTimestampGreaterThanEqual(start)) {
-			BigDecimal change = stockChange(movement);
+		final Map<UUID, BigDecimal> issued = new HashMap<>();
+		final Map<UUID, BigDecimal> netInPeriod = new HashMap<>();
+		final Map<UUID, BigDecimal> netAfterPeriod = new HashMap<>();
+		for (final StockMovement movement : stockMovementRepositoryPort.findByTimestampGreaterThanEqual(start)) {
+			final BigDecimal change = stockChange(movement);
 			if (movement.getTimestamp().isBefore(end)) {
 				netInPeriod.merge(movement.getProductId(), change, BigDecimal::add);
 				if (movement.getType() == StockMovementType.EXIT) {
@@ -115,19 +115,19 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 				netAfterPeriod.merge(movement.getProductId(), change, BigDecimal::add);
 			}
 		}
-		Set<UUID> products = new TreeSet<>(onHandNow.keySet());
+		final Set<UUID> products = new TreeSet<>(onHandNow.keySet());
 		products.addAll(netInPeriod.keySet());
-		List<StockFlow> flows = new ArrayList<>(products.size());
-		for (UUID productId : products) {
-			BigDecimal closing = onHandNow.getOrDefault(productId, BigDecimal.ZERO)
+		final List<StockFlow> flows = new ArrayList<>(products.size());
+		for (final UUID productId : products) {
+			final BigDecimal closing = onHandNow.getOrDefault(productId, BigDecimal.ZERO)
 					.subtract(netAfterPeriod.getOrDefault(productId, BigDecimal.ZERO));
-			BigDecimal opening = closing.subtract(netInPeriod.getOrDefault(productId, BigDecimal.ZERO));
+			final BigDecimal opening = closing.subtract(netInPeriod.getOrDefault(productId, BigDecimal.ZERO));
 			flows.add(new StockFlow(productId, issued.getOrDefault(productId, BigDecimal.ZERO), opening, closing));
 		}
 		return flows;
 	}
 
-	private BigDecimal stockChange(StockMovement movement) {
+	private BigDecimal stockChange(final StockMovement movement) {
 		return switch (movement.getType()) {
 			case ENTRY, ADJUSTMENT -> movement.getQuantity();
 			case EXIT -> movement.getQuantity().negate();
@@ -135,11 +135,11 @@ class InventoryReadModelAdapter implements InventoryReadModelPort {
 		};
 	}
 
-	private BigDecimal unitCost(UUID productId, Map<UUID, List<StockBalance>> balancesByProduct) {
-		List<StockBalance> balances = balancesByProduct.getOrDefault(productId, List.of());
-		BigDecimal onHand = balances.stream().map(StockBalance::getOnHand).reduce(BigDecimal.ZERO, BigDecimal::add);
+	private BigDecimal unitCost(final UUID productId, final Map<UUID, List<StockBalance>> balancesByProduct) {
+		final List<StockBalance> balances = balancesByProduct.getOrDefault(productId, List.of());
+		final BigDecimal onHand = balances.stream().map(StockBalance::getOnHand).reduce(BigDecimal.ZERO, BigDecimal::add);
 		if (onHand.signum() > 0) {
-			BigDecimal value = balances.stream().map(balance -> balance.getOnHand().multiply(balance.getAverageCost()))
+			final BigDecimal value = balances.stream().map(balance -> balance.getOnHand().multiply(balance.getAverageCost()))
 					.reduce(BigDecimal.ZERO, BigDecimal::add);
 			return value.divide(onHand, 4, RoundingMode.HALF_UP);
 		}

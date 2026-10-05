@@ -10,7 +10,7 @@ public record BankAccount(String bankCode, String agency, String accountNumber) 
 		requireNonBlank(accountNumber, "account number");
 	}
 
-	private static void requireNonBlank(String value, String field) {
+	private static void requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException("Bank account " + field + " is required");
 		}

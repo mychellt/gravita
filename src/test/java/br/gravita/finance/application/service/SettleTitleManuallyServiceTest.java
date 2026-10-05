@@ -53,12 +53,12 @@ class SettleTitleManuallyServiceTest {
 
 	private final UUID customerId = UUID.randomUUID();
 
-	private Receivable receivable(ReceivableStatus status) {
+	private Receivable receivable(final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), customerId, ReceivableOrigin.MANUAL,
 				new BigDecimal("100.00"), LocalDate.now().plusDays(30), null, status, null, null);
 	}
 
-	private void found(Receivable receivable, Settlement... previous) {
+	private void found(final Receivable receivable, final Settlement... previous) {
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(settlementRepositoryPort.findByReceivableId(receivable.getId())).thenReturn(List.of(previous));
 	}
@@ -67,25 +67,25 @@ class SettleTitleManuallyServiceTest {
 		when(settlementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private SettleTitleCommand command(Receivable receivable, String amount, String discount, boolean partial) {
+	private SettleTitleCommand command(final Receivable receivable, final String amount, final String discount, final boolean partial) {
 		return new SettleTitleCommand(receivable.getId().value(), new BigDecimal(amount), new BigDecimal("2.00"),
 				new BigDecimal("1.00"), discount == null ? null : new BigDecimal(discount), new BigDecimal("0.50"),
 				partial);
 	}
 
-	private Settlement previousManual(Receivable receivable, String amount) {
+	private Settlement previousManual(final Receivable receivable, final String amount) {
 		return Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(), new BigDecimal(amount), null,
 				null, null, null, Instant.now());
 	}
 
 	@Test
 	@DisplayName("Creates a manual settlement with the entered adjustments and settles the receivable on a full payment")
-	void aFullSettlementCreatesAManualSettlementWithTheEnteredAdjustmentsAndSettlesTheReceivable() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+	void fullSettlementCreatesAManualSettlementWithTheEnteredAdjustmentsAndSettlesTheReceivable() {
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 		savesEcho();
 
-		Settlement settlement = service.execute(command(receivable, "90.00", "10.00", false));
+		final Settlement settlement = service.execute(command(receivable, "90.00", "10.00", false));
 
 		assertThat(settlement.getMethod()).isEqualTo(SettlementMethod.MANUAL);
 		assertThat(settlement.getReceivableId()).isEqualTo(receivable.getId());
@@ -94,7 +94,7 @@ class SettleTitleManuallyServiceTest {
 		assertThat(settlement.getFine()).isEqualByComparingTo("1.00");
 		assertThat(settlement.getDiscount()).isEqualByComparingTo("10.00");
 		assertThat(settlement.getSurcharge()).isEqualByComparingTo("0.50");
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(ReceivableStatus.SETTLED);
 		verify(updateCustomerCreditStatusPort).update(customerId);
@@ -102,14 +102,14 @@ class SettleTitleManuallyServiceTest {
 
 	@Test
 	@DisplayName("Leaves the receivable partially settled after a partial payment")
-	void aPartialSettlementLeavesTheReceivablePartiallySettled() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+	void partialSettlementLeavesTheReceivablePartiallySettled() {
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 		savesEcho();
 
 		service.execute(command(receivable, "40.00", null, true));
 
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(ReceivableStatus.PARTIALLY_SETTLED);
 		verify(updateCustomerCreditStatusPort).update(customerId);
@@ -117,28 +117,28 @@ class SettleTitleManuallyServiceTest {
 
 	@Test
 	@DisplayName("Settles a partially settled receivable once the payment covers only what is left")
-	void aFullSettlementOfAPartiallySettledReceivableOnlyHasToCoverWhatIsLeft() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+	void fullSettlementOfAPartiallySettledReceivableOnlyHasToCoverWhatIsLeft() {
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
 		savesEcho();
 
 		service.execute(command(receivable, "60.00", null, false));
 
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(ReceivableStatus.SETTLED);
 	}
 
 	@Test
 	@DisplayName("Keeps the receivable partially settled after a second partial payment that does not clear it")
-	void aSecondPartialSettlementCanStillLeaveTheReceivablePartiallySettled() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+	void secondPartialSettlementCanStillLeaveTheReceivablePartiallySettled() {
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
 		savesEcho();
 
 		service.execute(command(receivable, "30.00", null, true));
 
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(ReceivableStatus.PARTIALLY_SETTLED);
 	}
@@ -146,7 +146,7 @@ class SettleTitleManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects a settlement for a receivable that does not exist")
 	void rejectsAnUnknownReceivable() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(id))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -158,9 +158,9 @@ class SettleTitleManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects a settlement for a receivable that is not open")
 	void rejectsAReceivableThatIsNotOpen() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
 				ReceivableStatus.RENEGOTIATED }) {
-			Receivable receivable = receivable(status);
+			final Receivable receivable = receivable(status);
 			when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 
 			assertThatThrownBy(() -> service.execute(command(receivable, "40.00", null, true)))
@@ -173,7 +173,7 @@ class SettleTitleManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects a settlement that would clear more than what is still owed")
 	void rejectsASettlementThatWouldClearMoreThanIsLeft() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, previousManual(receivable, "40.00"));
 
 		assertThatThrownBy(() -> service.execute(command(receivable, "61.00", null, false)))
@@ -186,7 +186,7 @@ class SettleTitleManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects a partial settlement that covers the whole balance and a full one that does not")
 	void rejectsAPartialSettlementThatCoversTheWholeBalanceAndAFullOneThatDoesNot() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 
 		assertThatThrownBy(() -> service.execute(command(receivable, "100.00", null, true)))
@@ -200,7 +200,7 @@ class SettleTitleManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects negative adjustments on a settlement")
 	void rejectsNegativeAdjustments() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 
 		assertThatThrownBy(() -> service.execute(new SettleTitleCommand(receivable.getId().value(),

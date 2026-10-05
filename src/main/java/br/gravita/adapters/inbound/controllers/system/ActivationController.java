@@ -38,9 +38,9 @@ public class ActivationController {
 	private final ResendActivationUseCase resendActivationUseCase;
 	private final String resultPageUrl;
 
-	public ActivationController(ActivateAccountUseCase activateAccountUseCase,
-			ResendActivationUseCase resendActivationUseCase,
-			@Value("${gravita.activation.result-page-url}") String resultPageUrl) {
+	public ActivationController(final ActivateAccountUseCase activateAccountUseCase,
+			final ResendActivationUseCase resendActivationUseCase,
+			@Value("${gravita.activation.result-page-url}") final String resultPageUrl) {
 		this.activateAccountUseCase = activateAccountUseCase;
 		this.resendActivationUseCase = resendActivationUseCase;
 		this.resultPageUrl = resultPageUrl;
@@ -52,31 +52,31 @@ public class ActivationController {
 	 * level so a missing one lands on the same page as a bad one.
 	 */
 	@GetMapping
-	public ResponseEntity<Void> activate(@RequestParam(required = false) String token) {
+	public ResponseEntity<Void> activate(@RequestParam(required = false) final String token) {
 		return redirectTo(outcomeOf(token));
 	}
 
-	private String outcomeOf(String token) {
+	private String outcomeOf(final String token) {
 		try {
 			activateAccountUseCase.execute(token);
 			return "activated";
-		} catch (ActivationRejectedException e) {
+		} catch (final ActivationRejectedException e) {
 			return switch (e.getReason()) {
 				case EXPIRED -> "expired";
 				case ALREADY_USED -> "used";
 				case INVALID -> "invalid";
 			};
-		} catch (BusinessRuleException e) {
+		} catch (final BusinessRuleException e) {
 			// e.g. a deactivated account: an old link must never reopen it, and the page treats it as unusable.
 			return "invalid";
-		} catch (RuntimeException e) {
+		} catch (final RuntimeException e) {
 			log.error("Account activation failed unexpectedly", e);
 			return "unavailable";
 		}
 	}
 
-	private ResponseEntity<Void> redirectTo(String status) {
-		var location = UriComponentsBuilder.fromUriString(resultPageUrl).queryParam("status", status).build().toUri();
+	private ResponseEntity<Void> redirectTo(final String status) {
+		final var location = UriComponentsBuilder.fromUriString(resultPageUrl).queryParam("status", status).build().toUri();
 		return ResponseEntity.status(HttpStatus.FOUND)
 				.location(location)
 				.header(HttpHeaders.CACHE_CONTROL, "no-store")
@@ -84,13 +84,13 @@ public class ActivationController {
 	}
 
 	@PostMapping("/resend")
-	public ResponseEntity<Map<String, String>> resend(@Valid @RequestBody ResendActivationRequest request) {
+	public ResponseEntity<Map<String, String>> resend(@Valid @RequestBody final ResendActivationRequest request) {
 		resendActivationUseCase.execute(request.email());
 		return ResponseEntity.accepted().body(RESEND_ACCEPTED);
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

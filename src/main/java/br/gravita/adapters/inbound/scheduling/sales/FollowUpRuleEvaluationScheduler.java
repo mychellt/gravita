@@ -13,7 +13,7 @@ public class FollowUpRuleEvaluationScheduler {
 
 	private final EvaluateFollowUpRulesUseCase evaluateFollowUpRulesUseCase;
 
-	public FollowUpRuleEvaluationScheduler(EvaluateFollowUpRulesUseCase evaluateFollowUpRulesUseCase) {
+	public FollowUpRuleEvaluationScheduler(final EvaluateFollowUpRulesUseCase evaluateFollowUpRulesUseCase) {
 		this.evaluateFollowUpRulesUseCase = evaluateFollowUpRulesUseCase;
 	}
 

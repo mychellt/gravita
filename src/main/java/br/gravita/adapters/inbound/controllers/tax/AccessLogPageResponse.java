@@ -7,7 +7,7 @@ import java.util.List;
 
 public record AccessLogPageResponse(List<AccessLogEntryResponse> content, int page, int size, long totalElements, int totalPages) {
 
-	public static AccessLogPageResponse from(Page<AccessLog> page) {
+	public static AccessLogPageResponse from(final Page<AccessLog> page) {
 		return new AccessLogPageResponse(
 				page.content().stream().map(AccessLogEntryResponse::from).toList(),
 				page.page(),

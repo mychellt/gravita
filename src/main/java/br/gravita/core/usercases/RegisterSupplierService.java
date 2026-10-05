@@ -13,18 +13,18 @@ public class RegisterSupplierService implements RegisterSupplierUseCase {
 
 	private final SupplierRepositoryPort supplierRepositoryPort;
 
-	public RegisterSupplierService(SupplierRepositoryPort supplierRepositoryPort) {
+	public RegisterSupplierService(final SupplierRepositoryPort supplierRepositoryPort) {
 		this.supplierRepositoryPort = supplierRepositoryPort;
 	}
 
 	@Override
-	public SupplierId execute(RegisterSupplierCommand command) {
-		SupplierId id = SupplierId.of(UUID.randomUUID());
-		Supplier supplier = Supplier.of(id, command.document(), command.name(), command.addresses(),
+	public SupplierId execute(final RegisterSupplierCommand command) {
+		final SupplierId id = SupplierId.of(UUID.randomUUID());
+		final Supplier supplier = Supplier.of(id, command.document(), command.name(), command.addresses(),
 				command.contacts(), command.bankAccount(), command.pixKey(), command.averageLeadTimeDays(),
 				command.defaultPurchaseCfop());
 
-		Supplier saved = supplierRepositoryPort.save(supplier);
+		final Supplier saved = supplierRepositoryPort.save(supplier);
 		return saved.getId();
 	}
 }

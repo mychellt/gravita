@@ -15,8 +15,8 @@ public final class SerialUnit {
 	private final String serialNumber;
 	private final SerialUnitStatus status;
 
-	public SerialUnit(SerialUnitId id, UUID productId, UUID warehouseId, String serialNumber,
-			SerialUnitStatus status) {
+	public SerialUnit(final SerialUnitId id, final UUID productId, final UUID warehouseId, final String serialNumber,
+			final SerialUnitStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
 		this.warehouseId = Objects.requireNonNull(warehouseId, "warehouseId is required");
@@ -24,7 +24,7 @@ public final class SerialUnit {
 		this.status = Objects.requireNonNull(status, "status is required");
 	}
 
-	public static SerialUnit received(SerialUnitId id, UUID productId, UUID warehouseId, String serialNumber) {
+	public static SerialUnit received(final SerialUnitId id, final UUID productId, final UUID warehouseId, final String serialNumber) {
 		return new SerialUnit(id, productId, warehouseId, serialNumber, SerialUnitStatus.IN_STOCK);
 	}
 

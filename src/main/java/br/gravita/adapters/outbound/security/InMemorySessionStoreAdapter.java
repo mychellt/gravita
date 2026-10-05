@@ -14,12 +14,12 @@ public class InMemorySessionStoreAdapter implements SessionStorePort {
 	private final Map<String, UserId> sessions = new ConcurrentHashMap<>();
 
 	@Override
-	public void store(String sessionToken, UserId userId) {
+	public void store(final String sessionToken, final UserId userId) {
 		sessions.put(sessionToken, userId);
 	}
 
 	@Override
-	public Optional<UserId> resolve(String sessionToken) {
+	public Optional<UserId> resolve(final String sessionToken) {
 		return Optional.ofNullable(sessions.get(sessionToken));
 	}
 }

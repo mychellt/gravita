@@ -14,14 +14,14 @@ public class LookupPersonByDocumentAdapter implements LookupPersonByDocumentPort
 	private final CnpjLookupPort cnpjLookupPort;
 	private final CepLookupPort cepLookupPort;
 
-	public LookupPersonByDocumentAdapter(CnpjLookupPort cnpjLookupPort, CepLookupPort cepLookupPort) {
+	public LookupPersonByDocumentAdapter(final CnpjLookupPort cnpjLookupPort, final CepLookupPort cepLookupPort) {
 		this.cnpjLookupPort = cnpjLookupPort;
 		this.cepLookupPort = cepLookupPort;
 	}
 
 	@Override
-	public PersonLookupResult execute(Context context) {
-		LookupPersonByDocumentQuery query = context.getData(LookupPersonByDocumentQuery.class);
+	public PersonLookupResult execute(final Context context) {
+		final LookupPersonByDocumentQuery query = context.getData(LookupPersonByDocumentQuery.class);
 		if (query.isDocumentQuery()) {
 			return cnpjLookupPort.execute(new Context(query.document())).orElseGet(PersonLookupResult::notFound);
 		}

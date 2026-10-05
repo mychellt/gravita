@@ -15,18 +15,18 @@ public class ApprovePurchaseOrderService implements ApprovePurchaseOrderUseCase 
 	private final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
 	private final NotifyApprovalWorkflowPort notifyApprovalWorkflowPort;
 
-	public ApprovePurchaseOrderService(PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
-			NotifyApprovalWorkflowPort notifyApprovalWorkflowPort) {
+	public ApprovePurchaseOrderService(final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
+			final NotifyApprovalWorkflowPort notifyApprovalWorkflowPort) {
 		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
 		this.notifyApprovalWorkflowPort = notifyApprovalWorkflowPort;
 	}
 
 	@Override
-	public void execute(ApprovePurchaseOrderCommand command) {
-		PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
+	public void execute(final ApprovePurchaseOrderCommand command) {
+		final PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(command.orderId().value()));
 
-		PurchaseOrder decided = command.decision() == ApprovalDecision.APPROVE
+		final PurchaseOrder decided = command.decision() == ApprovalDecision.APPROVE
 				? order.approve(command.approvedBy())
 				: order.reject();
 

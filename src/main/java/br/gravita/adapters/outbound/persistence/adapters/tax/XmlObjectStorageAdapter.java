@@ -13,24 +13,24 @@ class XmlObjectStorageAdapter implements XmlObjectStoragePort {
 
 	private final XmlObjectJpaRepository jpaRepository;
 
-	XmlObjectStorageAdapter(XmlObjectJpaRepository jpaRepository) {
+	XmlObjectStorageAdapter(final XmlObjectJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public String store(CompanyId companyId, byte[] xmlContent) {
-		XmlObjectJpaEntity entity = XmlObjectJpaEntity.builder()
+	public String store(final CompanyId companyId, final byte[] xmlContent) {
+		final XmlObjectJpaEntity entity = XmlObjectJpaEntity.builder()
 				.id(UUID.randomUUID())
 				.companyId(companyId.value())
 				.content(xmlContent)
 				.build();
 		entity.setNew(true);
-		XmlObjectJpaEntity saved = jpaRepository.save(entity);
+		final XmlObjectJpaEntity saved = jpaRepository.save(entity);
 		return saved.getId().toString();
 	}
 
 	@Override
-	public byte[] retrieve(String reference) {
+	public byte[] retrieve(final String reference) {
 		return jpaRepository.findById(UUID.fromString(reference))
 				.orElseThrow(() -> new ResourceNotFoundException("Stored object not found: " + reference))
 				.getContent();

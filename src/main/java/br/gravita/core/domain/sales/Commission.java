@@ -27,8 +27,8 @@ public record Commission(CommissionId id, UUID salespersonId, UUID productId, Sa
 		}
 	}
 
-	public static Commission calculate(CommissionId id, UUID salespersonId, UUID productId, SalesOrderId orderId,
-			BigDecimal rate, BigDecimal lineTotal) {
+	public static Commission calculate(final CommissionId id, final UUID salespersonId, final UUID productId, final SalesOrderId orderId,
+			final BigDecimal rate, final BigDecimal lineTotal) {
 		return new Commission(id, salespersonId, productId, orderId, rate, lineTotal.multiply(rate));
 	}
 }

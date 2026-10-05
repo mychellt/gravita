@@ -14,13 +14,13 @@ public class CreatePaymentTermAdapter implements CreatePaymentTermPort {
 
 	private final PaymentTermRepositoryPort paymentTermRepositoryPort;
 
-	public CreatePaymentTermAdapter(PaymentTermRepositoryPort paymentTermRepositoryPort) {
+	public CreatePaymentTermAdapter(final PaymentTermRepositoryPort paymentTermRepositoryPort) {
 		this.paymentTermRepositoryPort = paymentTermRepositoryPort;
 	}
 
 	@Override
-	public PaymentTermDomain execute(Context context) {
-		PaymentTermDomain paymentTerm = context.getData(PaymentTermDomain.class);
+	public PaymentTermDomain execute(final Context context) {
+		final PaymentTermDomain paymentTerm = context.getData(PaymentTermDomain.class);
 		validateInstallments(paymentTerm);
 		if (paymentTerm.getId() == null) {
 			paymentTerm.setId(UUID.randomUUID());
@@ -28,7 +28,7 @@ public class CreatePaymentTermAdapter implements CreatePaymentTermPort {
 		return paymentTermRepositoryPort.save(paymentTerm);
 	}
 
-	static void validateInstallments(PaymentTermDomain paymentTerm) {
+	static void validateInstallments(final PaymentTermDomain paymentTerm) {
 		if (paymentTerm.getInstallmentIntervalsDays() == null || paymentTerm.getInstallmentIntervalsDays().isEmpty()) {
 			throw new BusinessRuleException("A payment term needs at least one installment interval");
 		}

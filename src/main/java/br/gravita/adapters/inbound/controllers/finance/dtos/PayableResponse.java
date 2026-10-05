@@ -15,7 +15,7 @@ public record PayableResponse(UUID id, UUID supplierId, PayableOrigin origin, Bi
 	public record CostCenterShareResponse(UUID costCenterId, BigDecimal percent) {
 	}
 
-	public static PayableResponse from(Payable payable) {
+	public static PayableResponse from(final Payable payable) {
 		return new PayableResponse(payable.getId().value(), payable.getSupplierId(), payable.getOrigin(),
 				payable.getAmount(), payable.getDueDate(),
 				payable.getCostCenterSplit().stream()

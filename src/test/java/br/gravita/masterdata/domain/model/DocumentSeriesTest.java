@@ -19,9 +19,9 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Allows any next number on first configuration")
 	void shouldAllowAnyNextNumberOnFirstConfiguration() {
-		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
+		final DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 
-		DocumentSeries configured = placeholder.reconfigure("001", 500L);
+		final DocumentSeries configured = placeholder.reconfigure("001", 500L);
 
 		assertThat(configured.getSeries()).isEqualTo("001");
 		assertThat(configured.getNextNumber()).isEqualTo(500L);
@@ -30,9 +30,9 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Allows increasing the next number once already configured")
 	void shouldAllowIncreasingNextNumberOnceAlreadyConfigured() {
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 100L);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 100L);
 
-		DocumentSeries reconfigured = configured.reconfigure("001", 150L);
+		final DocumentSeries reconfigured = configured.reconfigure("001", 150L);
 
 		assertThat(reconfigured.getNextNumber()).isEqualTo(150L);
 	}
@@ -40,7 +40,7 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Rejects decreasing the next number once already configured")
 	void shouldRejectDecreasingNextNumberOnceAlreadyConfigured() {
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFSE).reconfigure("001", 100L);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFSE).reconfigure("001", 100L);
 
 		assertThatThrownBy(() -> configured.reconfigure("001", 50L))
 				.isInstanceOf(BusinessRuleException.class)
@@ -50,8 +50,8 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Keeps each document type independent")
 	void shouldKeepEachDocumentTypeIndependent() {
-		DocumentSeries nfe = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 100L);
-		DocumentSeries nfce = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 1L);
+		final DocumentSeries nfe = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 100L);
+		final DocumentSeries nfce = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 1L);
 
 		assertThat(nfe.getNextNumber()).isEqualTo(100L);
 		assertThat(nfce.getNextNumber()).isEqualTo(1L);
@@ -60,9 +60,9 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Advances the next number by one on allocation")
 	void shouldAdvanceNextNumberByOneOnAllocation() {
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
 
-		DocumentSeries advanced = configured.allocateNext();
+		final DocumentSeries advanced = configured.allocateNext();
 
 		assertThat(advanced.getNextNumber()).isEqualTo(501L);
 		assertThat(advanced.getSeries()).isEqualTo("001");
@@ -71,7 +71,7 @@ class DocumentSeriesTest {
 	@Test
 	@DisplayName("Rejects allocation when the series is not yet configured")
 	void shouldRejectAllocationWhenSeriesNotYetConfigured() {
-		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
+		final DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 
 		assertThatThrownBy(placeholder::allocateNext)
 				.isInstanceOf(BusinessRuleException.class)

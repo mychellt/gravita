@@ -16,26 +16,26 @@ class ProfileRepositoryAdapter implements ProfileRepositoryPort {
 	private final ProfileJpaRepository jpaRepository;
 	private final ProfilePersistenceMapper mapper;
 
-	ProfileRepositoryAdapter(ProfileJpaRepository jpaRepository, ProfilePersistenceMapper mapper) {
+	ProfileRepositoryAdapter(final ProfileJpaRepository jpaRepository, final ProfilePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Optional<ProfileDomain> findById(UUID id) {
+	public Optional<ProfileDomain> findById(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
-	public Optional<ProfileDomain> findByName(String name) {
+	public Optional<ProfileDomain> findByName(final String name) {
 		return jpaRepository.findByName(name).map(mapper::map);
 	}
 
 	@Override
-	public ProfileDomain save(ProfileDomain profile) {
-		ProfileJpaEntity entity = mapper.map(profile);
+	public ProfileDomain save(final ProfileDomain profile) {
+		final ProfileJpaEntity entity = mapper.map(profile);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		ProfileJpaEntity saved = jpaRepository.save(entity);
+		final ProfileJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 }

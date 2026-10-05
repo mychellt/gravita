@@ -19,7 +19,7 @@ class DailyClosingTest {
 
 	private static final LocalDate DAY = LocalDate.of(2026, 9, 28);
 
-	private static CashMovement movement(CashMovementDirection direction, String amount) {
+	private static CashMovement movement(final CashMovementDirection direction, final String amount) {
 		return CashMovement.of(CashMovementId.of(UUID.randomUUID()), InternalCashBoxId.MAIN, direction,
 				new BigDecimal(amount), "Reason", Instant.parse("2026-09-28T12:00:00Z"));
 	}
@@ -27,7 +27,7 @@ class DailyClosingTest {
 	@Test
 	@DisplayName("Computes totals equal to the sum of the day's movements")
 	void totalsMatchTheSumOfTheDaysMovements() {
-		DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("100.00"), List.of(
+		final DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("100.00"), List.of(
 				movement(CashMovementDirection.FROM_BANK, "50.00"),
 				movement(CashMovementDirection.FROM_BANK, "25.50"),
 				movement(CashMovementDirection.TO_BANK, "30.25")));
@@ -41,8 +41,8 @@ class DailyClosingTest {
 
 	@Test
 	@DisplayName("Closes a day without movements at the opening balance")
-	void aDayWithoutMovementsClosesAtTheOpeningBalance() {
-		DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("80.00"), List.of());
+	void dayWithoutMovementsClosesAtTheOpeningBalance() {
+		final DailyClosing closing = DailyClosing.of(InternalCashBoxId.MAIN, DAY, new BigDecimal("80.00"), List.of());
 
 		assertThat(closing.getEntries()).isEqualByComparingTo("0");
 		assertThat(closing.getExits()).isEqualByComparingTo("0");

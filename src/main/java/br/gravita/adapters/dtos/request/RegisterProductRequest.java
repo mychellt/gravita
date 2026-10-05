@@ -84,7 +84,7 @@ public record RegisterProductRequest(
 		}
 	}
 
-	public ProductDomain toDomain(UUID id) {
+	public ProductDomain toDomain(final UUID id) {
 		return ProductDomain.builder()
 				.id(id)
 				.internalCode(internalCode)

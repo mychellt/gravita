@@ -16,26 +16,26 @@ class CompanyRepositoryAdapter implements CompanyRepositoryPort {
 	private final CompanyJpaRepository jpaRepository;
 	private final CompanyPersistenceMapper mapper;
 
-	CompanyRepositoryAdapter(CompanyJpaRepository jpaRepository, CompanyPersistenceMapper mapper) {
+	CompanyRepositoryAdapter(final CompanyJpaRepository jpaRepository, final CompanyPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Company save(Company company) {
-		CompanyJpaEntity entity = mapper.map(company);
+	public Company save(final Company company) {
+		final CompanyJpaEntity entity = mapper.map(company);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		CompanyJpaEntity saved = jpaRepository.save(entity);
+		final CompanyJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<Company> findById(CompanyId id) {
+	public Optional<Company> findById(final CompanyId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 
 	@Override
-	public boolean existsByCnpj(String cnpj) {
+	public boolean existsByCnpj(final String cnpj) {
 		return jpaRepository.existsByDocument(cnpj);
 	}
 }

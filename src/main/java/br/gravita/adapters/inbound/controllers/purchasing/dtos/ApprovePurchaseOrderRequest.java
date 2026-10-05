@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record ApprovePurchaseOrderRequest(@NotNull UUID approvedBy, @NotNull ApprovalDecision decision) {
 
-	public ApprovePurchaseOrderCommand toCommand(UUID orderId) {
+	public ApprovePurchaseOrderCommand toCommand(final UUID orderId) {
 		return new ApprovePurchaseOrderCommand(PurchaseOrderId.of(orderId), approvedBy, decision);
 	}
 }

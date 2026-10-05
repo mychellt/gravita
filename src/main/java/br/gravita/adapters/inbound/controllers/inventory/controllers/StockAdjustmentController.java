@@ -20,8 +20,8 @@ public class StockAdjustmentController {
 	private final AdjustInventoryUseCase adjustInventoryUseCase;
 
 	@PostMapping
-	public ResponseEntity<StockMovementResponse> adjust(@Valid @RequestBody AdjustInventoryRequest request) {
-		StockMovementResponse response = StockMovementResponse.from(adjustInventoryUseCase.execute(request.toCommand()));
+	public ResponseEntity<StockMovementResponse> adjust(@Valid @RequestBody final AdjustInventoryRequest request) {
+		final StockMovementResponse response = StockMovementResponse.from(adjustInventoryUseCase.execute(request.toCommand()));
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 }

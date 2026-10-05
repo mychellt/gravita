@@ -17,8 +17,8 @@ public final class StockReservation {
 	private final BigDecimal quantity;
 	private final StockReservationStatus status;
 
-	public StockReservation(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
-			BigDecimal quantity, StockReservationStatus status) {
+	public StockReservation(final StockReservationId id, final UUID orderRef, final UUID productId, final UUID warehouseId,
+			final BigDecimal quantity, final StockReservationStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.orderRef = Objects.requireNonNull(orderRef, "orderRef is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
@@ -27,13 +27,13 @@ public final class StockReservation {
 		this.status = Objects.requireNonNull(status, "status is required");
 	}
 
-	public static StockReservation of(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
-			BigDecimal quantity, StockReservationStatus status) {
+	public static StockReservation of(final StockReservationId id, final UUID orderRef, final UUID productId, final UUID warehouseId,
+			final BigDecimal quantity, final StockReservationStatus status) {
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, status);
 	}
 
-	public static StockReservation create(StockReservationId id, UUID orderRef, UUID productId, UUID warehouseId,
-			BigDecimal quantity) {
+	public static StockReservation create(final StockReservationId id, final UUID orderRef, final UUID productId, final UUID warehouseId,
+			final BigDecimal quantity) {
 		return new StockReservation(id, orderRef, productId, warehouseId, quantity, StockReservationStatus.ACTIVE);
 	}
 

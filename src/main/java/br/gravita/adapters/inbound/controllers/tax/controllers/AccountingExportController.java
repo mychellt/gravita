@@ -23,8 +23,8 @@ public class AccountingExportController {
 
 	/** Answers with the file itself, as an attachment. */
 	@PostMapping
-	public ResponseEntity<byte[]> export(@Valid @RequestBody ExportAccountingEntriesRequest request) {
-		AccountingExportFile file = exportAccountingEntriesUseCase.execute(request.toCommand());
+	public ResponseEntity<byte[]> export(@Valid @RequestBody final ExportAccountingEntriesRequest request) {
+		final AccountingExportFile file = exportAccountingEntriesUseCase.execute(request.toCommand());
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION,
 						ContentDisposition.attachment().filename(file.fileName()).build().toString())

@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,22 +37,22 @@ public class GetAbcCurveService implements GetAbcCurveUseCase {
 	private final SalesReadModelPort salesReadModelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetAbcCurveService(SalesReadModelPort salesReadModelPort, PermissionCheckPort permissionCheckPort) {
+	public GetAbcCurveService(final SalesReadModelPort salesReadModelPort, final PermissionCheckPort permissionCheckPort) {
 		this.salesReadModelPort = salesReadModelPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public List<AbcCurveEntry> execute(AbcCurveQuery query) {
+	public List<AbcCurveEntry> execute(final AbcCurveQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the ABC curve");
 		}
 		return classify(revenueByEntity(query));
 	}
 
-	private Map<UUID, BigDecimal> revenueByEntity(AbcCurveQuery query) {
-		LocalDate from = query.period().atDay(1);
-		LocalDate to = query.period().atEndOfMonth();
+	private Map<UUID, BigDecimal> revenueByEntity(final AbcCurveQuery query) {
+		final LocalDate from = query.period().atDay(1);
+		final LocalDate to = query.period().atEndOfMonth();
 		return switch (query.type()) {
 			case PRODUCT -> salesReadModelPort.productSales(from, to, query.companyId()).stream()
 					.collect(Collectors.toMap(ProductSales::productId, ProductSales::value, BigDecimal::add));
@@ -63,16 +62,16 @@ public class GetAbcCurveService implements GetAbcCurveUseCase {
 	}
 
 	/** Classes are decided on the exact amounts; only the percentages shown are rounded. */
-	private List<AbcCurveEntry> classify(Map<UUID, BigDecimal> revenueByEntity) {
-		List<Map.Entry<UUID, BigDecimal>> ranking = revenueByEntity.entrySet().stream()
+	private List<AbcCurveEntry> classify(final Map<UUID, BigDecimal> revenueByEntity) {
+		final List<Map.Entry<UUID, BigDecimal>> ranking = revenueByEntity.entrySet().stream()
 				.filter(entry -> entry.getValue().signum() > 0)
 				.sorted(Map.Entry.<UUID, BigDecimal>comparingByValue().reversed().thenComparing(Map.Entry::getKey))
 				.toList();
-		BigDecimal total = ranking.stream().map(Map.Entry::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
-		List<AbcCurveEntry> curve = new ArrayList<>(ranking.size());
+		final BigDecimal total = ranking.stream().map(Map.Entry::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+		final List<AbcCurveEntry> curve = new ArrayList<>(ranking.size());
 		BigDecimal cumulative = BigDecimal.ZERO;
-		for (Map.Entry<UUID, BigDecimal> entry : ranking) {
-			AbcClass abcClass = abcClass(cumulative, total);
+		for (final Map.Entry<UUID, BigDecimal> entry : ranking) {
+			final AbcClass abcClass = abcClass(cumulative, total);
 			cumulative = cumulative.add(entry.getValue());
 			curve.add(new AbcCurveEntry(entry.getKey(), entry.getValue(), percent(entry.getValue(), total),
 					percent(cumulative, total), abcClass));
@@ -80,15 +79,15 @@ public class GetAbcCurveService implements GetAbcCurveUseCase {
 		return List.copyOf(curve);
 	}
 
-	private AbcClass abcClass(BigDecimal cumulativeBefore, BigDecimal total) {
-		BigDecimal scaled = cumulativeBefore.multiply(HUNDRED);
+	private AbcClass abcClass(final BigDecimal cumulativeBefore, final BigDecimal total) {
+		final BigDecimal scaled = cumulativeBefore.multiply(HUNDRED);
 		if (scaled.compareTo(CLASS_A_LIMIT.multiply(total)) < 0) {
 			return AbcClass.A;
 		}
 		return scaled.compareTo(CLASS_B_LIMIT.multiply(total)) < 0 ? AbcClass.B : AbcClass.C;
 	}
 
-	private BigDecimal percent(BigDecimal part, BigDecimal whole) {
+	private BigDecimal percent(final BigDecimal part, final BigDecimal whole) {
 		return part.multiply(HUNDRED).divide(whole, 2, RoundingMode.HALF_UP);
 	}
 }

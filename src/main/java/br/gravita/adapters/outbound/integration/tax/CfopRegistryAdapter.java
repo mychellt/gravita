@@ -26,8 +26,8 @@ public class CfopRegistryAdapter implements CfopRegistryPort {
 			NaturezaOperacao.OUTRA, new Cfop("5949"));
 
 	@Override
-	public Cfop resolve(NaturezaOperacao naturezaOperacao) {
-		Cfop cfop = DEFAULT_CFOPS.get(naturezaOperacao);
+	public Cfop resolve(final NaturezaOperacao naturezaOperacao) {
+		final Cfop cfop = DEFAULT_CFOPS.get(naturezaOperacao);
 		if (cfop == null) {
 			throw new BusinessRuleException("No CFOP registered for operation type: " + naturezaOperacao);
 		}

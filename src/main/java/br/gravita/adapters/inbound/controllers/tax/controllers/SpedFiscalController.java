@@ -19,7 +19,7 @@ public class SpedFiscalController {
 	private final GenerateSpedFiscalUseCase generateSpedFiscalUseCase;
 
 	@PostMapping
-	public ResponseEntity<SpedFiscalResponse> generate(@Valid @RequestBody GenerateSpedFiscalRequest request) {
+	public ResponseEntity<SpedFiscalResponse> generate(@Valid @RequestBody final GenerateSpedFiscalRequest request) {
 		return ResponseEntity.ok(SpedFiscalResponse.from(generateSpedFiscalUseCase.execute(request.toCommand())));
 	}
 }

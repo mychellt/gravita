@@ -1,5 +1,6 @@
 package br.gravita.core.domain.finance;
 
+import lombok.Builder;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,10 +30,11 @@ public final class Payable {
 	private final UUID approvedBy;
 	private final List<String> attachments;
 
-	public Payable(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount, LocalDate dueDate,
-			List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy,
-			List<String> attachments) {
+	@Builder
+	public Payable(final PayableId id, final UUID supplierId, final PayableOrigin origin, final BigDecimal amount, final LocalDate dueDate,
+			final List<CostCenterShare> costCenterSplit, final PayableStatus status, final UUID purchaseReceiptRef,
+			final Integer installmentNumber, final Integer installments, final LedgerScope scope, final UUID approvedBy,
+			final List<String> attachments) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.supplierId = supplierId;
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -53,8 +55,8 @@ public final class Payable {
 	 * optional (pure expenses such as rent have none), and so is
 	 * {@code costCenterSplit}; when given, its percentages must add up to 100.
 	 */
-	public static Payable createManual(PayableId id, UUID supplierId, BigDecimal amount, LocalDate dueDate,
-			List<CostCenterShare> costCenterSplit) {
+	public static Payable createManual(final PayableId id, final UUID supplierId, final BigDecimal amount, final LocalDate dueDate,
+			final List<CostCenterShare> costCenterSplit) {
 		return new Payable(id, supplierId, PayableOrigin.MANUAL, amount, dueDate, costCenterSplit,
 				PayableStatus.OPEN, null, null, null, LedgerScope.NONE, null, null);
 	}
@@ -64,8 +66,8 @@ public final class Payable {
 	 * {@code installments} is the total number of installments of the receipt,
 	 * {@code installmentNumber} (1-based) this title's position among them.
 	 */
-	public static Payable createFromPurchaseReceipt(PayableId id, UUID supplierId, UUID purchaseReceiptRef,
-			BigDecimal amount, LocalDate dueDate, int installmentNumber, int installments) {
+	public static Payable createFromPurchaseReceipt(final PayableId id, final UUID supplierId, final UUID purchaseReceiptRef,
+			final BigDecimal amount, final LocalDate dueDate, final int installmentNumber, final int installments) {
 		Objects.requireNonNull(supplierId, "supplierId is required");
 		Objects.requireNonNull(purchaseReceiptRef, "purchaseReceiptRef is required");
 		if (installmentNumber < 1 || installmentNumber > installments) {
@@ -76,37 +78,8 @@ public final class Payable {
 				PayableStatus.OPEN, purchaseReceiptRef, installmentNumber, installments, LedgerScope.NONE, null, null);
 	}
 
-	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments) {
-		return of(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, LedgerScope.NONE);
-	}
-
-	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope) {
-		return of(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope, null);
-	}
-
-	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy) {
-		return of(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope, approvedBy, null);
-	}
-
-	public static Payable of(PayableId id, UUID supplierId, PayableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, List<CostCenterShare> costCenterSplit, PayableStatus status, UUID purchaseReceiptRef,
-			Integer installmentNumber, Integer installments, LedgerScope scope, UUID approvedBy,
-			List<String> attachments) {
-		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
-				installmentNumber, installments, scope, approvedBy, attachments);
-	}
-
 	/** The same title placed in {@code scope} (company, branch and bank account). */
-	public Payable inScope(LedgerScope scope) {
+	public Payable inScope(final LedgerScope scope) {
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
 				installmentNumber, installments, scope, approvedBy, attachments);
 	}
@@ -116,7 +89,7 @@ public final class Payable {
 	 * it eligible for payment. Whether {@code approvedBy} is entitled to approve
 	 * a title of this amount (the alçada) is for the caller to check.
 	 */
-	public Payable approve(UUID approvedBy) {
+	public Payable approve(final UUID approvedBy) {
 		Objects.requireNonNull(approvedBy, "approvedBy is required");
 		if (status != PayableStatus.OPEN) {
 			throw new BusinessRuleException(
@@ -132,12 +105,12 @@ public final class Payable {
 	 * a payment that went through must be recorded even when its receipt could
 	 * not be stored, so the title is never paid twice.
 	 */
-	public Payable pay(String receiptUrl) {
+	public Payable pay(final String receiptUrl) {
 		if (status != PayableStatus.APPROVED) {
 			throw new BusinessRuleException(
 					"Only APPROVED payables can be paid: payable " + id.value() + " is " + status);
 		}
-		List<String> paidAttachments = new ArrayList<>(attachments);
+		final List<String> paidAttachments = new ArrayList<>(attachments);
 		if (receiptUrl != null) {
 			paidAttachments.add(receiptUrl);
 		}
@@ -150,11 +123,11 @@ public final class Payable {
 	 * Any number of documents can be attached, in any status: a receipt is
 	 * typically attached after the title is {@code PAID}.
 	 */
-	public Payable attach(String documentUrl) {
+	public Payable attach(final String documentUrl) {
 		if (documentUrl == null || documentUrl.isBlank()) {
 			throw new BusinessRuleException("documentUrl is required");
 		}
-		List<String> attached = new ArrayList<>(attachments);
+		final List<String> attached = new ArrayList<>(attachments);
 		attached.add(documentUrl);
 		return new Payable(id, supplierId, origin, amount, dueDate, costCenterSplit, status, purchaseReceiptRef,
 				installmentNumber, installments, scope, approvedBy, attached);
@@ -171,7 +144,7 @@ public final class Payable {
 	 * {@code null}, its share by percentage when the title is split, and zero
 	 * when the title is not charged to that cost center.
 	 */
-	public BigDecimal shareOf(BigDecimal value, UUID costCenterId) {
+	public BigDecimal shareOf(final BigDecimal value, final UUID costCenterId) {
 		if (costCenterId == null) {
 			return value;
 		}
@@ -187,7 +160,7 @@ public final class Payable {
 	 * must add up to 100 with no repeated cost center. A cancelled payable no
 	 * longer counts as an expense, so it cannot be split.
 	 */
-	public Payable withCostCenterSplit(List<CostCenterShare> split) {
+	public Payable withCostCenterSplit(final List<CostCenterShare> split) {
 		if (split == null || split.isEmpty()) {
 			throw new BusinessRuleException("costCenterSplit is required");
 		}
@@ -198,7 +171,7 @@ public final class Payable {
 				installmentNumber, installments, scope, approvedBy, attachments);
 	}
 
-	private static BigDecimal requirePositive(BigDecimal amount) {
+	private static BigDecimal requirePositive(final BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
 		}
@@ -208,13 +181,13 @@ public final class Payable {
 		return amount;
 	}
 
-	private static List<CostCenterShare> requireValidSplit(List<CostCenterShare> split) {
+	private static List<CostCenterShare> requireValidSplit(final List<CostCenterShare> split) {
 		if (split == null || split.isEmpty()) {
 			return List.of();
 		}
-		Set<UUID> costCenters = new HashSet<>();
+		final Set<UUID> costCenters = new HashSet<>();
 		BigDecimal total = BigDecimal.ZERO;
-		for (CostCenterShare share : split) {
+		for (final CostCenterShare share : split) {
 			if (!costCenters.add(share.costCenterId())) {
 				throw new BusinessRuleException("costCenterSplit repeats cost center " + share.costCenterId());
 			}

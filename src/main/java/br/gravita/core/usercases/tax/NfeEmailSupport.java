@@ -22,8 +22,8 @@ final class NfeEmailSupport {
      * A recipient with no linked customer record (an ad-hoc, one-off recipient
      * - see {@link NfeRecipient}'s javadoc) has no e-mail address on file.
      */
-    static Optional<String> resolveRecipientEmail(NfeDocument document, CustomerRepositoryPort customerRepositoryPort) {
-        NfeRecipient recipient = document.getRecipient();
+    static Optional<String> resolveRecipientEmail(final NfeDocument document, final CustomerRepositoryPort customerRepositoryPort) {
+        final NfeRecipient recipient = document.getRecipient();
         if (recipient.personRef() == null) {
             return Optional.empty();
         }
@@ -32,10 +32,10 @@ final class NfeEmailSupport {
                 .filter(email -> email != null && !email.isBlank());
     }
 
-    static FiscalDocumentEmailRequest buildEmailRequest(NfeDocument document, String email, byte[] xml,
-                                                        byte[] danfe) {
-        String subject = "NFe " + document.getAccessKey() + " autorizada";
-        String body = "A NFe " + document.getDocumentSeries() + "/" + document.getDocumentNumber()
+    static FiscalDocumentEmailRequest buildEmailRequest(final NfeDocument document, final String email, final byte[] xml,
+                                                        final byte[] danfe) {
+        final String subject = "NFe " + document.getAccessKey() + " autorizada";
+        final String body = "A NFe " + document.getDocumentSeries() + "/" + document.getDocumentNumber()
                 + " foi autorizada pela SEFAZ. Protocolo: " + document.getSefazProtocol() + ".";
         return new FiscalDocumentEmailRequest(email, subject, body, xml, document.getAccessKey() + ".xml", danfe,
                 document.getAccessKey() + ".pdf");

@@ -13,12 +13,12 @@ class TaxRuleTableRepositoryAdapter implements TaxRuleTableRepositoryPort {
 
 	private final TaxRateRuleJpaRepository jpaRepository;
 
-	TaxRuleTableRepositoryAdapter(TaxRateRuleJpaRepository jpaRepository) {
+	TaxRuleTableRepositoryAdapter(final TaxRateRuleJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public List<TaxRateRule> findApplicableRates(TaxRateQuery query) {
+	public List<TaxRateRule> findApplicableRates(final TaxRateQuery query) {
 		return jpaRepository
 				.findByNcmAndOriginStateAndDestinationStateAndRegimeAndOperationType(query.ncm(), query.originState(),
 						query.destinationState(), query.regime(), query.operationType())
@@ -27,7 +27,7 @@ class TaxRuleTableRepositoryAdapter implements TaxRuleTableRepositoryPort {
 				.toList();
 	}
 
-	private TaxRateRule toDomain(TaxRateRuleJpaEntity entity) {
+	private TaxRateRule toDomain(final TaxRateRuleJpaEntity entity) {
 		return new TaxRateRule(entity.getNcm(), entity.getOriginState(), entity.getDestinationState(),
 				entity.getRegime(), entity.getOperationType(), entity.getTaxType(), entity.getRatePercentage(),
 				entity.getBaseReductionPercentage(), entity.getMvaPercentage());

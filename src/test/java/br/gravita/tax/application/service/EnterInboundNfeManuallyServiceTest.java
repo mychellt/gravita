@@ -45,10 +45,10 @@ class EnterInboundNfeManuallyServiceTest {
 	@Test
 	@DisplayName("Succeeds with fully manual data and no top-level access key")
 	void fullyManualDataSucceedsWithNoAccessKeyGivenAtTheTopLevel() {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		InboundNfe result = service
+		final InboundNfe result = service
 				.execute(new EnterInboundNfeManuallyCommand(companyId, null, manualData()));
 
 		assertThat(result.getAccessKey()).isEqualTo(ACCESS_KEY);
@@ -59,10 +59,10 @@ class EnterInboundNfeManuallyServiceTest {
 	@Test
 	@DisplayName("Produces an inbound NF-e in the same pending-conference shape as an XML import")
 	void producesAnInboundNfeInTheSamePendingConferenceShapeAsXmlImport() {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		InboundNfe result = service
+		final InboundNfe result = service
 				.execute(new EnterInboundNfeManuallyCommand(companyId, ACCESS_KEY, manualData()));
 
 		assertThat(result.getStatus()).isEqualTo(InboundNfeStatus.PENDING_CONFERENCE);
@@ -74,7 +74,7 @@ class EnterInboundNfeManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects an access key alone without resolvable manual data")
 	void anAccessKeyAloneWithoutResolvableManualDataIsRejected() {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> service.execute(new EnterInboundNfeManuallyCommand(companyId, ACCESS_KEY, null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -84,7 +84,7 @@ class EnterInboundNfeManuallyServiceTest {
 	@Test
 	@DisplayName("Rejects a request with neither an access key nor manual data")
 	void neitherAnAccessKeyNorManualDataIsRejected() {
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> service.execute(new EnterInboundNfeManuallyCommand(companyId, null, null)))
 				.isInstanceOf(BusinessRuleException.class);

@@ -35,58 +35,58 @@ public class RegisterNfceSaleService implements RegisterNfceSaleUseCase {
 	private final NfceRepositoryPort nfceRepositoryPort;
 	private final PriceTableRepositoryPort priceTableRepositoryPort;
 
-	public RegisterNfceSaleService(PosSessionRepositoryPort posSessionRepositoryPort,
-			NfceRepositoryPort nfceRepositoryPort, PriceTableRepositoryPort priceTableRepositoryPort) {
+	public RegisterNfceSaleService(final PosSessionRepositoryPort posSessionRepositoryPort,
+			final NfceRepositoryPort nfceRepositoryPort, final PriceTableRepositoryPort priceTableRepositoryPort) {
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.nfceRepositoryPort = nfceRepositoryPort;
 		this.priceTableRepositoryPort = priceTableRepositoryPort;
 	}
 
 	@Override
-	public NfceSaleId execute(RegisterNfceSaleCommand command) {
-		PosSessionId sessionId = PosSessionId.of(command.sessionId());
-		PosSession session = posSessionRepositoryPort.findById(sessionId)
+	public NfceSaleId execute(final RegisterNfceSaleCommand command) {
+		final PosSessionId sessionId = PosSessionId.of(command.sessionId());
+		final PosSession session = posSessionRepositoryPort.findById(sessionId)
 				.orElseThrow(() -> new ResourceNotFoundException("PosSession not found: " + command.sessionId()));
 		if (session.getStatus() != PosSessionStatus.OPEN) {
 			throw new BusinessRuleException("PosSession " + command.sessionId() + " is not open");
 		}
 
-		PriceTable priceTable = resolvePriceTable(command.priceTableId());
+		final PriceTable priceTable = resolvePriceTable(command.priceTableId());
 
-		List<SaleItem> items = command.items().stream().map(itemCommand -> toSaleItem(itemCommand, priceTable)).toList();
+		final List<SaleItem> items = command.items().stream().map(itemCommand -> toSaleItem(itemCommand, priceTable)).toList();
 
-		BigDecimal subtotal = items.stream().map(SaleItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+		final BigDecimal subtotal = items.stream().map(SaleItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 		checkDiscount(priceTable, command.totalDiscount(), subtotal);
 
-		List<Payment> payments = command.payments().stream().map(this::toPayment).toList();
+		final List<Payment> payments = command.payments().stream().map(this::toPayment).toList();
 
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, items, command.totalDiscount(),
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, items, command.totalDiscount(),
 				payments, command.customerCpf(), Instant.now());
 
 		return nfceRepositoryPort.save(sale).getId();
 	}
 
-	private SaleItem toSaleItem(SaleItemCommand itemCommand, PriceTable priceTable) {
-		SaleItem item = new SaleItem(itemCommand.productId(), itemCommand.quantity(), itemCommand.unitPrice(),
+	private SaleItem toSaleItem(final SaleItemCommand itemCommand, final PriceTable priceTable) {
+		final SaleItem item = new SaleItem(itemCommand.productId(), itemCommand.quantity(), itemCommand.unitPrice(),
 				itemCommand.itemDiscount());
 		checkDiscount(priceTable, itemCommand.itemDiscount(), item.subtotal());
 		return item;
 	}
 
-	private Payment toPayment(PaymentCommand paymentCommand) {
+	private Payment toPayment(final PaymentCommand paymentCommand) {
 		return new Payment(paymentCommand.method(), paymentCommand.amount());
 	}
 
-	private void checkDiscount(PriceTable priceTable, BigDecimal discount, BigDecimal base) {
+	private void checkDiscount(final PriceTable priceTable, final BigDecimal discount, final BigDecimal base) {
 		if (priceTable == null || discount == null || discount.compareTo(BigDecimal.ZERO) <= 0
 				|| base.compareTo(BigDecimal.ZERO) <= 0) {
 			return;
 		}
-		BigDecimal discountPercent = discount.divide(base, 4, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
+		final BigDecimal discountPercent = discount.divide(base, 4, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
 		priceTable.evaluateDiscount(discountPercent);
 	}
 
-	private PriceTable resolvePriceTable(UUID priceTableId) {
+	private PriceTable resolvePriceTable(final UUID priceTableId) {
 		if (priceTableId == null) {
 			return null;
 		}

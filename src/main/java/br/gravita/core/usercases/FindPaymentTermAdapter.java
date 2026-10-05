@@ -14,13 +14,13 @@ public class FindPaymentTermAdapter implements FindPaymentTermPort {
 
 	private final PaymentTermRepositoryPort paymentTermRepositoryPort;
 
-	public FindPaymentTermAdapter(PaymentTermRepositoryPort paymentTermRepositoryPort) {
+	public FindPaymentTermAdapter(final PaymentTermRepositoryPort paymentTermRepositoryPort) {
 		this.paymentTermRepositoryPort = paymentTermRepositoryPort;
 	}
 
 	@Override
-	public PaymentTermDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public PaymentTermDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return paymentTermRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Payment term not found: " + id));
 	}

@@ -14,13 +14,13 @@ public class ListCustomersAdapter implements ListCustomersPort {
 	private final CustomerRepositoryPort customerRepositoryPort;
 	private final CallerCompanyResolver callerCompanyResolver;
 
-	public ListCustomersAdapter(CustomerRepositoryPort customerRepositoryPort, CallerCompanyResolver callerCompanyResolver) {
+	public ListCustomersAdapter(final CustomerRepositoryPort customerRepositoryPort, final CallerCompanyResolver callerCompanyResolver) {
 		this.customerRepositoryPort = customerRepositoryPort;
 		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
-	public List<CustomerDomain> execute(Context context) {
+	public List<CustomerDomain> execute(final Context context) {
 		return callerCompanyResolver.resolve(context)
 				.map(customerRepositoryPort::findAllByCompanyId)
 				.orElse(List.of());

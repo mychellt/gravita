@@ -23,9 +23,9 @@ class Pkcs12CertificateReaderTest {
 	@Test
 	@DisplayName("Extracts the expiry date from a valid PFX certificate")
 	void shouldExtractExpiryDateFromValidPfx() throws Exception {
-		byte[] pfxFile = loadFixture();
+		final byte[] pfxFile = loadFixture();
 
-		Instant expiryDate = reader.readExpiryDate(pfxFile, CORRECT_PASSWORD);
+		final Instant expiryDate = reader.readExpiryDate(pfxFile, CORRECT_PASSWORD);
 
 		assertThat(expiryDate).isEqualTo(expectedExpiryFromFixture());
 	}
@@ -33,7 +33,7 @@ class Pkcs12CertificateReaderTest {
 	@Test
 	@DisplayName("Rejects a PFX certificate opened with the wrong password")
 	void shouldRejectWrongPassword() throws Exception {
-		byte[] pfxFile = loadFixture();
+		final byte[] pfxFile = loadFixture();
 
 		assertThatThrownBy(() -> reader.readExpiryDate(pfxFile, "not-the-password"))
 				.isInstanceOf(BusinessRuleException.class);
@@ -42,7 +42,7 @@ class Pkcs12CertificateReaderTest {
 	@Test
 	@DisplayName("Rejects a corrupt certificate file")
 	void shouldRejectCorruptFile() {
-		byte[] garbage = {1, 2, 3, 4, 5};
+		final byte[] garbage = {1, 2, 3, 4, 5};
 
 		assertThatThrownBy(() -> reader.readExpiryDate(garbage, CORRECT_PASSWORD))
 				.isInstanceOf(BusinessRuleException.class);
@@ -63,9 +63,9 @@ class Pkcs12CertificateReaderTest {
 	}
 
 	private Instant expectedExpiryFromFixture() throws Exception {
-		KeyStore keyStore = KeyStore.getInstance("PKCS12");
+		final KeyStore keyStore = KeyStore.getInstance("PKCS12");
 		keyStore.load(new ByteArrayInputStream(loadFixture()), CORRECT_PASSWORD.toCharArray());
-		String alias = keyStore.aliases().nextElement();
+		final String alias = keyStore.aliases().nextElement();
 		return ((X509Certificate) keyStore.getCertificate(alias)).getNotAfter().toInstant();
 	}
 }

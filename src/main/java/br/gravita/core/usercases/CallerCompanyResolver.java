@@ -15,12 +15,12 @@ public class CallerCompanyResolver {
 
 	private final UserRepositoryPort userRepositoryPort;
 
-	public CallerCompanyResolver(UserRepositoryPort userRepositoryPort) {
+	public CallerCompanyResolver(final UserRepositoryPort userRepositoryPort) {
 		this.userRepositoryPort = userRepositoryPort;
 	}
 
 	/** Empty when the caller has no company (e.g. a user that predates the tenant link). */
-	public Optional<UUID> resolve(Context context) {
+	public Optional<UUID> resolve(final Context context) {
 		if (context.getCaller() == null) {
 			throw new UnauthorizedException("Authenticated caller is required");
 		}

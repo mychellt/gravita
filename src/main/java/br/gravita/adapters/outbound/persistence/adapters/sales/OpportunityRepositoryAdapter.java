@@ -19,21 +19,21 @@ class OpportunityRepositoryAdapter implements OpportunityRepositoryPort {
 	private final OpportunityJpaRepository jpaRepository;
 	private final OpportunityPersistenceMapper mapper;
 
-	OpportunityRepositoryAdapter(OpportunityJpaRepository jpaRepository, OpportunityPersistenceMapper mapper) {
+	OpportunityRepositoryAdapter(final OpportunityJpaRepository jpaRepository, final OpportunityPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Opportunity save(Opportunity opportunity) {
-		OpportunityJpaEntity entity = mapper.map(opportunity);
+	public Opportunity save(final Opportunity opportunity) {
+		final OpportunityJpaEntity entity = mapper.map(opportunity);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		OpportunityJpaEntity saved = jpaRepository.save(entity);
+		final OpportunityJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<Opportunity> findById(OpportunityId id) {
+	public Optional<Opportunity> findById(final OpportunityId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
@@ -43,13 +43,13 @@ class OpportunityRepositoryAdapter implements OpportunityRepositoryPort {
 	}
 
 	@Override
-	public List<Opportunity> findByStage(OpportunityStage stage) {
+	public List<Opportunity> findByStage(final OpportunityStage stage) {
 		return jpaRepository.findByStage(stage).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Opportunity> findByIds(Collection<OpportunityId> ids) {
-		List<UUID> uuids = ids.stream().map(OpportunityId::value).toList();
+	public List<Opportunity> findByIds(final Collection<OpportunityId> ids) {
+		final List<UUID> uuids = ids.stream().map(OpportunityId::value).toList();
 		return jpaRepository.findAllById(uuids).stream().map(mapper::map).toList();
 	}
 }

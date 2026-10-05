@@ -45,19 +45,19 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Registers a new company with the homologation SEFAZ environment and initial document series")
 	void shouldRegisterNewCompanyWithHomologationSefazEnvironmentAndInitialDocumentSeries() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CompanyId id = service.execute(newCompanyCommand(null));
+		final CompanyId id = service.execute(newCompanyCommand(null));
 
 		assertThat(id).isNotNull();
-		ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(savedCompany.capture());
 		assertThat(savedCompany.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
 
-		ArgumentCaptor<DocumentSeries> savedSeries = ArgumentCaptor.forClass(DocumentSeries.class);
+		final ArgumentCaptor<DocumentSeries> savedSeries = ArgumentCaptor.forClass(DocumentSeries.class);
 		verify(documentSeriesRepositoryPort, times(4)).save(savedSeries.capture());
-		Set<FiscalDocumentType> createdTypes = savedSeries.getAllValues().stream()
+		final Set<FiscalDocumentType> createdTypes = savedSeries.getAllValues().stream()
 				.map(DocumentSeries::getDocumentType)
 				.collect(java.util.stream.Collectors.toSet());
 		assertThat(createdTypes).containsExactlyInAnyOrder(FiscalDocumentType.NFE, FiscalDocumentType.NFCE,
@@ -67,14 +67,14 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Registers a branch against an existing parent company without error")
 	void shouldRegisterBranchAgainstExistingParentCompanyWithoutError() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId parentId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId parentId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(parentId)).thenReturn(Optional.of(existingCompany(parentId)));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CompanyId branchId = service.execute(newCompanyCommand(parentId));
+		final CompanyId branchId = service.execute(newCompanyCommand(parentId));
 
-		ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(savedCompany.capture());
 		assertThat(savedCompany.getValue().getParentCompanyId()).isEqualTo(parentId);
 		assertThat(branchId).isNotNull();
@@ -83,8 +83,8 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Rejects a registration with an unknown parent company")
 	void shouldRejectRegistrationWithUnknownParentCompany() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId unknownParentId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId unknownParentId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(unknownParentId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(newCompanyCommand(unknownParentId)))
@@ -97,21 +97,35 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Updates an existing company preserving its SEFAZ environment and skipping document series creation")
 	void shouldUpdateExistingCompanyPreservingSefazEnvironmentAndSkipDocumentSeriesCreation() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId existingId = CompanyId.of(UUID.randomUUID());
-		Company existing = Company.of(existingId, "Acme Ltda", VALID_CNPJ, "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.PRODUCTION, "Old address", "SP", "old@empresa.com",
-				"11999999999", null, null);
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId existingId = CompanyId.of(UUID.randomUUID());
+		final Company existing = Company.builder()
+				.id(existingId)
+				.name("Acme Ltda")
+				.cnpj(VALID_CNPJ)
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.PRODUCTION)
+				.address("Old address")
+				.state("SP")
+				.issuingEmail("old@empresa.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existing));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(existingId, "Acme Ltda", VALID_CNPJ, "123456789",
+		final RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(existingId, "Acme Ltda", VALID_CNPJ, "123456789",
 				"987654", "6201-5/01", TaxRegime.LUCRO_PRESUMIDO, false, "New address", "SP", "new@empresa.com",
 				"11988888888", null, null);
 
 		service.execute(updateCommand);
 
-		ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> savedCompany = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(savedCompany.capture());
 		assertThat(savedCompany.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.PRODUCTION);
 		assertThat(savedCompany.getValue().getAddress()).isEqualTo("New address");
@@ -121,14 +135,14 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Updates the name and keeps the stored CNPJ when the command repeats it")
 	void shouldUpdateNameWhenCommandRepeatsTheStoredCnpj() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId existingId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId existingId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existingCompany(existingId)));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(updateCommand(existingId, "Novo Nome Ltda", VALID_CNPJ));
 
-		ArgumentCaptor<Company> saved = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> saved = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getName()).isEqualTo("Novo Nome Ltda");
 		assertThat(saved.getValue().getCnpj()).isEqualTo(VALID_CNPJ);
@@ -137,14 +151,14 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Updates the other fields and keeps the stored CNPJ when the command omits it")
 	void shouldKeepStoredCnpjWhenCommandOmitsIt() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId existingId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId existingId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existingCompany(existingId)));
 		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(updateCommand(existingId, "Novo Nome Ltda", null));
 
-		ArgumentCaptor<Company> saved = ArgumentCaptor.forClass(Company.class);
+		final ArgumentCaptor<Company> saved = ArgumentCaptor.forClass(Company.class);
 		verify(companyRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getCnpj()).isEqualTo(VALID_CNPJ);
 		assertThat(saved.getValue().getName()).isEqualTo("Novo Nome Ltda");
@@ -154,8 +168,8 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Rejects an update that changes the CNPJ and leaves the record untouched")
 	void shouldRejectUpdateThatChangesTheCnpj() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId existingId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId existingId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existingCompany(existingId)));
 
 		assertThatThrownBy(() -> service.execute(updateCommand(existingId, "Novo Nome Ltda",
@@ -169,8 +183,8 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Rejects a registration without a name")
 	void shouldRejectRegistrationWithoutName() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		RegisterCompanyCommand command = new RegisterCompanyCommand(null, " ", VALID_CNPJ, "123456789", "987654",
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final RegisterCompanyCommand command = new RegisterCompanyCommand(null, " ", VALID_CNPJ, "123456789", "987654",
 				"6201-5/01", TaxRegime.SIMPLES_NACIONAL, true, "Rua Teste, 100", "SP", "fiscal@empresa.com",
 				"11999999999", null, null);
 
@@ -182,11 +196,11 @@ class RegisterCompanyServiceTest {
 	@Test
 	@DisplayName("Rejects an update of an unknown company")
 	void shouldRejectUpdateOfUnknownCompany() {
-		RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
-		CompanyId unknownId = CompanyId.of(UUID.randomUUID());
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId unknownId = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(unknownId)).thenReturn(Optional.empty());
 
-		RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(unknownId, "Acme Ltda", VALID_CNPJ, "123456789",
+		final RegisterCompanyCommand updateCommand = new RegisterCompanyCommand(unknownId, "Acme Ltda", VALID_CNPJ, "123456789",
 				"987654", "6201-5/01", TaxRegime.LUCRO_REAL, false, "Address", "SP", "email@empresa.com",
 				"11988888888", null, null);
 
@@ -194,21 +208,35 @@ class RegisterCompanyServiceTest {
 		verify(companyRepositoryPort, never()).save(any());
 	}
 
-	private RegisterCompanyCommand updateCommand(CompanyId id, String name, Document cnpj) {
+	private RegisterCompanyCommand updateCommand(final CompanyId id, final String name, final Document cnpj) {
 		return new RegisterCompanyCommand(id, name, cnpj, "123456789", "987654", "6201-5/01",
 				TaxRegime.SIMPLES_NACIONAL, true, "Nova rua, 200", "SP", "fiscal@empresa.com", "11999999999", null,
 				null);
 	}
 
-	private RegisterCompanyCommand newCompanyCommand(CompanyId parentCompanyId) {
+	private RegisterCompanyCommand newCompanyCommand(final CompanyId parentCompanyId) {
 		return new RegisterCompanyCommand(null, "Acme Ltda", VALID_CNPJ, "123456789", "987654", "6201-5/01",
 				TaxRegime.SIMPLES_NACIONAL, true, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null,
 				parentCompanyId);
 	}
 
-	private Company existingCompany(CompanyId id) {
-		return Company.of(id, "Acme Ltda", VALID_CNPJ, "123456789", "987654", "6201-5/01", TaxRegime.SIMPLES_NACIONAL, true,
-				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null,
-				null);
+	private Company existingCompany(final CompanyId id) {
+		return Company.builder()
+				.id(id)
+				.name("Acme Ltda")
+				.cnpj(VALID_CNPJ)
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("fiscal@empresa.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 }

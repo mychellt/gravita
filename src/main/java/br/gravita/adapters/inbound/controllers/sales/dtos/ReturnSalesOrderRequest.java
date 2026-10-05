@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public record ReturnSalesOrderRequest(@NotEmpty List<@Valid ItemRequest> items) {
 
-	public ReturnSalesOrderCommand toCommand(UUID orderId) {
+	public ReturnSalesOrderCommand toCommand(final UUID orderId) {
 		return new ReturnSalesOrderCommand(orderId, items.stream().map(ItemRequest::toDomain).toList());
 	}
 

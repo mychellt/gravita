@@ -93,12 +93,12 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Never handles signing itself, leaving it entirely to the SubmitToSefaz port adapter")
-    void ac1_signingIsNeverHandledHereItIsLeftEntirelyToTheSubmitToSefazPortAdapter() {
-        NfeDocument document = queuedDocument(false);
+    void ac1SigningIsNeverHandledHereItIsLeftEntirelyToTheSubmitToSefazPortAdapter() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-1"));
 
-        TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
+        final TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
 
         assertThat(result.status()).isEqualTo(NfeDocumentStatus.AUTHORIZED);
         assertThat(result.protocol()).isEqualTo("PROT-1");
@@ -106,8 +106,8 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Lets a SEFAZ timeout propagate instead of failing the document outright")
-    void ac2_aSefazTimeoutIsLeftToPropagateInsteadOfFailingTheDocumentOutright() {
-        NfeDocument document = queuedDocument(false);
+    void ac2ASefazTimeoutIsLeftToPropagateInsteadOfFailingTheDocumentOutright() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenThrow(new SefazUnavailableException("timeout", null));
 
@@ -120,12 +120,12 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Resubmits a document already sent in a prior timed-out attempt without transitioning it again")
-    void ac2_aDocumentAlreadySentFromAPriorTimedOutAttemptIsResubmittedWithoutTransitioningAgain() {
-        NfeDocument document = sentDocument(false);
+    void ac2ADocumentAlreadySentFromAPriorTimedOutAttemptIsResubmittedWithoutTransitioningAgain() {
+        final NfeDocument document = sentDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-RETRY"));
 
-        TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
+        final TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
 
         assertThat(result.status()).isEqualTo(NfeDocumentStatus.AUTHORIZED);
         assertThat(result.protocol()).isEqualTo("PROT-RETRY");
@@ -133,22 +133,22 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Submits a document in contingency mode with the contingency flag set on the SEFAZ request")
-    void ac3_aDocumentInContingencyModeIsSubmittedWithTheContingencyFlagSetOnTheSefazRequest() {
-        NfeDocument document = sentDocument(true);
+    void ac3ADocumentInContingencyModeIsSubmittedWithTheContingencyFlagSetOnTheSefazRequest() {
+        final NfeDocument document = sentDocument(true);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("SVC-PROT"));
 
         service.execute(new TransmitNfeCommand(documentId.value()));
 
-        ArgumentCaptor<SefazSubmissionRequest> captor = ArgumentCaptor.forClass(SefazSubmissionRequest.class);
+        final ArgumentCaptor<SefazSubmissionRequest> captor = ArgumentCaptor.forClass(SefazSubmissionRequest.class);
         verify(submitToSefazPort).submit(captor.capture());
         assertThat(captor.getValue().contingency()).isTrue();
     }
 
     @Test
     @DisplayName("Renders the DANFE in portrait orientation by default on authorization")
-    void ac4_onAuthorizationTheDanfeIsRenderedInPortraitOrientationByDefault() {
-        NfeDocument document = queuedDocument(false);
+    void ac4OnAuthorizationTheDanfeIsRenderedInPortraitOrientationByDefault() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-1"));
 
@@ -159,14 +159,14 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Emails the XML and DANFE to the recipient automatically on authorization")
-    void ac5_onAuthorizationXmlAndDanfeAreEmailedToTheRecipientAutomatically() {
-        NfeDocument document = queuedDocument(false);
+    void ac5OnAuthorizationXmlAndDanfeAreEmailedToTheRecipientAutomatically() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-1"));
 
         service.execute(new TransmitNfeCommand(documentId.value()));
 
-        ArgumentCaptor<FiscalDocumentEmailRequest> captor = ArgumentCaptor.forClass(FiscalDocumentEmailRequest.class);
+        final ArgumentCaptor<FiscalDocumentEmailRequest> captor = ArgumentCaptor.forClass(FiscalDocumentEmailRequest.class);
         verify(sendFiscalDocumentByEmailPort).send(captor.capture());
         assertThat(captor.getValue().to()).isEqualTo("cliente@example.com");
         assertThat(captor.getValue().xmlContent()).isNotEmpty();
@@ -175,13 +175,13 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Keeps the transmission successful when the recipient has no email, so a manual resend can cover it later")
-    void ac5_aRecipientWithNoEmailOnFileStillLeavesTheTransmissionSuccessfulSoAManualResendCanCoverItLater() {
-        NfeDocument document = queuedDocument(false);
+    void ac5ARecipientWithNoEmailOnFileStillLeavesTheTransmissionSuccessfulSoAManualResendCanCoverItLater() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-1"));
         when(customerRepositoryPort.get(recipientRef.id())).thenReturn(Optional.empty());
 
-        TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
+        final TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
 
         assertThat(result.status()).isEqualTo(NfeDocumentStatus.AUTHORIZED);
         verify(sendFiscalDocumentByEmailPort, never()).send(any());
@@ -189,17 +189,17 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Stores the rendered XML and DANFE and saves the authorized document with both references")
-    void ac6_theRenderedXmlAndDanfeAreStoredAndTheAuthorizedDocumentIsSavedWithBothReferences() {
-        NfeDocument document = queuedDocument(false);
+    void ac6TheRenderedXmlAndDanfeAreStoredAndTheAuthorizedDocumentIsSavedWithBothReferences() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult("PROT-1"));
         when(xmlObjectStoragePort.store(any(), any())).thenReturn("xml-ref", "danfe-ref");
 
         service.execute(new TransmitNfeCommand(documentId.value()));
 
-        ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
+        final ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
         verify(nfeRepositoryPort, org.mockito.Mockito.atLeastOnce()).save(savedCaptor.capture());
-        NfeDocument saved = savedCaptor.getAllValues().get(savedCaptor.getAllValues().size() - 1);
+        final NfeDocument saved = savedCaptor.getAllValues().get(savedCaptor.getAllValues().size() - 1);
         assertThat(saved.getXmlStorageRef()).isEqualTo("xml-ref");
         assertThat(saved.getDanfeStorageRef()).isEqualTo("danfe-ref");
         verify(transmissionQueuePort).remove(documentId.value());
@@ -207,12 +207,12 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Surfaces a SEFAZ rejection's reason and removes the document from the queue instead of retrying")
-    void aSefazRejectionSurfacesTheReasonAndRemovesTheDocumentFromTheQueueInsteadOfRetrying() {
-        NfeDocument document = queuedDocument(false);
+    void sefazRejectionSurfacesTheReasonAndRemovesTheDocumentFromTheQueueInsteadOfRetrying() {
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(submitToSefazPort.submit(any())).thenReturn(new SefazSubmissionResult(null, "CFOP inválido"));
 
-        TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
+        final TransmissionResult result = service.execute(new TransmitNfeCommand(documentId.value()));
 
         assertThat(result.status()).isEqualTo(NfeDocumentStatus.REJECTED);
         assertThat(result.rejectionReason()).isEqualTo("CFOP inválido");
@@ -222,8 +222,8 @@ class TransmitNfeServiceTest {
 
     @Test
     @DisplayName("Rejects transmitting a document that is not queued or sent")
-    void aDocumentThatIsNotQueuedOrSentIsRejectedForTransmission() {
-        NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, false);
+    void documentThatIsNotQueuedOrSentIsRejectedForTransmission() {
+        final NfeDocument document = documentWithStatus(NfeDocumentStatus.AUTHORIZED, false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
         assertThatThrownBy(() -> service.execute(new TransmitNfeCommand(documentId.value())))
@@ -244,7 +244,7 @@ class TransmitNfeServiceTest {
     @Test
     @DisplayName("Rejects transmitting when the issuing company does not exist")
     void anIssuingCompanyThatDoesNotExistIsRejected() {
-        NfeDocument document = queuedDocument(false);
+        final NfeDocument document = queuedDocument(false);
         when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
         when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 
@@ -254,14 +254,28 @@ class TransmitNfeServiceTest {
         verify(submitToSefazPort, never()).submit(any());
     }
 
-    private NfeDocument argThatStatusIs(NfeDocumentStatus status) {
+    private NfeDocument argThatStatusIs(final NfeDocumentStatus status) {
         return org.mockito.ArgumentMatchers.argThat(document -> document.getStatus() == status);
     }
 
     private Company company() {
-        return Company.of(companyId, "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654", "6201500",
-                br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
-                "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null);
+        return Company.builder()
+        		.id(companyId)
+        		.name("Acme Ltda")
+        		.cnpj(Document.cnpj(VALID_CNPJ))
+        		.ie("123456789")
+        		.im("987654")
+        		.cnae("6201500")
+        		.taxRegime(br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL)
+        		.simplesOptante(true)
+        		.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+        		.address("Rua Teste, 100")
+        		.state("SP")
+        		.issuingEmail("nfe@example.com")
+        		.phone("11999999999")
+        		.logoUrl(null)
+        		.parentCompanyId(null)
+        		.build();
     }
 
     private CustomerDomain customerWithEmail() {
@@ -269,31 +283,57 @@ class TransmitNfeServiceTest {
     }
 
     private NfeItem item() {
-        UUID productId = UUID.randomUUID();
-        TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+        final UUID productId = UUID.randomUUID();
+        final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
                 new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-        ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
+        final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
         return new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO,
                 breakdown);
     }
 
-    private NfeDocument queuedDocument(boolean contingencyMode) {
+    private NfeDocument queuedDocument(final boolean contingencyMode) {
         return documentWithStatus(NfeDocumentStatus.QUEUED, contingencyMode);
     }
 
-    private NfeDocument sentDocument(boolean contingencyMode) {
+    private NfeDocument sentDocument(final boolean contingencyMode) {
         return documentWithStatus(NfeDocumentStatus.SENT, contingencyMode);
     }
 
-    private NfeDocument documentWithStatus(NfeDocumentStatus status, boolean contingencyMode) {
-        NfeItem item = item();
-        NfeRecipient recipient = NfeRecipient.of(recipientRef, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste",
+    private NfeDocument documentWithStatus(final NfeDocumentStatus status, final boolean contingencyMode) {
+        final NfeItem item = item();
+        final NfeRecipient recipient = NfeRecipient.of(recipientRef, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste",
                 "123456789", "RJ");
-        TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
+        final TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
 
-        return NfeDocument.of(documentId, companyId, null, NaturezaOperacao.VENDA, new Cfop("5102"), recipient,
-                List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, totals, status,
-                Instant.now(), "001", 42L, "3".repeat(44), null, contingencyMode, null, null, null, List.of(), null, null,
-                null);
+        return NfeDocument.builder()
+        		.id(documentId)
+        		.issuerCompanyId(companyId)
+        		.originSalesOrderId(null)
+        		.naturezaOperacao(NaturezaOperacao.VENDA)
+        		.cfop(new Cfop("5102"))
+        		.recipient(recipient)
+        		.items(List.of(item))
+        		.freight(BigDecimal.ZERO)
+        		.insurance(BigDecimal.ZERO)
+        		.otherExpenses(BigDecimal.ZERO)
+        		.transport(null)
+        		.referencedAccessKey(null)
+        		.additionalInfo(null)
+        		.taxTotals(totals)
+        		.status(status)
+        		.createdAt(Instant.now())
+        		.documentSeries("001")
+        		.documentNumber(42L)
+        		.accessKey("3".repeat(44))
+        		.sefazProtocol(null)
+        		.contingencyMode(contingencyMode)
+        		.rejectionReason(null)
+        		.xmlStorageRef(null)
+        		.danfeStorageRef(null)
+        		.correctionLetters(List.of())
+        		.authorizedAt(null)
+        		.cancellationJustification(null)
+        		.cancelledAt(null)
+        		.build();
     }
 }

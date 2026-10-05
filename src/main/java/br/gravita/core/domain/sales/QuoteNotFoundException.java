@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class QuoteNotFoundException extends RuntimeException {
 
-	public QuoteNotFoundException(UUID quoteId) {
+	public QuoteNotFoundException(final UUID quoteId) {
 		super("Quote not found: " + quoteId);
 	}
 }

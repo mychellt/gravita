@@ -23,17 +23,17 @@ class RegisterStockEntryAdapterTest {
 	@Test
 	@DisplayName("Delegates to the real use case, mapping product, quantity and cost")
 	void delegatesToTheRealUseCaseMappingProductQuantityAndCost() {
-		RegisterStockEntryAdapter adapter = new RegisterStockEntryAdapter(registerStockEntryUseCase);
-		UUID productId = UUID.randomUUID();
-		UUID receiptId = UUID.randomUUID();
+		final RegisterStockEntryAdapter adapter = new RegisterStockEntryAdapter(registerStockEntryUseCase);
+		final UUID productId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
 
 		adapter.registerEntry(new RegisterStockEntryCommand(productId, BigDecimal.TEN, new BigDecimal("5.00"), receiptId));
 
-		ArgumentCaptor<br.gravita.core.ports.inbound.inventory.RegisterStockEntryCommand> captor = ArgumentCaptor
+		final ArgumentCaptor<br.gravita.core.ports.inbound.inventory.RegisterStockEntryCommand> captor = ArgumentCaptor
 				.forClass(br.gravita.core.ports.inbound.inventory.RegisterStockEntryCommand.class);
 		verify(registerStockEntryUseCase).execute(captor.capture());
 
-		var command = captor.getValue();
+		final var command = captor.getValue();
 		assertThat(command.productId()).isEqualTo(productId);
 		assertThat(command.quantity()).isEqualByComparingTo(BigDecimal.TEN);
 		assertThat(command.unitCost()).isEqualByComparingTo(new BigDecimal("5.00"));

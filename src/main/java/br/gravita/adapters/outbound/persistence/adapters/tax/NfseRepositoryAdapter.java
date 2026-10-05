@@ -29,47 +29,47 @@ class NfseRepositoryAdapter implements NfseRepositoryPort {
 	private final NfseNumberSequenceJpaRepository sequenceJpaRepository;
 	private final NfsePersistenceMapper mapper;
 
-	NfseRepositoryAdapter(NfseJpaRepository jpaRepository, NfseNumberSequenceJpaRepository sequenceJpaRepository,
-			NfsePersistenceMapper mapper) {
+	NfseRepositoryAdapter(final NfseJpaRepository jpaRepository, final NfseNumberSequenceJpaRepository sequenceJpaRepository,
+			final NfsePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.sequenceJpaRepository = sequenceJpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public NfseDocument save(NfseDocument document) {
-		NfseJpaEntity entity = mapper.map(document);
+	public NfseDocument save(final NfseDocument document) {
+		final NfseJpaEntity entity = mapper.map(document);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public Optional<NfseDocument> findById(NfseId id) {
+	public Optional<NfseDocument> findById(final NfseId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.MANDATORY)
-	public Optional<NfseDocument> findByIdForUpdate(NfseId id) {
+	public Optional<NfseDocument> findByIdForUpdate(final NfseId id) {
 		return jpaRepository.findByIdForUpdate(id.value()).map(mapper::map);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.MANDATORY)
-	public NfseNumber allocateNextNumber(CompanyId companyId, String municipalityIbgeCode) {
-		NfseNumberSequenceJpaEntity sequence = sequenceJpaRepository
+	public NfseNumber allocateNextNumber(final CompanyId companyId, final String municipalityIbgeCode) {
+		final NfseNumberSequenceJpaEntity sequence = sequenceJpaRepository
 				.findByCompanyIdAndMunicipalityIbge(companyId.value(), municipalityIbgeCode)
 				.orElseGet(() -> NfseNumberSequenceJpaEntity.builder().id(UUID.randomUUID())
 						.companyId(companyId.value()).municipalityIbge(municipalityIbgeCode).series(DEFAULT_SERIES)
 						.nextNumber(1L).build());
-		NfseNumber allocated = new NfseNumber(sequence.getSeries(), sequence.getNextNumber());
+		final NfseNumber allocated = new NfseNumber(sequence.getSeries(), sequence.getNextNumber());
 		sequence.setNextNumber(sequence.getNextNumber() + 1);
 		sequenceJpaRepository.save(sequence);
 		return allocated;
 	}
 
 	@Override
-	public List<NfseDocument> findAuthorizedBetween(Instant from, Instant to) {
+	public List<NfseDocument> findAuthorizedBetween(final Instant from, final Instant to) {
 		return jpaRepository
 				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						NfseStatus.AUTHORIZED, from, to)

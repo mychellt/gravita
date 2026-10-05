@@ -29,38 +29,38 @@ public class CreatePurchaseOrderService implements CreatePurchaseOrderUseCase {
     private final ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort;
 
     @Override
-    public PurchaseOrderId execute(CreatePurchaseOrderCommand command) {
-        var request = purchaseRequestRepositoryPort.findById(command.requestId())
+    public PurchaseOrderId execute(final CreatePurchaseOrderCommand command) {
+        final var request = purchaseRequestRepositoryPort.findById(command.requestId())
                 .orElseThrow(() -> new PurchaseRequestNotFoundException(command.requestId().value()));
-        var convertedRequest = request.convert();
+        final var convertedRequest = request.convert();
 
-        List<PurchaseOrderItem> items = resolveItems(command);
+        final List<PurchaseOrderItem> items = resolveItems(command);
 
-        var id = PurchaseOrderId.of(UUID.randomUUID());
-        var order = PurchaseOrder.create(id, command.requestId(), command.quotationId(),
+        final var id = PurchaseOrderId.of(UUID.randomUUID());
+        final var order = PurchaseOrder.create(id, command.requestId(), command.quotationId(),
                 command.supplierId(), items, resolveApprovalRequired(items));
 
-        var saved = purchaseOrderRepositoryPort.save(order);
+        final var saved = purchaseOrderRepositoryPort.save(order);
 
         purchaseRequestRepositoryPort.save(convertedRequest);
 
         return saved.getId();
     }
 
-    private List<PurchaseOrderItem> resolveItems(CreatePurchaseOrderCommand command) {
+    private List<PurchaseOrderItem> resolveItems(final CreatePurchaseOrderCommand command) {
         if (command.quotationId() == null) {
             return command.items();
         }
 
-        Quotation quotation = quotationRepositoryPort.findById(QuotationId.of(command.quotationId()))
+        final Quotation quotation = quotationRepositoryPort.findById(QuotationId.of(command.quotationId()))
                 .orElseThrow(() -> new QuotationNotFoundException(command.quotationId()));
         if (!quotation.getRequestId().equals(command.requestId())) {
             throw new BusinessRuleException(
                     "Quotation " + command.quotationId() + " does not belong to request " + command.requestId().value());
         }
-        QuotationResponse response = findResponse(quotation, command.supplierId());
+        final QuotationResponse response = findResponse(quotation, command.supplierId());
 
-        Map<UUID, BigDecimal> pricesByProduct = response.itemPrices().stream()
+        final Map<UUID, BigDecimal> pricesByProduct = response.itemPrices().stream()
                 .collect(Collectors.toMap(QuotationItemPrice::productId, QuotationItemPrice::unitPrice));
         return quotation.getItems().stream()
                 .map(item -> new PurchaseOrderItem(item.productId(), item.quantity(),
@@ -68,7 +68,7 @@ public class CreatePurchaseOrderService implements CreatePurchaseOrderUseCase {
                 .toList();
     }
 
-    private QuotationResponse findResponse(Quotation quotation, SupplierId supplierId) {
+    private QuotationResponse findResponse(final Quotation quotation, final SupplierId supplierId) {
         return quotation.getResponses().stream()
                 .filter(response -> response.supplierId().equals(supplierId))
                 .findFirst()
@@ -76,8 +76,8 @@ public class CreatePurchaseOrderService implements CreatePurchaseOrderUseCase {
                         "Supplier " + supplierId.value() + " has not responded to quotation " + quotation.getId().value()));
     }
 
-    private boolean resolveApprovalRequired(List<PurchaseOrderItem> items) {
-        BigDecimal total = PurchaseOrder.totalValue(items);
+    private boolean resolveApprovalRequired(final List<PurchaseOrderItem> items) {
+        final BigDecimal total = PurchaseOrder.totalValue(items);
         return approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING)
                 .map(alcada -> alcada.getThresholdValue() != null && total.compareTo(alcada.getThresholdValue()) >= 0)
                 .orElse(false);

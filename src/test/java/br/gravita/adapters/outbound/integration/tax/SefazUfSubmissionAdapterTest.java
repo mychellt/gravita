@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,10 +56,10 @@ class SefazUfSubmissionAdapterTest {
 
 	@Test
 	@DisplayName("Returns the protocol when SEFAZ authorizes the document")
-	void ac1_returnsTheProtocolWhenSefazAuthorizesTheDocument() throws Exception {
+	void ac1ReturnsTheProtocolWhenSefazAuthorizesTheDocument() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfce/autorizacao", exchange -> {
-			byte[] body = "{\"protocol\":\"protocol-999\"}".getBytes(StandardCharsets.UTF_8);
+			final byte[] body = "{\"protocol\":\"protocol-999\"}".getBytes(StandardCharsets.UTF_8);
 			exchange.getResponseHeaders().add("Content-Type", "application/json");
 			exchange.sendResponseHeaders(200, body.length);
 			try (OutputStream out = exchange.getResponseBody()) {
@@ -69,20 +68,20 @@ class SefazUfSubmissionAdapterTest {
 		});
 		server.start();
 
-		String baseUrl = "http://localhost:" + server.getAddress().getPort();
-		SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
+		final String baseUrl = "http://localhost:" + server.getAddress().getPort();
+		final SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
 
-		SefazSubmissionResult result = adapter.submit(submissionRequest());
+		final SefazSubmissionResult result = adapter.submit(submissionRequest());
 
 		assertThat(result.protocol()).isEqualTo("protocol-999");
 	}
 
 	@Test
 	@DisplayName("Reports an unreachable SEFAZ endpoint as unavailable")
-	void ac2_anUnreachableSefazEndpointIsReportedAsUnavailable() throws Exception {
-		String unreachableUrl = "http://localhost:1";
-		SefazUfSubmissionAdapter adapter = adapterFor(unreachableUrl, unreachableUrl);
+	void ac2AnUnreachableSefazEndpointIsReportedAsUnavailable() throws Exception {
+		final String unreachableUrl = "http://localhost:1";
+		final SefazUfSubmissionAdapter adapter = adapterFor(unreachableUrl, unreachableUrl);
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
 
 		assertThatThrownBy(() -> adapter.submit(submissionRequest())).isInstanceOf(SefazUnavailableException.class);
@@ -90,10 +89,10 @@ class SefazUfSubmissionAdapterTest {
 
 	@Test
 	@DisplayName("Routes to the contingency endpoint when the request is flagged for contingency")
-	void ac3_routesToTheContingencyEndpointWhenTheRequestIsFlaggedForContingency() throws Exception {
+	void ac3RoutesToTheContingencyEndpointWhenTheRequestIsFlaggedForContingency() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfce/autorizacao", exchange -> {
-			byte[] body = "{\"protocol\":\"svc-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
+			final byte[] body = "{\"protocol\":\"svc-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
 			exchange.getResponseHeaders().add("Content-Type", "application/json");
 			exchange.sendResponseHeaders(200, body.length);
 			try (OutputStream out = exchange.getResponseBody()) {
@@ -101,22 +100,22 @@ class SefazUfSubmissionAdapterTest {
 			}
 		});
 		server.start();
-		String contingencyUrl = "http://localhost:" + server.getAddress().getPort();
+		final String contingencyUrl = "http://localhost:" + server.getAddress().getPort();
 		// The UF endpoints are unreachable - only the contingency (SVC-AN/SVC-RS)
 		// endpoint can possibly answer, proving the request was routed there.
-		SefazUfSubmissionAdapter adapter = new SefazUfSubmissionAdapter(certificateStoragePort,
+		final SefazUfSubmissionAdapter adapter = new SefazUfSubmissionAdapter(certificateStoragePort,
 				new SefazHttpClientFactory(), "http://localhost:1", "http://localhost:1", contingencyUrl, 1000L);
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
 
-		SefazSubmissionResult result = adapter.submit(submissionRequest(true));
+		final SefazSubmissionResult result = adapter.submit(submissionRequest(true));
 
 		assertThat(result.protocol()).isEqualTo("svc-protocol-1");
 	}
 
 	@Test
 	@DisplayName("Treats a missing certificate as a business rule violation, not a contingency path")
-	void aMissingCertificateIsABusinessRuleViolationNotAContingencyPath() {
-		SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
+	void missingCertificateIsABusinessRuleViolationNotAContingencyPath() {
+		final SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.submit(submissionRequest())).isInstanceOf(BusinessRuleException.class);
@@ -125,7 +124,7 @@ class SefazUfSubmissionAdapterTest {
 	@Test
 	@DisplayName("Treats an expired certificate as a business rule violation")
 	void anExpiredCertificateIsABusinessRuleViolation() throws Exception {
-		SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
+		final SefazUfSubmissionAdapter adapter = adapterFor("http://localhost:1", "http://localhost:1");
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(expiredCertificate()));
 
 		assertThatThrownBy(() -> adapter.submit(submissionRequest())).isInstanceOf(BusinessRuleException.class);
@@ -133,10 +132,10 @@ class SefazUfSubmissionAdapterTest {
 
 	@Test
 	@DisplayName("Returns the protocol when SEFAZ accepts a number range voiding request")
-	void ucM206_returnsTheProtocolWhenSefazAcceptsAVoidRangeRequest() throws Exception {
+	void ucM206ReturnsTheProtocolWhenSefazAcceptsAVoidRangeRequest() throws Exception {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/nfe/inutilizacao", exchange -> {
-			byte[] body = "{\"protocol\":\"void-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
+			final byte[] body = "{\"protocol\":\"void-protocol-1\"}".getBytes(StandardCharsets.UTF_8);
 			exchange.getResponseHeaders().add("Content-Type", "application/json");
 			exchange.sendResponseHeaders(200, body.length);
 			try (OutputStream out = exchange.getResponseBody()) {
@@ -145,18 +144,18 @@ class SefazUfSubmissionAdapterTest {
 		});
 		server.start();
 
-		String baseUrl = "http://localhost:" + server.getAddress().getPort();
-		SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
+		final String baseUrl = "http://localhost:" + server.getAddress().getPort();
+		final SefazUfSubmissionAdapter adapter = adapterFor(baseUrl, baseUrl);
 		when(certificateStoragePort.findByCompanyId(any())).thenReturn(Optional.of(validCertificate()));
 
-		SefazSubmissionResult result = adapter.voidNumberRange(new SefazVoidNumberRangeRequest(
+		final SefazSubmissionResult result = adapter.voidNumberRange(new SefazVoidNumberRangeRequest(
 				CompanyId.of(UUID.randomUUID()), SefazEnvironment.HOMOLOGATION, "001", 100L, 110L,
 				"duplicate numbering skipped"));
 
 		assertThat(result.protocol()).isEqualTo("void-protocol-1");
 	}
 
-	private SefazUfSubmissionAdapter adapterFor(String homologationBaseUrl, String productionBaseUrl) {
+	private SefazUfSubmissionAdapter adapterFor(final String homologationBaseUrl, final String productionBaseUrl) {
 		return new SefazUfSubmissionAdapter(certificateStoragePort, new SefazHttpClientFactory(), homologationBaseUrl,
 				productionBaseUrl, "http://localhost:1", 1000L);
 	}
@@ -165,8 +164,8 @@ class SefazUfSubmissionAdapterTest {
 		return submissionRequest(false);
 	}
 
-	private SefazSubmissionRequest submissionRequest(boolean contingency) {
-		TaxCalculationResult taxResult = new TaxCalculationResult(List.of(),
+	private SefazSubmissionRequest submissionRequest(final boolean contingency) {
+		final TaxCalculationResult taxResult = new TaxCalculationResult(List.of(),
 				new TaxCalculationTotals(new EnumMap<>(TaxType.class), BigDecimal.ZERO));
 		return new SefazSubmissionRequest(CompanyId.of(UUID.randomUUID()), SefazEnvironment.HOMOLOGATION,
 				"3".repeat(44), new BigDecimal("10.00"), taxResult, contingency);

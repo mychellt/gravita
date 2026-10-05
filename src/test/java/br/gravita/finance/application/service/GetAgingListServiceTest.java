@@ -53,25 +53,25 @@ class GetAgingListServiceTest {
 				Clock.fixed(NOW, ZoneOffset.UTC));
 	}
 
-	private static Receivable receivable(String amount, LocalDate dueDate, ReceivableStatus status) {
+	private static Receivable receivable(final String amount, final LocalDate dueDate, final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
 				new BigDecimal(amount), dueDate, null, status, null, null);
 	}
 
-	private static AgingBucket bucket(AgingReport report, AgingRange range) {
+	private static AgingBucket bucket(final AgingReport report, final AgingRange range) {
 		return report.getBuckets().stream().filter(bucket -> bucket.range() == range).findFirst().orElseThrow();
 	}
 
 	@Test
 	@DisplayName("Buckets the outstanding titles by days overdue as of the query date")
 	void bucketsTheOutstandingTitlesByDaysOverdueAsOfTheQueryDate() {
-		LocalDate asOf = TODAY.plusDays(10);
-		Receivable recent = receivable("100.00", asOf.minusDays(5), ReceivableStatus.OPEN);
-		Receivable old = receivable("50.00", asOf.minusDays(120), ReceivableStatus.OPEN);
+		final LocalDate asOf = TODAY.plusDays(10);
+		final Receivable recent = receivable("100.00", asOf.minusDays(5), ReceivableStatus.OPEN);
+		final Receivable old = receivable("50.00", asOf.minusDays(120), ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(null, asOf)).thenReturn(List.of(recent, old));
 		when(settlementRepositoryPort.findByReceivableIds(any())).thenReturn(List.of());
 
-		AgingReport report = service.execute(new GetAgingListQuery(null, null, asOf));
+		final AgingReport report = service.execute(new GetAgingListQuery(null, null, asOf));
 
 		assertThat(report.getAsOfDate()).isEqualTo(asOf);
 		assertThat(bucket(report, AgingRange.UP_TO_30).total()).isEqualByComparingTo("100.00");
@@ -82,11 +82,11 @@ class GetAgingListServiceTest {
 	@Test
 	@DisplayName("Uses today as the query date when none is given")
 	void defaultsTheQueryDateToToday() {
-		Receivable overdue = receivable("10.00", TODAY.minusDays(45), ReceivableStatus.OPEN);
+		final Receivable overdue = receivable("10.00", TODAY.minusDays(45), ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(null, TODAY)).thenReturn(List.of(overdue));
 		when(settlementRepositoryPort.findByReceivableIds(any())).thenReturn(List.of());
 
-		AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
+		final AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
 
 		assertThat(report.getAsOfDate()).isEqualTo(TODAY);
 		assertThat(bucket(report, AgingRange.FROM_31_TO_60).total()).isEqualByComparingTo("10.00");
@@ -94,14 +94,14 @@ class GetAgingListServiceTest {
 
 	@Test
 	@DisplayName("Counts a partially settled title only for what is still owed")
-	void aPartiallySettledTitleCountsForWhatIsStillOwed() {
-		Receivable partial = receivable("100.00", TODAY.minusDays(70), ReceivableStatus.PARTIALLY_SETTLED);
-		Settlement payment = Settlement.manual(SettlementId.of(UUID.randomUUID()), partial.getId(),
+	void partiallySettledTitleCountsForWhatIsStillOwed() {
+		final Receivable partial = receivable("100.00", TODAY.minusDays(70), ReceivableStatus.PARTIALLY_SETTLED);
+		final Settlement payment = Settlement.manual(SettlementId.of(UUID.randomUUID()), partial.getId(),
 				new BigDecimal("40.00"), new BigDecimal("3.00"), null, null, null, NOW);
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(null, TODAY)).thenReturn(List.of(partial));
 		when(settlementRepositoryPort.findByReceivableIds(List.of(partial.getId()))).thenReturn(List.of(payment));
 
-		AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
+		final AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
 
 		assertThat(bucket(report, AgingRange.FROM_61_TO_90).total()).isEqualByComparingTo("60.00");
 	}
@@ -115,7 +115,7 @@ class GetAgingListServiceTest {
 				receivable("30.00", TODAY.minusDays(5), ReceivableStatus.CANCELLED)));
 		when(settlementRepositoryPort.findByReceivableIds(any())).thenReturn(List.of());
 
-		AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
+		final AgingReport report = service.execute(new GetAgingListQuery(null, null, null));
 
 		assertThat(report.getTitleCount()).isZero();
 	}
@@ -123,10 +123,10 @@ class GetAgingListServiceTest {
 	@Test
 	@DisplayName("Filters the aging list by customer")
 	void filtersByCustomer() {
-		UUID customerId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
 		when(receivableRepositoryPort.findOutstandingByCustomerDueUntil(customerId, TODAY)).thenReturn(List.of());
 
-		AgingReport report = service.execute(new GetAgingListQuery(customerId, null, null));
+		final AgingReport report = service.execute(new GetAgingListQuery(customerId, null, null));
 
 		assertThat(report.getTitleCount()).isZero();
 		verify(receivableRepositoryPort).findOutstandingByCustomerDueUntil(customerId, TODAY);
@@ -134,8 +134,8 @@ class GetAgingListServiceTest {
 
 	@Test
 	@DisplayName("Returns an empty report for a cost center because receivables are not charged to one")
-	void aCostCenterYieldsAnEmptyReportAsReceivablesAreNotChargedToOne() {
-		AgingReport report = service.execute(new GetAgingListQuery(null, UUID.randomUUID(), null));
+	void costCenterYieldsAnEmptyReportAsReceivablesAreNotChargedToOne() {
+		final AgingReport report = service.execute(new GetAgingListQuery(null, UUID.randomUUID(), null));
 
 		assertThat(report.getBuckets()).hasSize(4);
 		assertThat(report.getTitleCount()).isZero();

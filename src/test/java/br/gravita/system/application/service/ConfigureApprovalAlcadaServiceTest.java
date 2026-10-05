@@ -42,7 +42,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	@Test
 	@DisplayName("Creates a new alcada when the module has none configured yet")
 	void shouldCreateNewAlcadaWhenModuleHasNoneConfiguredYet() {
-		ConfigureApprovalAlcadaService service =
+		final ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.PURCHASING)).thenReturn(Optional.empty());
 		when(profileRepositoryPort.findById(APPROVER.id())).thenReturn(Optional.of(APPROVER));
@@ -50,7 +50,7 @@ class ConfigureApprovalAlcadaServiceTest {
 		service.execute(new ConfigureApprovalAlcadaCommand("purchasing", new BigDecimal("5000.00"), null,
 				APPROVER.id()));
 
-		ArgumentCaptor<ApprovalAlcada> captor = ArgumentCaptor.forClass(ApprovalAlcada.class);
+		final ArgumentCaptor<ApprovalAlcada> captor = ArgumentCaptor.forClass(ApprovalAlcada.class);
 		verify(approvalAlcadaRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getModule()).isEqualTo(ApprovalModule.PURCHASING);
 		assertThat(captor.getValue().getThresholdValue()).isEqualByComparingTo("5000.00");
@@ -60,16 +60,16 @@ class ConfigureApprovalAlcadaServiceTest {
 	@Test
 	@DisplayName("Reconfigures the existing alcada instead of creating a second one")
 	void shouldReconfigureExistingAlcadaInsteadOfCreatingASecondOne() {
-		ConfigureApprovalAlcadaService service =
+		final ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
-		ApprovalAlcada existing = ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("10.00"),
+		final ApprovalAlcada existing = ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("10.00"),
 				APPROVER);
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.SALES)).thenReturn(Optional.of(existing));
 		when(profileRepositoryPort.findById(APPROVER.id())).thenReturn(Optional.of(APPROVER));
 
 		service.execute(new ConfigureApprovalAlcadaCommand("sales", null, new BigDecimal("20.00"), APPROVER.id()));
 
-		ArgumentCaptor<ApprovalAlcada> captor = ArgumentCaptor.forClass(ApprovalAlcada.class);
+		final ArgumentCaptor<ApprovalAlcada> captor = ArgumentCaptor.forClass(ApprovalAlcada.class);
 		verify(approvalAlcadaRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getId()).isEqualTo(existing.getId());
 		assertThat(captor.getValue().getThresholdDiscountPercent()).isEqualByComparingTo("20.00");
@@ -78,7 +78,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown module before touching any repository")
 	void shouldRejectUnknownModuleBeforeTouchingAnyRepository() {
-		ConfigureApprovalAlcadaService service =
+		final ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(
@@ -92,9 +92,9 @@ class ConfigureApprovalAlcadaServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown approver profile")
 	void shouldRejectUnknownApproverProfile() {
-		ConfigureApprovalAlcadaService service =
+		final ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
-		UUID unknownProfileId = UUID.randomUUID();
+		final UUID unknownProfileId = UUID.randomUUID();
 		when(profileRepositoryPort.findById(unknownProfileId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -108,7 +108,7 @@ class ConfigureApprovalAlcadaServiceTest {
 	@Test
 	@DisplayName("Rejects a command that has no threshold")
 	void shouldRejectCommandWithoutAnyThreshold() {
-		ConfigureApprovalAlcadaService service =
+		final ConfigureApprovalAlcadaService service =
 				new ConfigureApprovalAlcadaService(approvalAlcadaRepositoryPort, profileRepositoryPort);
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.FINANCE)).thenReturn(Optional.empty());
 		when(profileRepositoryPort.findById(APPROVER.id())).thenReturn(Optional.of(APPROVER));

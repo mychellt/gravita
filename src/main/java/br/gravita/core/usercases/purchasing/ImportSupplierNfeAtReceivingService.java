@@ -27,45 +27,45 @@ public class ImportSupplierNfeAtReceivingService implements ImportSupplierNfeAtR
 	private final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort;
 	private final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase;
 
-	public ImportSupplierNfeAtReceivingService(PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
-			PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
-			ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase) {
+	public ImportSupplierNfeAtReceivingService(final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
+			final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
+			final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase) {
 		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
 		this.purchaseReceiptRepositoryPort = purchaseReceiptRepositoryPort;
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
 	}
 
 	@Override
-	public ConferenceResult execute(ImportSupplierNfeAtReceivingCommand command) {
-		PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
+	public ConferenceResult execute(final ImportSupplierNfeAtReceivingCommand command) {
+		final PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(command.orderId().value()));
-		PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
+		final PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
 				.orElseThrow(() -> new PurchaseReceiptNotFoundException(command.receiptId().value()));
 		if (!receipt.getOrderId().equals(order.getId())) {
 			throw new BusinessRuleException(
 					"Purchase receipt " + receipt.getId().value() + " does not belong to order " + order.getId().value());
 		}
 
-		InboundNfe inboundNfe = importSupplierNfeXmlUseCase
+		final InboundNfe inboundNfe = importSupplierNfeXmlUseCase
 				.execute(new ImportSupplierNfeXmlCommand(command.companyId(), command.xmlFile()));
 
-		ConferenceResult conferenceResult = reconcile(order, receipt, inboundNfe);
+		final ConferenceResult conferenceResult = reconcile(order, receipt, inboundNfe);
 
-		PurchaseReceipt completed = receipt.completeConference(toInstallmentTerms(inboundNfe));
+		final PurchaseReceipt completed = receipt.completeConference(toInstallmentTerms(inboundNfe));
 		purchaseReceiptRepositoryPort.save(completed);
 
 		return conferenceResult;
 	}
 
-	private ConferenceResult reconcile(PurchaseOrder order, PurchaseReceipt receipt, InboundNfe inboundNfe) {
-		List<ConferenceLine> lines = receipt.getReceivedItems().stream()
+	private ConferenceResult reconcile(final PurchaseOrder order, final PurchaseReceipt receipt, final InboundNfe inboundNfe) {
+		final List<ConferenceLine> lines = receipt.getReceivedItems().stream()
 				.map(item -> new ConferenceLine(item.productId(), item.orderedQty(), item.receivedQty()))
 				.toList();
 		return new ConferenceResult(lines, order.totalValue(), inboundNfe.getTotals().totalValue());
 	}
 
-	private List<InstallmentTerm> toInstallmentTerms(InboundNfe inboundNfe) {
-		LocalDate dueDate = inboundNfe.getIssuedAt().atZone(ZoneOffset.UTC).toLocalDate();
+	private List<InstallmentTerm> toInstallmentTerms(final InboundNfe inboundNfe) {
+		final LocalDate dueDate = inboundNfe.getIssuedAt().atZone(ZoneOffset.UTC).toLocalDate();
 		return List.of(new InstallmentTerm(inboundNfe.getTotals().totalValue(), dueDate));
 	}
 }

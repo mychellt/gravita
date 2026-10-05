@@ -2,7 +2,7 @@ package br.gravita.core.domain.tax;
 
 public class SefazUnavailableException extends RuntimeException {
 
-	public SefazUnavailableException(String message, Throwable cause) {
+	public SefazUnavailableException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 }

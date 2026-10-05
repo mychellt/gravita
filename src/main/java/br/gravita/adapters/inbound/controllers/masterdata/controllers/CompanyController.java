@@ -36,78 +36,78 @@ public class CompanyController {
     private final GetCompanyUseCase getCompanyUseCase;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CompanyResponse> get(@PathVariable UUID id) {
+    public ResponseEntity<CompanyResponse> get(@PathVariable final UUID id) {
         return ResponseEntity.ok(companyResponse(CompanyId.of(id)));
     }
 
     @PostMapping
-    public ResponseEntity<CompanyResponse> register(@Valid @RequestBody RegisterCompanyRequest request) {
-        CompanyId id = registerCompanyUseCase.execute(request.toCommand(null));
+    public ResponseEntity<CompanyResponse> register(@Valid @RequestBody final RegisterCompanyRequest request) {
+        final CompanyId id = registerCompanyUseCase.execute(request.toCommand(null));
         return ResponseEntity.created(URI.create("/api/companies/" + id.value())).body(companyResponse(id));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CompanyResponse> update(@PathVariable UUID id, @Valid @RequestBody RegisterCompanyRequest request) {
-        CompanyId updatedId = registerCompanyUseCase.execute(request.toCommand(CompanyId.of(id)));
+    public ResponseEntity<CompanyResponse> update(@PathVariable final UUID id, @Valid @RequestBody final RegisterCompanyRequest request) {
+        final CompanyId updatedId = registerCompanyUseCase.execute(request.toCommand(CompanyId.of(id)));
         return ResponseEntity.ok(companyResponse(updatedId));
     }
 
     @PatchMapping("/{id}/sefaz-environment")
-    public ResponseEntity<CompanyResponse> switchSefazEnvironment(@PathVariable UUID id,
-                                                                  @Valid @RequestBody SwitchSefazEnvironmentRequest request) {
-        CompanyId companyId = CompanyId.of(id);
+    public ResponseEntity<CompanyResponse> switchSefazEnvironment(@PathVariable final UUID id,
+                                                                  @Valid @RequestBody final SwitchSefazEnvironmentRequest request) {
+        final CompanyId companyId = CompanyId.of(id);
         switchSefazEnvironmentUseCase.execute(request.toCommand(companyId));
         return ResponseEntity.ok(companyResponse(companyId));
     }
 
     @PutMapping("/{id}/document-series/{type}")
-    public ResponseEntity<Void> configureDocumentSeries(@PathVariable UUID id, @PathVariable("type") String type,
-                                                        @Valid @RequestBody ConfigureDocumentSeriesRequest request) {
+    public ResponseEntity<Void> configureDocumentSeries(@PathVariable final UUID id, @PathVariable("type") final String type,
+                                                        @Valid @RequestBody final ConfigureDocumentSeriesRequest request) {
         configureDocumentSeriesUseCase.execute(request.toCommand(CompanyId.of(id), parseDocumentType(type)));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{id}/certificate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> uploadCertificate(@PathVariable UUID id,
-                                                  @RequestPart("pfxFile") MultipartFile pfxFile, @RequestParam String password,
-                                                  @RequestParam(required = false, defaultValue = "A1") String type) {
+    public ResponseEntity<Void> uploadCertificate(@PathVariable final UUID id,
+                                                  @RequestPart("pfxFile") final MultipartFile pfxFile, @RequestParam final String password,
+                                                  @RequestParam(required = false, defaultValue = "A1") final String type) {
         uploadDigitalCertificateUseCase
                 .execute(new UploadDigitalCertificateCommand(CompanyId.of(id), type, readBytes(pfxFile), password));
         return ResponseEntity.noContent().build();
     }
 
-    private CompanyResponse companyResponse(CompanyId id) {
+    private CompanyResponse companyResponse(final CompanyId id) {
         return CompanyResponse.from(getCompanyUseCase.execute(id));
     }
 
-    private byte[] readBytes(MultipartFile file) {
+    private byte[] readBytes(final MultipartFile file) {
         try {
             return file.getBytes();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException("Unable to read uploaded certificate file", e);
         }
     }
 
-    private FiscalDocumentType parseDocumentType(String type) {
+    private FiscalDocumentType parseDocumentType(final String type) {
         try {
             return FiscalDocumentType.valueOf(type.toUpperCase());
-        } catch (IllegalArgumentException exception) {
+        } catch (final IllegalArgumentException exception) {
             throw new BusinessRuleException("Unknown document type: " + type);
         }
     }
 
     @ExceptionHandler(CompanyNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleCompanyNotFoundException(CompanyNotFoundException exception) {
+    public ResponseEntity<Map<String, String>> handleCompanyNotFoundException(final CompanyNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(DocumentSeriesNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleDocumentSeriesNotFoundException(DocumentSeriesNotFoundException exception) {
+    public ResponseEntity<Map<String, String>> handleDocumentSeriesNotFoundException(final DocumentSeriesNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 }

@@ -14,13 +14,13 @@ public class ListPlansAdapter implements ListPlansPort {
 
 	private final PlanRepositoryPort planRepositoryPort;
 
-	public ListPlansAdapter(PlanRepositoryPort planRepositoryPort) {
+	public ListPlansAdapter(final PlanRepositoryPort planRepositoryPort) {
 		this.planRepositoryPort = planRepositoryPort;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<PlanDomain> execute(Context context) {
+	public List<PlanDomain> execute(final Context context) {
 		return planRepositoryPort.findAll();
 	}
 }

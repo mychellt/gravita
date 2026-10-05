@@ -31,7 +31,7 @@ public class DiscriminationTemplateController {
 
 	@PostMapping
 	public ResponseEntity<CreateDiscriminationTemplateResponse> create(
-			@Valid @RequestBody DiscriminationTemplateRequest request) {
+			@Valid @RequestBody final DiscriminationTemplateRequest request) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(CreateDiscriminationTemplateResponse
 				.from(manageDiscriminationTemplateUseCase.create(request.toCreateCommand())));
 	}
@@ -39,21 +39,21 @@ public class DiscriminationTemplateController {
 	/** {@code ?serviceCode=} narrows the list to one service type; without it every template is returned. */
 	@GetMapping
 	public ResponseEntity<List<DiscriminationTemplateResponse>> list(
-			@RequestParam(required = false) String serviceCode) {
-		ServiceCode serviceType = serviceCode == null || serviceCode.isBlank() ? null : ServiceCode.of(serviceCode);
+			@RequestParam(required = false) final String serviceCode) {
+		final ServiceCode serviceType = serviceCode == null || serviceCode.isBlank() ? null : ServiceCode.of(serviceCode);
 		return ResponseEntity.ok(manageDiscriminationTemplateUseCase.list(serviceType).stream()
 				.map(DiscriminationTemplateResponse::from).toList());
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<Void> update(@PathVariable UUID id,
-			@Valid @RequestBody DiscriminationTemplateRequest request) {
+	public ResponseEntity<Void> update(@PathVariable final UUID id,
+			@Valid @RequestBody final DiscriminationTemplateRequest request) {
 		manageDiscriminationTemplateUseCase.update(request.toUpdateCommand(DiscriminationTemplateId.of(id)));
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable final UUID id) {
 		manageDiscriminationTemplateUseCase.delete(DiscriminationTemplateId.of(id));
 		return ResponseEntity.noContent().build();
 	}

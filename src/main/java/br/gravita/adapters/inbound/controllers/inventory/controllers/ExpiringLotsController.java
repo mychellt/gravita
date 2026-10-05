@@ -18,9 +18,9 @@ public class ExpiringLotsController {
 	private final CheckExpiringLotsUseCase checkExpiringLotsUseCase;
 
 	@GetMapping("/expiring-lots")
-	public ResponseEntity<List<ExpiringLotResponse>> get(@RequestParam int withinDays,
-			@RequestParam(required = false) UUID warehouseId) {
-		List<ExpiringLotResponse> response = checkExpiringLotsUseCase.execute(new CheckExpiringLotsQuery(withinDays, warehouseId))
+	public ResponseEntity<List<ExpiringLotResponse>> get(@RequestParam final int withinDays,
+			@RequestParam(required = false) final UUID warehouseId) {
+		final List<ExpiringLotResponse> response = checkExpiringLotsUseCase.execute(new CheckExpiringLotsQuery(withinDays, warehouseId))
 				.stream()
 				.map(ExpiringLotResponse::from)
 				.toList();

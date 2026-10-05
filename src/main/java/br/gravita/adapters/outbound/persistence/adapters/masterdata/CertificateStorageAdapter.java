@@ -18,29 +18,29 @@ class CertificateStorageAdapter implements CertificateStoragePort {
 	private final CertificateCipher cipher;
 	private final DigitalCertificatePersistenceMapper mapper;
 
-	CertificateStorageAdapter(DigitalCertificateJpaRepository jpaRepository, CertificateCipher cipher,
-			DigitalCertificatePersistenceMapper mapper) {
+	CertificateStorageAdapter(final DigitalCertificateJpaRepository jpaRepository, final CertificateCipher cipher,
+			final DigitalCertificatePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.cipher = cipher;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public DigitalCertificate save(DigitalCertificate certificate) {
-		byte[] encryptedPfxPayload = cipher.encrypt(certificate.getPfxPayload());
-		String encryptedPassword = cipher.encryptText(certificate.getPassword());
+	public DigitalCertificate save(final DigitalCertificate certificate) {
+		final byte[] encryptedPfxPayload = cipher.encrypt(certificate.getPfxPayload());
+		final String encryptedPassword = cipher.encryptText(certificate.getPassword());
 
-		DigitalCertificateJpaEntity entity = mapper.map(certificate, encryptedPfxPayload, encryptedPassword);
+		final DigitalCertificateJpaEntity entity = mapper.map(certificate, encryptedPfxPayload, encryptedPassword);
 		jpaRepository.findByCompanyId(certificate.getCompanyId().value())
 				.ifPresent(existing -> entity.setId(existing.getId()));
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 
-		DigitalCertificateJpaEntity saved = jpaRepository.save(entity);
+		final DigitalCertificateJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved, certificate.getPfxPayload(), certificate.getPassword());
 	}
 
 	@Override
-	public Optional<DigitalCertificate> findByCompanyId(CompanyId companyId) {
+	public Optional<DigitalCertificate> findByCompanyId(final CompanyId companyId) {
 		return jpaRepository.findByCompanyId(companyId.value())
 				.map(entity -> mapper.map(entity, cipher.decrypt(entity.getEncryptedPfxPayload()),
 						cipher.decryptText(entity.getEncryptedPassword())));

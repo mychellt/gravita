@@ -19,7 +19,7 @@ class IbgeMunicipalityRepositoryAdapter implements IbgeMunicipalityRepositoryPor
     private final IbgeMunicipalityPersistenceMapper mapper;
 
     @Override
-    public Optional<IbgeMunicipalityDomain> get(UUID id) {
+    public Optional<IbgeMunicipalityDomain> get(final UUID id) {
         return jpaRepository.findById(id).map(mapper::map);
     }
 
@@ -29,12 +29,12 @@ class IbgeMunicipalityRepositoryAdapter implements IbgeMunicipalityRepositoryPor
     }
 
     @Override
-    public Optional<IbgeMunicipalityDomain> findByIbgeCode(String ibgeCode) {
+    public Optional<IbgeMunicipalityDomain> findByIbgeCode(final String ibgeCode) {
         return jpaRepository.findByIbgeCode(ibgeCode).map(mapper::map);
     }
 
     @Override
-    public List<IbgeMunicipalityDomain> saveAll(List<IbgeMunicipalityDomain> municipalities) {
+    public List<IbgeMunicipalityDomain> saveAll(final List<IbgeMunicipalityDomain> municipalities) {
         return jpaRepository.saveAll(municipalities.stream().map(mapper::map).toList())
                 .stream().map(mapper::map).toList();
     }

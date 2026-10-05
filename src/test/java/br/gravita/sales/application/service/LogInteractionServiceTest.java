@@ -36,15 +36,15 @@ class LogInteractionServiceTest {
 	void logsAnInteractionLinkedToAnOpportunity() {
 		when(interactionRepositoryPort.save(any(Interaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		OpportunityId opportunityId = OpportunityId.of(UUID.randomUUID());
-		LogInteractionCommand command = LogInteractionCommand.builder()
+		final OpportunityId opportunityId = OpportunityId.of(UUID.randomUUID());
+		final LogInteractionCommand command = LogInteractionCommand.builder()
 				.opportunityId(opportunityId)
 				.channel(InteractionChannel.CALL)
 				.summary("Discussed pricing")
 				.timestamp(Instant.now())
 				.build();
 
-		InteractionView view = service.execute(command);
+		final InteractionView view = service.execute(command);
 
 		assertThat(view.opportunityId()).isEqualTo(opportunityId.value());
 		assertThat(view.customerId()).isNull();
@@ -56,15 +56,15 @@ class LogInteractionServiceTest {
 	void logsAnInteractionLinkedOnlyToACustomer() {
 		when(interactionRepositoryPort.save(any(Interaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UUID customerId = UUID.randomUUID();
-		LogInteractionCommand command = LogInteractionCommand.builder()
+		final UUID customerId = UUID.randomUUID();
+		final LogInteractionCommand command = LogInteractionCommand.builder()
 				.customerId(customerId)
 				.channel(InteractionChannel.WHATSAPP)
 				.summary("Sent a follow-up message")
 				.timestamp(Instant.now())
 				.build();
 
-		InteractionView view = service.execute(command);
+		final InteractionView view = service.execute(command);
 
 		assertThat(view.opportunityId()).isNull();
 		assertThat(view.customerId()).isEqualTo(customerId);
@@ -73,7 +73,7 @@ class LogInteractionServiceTest {
 	@Test
 	@DisplayName("Rejects an interaction linked to neither an opportunity nor a customer")
 	void rejectsAnInteractionWithNeitherOpportunityNorCustomer() {
-		LogInteractionCommand command = LogInteractionCommand.builder()
+		final LogInteractionCommand command = LogInteractionCommand.builder()
 				.channel(InteractionChannel.EMAIL)
 				.summary("No target")
 				.timestamp(Instant.now())

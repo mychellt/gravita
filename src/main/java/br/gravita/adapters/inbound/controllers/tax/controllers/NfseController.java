@@ -34,26 +34,26 @@ public class NfseController {
 	private final CancelNfseUseCase cancelNfseUseCase;
 
 	@PostMapping("/rps")
-	public ResponseEntity<IssueRpsResponse> issueRps(@Valid @RequestBody IssueRpsRequest request) {
+	public ResponseEntity<IssueRpsResponse> issueRps(@Valid @RequestBody final IssueRpsRequest request) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(IssueRpsResponse.from(issueRpsUseCase.execute(request.toCommand())));
 	}
 
 	@PostMapping("/rps/convert")
-	public ResponseEntity<ConvertRpsToNfseResponse> convertRps(@Valid @RequestBody ConvertRpsToNfseRequest request) {
+	public ResponseEntity<ConvertRpsToNfseResponse> convertRps(@Valid @RequestBody final ConvertRpsToNfseRequest request) {
 		return ResponseEntity.ok(ConvertRpsToNfseResponse.from(convertRpsToNfseUseCase.execute(request.toCommand())));
 	}
 
 	/** Follow-up action on a {@code DRAFT} NFSe (the convert endpoint does not transmit). */
 	@PostMapping("/{id}/transmit")
-	public ResponseEntity<TransmitNfseResponse> transmit(@PathVariable UUID id) {
+	public ResponseEntity<TransmitNfseResponse> transmit(@PathVariable final UUID id) {
 		return ResponseEntity.ok(TransmitNfseResponse
 				.from(transmitNfseUseCase.execute(new TransmitNfseCommand(NfseId.of(id)))));
 	}
 
 	/** Cancels an {@code AUTHORIZED} NFSe; the record stays, as {@code CANCELLED}. */
 	@PostMapping("/{id}/cancel")
-	public ResponseEntity<Void> cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfseRequest request) {
+	public ResponseEntity<Void> cancel(@PathVariable final UUID id, @Valid @RequestBody final CancelNfseRequest request) {
 		cancelNfseUseCase.execute(request.toCommand(id));
 		return ResponseEntity.noContent().build();
 	}

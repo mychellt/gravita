@@ -9,7 +9,7 @@ import java.util.UUID;
 public record ExpiringLotView(UUID productId, UUID warehouseId, String lotCode, LocalDate expiryDate,
 		BigDecimal remainingQuantity) {
 
-	public static ExpiringLotView from(Lot lot) {
+	public static ExpiringLotView from(final Lot lot) {
 		return new ExpiringLotView(lot.getProductId(), lot.getWarehouseId(), lot.getCode(), lot.getExpiryDate(),
 				lot.getQuantity());
 	}

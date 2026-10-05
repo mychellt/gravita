@@ -7,7 +7,7 @@ public class SpedValidationException extends BusinessRuleException {
 
 	private final transient SpedValidationReport report;
 
-	public SpedValidationException(SpedValidationReport report) {
+	public SpedValidationException(final SpedValidationReport report) {
 		super("SPED Fiscal not generated: " + report.errors().size() + " mandatory record(s) missing or invalid");
 		this.report = report;
 	}

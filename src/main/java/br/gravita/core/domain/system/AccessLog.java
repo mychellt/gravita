@@ -23,7 +23,7 @@ public class AccessLog {
 	private String device;
 	private Instant timestamp;
 
-	public static AccessLog login(UserId userId, String email, boolean successful, String ip, String device) {
+	public static AccessLog login(final UserId userId, final String email, final boolean successful, final String ip, final String device) {
 		return AccessLog.builder()
 				.id(UUID.randomUUID())
 				.userId(userId)

@@ -59,8 +59,8 @@ public class NfeController {
 	private final GenerateDanfePort generateDanfePort;
 
 	@PostMapping
-	public ResponseEntity<IssueNfeResponse> issue(@Valid @RequestBody IssueNfeRequest request) {
-		NfeDocument document = issueNfeUseCase.execute(request.toCommand());
+	public ResponseEntity<IssueNfeResponse> issue(@Valid @RequestBody final IssueNfeRequest request) {
+		final NfeDocument document = issueNfeUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/nfe/" + document.getId().value()))
 				.body(IssueNfeResponse.from(document));
 	}
@@ -71,44 +71,44 @@ public class NfeController {
 	 * twice per document.
 	 */
 	@GetMapping(value = "/{id}/danfe", produces = MediaType.APPLICATION_PDF_VALUE)
-	public ResponseEntity<byte[]> danfe(@PathVariable UUID id,
-			@RequestParam(defaultValue = "PORTRAIT") DanfeOrientation orientation) {
-		NfeDocument document = authorizedDocument(id);
-		byte[] content = orientation == DanfeOrientation.PORTRAIT
+	public ResponseEntity<byte[]> danfe(@PathVariable final UUID id,
+			@RequestParam(defaultValue = "PORTRAIT") final DanfeOrientation orientation) {
+		final NfeDocument document = authorizedDocument(id);
+		final byte[] content = orientation == DanfeOrientation.PORTRAIT
 				? xmlObjectStoragePort.retrieve(document.getDanfeStorageRef())
 				: generateDanfePort.generate(document, resolveCompany(document), DanfeOrientation.LANDSCAPE);
 		return ResponseEntity.ok().body(content);
 	}
 
 	@GetMapping(value = "/{id}/xml", produces = MediaType.APPLICATION_XML_VALUE)
-	public ResponseEntity<byte[]> xml(@PathVariable UUID id) {
-		NfeDocument document = authorizedDocument(id);
+	public ResponseEntity<byte[]> xml(@PathVariable final UUID id) {
+		final NfeDocument document = authorizedDocument(id);
 		return ResponseEntity.ok().body(xmlObjectStoragePort.retrieve(document.getXmlStorageRef()));
 	}
 
 	@PostMapping("/{id}/resend-email")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void resendEmail(@PathVariable UUID id) {
+	public void resendEmail(@PathVariable final UUID id) {
 		resendNfeEmailUseCase.execute(new ResendNfeEmailCommand(id));
 	}
 
 	@PostMapping("/{id}/correction-letters")
 	@ResponseStatus(HttpStatus.CREATED)
-	public CorrectionLetterResponse issueCorrectionLetter(@PathVariable UUID id,
-			@Valid @RequestBody IssueCorrectionLetterRequest request) {
-		CorrectionLetter correctionLetter = issueCorrectionLetterUseCase
+	public CorrectionLetterResponse issueCorrectionLetter(@PathVariable final UUID id,
+			@Valid @RequestBody final IssueCorrectionLetterRequest request) {
+		final CorrectionLetter correctionLetter = issueCorrectionLetterUseCase
 				.execute(new IssueCorrectionLetterCommand(id, request.text()));
 		return CorrectionLetterResponse.from(correctionLetter);
 	}
 
 	@PostMapping("/{id}/cancel")
-	public CancelNfeResponse cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfeRequest request) {
-		NfeDocument document = cancelNfeUseCase.execute(new CancelNfeCommand(id, request.justification()));
+	public CancelNfeResponse cancel(@PathVariable final UUID id, @Valid @RequestBody final CancelNfeRequest request) {
+		final NfeDocument document = cancelNfeUseCase.execute(new CancelNfeCommand(id, request.justification()));
 		return CancelNfeResponse.from(document);
 	}
 
-	private NfeDocument authorizedDocument(UUID id) {
-		NfeDocument document = nfeRepositoryPort.findById(NfeDocumentId.of(id))
+	private NfeDocument authorizedDocument(final UUID id) {
+		final NfeDocument document = nfeRepositoryPort.findById(NfeDocumentId.of(id))
 				.orElseThrow(() -> new ResourceNotFoundException("NfeDocument not found: " + id));
 		if (document.getStatus() != NfeDocumentStatus.AUTHORIZED) {
 			throw new BusinessRuleException("NfeDocument " + id + " is not AUTHORIZED (current status: "
@@ -117,19 +117,19 @@ public class NfeController {
 		return document;
 	}
 
-	private Company resolveCompany(NfeDocument document) {
-		CompanyId companyId = document.getIssuerCompanyId();
+	private Company resolveCompany(final NfeDocument document) {
+		final CompanyId companyId = document.getIssuerCompanyId();
 		return companyRepositoryPort.findById(companyId)
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + companyId.value()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(final ResourceNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 }

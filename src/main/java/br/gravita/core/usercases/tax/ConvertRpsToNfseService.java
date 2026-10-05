@@ -29,22 +29,22 @@ public class ConvertRpsToNfseService implements ConvertRpsToNfseUseCase {
 
 	private final NfseRepositoryPort nfseRepositoryPort;
 
-	public ConvertRpsToNfseService(NfseRepositoryPort nfseRepositoryPort) {
+	public ConvertRpsToNfseService(final NfseRepositoryPort nfseRepositoryPort) {
 		this.nfseRepositoryPort = nfseRepositoryPort;
 	}
 
 	@Override
 	@Transactional
-	public List<NfseId> execute(ConvertRpsToNfseCommand command) {
-		Set<NfseId> distinct = new LinkedHashSet<>();
-		for (RpsId rpsId : command.rpsIds()) {
+	public List<NfseId> execute(final ConvertRpsToNfseCommand command) {
+		final Set<NfseId> distinct = new LinkedHashSet<>();
+		for (final RpsId rpsId : command.rpsIds()) {
 			distinct.add(rpsId.toNfseId());
 		}
 
 		// A stable lock order keeps two overlapping batches from deadlocking on each other's rows.
-		List<NfseId> lockOrder = new ArrayList<>(distinct);
+		final List<NfseId> lockOrder = new ArrayList<>(distinct);
 		lockOrder.sort(Comparator.comparing(NfseId::value));
-		for (NfseId id : lockOrder) {
+		for (final NfseId id : lockOrder) {
 			convert(id);
 		}
 
@@ -52,15 +52,15 @@ public class ConvertRpsToNfseService implements ConvertRpsToNfseUseCase {
 		return List.copyOf(distinct);
 	}
 
-	private void convert(NfseId id) {
-		NfseDocument document = nfseRepositoryPort.findByIdForUpdate(id)
+	private void convert(final NfseId id) {
+		final NfseDocument document = nfseRepositoryPort.findByIdForUpdate(id)
 				.orElseThrow(() -> new ResourceNotFoundException("RPS not found: " + id.value()));
 		if (!document.isRps()) {
 			// AC4: already converted (or further along) - nothing to do, no second document and no number burned.
 			return;
 		}
 		// AC2: numbered within (company, municipality) of the provider, apart from the NFe/RPS series.
-		NfseNumber number = nfseRepositoryPort.allocateNextNumber(document.getProviderCompanyId(),
+		final NfseNumber number = nfseRepositoryPort.allocateNextNumber(document.getProviderCompanyId(),
 				document.getProviderMunicipalityIbgeCode());
 		// AC3: DRAFT with a timestamp; the transmission itself is a separate use case.
 		nfseRepositoryPort.save(document.convertToNfse(number.series(), number.number(), Instant.now()));

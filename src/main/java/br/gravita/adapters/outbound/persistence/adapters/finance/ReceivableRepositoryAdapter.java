@@ -22,39 +22,39 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	private final CashFlowQueryRepository cashFlowQueryRepository;
 	private final ReceivablePersistenceMapper mapper;
 
-	ReceivableRepositoryAdapter(ReceivableJpaRepository jpaRepository,
-			CashFlowQueryRepository cashFlowQueryRepository, ReceivablePersistenceMapper mapper) {
+	ReceivableRepositoryAdapter(final ReceivableJpaRepository jpaRepository,
+			final CashFlowQueryRepository cashFlowQueryRepository, final ReceivablePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.cashFlowQueryRepository = cashFlowQueryRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Receivable save(Receivable receivable) {
-		ReceivableJpaEntity entity = mapper.map(receivable);
+	public Receivable save(final Receivable receivable) {
+		final ReceivableJpaEntity entity = mapper.map(receivable);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		ReceivableJpaEntity saved = jpaRepository.save(entity);
+		final ReceivableJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<Receivable> findById(ReceivableId id) {
+	public Optional<Receivable> findById(final ReceivableId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<Receivable> findByOriginDocumentRef(UUID originDocumentRef) {
+	public List<Receivable> findByOriginDocumentRef(final UUID originDocumentRef) {
 		return jpaRepository.findByOriginDocumentRefOrderByInstallmentNumber(originDocumentRef).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Receivable> findByCustomerId(UUID customerId) {
+	public List<Receivable> findByCustomerId(final UUID customerId) {
 		return jpaRepository.findByCustomerId(customerId).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Receivable> findUnsettledByCustomerId(UUID customerId) {
+	public List<Receivable> findUnsettledByCustomerId(final UUID customerId) {
 		return jpaRepository
 				.findByCustomerIdAndStatusIn(customerId,
 						List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED))
@@ -62,7 +62,7 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	}
 
 	@Override
-	public List<Receivable> findOutstandingDueUntil(LocalDate until, CashFlowFilter filter) {
+	public List<Receivable> findOutstandingDueUntil(final LocalDate until, final CashFlowFilter filter) {
 		if (filter.costCenterId() != null) {
 			return List.of();
 		}
@@ -71,9 +71,9 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	}
 
 	@Override
-	public List<Receivable> findOutstandingByCustomerDueUntil(UUID customerId, LocalDate until) {
-		List<ReceivableStatus> outstanding = List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED);
-		List<ReceivableJpaEntity> entities = customerId == null
+	public List<Receivable> findOutstandingByCustomerDueUntil(final UUID customerId, final LocalDate until) {
+		final List<ReceivableStatus> outstanding = List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED);
+		final List<ReceivableJpaEntity> entities = customerId == null
 				? jpaRepository.findByStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(outstanding, until)
 				: jpaRepository.findByCustomerIdAndStatusInAndDueDateLessThanEqualOrderByDueDateAscIdAsc(customerId,
 						outstanding, until);

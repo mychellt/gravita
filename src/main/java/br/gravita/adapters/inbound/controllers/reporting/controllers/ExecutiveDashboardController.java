@@ -22,9 +22,9 @@ public class ExecutiveDashboardController {
 	private final GetExecutiveDashboardUseCase getExecutiveDashboardUseCase;
 
 	@GetMapping
-	public ResponseEntity<ExecutiveDashboardView> get(@AuthenticatedUser UserId callerId,
-			@RequestParam(defaultValue = "MONTH") DashboardPeriod period,
-			@RequestParam(required = false) UUID companyId) {
+	public ResponseEntity<ExecutiveDashboardView> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam(defaultValue = "MONTH") final DashboardPeriod period,
+			@RequestParam(required = false) final UUID companyId) {
 		return ResponseEntity.ok(getExecutiveDashboardUseCase.execute(new DashboardQuery(callerId, period, companyId)));
 	}
 }

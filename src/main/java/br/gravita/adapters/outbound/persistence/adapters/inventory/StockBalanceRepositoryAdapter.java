@@ -16,23 +16,23 @@ class StockBalanceRepositoryAdapter implements StockBalanceRepositoryPort {
 	private final StockBalanceJpaRepository jpaRepository;
 	private final StockBalancePersistenceMapper mapper;
 
-	StockBalanceRepositoryAdapter(StockBalanceJpaRepository jpaRepository, StockBalancePersistenceMapper mapper) {
+	StockBalanceRepositoryAdapter(final StockBalanceJpaRepository jpaRepository, final StockBalancePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Optional<StockBalance> findByProductIdAndWarehouseId(UUID productId, UUID warehouseId) {
+	public Optional<StockBalance> findByProductIdAndWarehouseId(final UUID productId, final UUID warehouseId) {
 		return jpaRepository.findByProductIdAndWarehouseId(productId, warehouseId).map(mapper::map);
 	}
 
 	@Override
-	public List<StockBalance> findByProductId(UUID productId) {
+	public List<StockBalance> findByProductId(final UUID productId) {
 		return jpaRepository.findByProductId(productId).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<StockBalance> findByWarehouseId(UUID warehouseId) {
+	public List<StockBalance> findByWarehouseId(final UUID warehouseId) {
 		return jpaRepository.findByWarehouseId(warehouseId).stream().map(mapper::map).toList();
 	}
 
@@ -42,8 +42,8 @@ class StockBalanceRepositoryAdapter implements StockBalanceRepositoryPort {
 	}
 
 	@Override
-	public StockBalance save(StockBalance balance) {
-		StockBalanceJpaEntity entity = mapper.map(balance);
+	public StockBalance save(final StockBalance balance) {
+		final StockBalanceJpaEntity entity = mapper.map(balance);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}

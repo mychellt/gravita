@@ -25,16 +25,16 @@ public class SqsFiscalDocumentEmailAdapter implements SendFiscalDocumentByEmailP
     private final ObjectMapper objectMapper;
     private final String queueUrl;
 
-    public SqsFiscalDocumentEmailAdapter(SqsClient sqsClient, ObjectMapper objectMapper,
-                                         @Value("${aws.sqs.email-queue-url}") String queueUrl) {
+    public SqsFiscalDocumentEmailAdapter(final SqsClient sqsClient, final ObjectMapper objectMapper,
+                                         @Value("${aws.sqs.email-queue-url}") final String queueUrl) {
         this.sqsClient = sqsClient;
         this.objectMapper = objectMapper;
         this.queueUrl = queueUrl;
     }
 
     @Override
-    public void send(FiscalDocumentEmailRequest request) {
-        String messageBody = objectMapper.writeValueAsString(Map.of(
+    public void send(final FiscalDocumentEmailRequest request) {
+        final String messageBody = objectMapper.writeValueAsString(Map.of(
                 "to", request.to(),
                 "subject", request.subject(),
                 "body", request.body(),

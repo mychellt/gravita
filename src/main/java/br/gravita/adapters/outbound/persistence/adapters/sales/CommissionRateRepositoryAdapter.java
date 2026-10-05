@@ -14,14 +14,14 @@ class CommissionRateRepositoryAdapter implements CommissionRateRepositoryPort {
 	private final CommissionRateJpaRepository jpaRepository;
 	private final CommissionRatePersistenceMapper mapper;
 
-	CommissionRateRepositoryAdapter(CommissionRateJpaRepository jpaRepository,
-			CommissionRatePersistenceMapper mapper) {
+	CommissionRateRepositoryAdapter(final CommissionRateJpaRepository jpaRepository,
+			final CommissionRatePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Optional<CommissionRate> findBySalespersonAndProduct(UUID salespersonId, UUID productId) {
+	public Optional<CommissionRate> findBySalespersonAndProduct(final UUID salespersonId, final UUID productId) {
 		return jpaRepository.findBySalespersonIdAndProductId(salespersonId, productId).map(mapper::map);
 	}
 }

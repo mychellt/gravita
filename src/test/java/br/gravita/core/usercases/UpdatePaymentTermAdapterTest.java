@@ -28,9 +28,9 @@ class UpdatePaymentTermAdapterTest {
 	@DisplayName("Fails with not found when the payment term to update does not exist")
 	@Test
 	void shouldFailWhenPaymentTermNotFound() {
-		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
-		UUID id = UUID.randomUUID();
-		PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("30/60/90").installmentIntervalsDays(List.of(30, 60, 90)).build();
+		final UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("30/60/90").installmentIntervalsDays(List.of(30, 60, 90)).build();
 		when(paymentTermRepositoryPort.get(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))
@@ -40,9 +40,9 @@ class UpdatePaymentTermAdapterTest {
 	@DisplayName("Rejects updating a payment term to have no installments")
 	@Test
 	void shouldRejectEmptyInstallmentsOnUpdate() {
-		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
-		UUID id = UUID.randomUUID();
-		PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("Invalid").installmentIntervalsDays(List.of()).build();
+		final UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("Invalid").installmentIntervalsDays(List.of()).build();
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))
 				.isInstanceOf(BusinessRuleException.class);
@@ -51,14 +51,14 @@ class UpdatePaymentTermAdapterTest {
 	@DisplayName("Updates a payment term's installment count and intervals without a fixed pattern")
 	@Test
 	void shouldUpdateInstallmentCountAndIntervalsFreely() {
-		UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
-		UUID id = UUID.randomUUID();
-		List<Integer> newIntervals = List.of(10, 20, 30, 40, 50);
-		PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("5x").installmentIntervalsDays(newIntervals).build();
+		final UpdatePaymentTermAdapter adapter = new UpdatePaymentTermAdapter(paymentTermRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final List<Integer> newIntervals = List.of(10, 20, 30, 40, 50);
+		final PaymentTermDomain command = PaymentTermDomain.builder().id(id).name("5x").installmentIntervalsDays(newIntervals).build();
 		when(paymentTermRepositoryPort.get(id)).thenReturn(Optional.of(PaymentTermDomain.builder().id(id).build()));
 		when(paymentTermRepositoryPort.save(command)).thenReturn(command);
 
-		PaymentTermDomain result = adapter.execute(new Context(command));
+		final PaymentTermDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getNumberOfInstallments()).isEqualTo(5);
 		assertThat(result.getInstallmentIntervalsDays()).containsExactlyElementsOf(newIntervals);

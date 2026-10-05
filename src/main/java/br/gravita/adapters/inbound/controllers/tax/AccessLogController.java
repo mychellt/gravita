@@ -26,26 +26,26 @@ public class AccessLogController {
 	private final GetAccessLogUseCase getAccessLogUseCase;
 	private final CheckPermissionUseCase checkPermissionUseCase;
 
-	public AccessLogController(GetAccessLogUseCase getAccessLogUseCase, CheckPermissionUseCase checkPermissionUseCase) {
+	public AccessLogController(final GetAccessLogUseCase getAccessLogUseCase, final CheckPermissionUseCase checkPermissionUseCase) {
 		this.getAccessLogUseCase = getAccessLogUseCase;
 		this.checkPermissionUseCase = checkPermissionUseCase;
 	}
 
 	@GetMapping
 	public ResponseEntity<AccessLogPageResponse> search(
-			@AuthenticatedUser UserId callerId,
-			@RequestParam(required = false) UUID userId,
-			@RequestParam(required = false) Instant dateFrom,
-			@RequestParam(required = false) Instant dateTo,
-			@RequestParam(required = false) String ip,
-			@RequestParam(required = false) String device,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "20") int size) {
+			@AuthenticatedUser final UserId callerId,
+			@RequestParam(required = false) final UUID userId,
+			@RequestParam(required = false) final Instant dateFrom,
+			@RequestParam(required = false) final Instant dateTo,
+			@RequestParam(required = false) final String ip,
+			@RequestParam(required = false) final String device,
+			@RequestParam(defaultValue = "0") final int page,
+			@RequestParam(defaultValue = "20") final int size) {
 		if (!checkPermissionUseCase.execute(new CheckPermissionQuery(callerId, "system", "access-log", PermissionAction.VIEW))) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
 		}
 
-		Page<AccessLog> result = getAccessLogUseCase.execute(new GetAccessLogQuery(
+		final Page<AccessLog> result = getAccessLogUseCase.execute(new GetAccessLogQuery(
 				userId == null ? null : UserId.of(userId), dateFrom, dateTo, ip, device, page, size));
 		return ResponseEntity.ok(AccessLogPageResponse.from(result));
 	}

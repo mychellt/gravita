@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record CancelNfseRequest(@NotBlank String justification) {
 
-	public CancelNfseCommand toCommand(UUID nfseId) {
+	public CancelNfseCommand toCommand(final UUID nfseId) {
 		return new CancelNfseCommand(NfseId.of(nfseId), justification);
 	}
 }

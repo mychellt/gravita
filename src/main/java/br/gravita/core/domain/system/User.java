@@ -26,22 +26,22 @@ public class User {
 	private boolean twoFactorEnabled;
 	private UserStatus status;
 
-	public static User register(String name, String email, String rawPassword, ProfileReference profile) {
+	public static User register(final String name, final String email, final String rawPassword, final ProfileReference profile) {
 		return register(name, email, rawPassword, profile, null);
 	}
 
 	/** Registers a user that belongs to the tenant company {@code companyId}. */
-	public static User register(String name, String email, String rawPassword, ProfileReference profile, UUID companyId) {
+	public static User register(final String name, final String email, final String rawPassword, final ProfileReference profile, final UUID companyId) {
 		return create(name, email, rawPassword, profile, companyId, UserStatus.ACTIVE);
 	}
 
 	/** Self-service signup: the account stays locked until the owner confirms the activation e-mail. */
-	public static User signUp(String name, String email, String rawPassword, ProfileReference profile, UUID companyId) {
+	public static User signUp(final String name, final String email, final String rawPassword, final ProfileReference profile, final UUID companyId) {
 		return create(name, email, rawPassword, profile, companyId, UserStatus.PENDING_ACTIVATION);
 	}
 
-	private static User create(String name, String email, String rawPassword, ProfileReference profile, UUID companyId,
-			UserStatus status) {
+	private static User create(final String name, final String email, final String rawPassword, final ProfileReference profile, final UUID companyId,
+			final UserStatus status) {
 		validate(name, email, rawPassword, profile);
 		return User.builder()
 				.id(UserId.generate())
@@ -72,12 +72,12 @@ public class User {
 	}
 
 	/** Same bar as registration: the new password only has to be present. */
-	public void changePassword(String newRawPassword) {
+	public void changePassword(final String newRawPassword) {
 		requirePassword(newRawPassword);
 		this.rawPassword = newRawPassword;
 	}
 
-	public void update(String name, String email, ProfileReference profile, UserStatus status) {
+	public void update(final String name, final String email, final ProfileReference profile, final UserStatus status) {
 		if (name != null) {
 			if (name.isBlank()) {
 				throw new BusinessRuleException("Name is required");
@@ -101,7 +101,7 @@ public class User {
 		}
 	}
 
-	private static void validate(String name, String email, String rawPassword, ProfileReference profile) {
+	private static void validate(final String name, final String email, final String rawPassword, final ProfileReference profile) {
 		if (name == null || name.isBlank()) {
 			throw new BusinessRuleException("Name is required");
 		}
@@ -114,7 +114,7 @@ public class User {
 		}
 	}
 
-	private static void requirePassword(String rawPassword) {
+	private static void requirePassword(final String rawPassword) {
 		if (rawPassword == null || rawPassword.isBlank()) {
 			throw new BusinessRuleException("Password is required");
 		}

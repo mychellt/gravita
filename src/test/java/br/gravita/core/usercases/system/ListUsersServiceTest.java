@@ -45,13 +45,13 @@ class ListUsersServiceTest {
 	@Test
 	@DisplayName("Lists only the users of the caller's company, never those of another company")
 	void shouldListOnlyTheUsersOfTheCallersCompany() {
-		User caller = User.register("Tenant Admin", "admin@acme.com", "s3cret!", ADMIN, COMPANY_ID);
-		User colleague = User.register("Jane Doe", "jane@acme.com", "s3cret!", SALESPERSON, COMPANY_ID);
+		final User caller = User.register("Tenant Admin", "admin@acme.com", "s3cret!", ADMIN, COMPANY_ID);
+		final User colleague = User.register("Jane Doe", "jane@acme.com", "s3cret!", SALESPERSON, COMPANY_ID);
 		when(userRepositoryPort.findById(caller.getId())).thenReturn(Optional.of(caller));
 		when(userRepositoryPort.findAllByCompanyId(COMPANY_ID)).thenReturn(List.of(caller, colleague));
 		when(profileRepositoryPort.findAll()).thenReturn(List.of(ADMIN, SALESPERSON));
 
-		List<UserSummary> result = service().execute(caller.getId());
+		final List<UserSummary> result = service().execute(caller.getId());
 
 		assertThat(result).extracting(UserSummary::email).containsExactly("admin@acme.com", "jane@acme.com");
 		verify(userRepositoryPort).findAllByCompanyId(COMPANY_ID);
@@ -61,14 +61,14 @@ class ListUsersServiceTest {
 	@Test
 	@DisplayName("Summarises id, name, email, profile, two-factor and status without exposing the password")
 	void shouldSummariseEachUser() {
-		User caller = User.register("Tenant Admin", "admin@acme.com", "s3cret!", ADMIN, COMPANY_ID);
-		User inactive = User.register("Jane Doe", "jane@acme.com", "s3cret!", SALESPERSON, COMPANY_ID);
+		final User caller = User.register("Tenant Admin", "admin@acme.com", "s3cret!", ADMIN, COMPANY_ID);
+		final User inactive = User.register("Jane Doe", "jane@acme.com", "s3cret!", SALESPERSON, COMPANY_ID);
 		inactive.update(null, null, null, UserStatus.INACTIVE);
 		when(userRepositoryPort.findById(caller.getId())).thenReturn(Optional.of(caller));
 		when(userRepositoryPort.findAllByCompanyId(COMPANY_ID)).thenReturn(List.of(caller, inactive));
 		when(profileRepositoryPort.findAll()).thenReturn(List.of(ADMIN, SALESPERSON));
 
-		List<UserSummary> result = service().execute(caller.getId());
+		final List<UserSummary> result = service().execute(caller.getId());
 
 		assertThat(result).containsExactly(
 				new UserSummary(caller.getId().value(), "Tenant Admin", "admin@acme.com", ADMIN.id(), "Administrator",
@@ -80,7 +80,7 @@ class ListUsersServiceTest {
 	@Test
 	@DisplayName("Returns an empty list without querying users when the caller has no company")
 	void shouldReturnEmptyWhenTheCallerHasNoCompany() {
-		User orphan = User.register("Legacy Admin", "legacy@example.com", "s3cret!", ADMIN);
+		final User orphan = User.register("Legacy Admin", "legacy@example.com", "s3cret!", ADMIN);
 		when(userRepositoryPort.findById(orphan.getId())).thenReturn(Optional.of(orphan));
 
 		assertThat(service().execute(orphan.getId())).isEmpty();

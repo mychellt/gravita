@@ -23,8 +23,8 @@ public final class DailyClosing {
 	private final BigDecimal closingBalance;
 	private final List<CashMovement> movements;
 
-	private DailyClosing(InternalCashBoxId cashBoxId, LocalDate date, BigDecimal openingBalance,
-			List<CashMovement> movements) {
+	private DailyClosing(final InternalCashBoxId cashBoxId, final LocalDate date, final BigDecimal openingBalance,
+			final List<CashMovement> movements) {
 		this.cashBoxId = Objects.requireNonNull(cashBoxId, "cashBoxId is required");
 		this.date = Objects.requireNonNull(date, "date is required");
 		this.openingBalance = Objects.requireNonNull(openingBalance, "openingBalance is required");
@@ -38,12 +38,12 @@ public final class DailyClosing {
 	 * @param openingBalance the box balance when {@code date} started, i.e. the closing balance of the day before
 	 * @param movements every movement of {@code cashBoxId} that happened on {@code date}
 	 */
-	public static DailyClosing of(InternalCashBoxId cashBoxId, LocalDate date, BigDecimal openingBalance,
-			List<CashMovement> movements) {
+	public static DailyClosing of(final InternalCashBoxId cashBoxId, final LocalDate date, final BigDecimal openingBalance,
+			final List<CashMovement> movements) {
 		return new DailyClosing(cashBoxId, date, openingBalance, movements);
 	}
 
-	private static BigDecimal sum(List<CashMovement> movements, CashMovementDirection direction) {
+	private static BigDecimal sum(final List<CashMovement> movements, final CashMovementDirection direction) {
 		return movements.stream()
 				.filter(movement -> movement.getDirection() == direction)
 				.map(CashMovement::getAmount)

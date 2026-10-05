@@ -34,7 +34,7 @@ class UpdateCustomerServiceTest {
 	@Mock
 	private CustomerRepositoryPort customerRepositoryPort;
 
-	private CustomerDomain existingCustomer(UUID id) {
+	private CustomerDomain existingCustomer(final UUID id) {
 		return CustomerDomain.builder()
 				.id(id)
 				.version(3L)
@@ -53,19 +53,19 @@ class UpdateCustomerServiceTest {
 	@DisplayName("A partial update keeps the customer fields that were not specified")
 	@Test
 	void shouldKeepUnspecifiedFieldsOnPartialUpdate() {
-		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(customerRepositoryPort.get(id)).thenReturn(Optional.of(existingCustomer(id)));
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpdateCustomerCommand command = new UpdateCustomerCommand(
+		final UpdateCustomerCommand command = new UpdateCustomerCommand(
 				id, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
 
 		service.execute(command);
 
-		ArgumentCaptor<CustomerDomain> saved = ArgumentCaptor.forClass(CustomerDomain.class);
+		final ArgumentCaptor<CustomerDomain> saved = ArgumentCaptor.forClass(CustomerDomain.class);
 		verify(customerRepositoryPort).save(saved.capture());
-		CustomerDomain updated = saved.getValue();
+		final CustomerDomain updated = saved.getValue();
 		assertThat(updated.getName()).isEqualTo("Maria S. Costa");
 		assertThat(updated.getEmail()).isEqualTo("maria@example.com");
 		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.REGULAR);
@@ -77,12 +77,12 @@ class UpdateCustomerServiceTest {
 	@DisplayName("Re-validates the fiscal document when the update changes it")
 	@Test
 	void shouldReValidateDocumentWhenChanged() {
-		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(customerRepositoryPort.get(id)).thenReturn(Optional.of(existingCustomer(id)));
 
-		Document newCnpj = Document.cnpj("11.222.333/0001-81");
-		UpdateCustomerCommand command = new UpdateCustomerCommand(
+		final Document newCnpj = Document.cnpj("11.222.333/0001-81");
+		final UpdateCustomerCommand command = new UpdateCustomerCommand(
 				id, newCnpj, null, null, null, null, null, null, null, null, null, null);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
@@ -91,17 +91,17 @@ class UpdateCustomerServiceTest {
 	@DisplayName("Leaves the credit status and balance untouched when the update omits them")
 	@Test
 	void shouldNotClobberStatusOrBalanceLeftUnspecified() {
-		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(customerRepositoryPort.get(id)).thenReturn(Optional.of(existingCustomer(id)));
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpdateCustomerCommand command = new UpdateCustomerCommand(
+		final UpdateCustomerCommand command = new UpdateCustomerCommand(
 				id, null, null, "new-email@example.com", null, null, null, null, null, null, null, null);
 
 		service.execute(command);
 
-		ArgumentCaptor<CustomerDomain> saved = ArgumentCaptor.forClass(CustomerDomain.class);
+		final ArgumentCaptor<CustomerDomain> saved = ArgumentCaptor.forClass(CustomerDomain.class);
 		verify(customerRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(CustomerStatus.REGULAR);
 		assertThat(saved.getValue().getCurrentBalance()).isEqualByComparingTo("250.00");
@@ -110,11 +110,11 @@ class UpdateCustomerServiceTest {
 	@DisplayName("Throws not found when updating a customer that does not exist")
 	@Test
 	void shouldThrowWhenCustomerDoesNotExist() {
-		UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final UpdateCustomerService service = new UpdateCustomerService(customerRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(customerRepositoryPort.get(id)).thenReturn(Optional.empty());
 
-		UpdateCustomerCommand command = new UpdateCustomerCommand(
+		final UpdateCustomerCommand command = new UpdateCustomerCommand(
 				id, null, "New Name", null, null, null, null, null, null, null, null, null);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(ResourceNotFoundException.class);

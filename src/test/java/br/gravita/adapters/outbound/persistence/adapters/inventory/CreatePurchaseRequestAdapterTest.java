@@ -34,14 +34,14 @@ class CreatePurchaseRequestAdapterTest {
 
 	@Test
 	@DisplayName("Creates a minimum-stock trigger request when none is already open for the product")
-	void ac1_createsAMinStockTriggerRequestWhenNoneIsAlreadyOpenForTheProduct() {
+	void ac1CreatesAMinStockTriggerRequestWhenNoneIsAlreadyOpenForTheProduct() {
 		adapter = new CreatePurchaseRequestAdapter(createPurchaseRequestUseCase, purchaseRequestRepositoryPort);
 		when(purchaseRequestRepositoryPort.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				productId)).thenReturn(false);
 
 		adapter.createIfNotAlreadyOpen(new CreatePurchaseRequestPort.ReorderCommand(productId, new BigDecimal("85")));
 
-		ArgumentCaptor<CreatePurchaseRequestCommand> captor = ArgumentCaptor.forClass(CreatePurchaseRequestCommand.class);
+		final ArgumentCaptor<CreatePurchaseRequestCommand> captor = ArgumentCaptor.forClass(CreatePurchaseRequestCommand.class);
 		verify(createPurchaseRequestUseCase).execute(captor.capture());
 		org.assertj.core.api.Assertions.assertThat(captor.getValue().origin())
 				.isEqualTo(PurchaseRequestOrigin.MIN_STOCK_TRIGGER);
@@ -54,7 +54,7 @@ class CreatePurchaseRequestAdapterTest {
 
 	@Test
 	@DisplayName("Skips creation when an open minimum-stock trigger request already exists for the product")
-	void ac2_skipsCreationWhenAnOpenMinStockTriggerRequestAlreadyExistsForTheProduct() {
+	void ac2SkipsCreationWhenAnOpenMinStockTriggerRequestAlreadyExistsForTheProduct() {
 		adapter = new CreatePurchaseRequestAdapter(createPurchaseRequestUseCase, purchaseRequestRepositoryPort);
 		when(purchaseRequestRepositoryPort.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				productId)).thenReturn(true);

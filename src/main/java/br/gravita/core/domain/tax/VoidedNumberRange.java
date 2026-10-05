@@ -20,9 +20,9 @@ public final class VoidedNumberRange {
 	private final String sefazProtocol;
 	private final Instant voidedAt;
 
-	public VoidedNumberRange(VoidedNumberRangeId id, CompanyId companyId, FiscalDocumentType documentType,
-			String series, Long startNumber, Long endNumber, String justification, String sefazProtocol,
-			Instant voidedAt) {
+	public VoidedNumberRange(final VoidedNumberRangeId id, final CompanyId companyId, final FiscalDocumentType documentType,
+			final String series, final Long startNumber, final Long endNumber, final String justification, final String sefazProtocol,
+			final Instant voidedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.companyId = Objects.requireNonNull(companyId, "companyId is required");
 		this.documentType = Objects.requireNonNull(documentType, "documentType is required");
@@ -37,21 +37,21 @@ public final class VoidedNumberRange {
 		this.voidedAt = Objects.requireNonNull(voidedAt, "voidedAt is required");
 	}
 
-	public static VoidedNumberRange of(VoidedNumberRangeId id, CompanyId companyId, FiscalDocumentType documentType,
-			String series, Long startNumber, Long endNumber, String justification, String sefazProtocol,
-			Instant voidedAt) {
+	public static VoidedNumberRange of(final VoidedNumberRangeId id, final CompanyId companyId, final FiscalDocumentType documentType,
+			final String series, final Long startNumber, final Long endNumber, final String justification, final String sefazProtocol,
+			final Instant voidedAt) {
 		return new VoidedNumberRange(id, companyId, documentType, series, startNumber, endNumber, justification,
 				sefazProtocol, voidedAt);
 	}
 
-	private static String requireNonBlank(String value, String field) {
+	private static String requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required");
 		}
 		return value;
 	}
 
-	private static Long requirePositive(Long value, String field) {
+	private static Long requirePositive(final Long value, final String field) {
 		if (value == null || value <= 0) {
 			throw new BusinessRuleException(field + " must be positive");
 		}

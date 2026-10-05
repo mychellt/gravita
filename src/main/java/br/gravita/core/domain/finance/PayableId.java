@@ -9,7 +9,7 @@ public record PayableId(UUID value) {
 		Objects.requireNonNull(value, "PayableId value is required");
 	}
 
-	public static PayableId of(UUID value) {
+	public static PayableId of(final UUID value) {
 		return new PayableId(value);
 	}
 }

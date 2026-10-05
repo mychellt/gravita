@@ -35,7 +35,7 @@ public record InboundNfeTotals(
 		}
 	}
 
-	private static BigDecimal zeroIfNull(BigDecimal value) {
+	private static BigDecimal zeroIfNull(final BigDecimal value) {
 		return value == null ? BigDecimal.ZERO : value;
 	}
 }

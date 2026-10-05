@@ -47,15 +47,15 @@ public class OpportunityController {
 	private final LogInteractionUseCase logInteractionUseCase;
 
 	@PostMapping
-	public ResponseEntity<OpportunityResponse> create(@Valid @RequestBody CreateOpportunityRequest request) {
-		OpportunityView created = manageOpportunityUseCase.create(request.toCommand());
+	public ResponseEntity<OpportunityResponse> create(@Valid @RequestBody final CreateOpportunityRequest request) {
+		final OpportunityView created = manageOpportunityUseCase.create(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/crm/opportunities/" + created.id()))
 				.body(OpportunityResponse.from(created));
 	}
 
 	@GetMapping
-	public ResponseEntity<List<OpportunityResponse>> list(@RequestParam(required = false) OpportunityStage stage) {
-		List<OpportunityResponse> response = listOpportunitiesUseCase.execute(new ListOpportunitiesQuery(stage))
+	public ResponseEntity<List<OpportunityResponse>> list(@RequestParam(required = false) final OpportunityStage stage) {
+		final List<OpportunityResponse> response = listOpportunitiesUseCase.execute(new ListOpportunitiesQuery(stage))
 				.stream()
 				.map(OpportunityResponse::from)
 				.toList();
@@ -63,41 +63,41 @@ public class OpportunityController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<OpportunityResponse> findById(@PathVariable UUID id) {
-		OpportunityView view = getOpportunityUseCase.execute(new GetOpportunityQuery(OpportunityId.of(id)));
+	public ResponseEntity<OpportunityResponse> findById(@PathVariable final UUID id) {
+		final OpportunityView view = getOpportunityUseCase.execute(new GetOpportunityQuery(OpportunityId.of(id)));
 		return ResponseEntity.ok(OpportunityResponse.from(view));
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<OpportunityResponse> update(@PathVariable UUID id,
-			@Valid @RequestBody UpdateOpportunityRequest request) {
-		OpportunityView updated = manageOpportunityUseCase.update(request.toCommand(id));
+	public ResponseEntity<OpportunityResponse> update(@PathVariable final UUID id,
+			@Valid @RequestBody final UpdateOpportunityRequest request) {
+		final OpportunityView updated = manageOpportunityUseCase.update(request.toCommand(id));
 		return ResponseEntity.ok(OpportunityResponse.from(updated));
 	}
 
 	@PatchMapping("/{id}/stage")
-	public ResponseEntity<OpportunityResponse> changeStage(@PathVariable UUID id,
-			@Valid @RequestBody ChangeOpportunityStageRequest request) {
-		OpportunityView updated = manageOpportunityUseCase.changeStage(request.toCommand(id));
+	public ResponseEntity<OpportunityResponse> changeStage(@PathVariable final UUID id,
+			@Valid @RequestBody final ChangeOpportunityStageRequest request) {
+		final OpportunityView updated = manageOpportunityUseCase.changeStage(request.toCommand(id));
 		return ResponseEntity.ok(OpportunityResponse.from(updated));
 	}
 
 	@PostMapping("/{id}/interactions")
-	public ResponseEntity<InteractionResponse> logInteraction(@PathVariable UUID id,
-			@Valid @RequestBody LogInteractionRequest request) {
-		InteractionView created = logInteractionUseCase.execute(request.toCommand(id));
+	public ResponseEntity<InteractionResponse> logInteraction(@PathVariable final UUID id,
+			@Valid @RequestBody final LogInteractionRequest request) {
+		final InteractionView created = logInteractionUseCase.execute(request.toCommand(id));
 		return ResponseEntity.created(URI.create("/api/crm/opportunities/" + id + "/interactions/" + created.id()))
 				.body(InteractionResponse.from(created));
 	}
 
 	@ExceptionHandler(OpportunityNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleOpportunityNotFoundException(
-			OpportunityNotFoundException exception) {
+			final OpportunityNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

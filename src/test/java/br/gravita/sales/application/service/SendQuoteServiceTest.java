@@ -60,12 +60,12 @@ class SendQuoteServiceTest {
     @Test
     @DisplayName("Sending as PDF moves the quote to SENT without calling WhatsApp")
     void sendingAsPdfMovesTheQuoteToSentWithoutCallingWhatsApp() {
-        Quote quote = draftQuote(LocalDate.now().plusDays(5));
+        final Quote quote = draftQuote(LocalDate.now().plusDays(5));
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
 
         service.execute(new SendQuoteCommand(quoteId.value(), QuoteDeliveryChannel.PDF));
 
-        ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
+        final ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
         verify(quoteRepositoryPort).save(saved.capture());
         assertThat(saved.getValue().getStatus()).isEqualTo(QuoteStatus.SENT);
         verify(sendQuoteByWhatsAppPort, never()).send(any());
@@ -74,7 +74,7 @@ class SendQuoteServiceTest {
     @Test
     @DisplayName("Sending by WhatsApp uses the customer's registered WhatsApp contact")
     void sendingByWhatsAppUsesTheCustomersRegisteredWhatsAppContact() {
-        Quote quote = draftQuote(LocalDate.now().plusDays(5));
+        final Quote quote = draftQuote(LocalDate.now().plusDays(5));
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
         when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder()
                 .contacts(List.of(new ContactDomain(ContactType.EMAIL, "cliente@example.com"),
@@ -83,12 +83,12 @@ class SendQuoteServiceTest {
 
         service.execute(new SendQuoteCommand(quoteId.value(), QuoteDeliveryChannel.WHATSAPP));
 
-        ArgumentCaptor<SendQuoteByWhatsAppRequest> captor = ArgumentCaptor.forClass(SendQuoteByWhatsAppRequest.class);
+        final ArgumentCaptor<SendQuoteByWhatsAppRequest> captor = ArgumentCaptor.forClass(SendQuoteByWhatsAppRequest.class);
         verify(sendQuoteByWhatsAppPort).send(captor.capture());
         assertThat(captor.getValue().phoneNumber()).isEqualTo("+5511999998888");
         assertThat(captor.getValue().quoteId()).isEqualTo(quoteId.value());
 
-        ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
+        final ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
         verify(quoteRepositoryPort).save(saved.capture());
         assertThat(saved.getValue().getStatus()).isEqualTo(QuoteStatus.SENT);
     }
@@ -96,7 +96,7 @@ class SendQuoteServiceTest {
     @Test
     @DisplayName("Rejects sending an expired quote before any delivery attempt")
     void rejectsSendingAnExpiredQuoteBeforeAnyDeliveryAttempt() {
-        Quote quote = draftQuote(LocalDate.now().minusDays(1));
+        final Quote quote = draftQuote(LocalDate.now().minusDays(1));
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
 
         assertThatThrownBy(() -> service.execute(new SendQuoteCommand(quoteId.value(), QuoteDeliveryChannel.PDF)))
@@ -109,8 +109,8 @@ class SendQuoteServiceTest {
 
     @Test
     @DisplayName("A customer without a WhatsApp contact is rejected rather than silently skipped")
-    void aCustomerWithNoWhatsAppContactOnFileIsRejectedRatherThanSilentlySkipped() {
-        Quote quote = draftQuote(LocalDate.now().plusDays(5));
+    void customerWithNoWhatsAppContactOnFileIsRejectedRatherThanSilentlySkipped() {
+        final Quote quote = draftQuote(LocalDate.now().plusDays(5));
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
         when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder()
                 .contacts(List.of(new ContactDomain(ContactType.EMAIL, "cliente@example.com")))
@@ -127,7 +127,7 @@ class SendQuoteServiceTest {
 
     @Test
     @DisplayName("Sending a quote that does not exist is rejected")
-    void aQuoteThatDoesNotExistIsRejected() {
+    void quoteThatDoesNotExistIsRejected() {
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(
@@ -137,8 +137,8 @@ class SendQuoteServiceTest {
 
     @Test
     @DisplayName("Sending by WhatsApp for a customer that does not exist is rejected")
-    void aWhatsAppCustomerThatDoesNotExistIsRejected() {
-        Quote quote = draftQuote(LocalDate.now().plusDays(5));
+    void whatsAppCustomerThatDoesNotExistIsRejected() {
+        final Quote quote = draftQuote(LocalDate.now().plusDays(5));
         when(quoteRepositoryPort.findById(quoteId)).thenReturn(Optional.of(quote));
         when(customerRepositoryPort.get(customerId)).thenReturn(Optional.empty());
 
@@ -149,8 +149,8 @@ class SendQuoteServiceTest {
         verify(quoteRepositoryPort, never()).save(any());
     }
 
-    private Quote draftQuote(LocalDate validUntil) {
-        QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO);
+    private Quote draftQuote(final LocalDate validUntil) {
+        final QuoteItem item = new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO);
         return Quote.of(quoteId, customerId, UUID.randomUUID(), List.of(item), validUntil, QuoteStatus.DRAFT);
     }
 }

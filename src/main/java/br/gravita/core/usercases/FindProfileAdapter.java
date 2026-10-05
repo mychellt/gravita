@@ -14,13 +14,13 @@ public class FindProfileAdapter implements FindProfilePort {
 
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public FindProfileAdapter(ProfileRepositoryPort profileRepositoryPort) {
+	public FindProfileAdapter(final ProfileRepositoryPort profileRepositoryPort) {
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 
 	@Override
-	public ProfileDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public ProfileDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return profileRepositoryPort.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Profile not found: " + id));
 	}

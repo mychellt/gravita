@@ -27,30 +27,30 @@ public class CalculateCommissionService implements CalculateCommissionUseCase {
 	private final CommissionRepositoryPort commissionRepositoryPort;
 
 	@Override
-	public List<CommissionView> execute(CalculateCommissionQuery query) {
-		var periodStart = query.period().atDay(1);
-		var periodEnd = query.period().atEndOfMonth();
+	public List<CommissionView> execute(final CalculateCommissionQuery query) {
+		final var periodStart = query.period().atDay(1);
+		final var periodEnd = query.period().atEndOfMonth();
 
-		List<SalesOrder> orders = query.salesperson() == null
+		final List<SalesOrder> orders = query.salesperson() == null
 				? salesOrderRepositoryPort.findInvoicedByPeriod(periodStart, periodEnd)
 				: salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(periodStart, periodEnd,
 						query.salesperson());
 
-		List<CommissionView> views = new ArrayList<>();
-		for (SalesOrder order : orders) {
-			for (SalesOrderItem item : order.getItems()) {
-				Commission commission = calculateForItem(order, item);
-				CommissionView view = CommissionView.from(commissionRepositoryPort.save(commission));
+		final List<CommissionView> views = new ArrayList<>();
+		for (final SalesOrder order : orders) {
+			for (final SalesOrderItem item : order.getItems()) {
+				final Commission commission = calculateForItem(order, item);
+				final CommissionView view = CommissionView.from(commissionRepositoryPort.save(commission));
 				views.add(view);
 			}
 		}
 		return views;
 	}
 
-	private Commission calculateForItem(SalesOrder order, SalesOrderItem item) {
-		UUID salespersonId = order.getSalespersonId();
-		UUID productId = item.productOrServiceId();
-		CommissionRate commissionRate = commissionRateRepositoryPort
+	private Commission calculateForItem(final SalesOrder order, final SalesOrderItem item) {
+		final UUID salespersonId = order.getSalespersonId();
+		final UUID productId = item.productOrServiceId();
+		final CommissionRate commissionRate = commissionRateRepositoryPort
 				.findBySalespersonAndProduct(salespersonId, productId)
 				.orElseThrow(() -> new CommissionRateNotFoundException(salespersonId, productId));
 

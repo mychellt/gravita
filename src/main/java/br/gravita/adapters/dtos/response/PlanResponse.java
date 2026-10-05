@@ -27,7 +27,7 @@ public record PlanResponse(
 	public record FeatureResponse(String label, boolean included) {
 	}
 
-	public static PlanResponse from(PlanDomain domain) {
+	public static PlanResponse from(final PlanDomain domain) {
 		return new PlanResponse(
 				domain.getId(),
 				domain.getName(),
@@ -42,7 +42,7 @@ public record PlanResponse(
 				domain.getSupport());
 	}
 
-	private static List<FeatureResponse> orderedFeatures(List<PlanFeature> features) {
+	private static List<FeatureResponse> orderedFeatures(final List<PlanFeature> features) {
 		return features.stream()
 				.sorted(Comparator.comparingInt(PlanFeature::displayOrder))
 				.map(feature -> new FeatureResponse(feature.label(), feature.included()))

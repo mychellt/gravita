@@ -28,9 +28,9 @@ class UpdateCostCenterAdapterTest {
 	@DisplayName("Fails with not found when the cost center to update does not exist")
 	@Test
 	void shouldFailWhenCostCenterNotFound() {
-		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
-		UUID id = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").build();
+		final UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").build();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))
@@ -40,9 +40,9 @@ class UpdateCostCenterAdapterTest {
 	@DisplayName("Rejects setting a cost center as its own parent")
 	@Test
 	void shouldRejectSelfAsParent() {
-		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
-		UUID id = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").parentId(id).build();
+		final UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").parentId(id).build();
 		lenient().when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))
@@ -52,10 +52,10 @@ class UpdateCostCenterAdapterTest {
 	@DisplayName("Rejects a new parent cost center that does not exist")
 	@Test
 	void shouldRejectWhenNewParentDoesNotExist() {
-		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
-		UUID id = UUID.randomUUID();
-		UUID parentId = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").parentId(parentId).build();
+		final UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final UUID parentId = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Administrative").parentId(parentId).build();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 		when(costCenterRepositoryPort.get(parentId)).thenReturn(Optional.empty());
 
@@ -66,13 +66,13 @@ class UpdateCostCenterAdapterTest {
 	@DisplayName("Updates the cost center when the change is valid")
 	@Test
 	void shouldUpdateWhenValid() {
-		UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
-		UUID id = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Renamed").build();
+		final UpdateCostCenterAdapter adapter = new UpdateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().id(id).code("CC-01").name("Renamed").build();
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().id(id).build()));
 		when(costCenterRepositoryPort.save(command)).thenReturn(command);
 
-		CostCenterDomain result = adapter.execute(new Context(command));
+		final CostCenterDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getName()).isEqualTo("Renamed");
 	}

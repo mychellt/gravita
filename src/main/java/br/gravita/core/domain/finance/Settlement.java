@@ -28,9 +28,9 @@ public final class Settlement {
 	private final SettlementMethod method;
 	private final Instant timestamp;
 
-	public Settlement(SettlementId id, ReceivableId receivableId, PayableId payableId, BigDecimal amount,
-			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge,
-			SettlementMethod method, Instant timestamp) {
+	public Settlement(final SettlementId id, final ReceivableId receivableId, final PayableId payableId, final BigDecimal amount,
+			final BigDecimal interest, final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge,
+			final SettlementMethod method, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		if ((receivableId == null) == (payableId == null)) {
 			throw new BusinessRuleException("A settlement applies to exactly one receivable or payable");
@@ -47,35 +47,35 @@ public final class Settlement {
 	}
 
 	/** A baixa created from a line of the bank's CNAB return file; {@code timestamp} is when the bank says it was paid. */
-	public static Settlement automaticCnab(SettlementId id, ReceivableId receivableId, BigDecimal amount,
-			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {
+	public static Settlement automaticCnab(final SettlementId id, final ReceivableId receivableId, final BigDecimal amount,
+			final BigDecimal interest, final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final Instant timestamp) {
 		return new Settlement(id, receivableId, null, amount, interest, fine, discount, surcharge,
 				SettlementMethod.AUTOMATIC_CNAB, timestamp);
 	}
 
 	/** A baixa of a payable created from a line of the bank's CNAB payment return; {@code timestamp} is when the bank says it paid. */
-	public static Settlement automaticCnabForPayable(SettlementId id, PayableId payableId, BigDecimal amount,
-			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {
+	public static Settlement automaticCnabForPayable(final SettlementId id, final PayableId payableId, final BigDecimal amount,
+			final BigDecimal interest, final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final Instant timestamp) {
 		return new Settlement(id, null, payableId, amount, interest, fine, discount, surcharge,
 				SettlementMethod.AUTOMATIC_CNAB, timestamp);
 	}
 
 	/** A baixa entered by a user (e.g. a cash payment); {@code timestamp} is when it was recorded. */
-	public static Settlement manual(SettlementId id, ReceivableId receivableId, BigDecimal amount,
-			BigDecimal interest, BigDecimal fine, BigDecimal discount, BigDecimal surcharge, Instant timestamp) {
+	public static Settlement manual(final SettlementId id, final ReceivableId receivableId, final BigDecimal amount,
+			final BigDecimal interest, final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final Instant timestamp) {
 		return new Settlement(id, receivableId, null, amount, interest, fine, discount, surcharge,
 				SettlementMethod.MANUAL, timestamp);
 	}
 
-	public static Settlement of(SettlementId id, ReceivableId receivableId, BigDecimal amount, BigDecimal interest,
-			BigDecimal fine, BigDecimal discount, BigDecimal surcharge, SettlementMethod method, Instant timestamp) {
+	public static Settlement of(final SettlementId id, final ReceivableId receivableId, final BigDecimal amount, final BigDecimal interest,
+			final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final SettlementMethod method, final Instant timestamp) {
 		return new Settlement(id, receivableId, null, amount, interest, fine, discount, surcharge, method,
 				timestamp);
 	}
 
 	/** A baixa of a payable, i.e. a payment made to a supplier. */
-	public static Settlement ofPayable(SettlementId id, PayableId payableId, BigDecimal amount, BigDecimal interest,
-			BigDecimal fine, BigDecimal discount, BigDecimal surcharge, SettlementMethod method, Instant timestamp) {
+	public static Settlement ofPayable(final SettlementId id, final PayableId payableId, final BigDecimal amount, final BigDecimal interest,
+			final BigDecimal fine, final BigDecimal discount, final BigDecimal surcharge, final SettlementMethod method, final Instant timestamp) {
 		return new Settlement(id, null, payableId, amount, interest, fine, discount, surcharge, method, timestamp);
 	}
 
@@ -102,13 +102,13 @@ public final class Settlement {
 	 * principal and payment time - which is how a return file that is imported
 	 * twice is recognised.
 	 */
-	public boolean isSamePaymentAs(Settlement other) {
+	public boolean isSamePaymentAs(final Settlement other) {
 		return Objects.equals(receivableId, other.receivableId) && Objects.equals(payableId, other.payableId)
 				&& method == other.method
 				&& amount.compareTo(other.amount) == 0 && timestamp.equals(other.timestamp);
 	}
 
-	private static BigDecimal requirePositive(String field, BigDecimal value) {
+	private static BigDecimal requirePositive(final String field, final BigDecimal value) {
 		if (value == null) {
 			throw new BusinessRuleException(field + " is required");
 		}
@@ -118,7 +118,7 @@ public final class Settlement {
 		return value;
 	}
 
-	private static BigDecimal requireNotNegative(String field, BigDecimal value) {
+	private static BigDecimal requireNotNegative(final String field, final BigDecimal value) {
 		if (value == null) {
 			return BigDecimal.ZERO;
 		}

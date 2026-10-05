@@ -12,18 +12,18 @@ public class SaveCustomProfileAdapter implements SaveCustomProfilePort {
 
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public SaveCustomProfileAdapter(ProfileRepositoryPort profileRepositoryPort) {
+	public SaveCustomProfileAdapter(final ProfileRepositoryPort profileRepositoryPort) {
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 
 	@Override
-	public ProfileDomain execute(Context context) {
-		ProfileDomain command = context.getData(ProfileDomain.class);
+	public ProfileDomain execute(final Context context) {
+		final ProfileDomain command = context.getData(ProfileDomain.class);
 		ensureNameIsUnique(command.getName());
 		return profileRepositoryPort.save(command);
 	}
 
-	private void ensureNameIsUnique(String name) {
+	private void ensureNameIsUnique(final String name) {
 		profileRepositoryPort.findByName(name).ifPresent(profile -> {
 			throw new DuplicateResourceException("Profile name already in use: " + name);
 		});

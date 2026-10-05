@@ -34,16 +34,16 @@ class LowStockReorderTriggerTest {
 
 	@Test
 	@DisplayName("AC1: Creates a purchase request for each reorder suggestion produced for the warehouse")
-	void ac1_createsAPurchaseRequestForEachSuggestionProducedForTheWarehouse() {
+	void ac1CreatesAPurchaseRequestForEachSuggestionProducedForTheWarehouse() {
 		trigger = new LowStockReorderTrigger(suggestReorderUseCase, createPurchaseRequestPort);
-		UUID productId = UUID.randomUUID();
-		ReorderSuggestion suggestion = new ReorderSuggestion(productId, warehouseId, new BigDecimal("15"),
+		final UUID productId = UUID.randomUUID();
+		final ReorderSuggestion suggestion = new ReorderSuggestion(productId, warehouseId, new BigDecimal("15"),
 				new BigDecimal("20"), new BigDecimal("85"));
 		when(suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))).thenReturn(List.of(suggestion));
 
 		trigger.evaluate(warehouseId);
 
-		ArgumentCaptor<CreatePurchaseRequestPort.ReorderCommand> captor = ArgumentCaptor
+		final ArgumentCaptor<CreatePurchaseRequestPort.ReorderCommand> captor = ArgumentCaptor
 				.forClass(CreatePurchaseRequestPort.ReorderCommand.class);
 		verify(createPurchaseRequestPort).createIfNotAlreadyOpen(captor.capture());
 		org.assertj.core.api.Assertions.assertThat(captor.getValue().productId()).isEqualTo(productId);
@@ -65,7 +65,7 @@ class LowStockReorderTriggerTest {
 	@DisplayName("Skips a suggestion whose replenishment quantity is not positive")
 	void skipsASuggestionWithNoPositiveReplenishmentQuantity() {
 		trigger = new LowStockReorderTrigger(suggestReorderUseCase, createPurchaseRequestPort);
-		ReorderSuggestion suggestion = new ReorderSuggestion(UUID.randomUUID(), warehouseId, new BigDecimal("15"),
+		final ReorderSuggestion suggestion = new ReorderSuggestion(UUID.randomUUID(), warehouseId, new BigDecimal("15"),
 				new BigDecimal("20"), BigDecimal.ZERO);
 		when(suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))).thenReturn(List.of(suggestion));
 

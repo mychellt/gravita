@@ -93,7 +93,7 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 201 Created when a customer is registered with valid data")
 	void shouldReturn201WhenRegisteringCustomer() throws Exception {
-		CustomerDomain created = request.toDomain();
+		final CustomerDomain created = request.toDomain();
 		created.setId(UUID.randomUUID());
 		created.setStatus(CustomerStatus.REGULAR);
 		created.setCurrentBalance(BigDecimal.ZERO);
@@ -110,9 +110,23 @@ class CustomerRestControllerTest {
 	}
 
 	@Test
+	@DisplayName("Returns 409 Conflict with a clear message when the customer's document is already registered")
+	void shouldReturn409WhenTheDocumentIsAlreadyRegistered() throws Exception {
+		when(customerRegistrationPort.execute(any()))
+				.thenThrow(new org.springframework.dao.DataIntegrityViolationException("duplicate key value violates unique constraint"));
+
+		mockMvc.perform(post("/api/customers")
+						.header("Authorization", BEARER)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.message").value("Já existe um cliente cadastrado com este documento."));
+	}
+
+	@Test
 	@DisplayName("Returns 400 Bad Request when a customer is registered without any address")
 	void shouldReturn400WhenNoAddressProvided() throws Exception {
-		RegisterCustomerRequest invalid = new RegisterCustomerRequest(
+		final RegisterCustomerRequest invalid = new RegisterCustomerRequest(
 				PersonType.INDIVIDUAL, "111.444.777-35", "Maria Silva", null, null, null, null, List.of(), List.of(), List.of());
 
 		mockMvc.perform(post("/api/customers")
@@ -135,8 +149,8 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK with the full customer record when an existing customer is found")
 	void shouldReturn200WhenFindingCustomer() throws Exception {
-		UUID id = UUID.randomUUID();
-		CustomerDomain customer = request.toDomain();
+		final UUID id = UUID.randomUUID();
+		final CustomerDomain customer = request.toDomain();
 		customer.setId(id);
 		customer.setStatus(CustomerStatus.REGULAR);
 		customer.setCurrentBalance(new BigDecimal("250.00"));
@@ -158,7 +172,7 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 404 Not Found with a message when the customer does not exist")
 	void shouldReturn404WhenFindingUnknownCustomer() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(findCustomerPort.execute(any())).thenThrow(new CustomerNotFoundException(id));
 
 		mockMvc.perform(get("/api/customers/" + id)
@@ -170,7 +184,7 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK with the list of customers")
 	void shouldReturn200WhenListingCustomers() throws Exception {
-		CustomerDomain customer = request.toDomain();
+		final CustomerDomain customer = request.toDomain();
 		customer.setId(UUID.randomUUID());
 		customer.setStatus(CustomerStatus.REGULAR);
 		customer.setCurrentBalance(BigDecimal.ZERO);
@@ -201,8 +215,8 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 204 No Content when a customer is updated successfully")
 	void shouldReturn204WhenUpdatingCustomer() throws Exception {
-		UUID id = UUID.randomUUID();
-		UpdateCustomerRequest update = new UpdateCustomerRequest(
+		final UUID id = UUID.randomUUID();
+		final UpdateCustomerRequest update = new UpdateCustomerRequest(
 				null, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
@@ -217,8 +231,8 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 404 Not Found when updating a customer that does not exist")
 	void shouldReturn404WhenUpdatingUnknownCustomer() throws Exception {
-		UUID id = UUID.randomUUID();
-		UpdateCustomerRequest update = new UpdateCustomerRequest(
+		final UUID id = UUID.randomUUID();
+		final UpdateCustomerRequest update = new UpdateCustomerRequest(
 				null, null, "Maria S. Costa", null, null, null, null, null, null, null, null, null);
 		doThrow(new ResourceNotFoundException("Customer not found: " + id)).when(updateCustomerUseCase).execute(any());
 
@@ -232,8 +246,8 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 409 Conflict when the document is updated without informing the person type")
 	void shouldReturn409WhenUpdatingDocumentWithoutType() throws Exception {
-		UUID id = UUID.randomUUID();
-		UpdateCustomerRequest update = new UpdateCustomerRequest(
+		final UUID id = UUID.randomUUID();
+		final UpdateCustomerRequest update = new UpdateCustomerRequest(
 				null, "111.444.777-35", null, null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
@@ -246,8 +260,8 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Returns 409 Conflict when the document is updated with an invalid check digit")
 	void shouldReturn409WhenUpdatingDocumentWithInvalidCheckDigit() throws Exception {
-		UUID id = UUID.randomUUID();
-		UpdateCustomerRequest update = new UpdateCustomerRequest(
+		final UUID id = UUID.randomUUID();
+		final UpdateCustomerRequest update = new UpdateCustomerRequest(
 				PersonType.INDIVIDUAL, "111.444.777-36", null, null, null, null, null, null, null, null, null, null);
 
 		mockMvc.perform(patch("/api/customers/" + id)
@@ -260,7 +274,7 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Hands the authenticated caller, resolved from the session, to the register-customer use case")
 	void shouldPassTheSessionCallerToRegistration() throws Exception {
-		CustomerDomain created = request.toDomain();
+		final CustomerDomain created = request.toDomain();
 		created.setId(UUID.randomUUID());
 		created.setStatus(CustomerStatus.REGULAR);
 		created.setCurrentBalance(BigDecimal.ZERO);
@@ -280,12 +294,12 @@ class CustomerRestControllerTest {
 	@Test
 	@DisplayName("Ignores a companyId supplied by the client when registering a customer")
 	void shouldIgnoreClientSuppliedCompanyId() throws Exception {
-		CustomerDomain created = request.toDomain();
+		final CustomerDomain created = request.toDomain();
 		created.setId(UUID.randomUUID());
 		created.setStatus(CustomerStatus.REGULAR);
 		created.setCurrentBalance(BigDecimal.ZERO);
 		when(customerRegistrationPort.execute(any())).thenReturn(created);
-		String forged = objectMapper.writeValueAsString(request).replaceFirst("\\{", "{\"companyId\":\"" + UUID.randomUUID() + "\",");
+		final String forged = objectMapper.writeValueAsString(request).replaceFirst("\\{", "{\"companyId\":\"" + UUID.randomUUID() + "\",");
 
 		mockMvc.perform(post("/api/customers")
 						.header("Authorization", BEARER)

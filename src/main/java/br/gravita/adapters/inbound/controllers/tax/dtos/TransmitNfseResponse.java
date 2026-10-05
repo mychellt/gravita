@@ -19,7 +19,7 @@ public record TransmitNfseResponse(Outcome outcome, String protocol, Instant aut
 		MANUAL_UPLOAD_REQUIRED
 	}
 
-	public static TransmitNfseResponse from(NfseTransmissionResult result) {
+	public static TransmitNfseResponse from(final NfseTransmissionResult result) {
 		return switch (result) {
 			case NfseTransmissionResult.Authorized authorized -> new TransmitNfseResponse(Outcome.AUTHORIZED,
 					authorized.protocol(), authorized.authorizedAt(), null, null, null);

@@ -54,10 +54,10 @@ final class SpedContribuicoesLayout {
 	private SpedContribuicoesLayout() {
 	}
 
-	static SpedLayout build(Company company, YearMonth period, Incidence incidence,
-			List<SpedContribuicoesDocument> documents, Result pis, Result cofins) {
-		String cnpj = company.getCnpj().number();
-		SpedRecord header = SpedRecord.of("0000", LAYOUT_VERSION, ORIGINAL_FILE, null, null, period.atDay(1),
+	static SpedLayout build(final Company company, final YearMonth period, final Incidence incidence,
+			final List<SpedContribuicoesDocument> documents, final Result pis, final Result cofins) {
+		final String cnpj = company.getCnpj().number();
+		final SpedRecord header = SpedRecord.of("0000", LAYOUT_VERSION, ORIGINAL_FILE, null, null, period.atDay(1),
 				period.atEndOfMonth(), null, cnpj, company.getState(), null, null, NATURE_GENERAL,
 				activity(company.getCnae()));
 		return new SpedLayout(header,
@@ -68,24 +68,24 @@ final class SpedContribuicoesLayout {
 						new SpedBlock('1', List.of())));
 	}
 
-	private static List<SpedRecord> blockZero(Company company, String cnpj, Incidence incidence,
-			List<SpedContribuicoesDocument> documents, Result pis, Result cofins) {
-		List<SpedRecord> records = new ArrayList<>();
-		boolean nonCumulative = incidence == Incidence.NON_CUMULATIVE;
-		boolean general = pis.onlyGeneralRate(incidence) && cofins.onlyGeneralRate(incidence);
+	private static List<SpedRecord> blockZero(final Company company, final String cnpj, final Incidence incidence,
+			final List<SpedContribuicoesDocument> documents, final Result pis, final Result cofins) {
+		final List<SpedRecord> records = new ArrayList<>();
+		final boolean nonCumulative = incidence == Incidence.NON_CUMULATIVE;
+		final boolean general = pis.onlyGeneralRate(incidence) && cofins.onlyGeneralRate(incidence);
 		// COD_INC_TRIB (1 non-cumulative, 2 cumulative), IND_APRO_CRED (1 direct appropriation), COD_TIPO_CONT (1 general
 		// rate only, 2 other rates too) and IND_REG_CUM (9 accrual basis, itemized by the documents of Blocks A, C, D, F).
 		records.add(SpedRecord.of("0110", nonCumulative ? "1" : "2", nonCumulative ? "1" : null,
 				nonCumulative ? (general ? "1" : "2") : null, nonCumulative ? null : "9"));
-		String ie = company.getIe().chars().allMatch(Character::isDigit) ? company.getIe() : null;
+		final String ie = company.getIe().chars().allMatch(Character::isDigit) ? company.getIe() : null;
 		records.add(SpedRecord.of("0140", cnpj, null, cnpj, company.getState(), ie, null, company.getIm(), null));
 
-		Map<String, Party> parties = new TreeMap<>();
-		Map<String, String> units = new TreeMap<>();
-		Map<String, Item> items = new TreeMap<>();
-		for (SpedContribuicoesDocument document : documents) {
+		final Map<String, Party> parties = new TreeMap<>();
+		final Map<String, String> units = new TreeMap<>();
+		final Map<String, Item> items = new TreeMap<>();
+		for (final SpedContribuicoesDocument document : documents) {
 			parties.putIfAbsent(document.party().code(), document.party());
-			for (Item item : document.items()) {
+			for (final Item item : document.items()) {
 				units.putIfAbsent(item.unit(), item.unit());
 				items.putIfAbsent(item.code(), item);
 			}
@@ -99,25 +99,25 @@ final class SpedContribuicoesLayout {
 		return records;
 	}
 
-	private static List<SpedRecord> blockC(String cnpj, List<SpedContribuicoesDocument> documents) {
+	private static List<SpedRecord> blockC(final String cnpj, final List<SpedContribuicoesDocument> documents) {
 		if (documents.isEmpty()) {
 			return List.of();
 		}
-		List<SpedRecord> records = new ArrayList<>();
+		final List<SpedRecord> records = new ArrayList<>();
 		records.add(SpedRecord.of("C010", cnpj, DETAILED_BOOKKEEPING));
-		for (SpedContribuicoesDocument document : documents) {
+		for (final SpedContribuicoesDocument document : documents) {
 			records.add(documentRecord(document));
 			int number = 0;
-			for (Item item : document.items()) {
+			for (final Item item : document.items()) {
 				records.add(itemRecord(++number, item));
 			}
 		}
 		return records;
 	}
 
-	private static SpedRecord documentRecord(SpedContribuicoesDocument document) {
-		boolean exit = document.operation() == Operation.EXIT;
-		List<Object> fields = new ArrayList<>();
+	private static SpedRecord documentRecord(final SpedContribuicoesDocument document) {
+		final boolean exit = document.operation() == Operation.EXIT;
+		final List<Object> fields = new ArrayList<>();
 		fields.add(exit ? "1" : "0");
 		fields.add(document.issuedByCompany() ? "0" : "1");
 		fields.add(document.party().code());
@@ -146,8 +146,8 @@ final class SpedContribuicoesLayout {
 		return new SpedRecord("C100", fields);
 	}
 
-	private static SpedRecord itemRecord(int number, Item item) {
-		List<Object> fields = new ArrayList<>();
+	private static SpedRecord itemRecord(final int number, final Item item) {
+		final List<Object> fields = new ArrayList<>();
 		fields.add(number);
 		fields.add(item.code());
 		fields.add(item.description());
@@ -171,7 +171,7 @@ final class SpedContribuicoesLayout {
 	}
 
 	/** CST, base, rate, base by quantity, rate by quantity, amount: the last three columns of an item for one tax. */
-	private static void addLevy(List<Object> fields, Levy levy) {
+	private static void addLevy(final List<Object> fields, final Levy levy) {
 		fields.add(levy.cst());
 		fields.add(levy.base());
 		fields.add(levy.rate());
@@ -179,14 +179,14 @@ final class SpedContribuicoesLayout {
 		fields.add(levy.amount());
 	}
 
-	private static List<SpedRecord> blockM(Incidence incidence, List<SpedContribuicoesDocument> documents, Result pis,
-			Result cofins) {
+	private static List<SpedRecord> blockM(final Incidence incidence, final List<SpedContribuicoesDocument> documents, final Result pis,
+			final Result cofins) {
 		if (documents.isEmpty()) {
 			return List.of();
 		}
-		List<SpedRecord> records = new ArrayList<>();
-		for (Result result : List.of(pis, cofins)) {
-			SpedTax tax = result.tax();
+		final List<SpedRecord> records = new ArrayList<>();
+		for (final Result result : List.of(pis, cofins)) {
+			final SpedTax tax = result.tax();
 			if (result.credit().signum() > 0) {
 				records.add(creditRecord(tax, result));
 				result.credited().forEach(credited -> records.add(creditBaseRecord(tax, credited)));
@@ -198,23 +198,23 @@ final class SpedContribuicoesLayout {
 	}
 
 	/** {@code M100}/{@code M500}: the credit earned, in full available this period and used up to the contribution. */
-	private static SpedRecord creditRecord(SpedTax tax, Result result) {
-		boolean usedInFull = result.creditUsed().compareTo(result.credit()) == 0;
+	private static SpedRecord creditRecord(final SpedTax tax, final Result result) {
+		final boolean usedInFull = result.creditUsed().compareTo(result.credit()) == 0;
 		return SpedRecord.of(tax.creditRegister(), CREDIT_CODE_BASIC_RATE_TAXED_SALES, OWN_OPERATIONS,
 				result.creditBase(), result.creditRate(), null, null, result.credit(), zero(), zero(), zero(),
 				result.credit(), usedInFull ? "0" : "1", result.creditUsed(), result.creditBalance());
 	}
 
 	/** {@code M105}/{@code M505}: the base of that credit by nature, all of it linked to non-cumulative taxed sales. */
-	private static SpedRecord creditBaseRecord(SpedTax tax, Credited credited) {
+	private static SpedRecord creditBaseRecord(final SpedTax tax, final Credited credited) {
 		return SpedRecord.of(tax.creditBaseRegister(), credited.nature(), CREDITED_CST, credited.base(), zero(),
 				credited.base(), credited.base(), null, null, null);
 	}
 
 	/** {@code M200}/{@code M600}: the contribution of the period, non-cumulative part then cumulative part. */
-	private static SpedRecord totalRecord(SpedTax tax, Incidence incidence, Result result) {
-		boolean nonCumulative = incidence == Incidence.NON_CUMULATIVE;
-		BigDecimal due = result.payable();
+	private static SpedRecord totalRecord(final SpedTax tax, final Incidence incidence, final Result result) {
+		final boolean nonCumulative = incidence == Incidence.NON_CUMULATIVE;
+		final BigDecimal due = result.payable();
 		return SpedRecord.of(tax.totalRegister(),
 				nonCumulative ? result.contribution() : zero(), nonCumulative ? result.creditUsed() : zero(), zero(),
 				nonCumulative ? due : zero(), zero(), zero(), nonCumulative ? due : zero(),
@@ -222,7 +222,7 @@ final class SpedContribuicoesLayout {
 	}
 
 	/** {@code M210}/{@code M610}: the contribution levied on one kind of sale. */
-	private static SpedRecord detailRecord(SpedTax tax, Levied levied) {
+	private static SpedRecord detailRecord(final SpedTax tax, final Levied levied) {
 		return SpedRecord.of(tax.detailRegister(), levied.code(), levied.revenue(), levied.base(), levied.rate(), null,
 				null, levied.contribution(), zero(), zero(), zero(), zero(), levied.contribution());
 	}
@@ -231,12 +231,12 @@ final class SpedContribuicoesLayout {
 	 * {@code IND_ATIV}: 0 industrial, 2 trade, 9 other - from the division of the company's CNAE, the only sign of
 	 * what it does that {@code Company} holds.
 	 */
-	private static String activity(String cnae) {
-		String digits = cnae == null ? "" : Document.digitsOnly(cnae);
+	private static String activity(final String cnae) {
+		final String digits = cnae == null ? "" : Document.digitsOnly(cnae);
 		if (digits.length() < 2) {
 			return "9";
 		}
-		int division = Integer.parseInt(digits.substring(0, 2));
+		final int division = Integer.parseInt(digits.substring(0, 2));
 		if (division >= 10 && division <= 33) {
 			return "0";
 		}
@@ -247,7 +247,7 @@ final class SpedContribuicoesLayout {
 		return money(BigDecimal.ZERO);
 	}
 
-	private static void nulls(List<Object> fields, int count) {
+	private static void nulls(final List<Object> fields, final int count) {
 		for (int i = 0; i < count; i++) {
 			fields.add(null);
 		}

@@ -35,7 +35,7 @@ record SpedContribuicoesDocument(Operation operation, boolean issuedByCompany, P
 			return value.subtract(discount);
 		}
 
-		Levy levy(SpedTax tax) {
+		Levy levy(final SpedTax tax) {
 			return tax == SpedTax.PIS ? pis : cofins;
 		}
 	}
@@ -47,7 +47,7 @@ record SpedContribuicoesDocument(Operation operation, boolean issuedByCompany, P
 	 */
 	record Levy(String cst, BigDecimal base, BigDecimal rate, BigDecimal amount, String creditNature) {
 
-		static Levy none(String cst) {
+		static Levy none(final String cst) {
 			return new Levy(cst, null, null, null, null);
 		}
 

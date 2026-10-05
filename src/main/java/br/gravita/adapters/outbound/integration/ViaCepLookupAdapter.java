@@ -20,7 +20,7 @@ public class ViaCepLookupAdapter implements CepLookupPort {
 
     private final RestClient restClient;
 
-    public ViaCepLookupAdapter(@Qualifier("cepLookupRestClient") RestClient restClient) {
+    public ViaCepLookupAdapter(@Qualifier("cepLookupRestClient") final RestClient restClient) {
         this.restClient = restClient;
     }
 

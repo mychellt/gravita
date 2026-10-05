@@ -4,27 +4,25 @@ import br.gravita.core.domain.sales.AlertChannel;
 import br.gravita.core.domain.sales.FollowUpTask;
 import br.gravita.core.ports.messaging.EmailNotificationPort;
 import br.gravita.core.ports.outbound.sales.SendFollowUpAlertPort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class FollowUpAlertAdapter implements SendFollowUpAlertPort {
-
-	private static final Logger log = LoggerFactory.getLogger(FollowUpAlertAdapter.class);
 
 	private final EmailNotificationPort emailNotificationPort;
 	private final String recipientEmail;
 
-	public FollowUpAlertAdapter(EmailNotificationPort emailNotificationPort,
-			@Value("${notifications.crm.follow-up-email}") String recipientEmail) {
+	public FollowUpAlertAdapter(final EmailNotificationPort emailNotificationPort,
+			@Value("${notifications.crm.follow-up-email}") final String recipientEmail) {
 		this.emailNotificationPort = emailNotificationPort;
 		this.recipientEmail = recipientEmail;
 	}
 
 	@Override
-	public void send(FollowUpTask task) {
+	public void send(final FollowUpTask task) {
 		if (task.getAlertChannel() == AlertChannel.EMAIL) {
 			emailNotificationPort.send(recipientEmail, subject(task), body(task));
 		} else {
@@ -33,16 +31,16 @@ public class FollowUpAlertAdapter implements SendFollowUpAlertPort {
 		}
 	}
 
-	private String subject(FollowUpTask task) {
+	private String subject(final FollowUpTask task) {
 		return "Follow-up task due " + task.getDueDate();
 	}
 
-	private String body(FollowUpTask task) {
+	private String body(final FollowUpTask task) {
 		return "Follow-up task " + task.getId().value() + " for owner " + task.getOwner() + " is due "
 				+ task.getDueDate() + describeLink(task);
 	}
 
-	private String describeLink(FollowUpTask task) {
+	private String describeLink(final FollowUpTask task) {
 		if (task.getOpportunityId() != null) {
 			return " (opportunity " + task.getOpportunityId() + ")";
 		}

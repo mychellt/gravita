@@ -25,7 +25,7 @@ public class SQSNotifyPasswordResetConsumer {
         final NotifyPasswordResetMessage reset;
         try {
             reset = objectMapper.readValue(body, NotifyPasswordResetMessage.class);
-        } catch (JacksonException e) {
+        } catch (final JacksonException e) {
             log.error("Discarding malformed password reset message");
             return;
         }

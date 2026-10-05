@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record AssignProfilePermissionsRequest(String name, @NotEmpty List<@Valid PermissionRequest> permissions) {
 
-	public ProfileDomain toDomain(UUID profileId) {
+	public ProfileDomain toDomain(final UUID profileId) {
 		return ProfileDomain.builder()
 				.id(profileId)
 				.name(name)

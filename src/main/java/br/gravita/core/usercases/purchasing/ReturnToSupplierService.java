@@ -34,11 +34,11 @@ public class ReturnToSupplierService implements ReturnToSupplierUseCase {
 	private final ReversePayableFromReturnPort reversePayableFromReturnPort;
 	private final IssuePurchaseReturnNfePort issuePurchaseReturnNfePort;
 
-	public ReturnToSupplierService(PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
-			PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
-			PurchaseReturnRepositoryPort purchaseReturnRepositoryPort, ReverseStockEntryPort reverseStockEntryPort,
-			ReversePayableFromReturnPort reversePayableFromReturnPort,
-			IssuePurchaseReturnNfePort issuePurchaseReturnNfePort) {
+	public ReturnToSupplierService(final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
+			final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
+			final PurchaseReturnRepositoryPort purchaseReturnRepositoryPort, final ReverseStockEntryPort reverseStockEntryPort,
+			final ReversePayableFromReturnPort reversePayableFromReturnPort,
+			final IssuePurchaseReturnNfePort issuePurchaseReturnNfePort) {
 		this.purchaseReceiptRepositoryPort = purchaseReceiptRepositoryPort;
 		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
 		this.purchaseReturnRepositoryPort = purchaseReturnRepositoryPort;
@@ -48,41 +48,41 @@ public class ReturnToSupplierService implements ReturnToSupplierUseCase {
 	}
 
 	@Override
-	public PurchaseReturnId execute(ReturnToSupplierCommand command) {
-		PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
+	public PurchaseReturnId execute(final ReturnToSupplierCommand command) {
+		final PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
 				.orElseThrow(() -> new PurchaseReceiptNotFoundException(command.receiptId().value()));
-		PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
+		final PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(receipt.getOrderId().value()));
 
-		List<PurchaseReturnItem> items = command.items().stream()
+		final List<PurchaseReturnItem> items = command.items().stream()
 				.map(item -> new PurchaseReturnItem(item.productId(), item.quantity()))
 				.toList();
-		List<PurchaseReturn> previousReturns = purchaseReturnRepositoryPort.findByReceiptId(receipt.getId());
+		final List<PurchaseReturn> previousReturns = purchaseReturnRepositoryPort.findByReceiptId(receipt.getId());
 
-		PurchaseReturn purchaseReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
+		final PurchaseReturn purchaseReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
 				items, previousReturns);
 
-		for (PurchaseReturnItem item : purchaseReturn.getItems()) {
-			BigDecimal unitCost = resolveUnitCost(order, item.productId());
+		for (final PurchaseReturnItem item : purchaseReturn.getItems()) {
+			final BigDecimal unitCost = resolveUnitCost(order, item.productId());
 			reverseStockEntryPort.reverseEntry(new ReverseStockEntryCommand(item.productId(), item.quantity(),
 					unitCost, purchaseReturn.getId().value()));
 		}
 
-		BigDecimal returnedAmount = purchaseReturn.getItems().stream()
+		final BigDecimal returnedAmount = purchaseReturn.getItems().stream()
 				.map(item -> resolveUnitCost(order, item.productId()).multiply(item.quantity()))
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		reversePayableFromReturnPort.reversePayable(new ReversePayableFromReturnCommand(purchaseReturn.getId().value(),
 				order.getSupplierId().value(), returnedAmount));
 
-		String returnNfeRef = issuePurchaseReturnNfePort
+		final String returnNfeRef = issuePurchaseReturnNfePort
 				.issueReturnNfe(new IssuePurchaseReturnNfeCommand(purchaseReturn.getId().value(),
 						order.getSupplierId().value(), toNfeItems(order, purchaseReturn)));
 
-		PurchaseReturn saved = purchaseReturnRepositoryPort.save(purchaseReturn.withNfeRef(returnNfeRef));
+		final PurchaseReturn saved = purchaseReturnRepositoryPort.save(purchaseReturn.withNfeRef(returnNfeRef));
 		return saved.getId();
 	}
 
-	private BigDecimal resolveUnitCost(PurchaseOrder order, UUID productId) {
+	private BigDecimal resolveUnitCost(final PurchaseOrder order, final UUID productId) {
 		return order.getItems().stream()
 				.filter(item -> item.productId().equals(productId))
 				.map(PurchaseOrderItem::unitPrice)
@@ -90,7 +90,7 @@ public class ReturnToSupplierService implements ReturnToSupplierUseCase {
 				.orElse(BigDecimal.ZERO);
 	}
 
-	private List<IssuePurchaseReturnNfeCommand.Item> toNfeItems(PurchaseOrder order, PurchaseReturn purchaseReturn) {
+	private List<IssuePurchaseReturnNfeCommand.Item> toNfeItems(final PurchaseOrder order, final PurchaseReturn purchaseReturn) {
 		return purchaseReturn.getItems().stream()
 				.map(item -> new IssuePurchaseReturnNfeCommand.Item(item.productId(), item.quantity(),
 						resolveUnitCost(order, item.productId())))

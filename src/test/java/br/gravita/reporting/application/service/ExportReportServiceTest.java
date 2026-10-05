@@ -79,7 +79,7 @@ class ExportReportServiceTest {
 		service = new ExportReportService(dashboard, abcCurve, stockTurnover, commissions, fiscalBooks, assessedTaxes,
 				pdf, excel, permissions);
 		when(permissions.canExport(any(), any())).thenReturn(false);
-		for (ReportId report : ReportId.values()) {
+		for (final ReportId report : ReportId.values()) {
 			when(permissions.canExport(user, report.slug())).thenReturn(true);
 		}
 		when(pdf.render(any())).thenReturn(PDF);
@@ -89,7 +89,7 @@ class ExportReportServiceTest {
 	@DisplayName("Refuses a user without export permission, without running or rendering the report")
 	@Test
 	void refusesAUserWithoutTheExportPermissionOnTheReportWithoutRunningItOrRendering() {
-		UserId viewer = UserId.generate();
+		final UserId viewer = UserId.generate();
 		when(permissions.canExport(viewer, "abc-curve")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(abcQuery(viewer, ExportFormat.PDF)))
@@ -112,14 +112,14 @@ class ExportReportServiceTest {
 	@DisplayName("Exports the ABC curve for the requested parameters as PDF or Excel from the same layout")
 	@Test
 	void exportsTheAbcCurveOfTheRequestedParametersAsPdfOrExcelFromTheSameLayout() {
-		UUID company = UUID.randomUUID();
+		final UUID company = UUID.randomUUID();
 		when(abcCurve.execute(new AbcCurveQuery(user, AbcCurveType.PRODUCT, PERIOD, company)))
 				.thenReturn(List.of(new AbcCurveEntry(product, new BigDecimal("900.00"), new BigDecimal("90.00"),
 						new BigDecimal("90.00"), AbcClass.A)));
 
-		ExportedFile asPdf = service.execute(new ExportReportQuery(user, ReportId.ABC_CURVE, ExportFormat.PDF, PERIOD,
+		final ExportedFile asPdf = service.execute(new ExportReportQuery(user, ReportId.ABC_CURVE, ExportFormat.PDF, PERIOD,
 				null, AbcCurveType.PRODUCT, company, null));
-		ExportedFile asExcel = service.execute(new ExportReportQuery(user, ReportId.ABC_CURVE, ExportFormat.XLSX,
+		final ExportedFile asExcel = service.execute(new ExportReportQuery(user, ReportId.ABC_CURVE, ExportFormat.XLSX,
 				PERIOD, null, AbcCurveType.PRODUCT, company, null));
 
 		assertThat(asPdf.content()).isEqualTo(PDF);
@@ -130,7 +130,7 @@ class ExportReportServiceTest {
 		assertThat(asExcel.contentType())
 				.isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-		ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
+		final ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
 		verify(pdf).render(report.capture());
 		assertThat(report.getValue().title()).isEqualTo("Curva ABC - Produtos - 02/2028");
 		assertThat(report.getValue().headerLines()).containsExactly("Período: 01/02/2028 a 29/02/2028");
@@ -138,7 +138,7 @@ class ExportReportServiceTest {
 		assertThat(report.getValue().sections().get(0).rows())
 				.containsExactly(List.of("1", product.toString(), "900,00", "90,00", "90,00", "A"));
 
-		ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
+		final ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
 		verify(excel).render(workbook.capture());
 		assertThat(workbook.getValue().sheets().get(0).rows().get(0))
 				.containsExactly(1, product, new BigDecimal("900.00"), new BigDecimal("90.00"),
@@ -150,12 +150,12 @@ class ExportReportServiceTest {
 	void exportsTheDashboardOfThePeriodDefaultingToTheMonth() {
 		when(dashboard.execute(any())).thenReturn(dashboardView());
 
-		ExportedFile file = service.execute(new ExportReportQuery(user, ReportId.DASHBOARD, ExportFormat.PDF, null,
+		final ExportedFile file = service.execute(new ExportReportQuery(user, ReportId.DASHBOARD, ExportFormat.PDF, null,
 				null, null, null, null));
 
 		verify(dashboard).execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 		assertThat(file.filename()).isEqualTo("dashboard-month.pdf");
-		ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
+		final ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
 		verify(pdf).render(report.capture());
 		assertThat(report.getValue().sections()).extracting(section -> section.heading()).containsExactly("Faturamento",
 				"CMV e Margem", "Inadimplência", "Estoque crítico", "Top produtos por quantidade",
@@ -170,7 +170,7 @@ class ExportReportServiceTest {
 	@DisplayName("Exports the stock turnover and commission reports with their filters")
 	@Test
 	void exportsTheStockTurnoverAndTheCommissionsWithTheirFilters() {
-		UUID salesperson = UUID.randomUUID();
+		final UUID salesperson = UUID.randomUUID();
 		when(stockTurnover.execute(any())).thenReturn(List.of(new StockTurnoverEntry(product, null, true)));
 		when(commissions.execute(any())).thenReturn(List.of(
 				new CommissionReportEntry(salesperson, product, UUID.randomUUID(), new BigDecimal("5.00"),
@@ -178,20 +178,20 @@ class ExportReportServiceTest {
 				new CommissionReportEntry(salesperson, product, UUID.randomUUID(), new BigDecimal("5.00"),
 						new BigDecimal("2.50"))));
 
-		ExportedFile turnover = service.execute(new ExportReportQuery(user, ReportId.STOCK_TURNOVER, ExportFormat.XLSX,
+		final ExportedFile turnover = service.execute(new ExportReportQuery(user, ReportId.STOCK_TURNOVER, ExportFormat.XLSX,
 				PERIOD, null, null, null, null));
-		ExportedFile commission = service.execute(new ExportReportQuery(user, ReportId.COMMISSIONS, ExportFormat.PDF,
+		final ExportedFile commission = service.execute(new ExportReportQuery(user, ReportId.COMMISSIONS, ExportFormat.PDF,
 				PERIOD, null, null, null, salesperson));
 
 		verify(stockTurnover).execute(new StockTurnoverQuery(user, PERIOD, null));
 		verify(commissions).execute(new CommissionReportQuery(user, salesperson, PERIOD));
 		assertThat(turnover.filename()).isEqualTo("stock-turnover-2028-02.xlsx");
 		assertThat(commission.filename()).isEqualTo("commissions-2028-02.pdf");
-		ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
+		final ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
 		verify(pdf).render(report.capture());
 		assertThat(report.getValue().sections().get(0).footerLines())
 				.containsExactly("Lançamentos: 2 | Total de comissões: 12,50");
-		ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
+		final ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
 		verify(excel).render(workbook.capture());
 		assertThat(workbook.getValue().sheets().get(0).rows().get(0)).containsExactly(product, null, "Sim");
 	}
@@ -203,11 +203,11 @@ class ExportReportServiceTest {
 				new BigDecimal("150.50"), new BigDecimal("15.25"), new BigDecimal("2.48"), new BigDecimal("11.40"),
 				new BigDecimal("30.00")));
 
-		ExportedFile file = service.execute(new ExportReportQuery(user, ReportId.ASSESSED_TAXES, ExportFormat.PDF,
+		final ExportedFile file = service.execute(new ExportReportQuery(user, ReportId.ASSESSED_TAXES, ExportFormat.PDF,
 				PERIOD, null, null, null, null));
 
 		assertThat(file.filename()).isEqualTo("assessed-taxes-2028-02.pdf");
-		ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
+		final ArgumentCaptor<PdfReport> report = ArgumentCaptor.forClass(PdfReport.class);
 		verify(pdf).render(report.capture());
 		assertThat(report.getValue().sections().get(0).rows()).containsExactly(List.of("ICMS", "150,50"),
 				List.of("IPI", "15,25"), List.of("PIS", "2,48"), List.of("COFINS", "11,40"), List.of("ISS", "30,00"));
@@ -216,23 +216,23 @@ class ExportReportServiceTest {
 	@DisplayName("Returns the fiscal books' statutory PDF as is and lays out their Excel")
 	@Test
 	void returnsTheStatutoryPdfOfTheFiscalBooksAsIsAndLaysOutTheirExcel() {
-		FiscalBookEntry exit = new FiscalBookEntry(FiscalBookFlow.EXIT, LocalDate.of(2028, 2, 10), "NFE", "1", "20",
+		final FiscalBookEntry exit = new FiscalBookEntry(FiscalBookFlow.EXIT, LocalDate.of(2028, 2, 10), "NFE", "1", "20",
 				"key", "Cliente", "123", "5102", new BigDecimal("1000.00"), new BigDecimal("180.00"));
-		byte[] statutoryPdf = "books".getBytes();
+		final byte[] statutoryPdf = "books".getBytes();
 		when(fiscalBooks.execute(new FiscalBooksQuery(user, PERIOD))).thenReturn(new FiscalBooks(PERIOD, List.of(),
 				List.of(exit), List.of(exit), new BigDecimal("180.00"), BigDecimal.ZERO, new BigDecimal("180.00"),
 				statutoryPdf, new byte[0]));
 
-		ExportedFile asPdf = service.execute(new ExportReportQuery(user, ReportId.FISCAL_BOOKS, ExportFormat.PDF,
+		final ExportedFile asPdf = service.execute(new ExportReportQuery(user, ReportId.FISCAL_BOOKS, ExportFormat.PDF,
 				PERIOD, null, null, null, null));
-		ExportedFile asExcel = service.execute(new ExportReportQuery(user, ReportId.FISCAL_BOOKS, ExportFormat.XLSX,
+		final ExportedFile asExcel = service.execute(new ExportReportQuery(user, ReportId.FISCAL_BOOKS, ExportFormat.XLSX,
 				PERIOD, null, null, null, null));
 
 		assertThat(asPdf.content()).isEqualTo(statutoryPdf);
 		assertThat(asPdf.filename()).isEqualTo("fiscal-books-2028-02.pdf");
 		verifyNoInteractions(pdf);
 		assertThat(asExcel.content()).isEqualTo(XLSX);
-		ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
+		final ArgumentCaptor<ExcelWorkbook> workbook = ArgumentCaptor.forClass(ExcelWorkbook.class);
 		verify(excel).render(workbook.capture());
 		assertThat(workbook.getValue().sheets()).extracting(sheet -> sheet.name())
 				.containsExactly("Livro de Entradas", "Livro de Saídas", "Livro de Apuração do ICMS");
@@ -245,7 +245,7 @@ class ExportReportServiceTest {
 	@DisplayName("Refuses to export reports that have nothing to run yet")
 	@Test
 	void refusesToExportTheReportsThatHaveNothingToRunYet() {
-		for (ReportId report : List.of(ReportId.DRE, ReportId.PURCHASES_BY_SUPPLIER)) {
+		for (final ReportId report : List.of(ReportId.DRE, ReportId.PURCHASES_BY_SUPPLIER)) {
 			assertThatThrownBy(() -> service.execute(new ExportReportQuery(user, report, ExportFormat.PDF, PERIOD,
 					null, null, null, null))).isInstanceOf(ResourceNotFoundException.class);
 		}
@@ -271,7 +271,7 @@ class ExportReportServiceTest {
 				null, null)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("type");
 	}
 
-	private ExportReportQuery abcQuery(UserId requester, ExportFormat format) {
+	private ExportReportQuery abcQuery(final UserId requester, final ExportFormat format) {
 		return new ExportReportQuery(requester, ReportId.ABC_CURVE, format, PERIOD, null, AbcCurveType.PRODUCT, null,
 				null);
 	}

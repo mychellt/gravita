@@ -19,12 +19,12 @@ class PosSessionTest {
 	@Test
 	@DisplayName("Opening a session always starts it open with the given opened-at time and amount")
 	void openingASessionAlwaysStartsOpenWithTheGivenOpenedAtAndAmount() {
-		UUID registerId = UUID.randomUUID();
-		UUID operatorId = UUID.randomUUID();
-		CompanyId companyId = CompanyId.of(UUID.randomUUID());
-		Instant openedAt = Instant.now();
+		final UUID registerId = UUID.randomUUID();
+		final UUID operatorId = UUID.randomUUID();
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final Instant openedAt = Instant.now();
 
-		PosSession session = PosSession.open(PosSessionId.of(UUID.randomUUID()), registerId, operatorId, companyId,
+		final PosSession session = PosSession.open(PosSessionId.of(UUID.randomUUID()), registerId, operatorId, companyId,
 				new BigDecimal("100.00"), openedAt);
 
 		assertThat(session.getStatus()).isEqualTo(PosSessionStatus.OPEN);

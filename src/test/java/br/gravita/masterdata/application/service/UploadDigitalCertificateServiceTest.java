@@ -51,26 +51,40 @@ class UploadDigitalCertificateServiceTest {
 		return new UploadDigitalCertificateService(companyRepositoryPort, certificateStoragePort, certificateReaderPort);
 	}
 
-	private Company existingCompany(CompanyId id) {
-		return Company.of(id, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654", "6201-5/01",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"fiscal@empresa.com", "11999999999", null, null);
+	private Company existingCompany(final CompanyId id) {
+		return Company.builder()
+				.id(id)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11222333000181"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("fiscal@empresa.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	@Test
 	@DisplayName("Uploads an A1 certificate and persists the extracted expiry date")
 	void shouldUploadA1CertificateAndPersistExtractedExpiry() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
-		Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
+		final Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
 		when(certificateReaderPort.readExpiryDate(PFX_FILE, "secret")).thenReturn(expiresAt);
 		when(certificateStoragePort.save(any(DigitalCertificate.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service().execute(new UploadDigitalCertificateCommand(id, "A1", PFX_FILE, "secret"));
 
-		ArgumentCaptor<DigitalCertificate> captor = ArgumentCaptor.forClass(DigitalCertificate.class);
+		final ArgumentCaptor<DigitalCertificate> captor = ArgumentCaptor.forClass(DigitalCertificate.class);
 		verify(certificateStoragePort).save(captor.capture());
-		DigitalCertificate saved = captor.getValue();
+		final DigitalCertificate saved = captor.getValue();
 		assertThat(saved.getCompanyId()).isEqualTo(id);
 		assertThat(saved.getExpiresAt()).isEqualTo(expiresAt);
 		assertThat(saved.getPfxPayload()).isEqualTo(PFX_FILE);
@@ -79,7 +93,7 @@ class UploadDigitalCertificateServiceTest {
 	@Test
 	@DisplayName("Defaults to A1 when the certificate type is not provided")
 	void shouldDefaultToA1WhenTypeIsNotProvided() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
 		when(certificateReaderPort.readExpiryDate(eq(PFX_FILE), eq("secret")))
 				.thenReturn(Instant.now().plus(1, ChronoUnit.DAYS));
@@ -93,7 +107,7 @@ class UploadDigitalCertificateServiceTest {
 	@Test
 	@DisplayName("Rejects the A3 certificate type")
 	void shouldRejectA3CertificateType() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
 
 		assertThatThrownBy(() -> service().execute(new UploadDigitalCertificateCommand(id, "A3", PFX_FILE, "secret")))
@@ -106,7 +120,7 @@ class UploadDigitalCertificateServiceTest {
 	@Test
 	@DisplayName("Throws when the company does not exist")
 	void shouldThrowWhenCompanyDoesNotExist() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service().execute(new UploadDigitalCertificateCommand(id, "A1", PFX_FILE, "secret")))
@@ -118,7 +132,7 @@ class UploadDigitalCertificateServiceTest {
 	@Test
 	@DisplayName("Propagates the business rule exception when the PFX is invalid")
 	void shouldPropagateBusinessRuleExceptionWhenPfxIsInvalid() {
-		CompanyId id = CompanyId.of(UUID.randomUUID());
+		final CompanyId id = CompanyId.of(UUID.randomUUID());
 		when(companyRepositoryPort.findById(id)).thenReturn(Optional.of(existingCompany(id)));
 		when(certificateReaderPort.readExpiryDate(PFX_FILE, "wrong-password"))
 				.thenThrow(new BusinessRuleException("Invalid certificate file or wrong password"));

@@ -30,65 +30,65 @@ public class PurchaseOrderController {
     private final ImportSupplierNfeAtReceivingUseCase importSupplierNfeAtReceivingUseCase;
 
     @PostMapping
-    public ResponseEntity<PurchaseOrderResponse> create(@Valid @RequestBody CreatePurchaseOrderRequest request) {
-        PurchaseOrderId id = createPurchaseOrderUseCase.execute(request.toCommand());
+    public ResponseEntity<PurchaseOrderResponse> create(@Valid @RequestBody final CreatePurchaseOrderRequest request) {
+        final PurchaseOrderId id = createPurchaseOrderUseCase.execute(request.toCommand());
         return ResponseEntity.created(URI.create("/api/purchasing/orders/" + id.value()))
                 .body(PurchaseOrderResponse.from(id));
     }
 
     @PostMapping("/{id}/receipts")
-    public ResponseEntity<PurchaseReceiptResponse> receive(@PathVariable UUID id,
-                                                           @Valid @RequestBody ReceivePurchaseOrderRequest request) {
-        PurchaseReceiptId receiptId = receivePurchaseOrderUseCase.execute(request.toCommand(id));
+    public ResponseEntity<PurchaseReceiptResponse> receive(@PathVariable final UUID id,
+                                                           @Valid @RequestBody final ReceivePurchaseOrderRequest request) {
+        final PurchaseReceiptId receiptId = receivePurchaseOrderUseCase.execute(request.toCommand(id));
         return ResponseEntity.created(URI.create("/api/purchasing/receipts/" + receiptId.value()))
                 .body(PurchaseReceiptResponse.from(receiptId));
     }
 
     @PostMapping("/{id}/approve")
-    public ResponseEntity<Void> approve(@PathVariable UUID id,
-                                        @Valid @RequestBody ApprovePurchaseOrderRequest request) {
+    public ResponseEntity<Void> approve(@PathVariable final UUID id,
+                                        @Valid @RequestBody final ApprovePurchaseOrderRequest request) {
         approvePurchaseOrderUseCase.execute(request.toCommand(id));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/{id}/receipts/{receiptId}/import-nfe", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ConferenceResultResponse> importNfeAtReceiving(@PathVariable UUID id,
-                                                                         @PathVariable UUID receiptId, @RequestParam UUID companyId,
-                                                                         @RequestPart("xmlFile") MultipartFile xmlFile) {
-        ConferenceResult result = importSupplierNfeAtReceivingUseCase.execute(new ImportSupplierNfeAtReceivingCommand(
+    public ResponseEntity<ConferenceResultResponse> importNfeAtReceiving(@PathVariable final UUID id,
+                                                                         @PathVariable final UUID receiptId, @RequestParam final UUID companyId,
+                                                                         @RequestPart("xmlFile") final MultipartFile xmlFile) {
+        final ConferenceResult result = importSupplierNfeAtReceivingUseCase.execute(new ImportSupplierNfeAtReceivingCommand(
                 PurchaseOrderId.of(id), PurchaseReceiptId.of(receiptId), CompanyId.of(companyId),
                 readBytes(xmlFile)));
         return ResponseEntity.ok(ConferenceResultResponse.from(result));
     }
 
-    private byte[] readBytes(MultipartFile file) {
+    private byte[] readBytes(final MultipartFile file) {
         try {
             return file.getBytes();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new UncheckedIOException("Unable to read uploaded NFe XML file", e);
         }
     }
 
     @ExceptionHandler(PurchaseReceiptNotFoundException.class)
     public ResponseEntity<Map<String, String>> handlePurchaseReceiptNotFoundException(
-            PurchaseReceiptNotFoundException exception) {
+            final PurchaseReceiptNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(PurchaseRequestNotFoundException.class)
     public ResponseEntity<Map<String, String>> handlePurchaseRequestNotFoundException(
-            PurchaseRequestNotFoundException exception) {
+            final PurchaseRequestNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(PurchaseOrderNotFoundException.class)
     public ResponseEntity<Map<String, String>> handlePurchaseOrderNotFoundException(
-            PurchaseOrderNotFoundException exception) {
+            final PurchaseOrderNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 }

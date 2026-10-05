@@ -10,8 +10,8 @@ public record ConfirmInboundNfeReceiptRequest(List<ConferenceItem> conferenceRes
 	public record ConferenceItem(UUID itemRef, BigDecimal orderedQty, BigDecimal receivedQty) {
 	}
 
-	public ConfirmInboundNfeReceiptCommand toCommand(UUID inboundNfeId) {
-		List<ConfirmInboundNfeReceiptCommand.ConferenceItem> items = conferenceResult == null ? List.of()
+	public ConfirmInboundNfeReceiptCommand toCommand(final UUID inboundNfeId) {
+		final List<ConfirmInboundNfeReceiptCommand.ConferenceItem> items = conferenceResult == null ? List.of()
 				: conferenceResult.stream()
 						.map(item -> new ConfirmInboundNfeReceiptCommand.ConferenceItem(item.itemRef(),
 								item.orderedQty(), item.receivedQty()))

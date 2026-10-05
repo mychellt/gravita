@@ -49,7 +49,7 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "purchases-by-supplier")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new SupplierPurchaseSummaryQuery(stranger, PERIOD, company)))
@@ -75,11 +75,11 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Sums the volume and value of a supplier's orders")
 	@Test
 	void sumsTheVolumeAndValueOfASuppliersOrders() {
-		UUID supplier = UUID.randomUUID();
+		final UUID supplier = UUID.randomUUID();
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of(
 				order(supplier, "2028-02-03", "10", "50.00"), order(supplier, "2028-02-20", "4.5", "10.255")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		assertThat(report).singleElement().satisfies(summary -> {
 			assertThat(summary.supplier()).isEqualTo(supplier);
@@ -91,13 +91,13 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Averages the days from order to every confirmed delivery")
 	@Test
 	void averagesTheDaysFromTheOrderToEveryConfirmedDelivery() {
-		UUID supplier = UUID.randomUUID();
+		final UUID supplier = UUID.randomUUID();
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of(
 				order(supplier, "2028-02-03", "10", "50", "2028-02-10"),
 				// Delivered in two parts: both deliveries count, one 4 days after the order and one 10 days after.
 				order(supplier, "2028-02-20", "4", "10", "2028-02-24", "2028-03-01")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		// (7 + 4 + 10) / 3 deliveries
 		assertThat(report).singleElement()
@@ -107,13 +107,13 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Rounds the average lead time to two decimal places")
 	@Test
 	void roundsTheAverageLeadTimeToTwoDecimals() {
-		UUID supplier = UUID.randomUUID();
+		final UUID supplier = UUID.randomUUID();
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of(
 				order(supplier, "2028-02-01", "1", "1", "2028-02-02"),
 				order(supplier, "2028-02-01", "1", "1", "2028-02-02"),
 				order(supplier, "2028-02-01", "1", "1", "2028-02-03")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		assertThat(report).singleElement()
 				.satisfies(summary -> assertThat(summary.averageLeadTimeDays()).isEqualByComparingTo("1.33"));
@@ -122,11 +122,11 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Leaves the lead time empty for a supplier whose orders were not received yet")
 	@Test
 	void leavesTheLeadTimeEmptyForASupplierWhoseOrdersWereNotReceivedYet() {
-		UUID supplier = UUID.randomUUID();
+		final UUID supplier = UUID.randomUUID();
 		when(purchasing.purchasedOrders(any(), any(), any()))
 				.thenReturn(List.of(order(supplier, "2028-02-03", "10", "50")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		assertThat(report).singleElement().satisfies(summary -> {
 			assertThat(summary.value()).isEqualByComparingTo("50");
@@ -137,12 +137,12 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Ignores other suppliers' orders when averaging a supplier's lead time")
 	@Test
 	void ignoresTheOrdersOfOtherSuppliersWhenAveragingTheLeadTime() {
-		UUID fast = UUID.fromString("00000000-0000-0000-0000-000000000001");
-		UUID slow = UUID.fromString("00000000-0000-0000-0000-000000000002");
+		final UUID fast = UUID.fromString("00000000-0000-0000-0000-000000000001");
+		final UUID slow = UUID.fromString("00000000-0000-0000-0000-000000000002");
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of(
 				order(fast, "2028-02-03", "1", "10", "2028-02-04"), order(slow, "2028-02-03", "1", "10", "2028-02-23")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		assertThat(report).extracting(SupplierPurchaseSummary::supplier).containsExactly(fast, slow);
 		assertThat(report).extracting(SupplierPurchaseSummary::averageLeadTimeDays)
@@ -153,21 +153,21 @@ class GetSupplierPurchaseSummaryServiceTest {
 	@DisplayName("Ranks the suppliers by value bought, largest first")
 	@Test
 	void ranksTheSuppliersByValueBoughtLargestFirst() {
-		UUID small = UUID.fromString("00000000-0000-0000-0000-000000000001");
-		UUID big = UUID.fromString("00000000-0000-0000-0000-000000000002");
-		UUID tieA = UUID.fromString("00000000-0000-0000-0000-000000000003");
-		UUID tieB = UUID.fromString("00000000-0000-0000-0000-000000000004");
+		final UUID small = UUID.fromString("00000000-0000-0000-0000-000000000001");
+		final UUID big = UUID.fromString("00000000-0000-0000-0000-000000000002");
+		final UUID tieA = UUID.fromString("00000000-0000-0000-0000-000000000003");
+		final UUID tieB = UUID.fromString("00000000-0000-0000-0000-000000000004");
 		when(purchasing.purchasedOrders(any(), any(), any())).thenReturn(List.of(order(tieB, "2028-02-03", "1", "20"),
 				order(small, "2028-02-03", "1", "5"), order(big, "2028-02-03", "1", "90"),
 				order(tieA, "2028-02-03", "1", "20")));
 
-		List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
+		final List<SupplierPurchaseSummary> report = service.execute(new SupplierPurchaseSummaryQuery(user, PERIOD, null));
 
 		assertThat(report).extracting(SupplierPurchaseSummary::supplier).containsExactly(big, tieA, tieB, small);
 	}
 
-	private PurchasedOrder order(UUID supplier, String orderedOn, String quantity, String value,
-			String... receivedOn) {
+	private PurchasedOrder order(final UUID supplier, final String orderedOn, final String quantity, final String value,
+			final String... receivedOn) {
 		return new PurchasedOrder(supplier, LocalDate.parse(orderedOn), new BigDecimal(quantity),
 				new BigDecimal(value), Arrays.stream(receivedOn).map(LocalDate::parse).toList());
 	}

@@ -8,7 +8,7 @@ import java.util.UUID;
 public record InteractionView(UUID id, UUID opportunityId, UUID customerId, InteractionChannel channel,
 		String summary, Instant timestamp) {
 
-	public static InteractionView from(Interaction interaction) {
+	public static InteractionView from(final Interaction interaction) {
 		return new InteractionView(
 				interaction.getId().value(),
 				interaction.getOpportunityId() != null ? interaction.getOpportunityId().value() : null,

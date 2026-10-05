@@ -13,18 +13,18 @@ public class SubmitPhysicalCountService implements SubmitPhysicalCountUseCase {
 
 	private final PhysicalCountRepositoryPort physicalCountRepositoryPort;
 
-	public SubmitPhysicalCountService(PhysicalCountRepositoryPort physicalCountRepositoryPort) {
+	public SubmitPhysicalCountService(final PhysicalCountRepositoryPort physicalCountRepositoryPort) {
 		this.physicalCountRepositoryPort = physicalCountRepositoryPort;
 	}
 
 	@Override
 	@Transactional
-	public PhysicalCount execute(SubmitPhysicalCountCommand command) {
-		PhysicalCount physicalCount = physicalCountRepositoryPort.findById(command.physicalCountId())
+	public PhysicalCount execute(final SubmitPhysicalCountCommand command) {
+		final PhysicalCount physicalCount = physicalCountRepositoryPort.findById(command.physicalCountId())
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"PhysicalCount not found: " + command.physicalCountId().value()));
 
-		PhysicalCount updated = physicalCount.submitCounts(command.countedQuantities());
+		final PhysicalCount updated = physicalCount.submitCounts(command.countedQuantities());
 
 		return physicalCountRepositoryPort.save(updated);
 	}

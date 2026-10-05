@@ -21,12 +21,12 @@ public class AttachPayableDocumentService implements AttachPayableDocumentUseCas
 	// Not transactional on purpose: the upload must not hold a database transaction open. The payable
 	// is only written once the file is stored, so a storage failure leaves it untouched.
 	@Override
-	public Payable execute(AttachPayableDocumentCommand command) {
-		Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
+	public Payable execute(final AttachPayableDocumentCommand command) {
+		final Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Payable not found: " + command.payableId()));
 
-		AttachPayableDocumentCommand.File file = command.file();
-		String url = documentAttachmentStoragePort
+		final AttachPayableDocumentCommand.File file = command.file();
+		final String url = documentAttachmentStoragePort
 				.store(new Document(file.fileName(), file.contentType(), file.content()));
 
 		return payableRepositoryPort.save(payable.attach(url));

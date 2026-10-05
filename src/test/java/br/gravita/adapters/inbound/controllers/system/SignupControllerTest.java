@@ -41,7 +41,7 @@ class SignupControllerTest {
     @Test
     @DisplayName("Signup answers 201 with the created ids and never echoes the password")
     void shouldCreateAccount() throws Exception {
-        LocalDate today = LocalDate.now();
+        final LocalDate today = LocalDate.now();
         when(signupUseCase.execute(any(Context.class))).thenReturn(new SignupResult(UUID.randomUUID(),
                 UUID.randomUUID(), UUID.randomUUID(), PlanTier.SILVER, BillingCycle.ANNUAL, today,
                 today.plusDays(365)));

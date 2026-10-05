@@ -14,12 +14,12 @@ class RegisterStockEntryAdapter implements RegisterStockEntryPort {
 
 	private final RegisterStockEntryUseCase registerStockEntryUseCase;
 
-	RegisterStockEntryAdapter(RegisterStockEntryUseCase registerStockEntryUseCase) {
+	RegisterStockEntryAdapter(final RegisterStockEntryUseCase registerStockEntryUseCase) {
 		this.registerStockEntryUseCase = registerStockEntryUseCase;
 	}
 
 	@Override
-	public void registerEntry(RegisterStockEntryCommand command) {
+	public void registerEntry(final RegisterStockEntryCommand command) {
 		registerStockEntryUseCase.execute(new br.gravita.core.ports.inbound.inventory.RegisterStockEntryCommand(
 				command.productId(), DEFAULT_WAREHOUSE_ID, command.quantity(), command.unitCost(), null, List.of(),
 				"PURCHASE_RECEIPT:" + command.sourcePurchaseReceiptId(), SYSTEM_ACTOR_ID));

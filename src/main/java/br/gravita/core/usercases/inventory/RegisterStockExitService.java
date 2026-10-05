@@ -35,11 +35,11 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 	private final StockReservationRepositoryPort stockReservationRepositoryPort;
 	private final LowStockReorderTrigger lowStockReorderTrigger;
 
-	public RegisterStockExitService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockMovementRepositoryPort stockMovementRepositoryPort, LotRepositoryPort lotRepositoryPort,
-			SerialUnitRepositoryPort serialUnitRepositoryPort,
-			StockReservationRepositoryPort stockReservationRepositoryPort,
-			LowStockReorderTrigger lowStockReorderTrigger) {
+	public RegisterStockExitService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockMovementRepositoryPort stockMovementRepositoryPort, final LotRepositoryPort lotRepositoryPort,
+			final SerialUnitRepositoryPort serialUnitRepositoryPort,
+			final StockReservationRepositoryPort stockReservationRepositoryPort,
+			final LowStockReorderTrigger lowStockReorderTrigger) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.lotRepositoryPort = lotRepositoryPort;
@@ -49,17 +49,17 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 	}
 
 	@Override
-	public StockMovement execute(RegisterStockExitCommand command) {
+	public StockMovement execute(final RegisterStockExitCommand command) {
 		if (command.quantity().signum() <= 0) {
 			throw new BusinessRuleException("Exit quantity must be greater than zero");
 		}
 
-		StockBalance balance = stockBalanceRepositoryPort
+		final StockBalance balance = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(command.productId(), command.warehouseId())
 				.orElseThrow(() -> new BusinessRuleException("Insufficient available stock to exit: requested "
 						+ command.quantity() + ", available 0"));
 
-		StockReservation reservation = command.reservationId() == null ? null : resolveReservation(command);
+		final StockReservation reservation = command.reservationId() == null ? null : resolveReservation(command);
 
 		if (reservation == null && !command.allowNegativeStock()
 				&& balance.available().compareTo(command.quantity()) < 0) {
@@ -74,24 +74,34 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 			allocateSerials(command);
 		}
 
-		StockBalance updated = reservation != null ? balance.consumeReserved(command.quantity())
+		final StockBalance updated = reservation != null ? balance.consumeReserved(command.quantity())
 				: balance.exit(command.quantity());
 		stockBalanceRepositoryPort.save(updated);
 		if (reservation != null) {
 			stockReservationRepositoryPort.save(reservation);
 		}
 
-		StockMovement movement = StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.EXIT,
-				command.productId(), command.warehouseId(), command.quantity(), balance.getAverageCost(),
-				command.lot() != null ? command.lot().code() : null, command.serials(), command.originReference(),
-				null, command.user(), Instant.now());
-		StockMovement saved = stockMovementRepositoryPort.save(movement);
+		final StockMovement movement = StockMovement.builder()
+				.id(StockMovementId.of(UUID.randomUUID()))
+				.type(StockMovementType.EXIT)
+				.productId(command.productId())
+				.warehouseId(command.warehouseId())
+				.quantity(command.quantity())
+				.unitCost(balance.getAverageCost())
+				.lotCode(command.lot() != null ? command.lot().code() : null)
+				.serialNumbers(command.serials())
+				.originReference(command.originReference())
+				.justification(null)
+				.user(command.user())
+				.timestamp(Instant.now())
+				.build();
+		final StockMovement saved = stockMovementRepositoryPort.save(movement);
 		lowStockReorderTrigger.evaluate(command.warehouseId());
 		return saved;
 	}
 
-	private StockReservation resolveReservation(RegisterStockExitCommand command) {
-		StockReservation reservation = stockReservationRepositoryPort
+	private StockReservation resolveReservation(final RegisterStockExitCommand command) {
+		final StockReservation reservation = stockReservationRepositoryPort
 				.findById(StockReservationId.of(command.reservationId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Reservation not found: " + command.reservationId()));
 		if (reservation.getStatus() != StockReservationStatus.ACTIVE) {
@@ -109,8 +119,8 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 		return reservation.consume();
 	}
 
-	private void allocateLot(RegisterStockExitCommand command) {
-		Lot lot = lotRepositoryPort
+	private void allocateLot(final RegisterStockExitCommand command) {
+		final Lot lot = lotRepositoryPort
 				.findByProductIdAndWarehouseIdAndCode(command.productId(), command.warehouseId(),
 						command.lot().code())
 				.orElseThrow(() -> new ResourceNotFoundException("Lot not found: " + command.lot().code()));
@@ -120,8 +130,8 @@ public class RegisterStockExitService implements RegisterStockExitUseCase {
 		lotRepositoryPort.save(lot.issue(command.quantity()));
 	}
 
-	private void allocateSerials(RegisterStockExitCommand command) {
-		List<SerialUnit> found = serialUnitRepositoryPort.findByProductIdAndWarehouseIdAndSerialNumberIn(
+	private void allocateSerials(final RegisterStockExitCommand command) {
+		final List<SerialUnit> found = serialUnitRepositoryPort.findByProductIdAndWarehouseIdAndSerialNumberIn(
 				command.productId(), command.warehouseId(), command.serials());
 		if (found.size() != command.serials().size()) {
 			throw new ResourceNotFoundException("One or more serial units not found for product "

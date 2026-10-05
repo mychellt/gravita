@@ -19,7 +19,7 @@ public class InterstateIcmsRateRepositoryAdapter implements InterstateIcmsRateRe
     private final InterstateIcmsRatePersistenceMapper mapper;
 
     @Override
-    public Optional<InterstateIcmsRateDomain> get(UUID id) {
+    public Optional<InterstateIcmsRateDomain> get(final UUID id) {
         return jpaRepository.findById(id).map(mapper::map);
     }
 
@@ -29,12 +29,12 @@ public class InterstateIcmsRateRepositoryAdapter implements InterstateIcmsRateRe
     }
 
     @Override
-    public Optional<InterstateIcmsRateDomain> findByOriginStateAndDestinationState(String originState, String destinationState) {
+    public Optional<InterstateIcmsRateDomain> findByOriginStateAndDestinationState(final String originState, final String destinationState) {
         return jpaRepository.findByOriginStateAndDestinationState(originState, destinationState).map(mapper::map);
     }
 
     @Override
-    public List<InterstateIcmsRateDomain> saveAll(List<InterstateIcmsRateDomain> rates) {
+    public List<InterstateIcmsRateDomain> saveAll(final List<InterstateIcmsRateDomain> rates) {
         return jpaRepository.saveAll(rates.stream().map(mapper::map).toList())
                 .stream().map(mapper::map).toList();
     }

@@ -30,23 +30,23 @@ public class SalespersonTargetController {
 	private final GetTargetProgressUseCase getTargetProgressUseCase;
 
 	@PutMapping("/{salesperson}/{month}")
-	public ResponseEntity<Void> set(@PathVariable UUID salesperson,
-			@PathVariable @DateTimeFormat(pattern = "yyyy-MM") YearMonth month,
-			@Valid @RequestBody SetSalespersonTargetRequest request) {
+	public ResponseEntity<Void> set(@PathVariable final UUID salesperson,
+			@PathVariable @DateTimeFormat(pattern = "yyyy-MM") final YearMonth month,
+			@Valid @RequestBody final SetSalespersonTargetRequest request) {
 		setSalespersonTargetUseCase.execute(request.toCommand(salesperson, month));
 		return ResponseEntity.noContent().build();
 	}
 
 	@GetMapping("/{salesperson}/{month}")
-	public ResponseEntity<TargetProgressResponse> getProgress(@PathVariable UUID salesperson,
-			@PathVariable @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
-		TargetProgressResponse response = TargetProgressResponse
+	public ResponseEntity<TargetProgressResponse> getProgress(@PathVariable final UUID salesperson,
+			@PathVariable @DateTimeFormat(pattern = "yyyy-MM") final YearMonth month) {
+		final TargetProgressResponse response = TargetProgressResponse
 				.from(getTargetProgressUseCase.execute(new GetTargetProgressQuery(salesperson, month)));
 		return ResponseEntity.ok(response);
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class PurchaseReceiptNotFoundException extends RuntimeException {
 
-	public PurchaseReceiptNotFoundException(UUID purchaseReceiptId) {
+	public PurchaseReceiptNotFoundException(final UUID purchaseReceiptId) {
 		super("Purchase receipt not found: " + purchaseReceiptId);
 	}
 }

@@ -4,7 +4,7 @@ import br.gravita.core.domain.purchasing.PurchaseRequestId;
 import java.util.UUID;
 
 public record PurchaseRequestResponse(UUID id) {
-	public static PurchaseRequestResponse from(PurchaseRequestId id) {
+	public static PurchaseRequestResponse from(final PurchaseRequestId id) {
 		return new PurchaseRequestResponse(id.value());
 	}
 }

@@ -26,17 +26,17 @@ public class ConvertQuoteToOrderService implements ConvertQuoteToOrderUseCase {
 	private final SalesOrderRepositoryPort salesOrderRepositoryPort;
 
 	@Override
-	public SalesOrderView execute(ConvertQuoteToOrderCommand command) {
-		Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
+	public SalesOrderView execute(final ConvertQuoteToOrderCommand command) {
+		final Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
 				.orElseThrow(() -> new QuoteNotFoundException(command.quoteId()));
 
-		Quote convertedQuote = quote.convert(LocalDate.now());
+		final Quote convertedQuote = quote.convert(LocalDate.now());
 
-		List<SalesOrderItem> items = quote.getItems().stream().map(SalesOrderItem::fromQuoteItem).toList();
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), quote.getId(),
+		final List<SalesOrderItem> items = quote.getItems().stream().map(SalesOrderItem::fromQuoteItem).toList();
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), quote.getId(),
 				quote.getCustomerId(), quote.getSalespersonId(), items);
 
-		SalesOrder saved = salesOrderRepositoryPort.save(order);
+		final SalesOrder saved = salesOrderRepositoryPort.save(order);
 		quoteRepositoryPort.save(convertedQuote);
 
 		return SalesOrderView.from(saved);

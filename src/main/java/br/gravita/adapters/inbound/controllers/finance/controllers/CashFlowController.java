@@ -27,18 +27,18 @@ public class CashFlowController {
 
 	@GetMapping
 	public ResponseEntity<CashFlowResponse> get(
-			@RequestParam(defaultValue = "DAILY") CashFlowGranularity granularity,
-			@RequestParam(required = false) UUID companyId, @RequestParam(required = false) UUID branchId,
-			@RequestParam(required = false) UUID bankAccountId, @RequestParam(required = false) UUID costCenterId,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
-			@RequestParam(required = false) BigDecimal openingBalance) {
+			@RequestParam(defaultValue = "DAILY") final CashFlowGranularity granularity,
+			@RequestParam(required = false) final UUID companyId, @RequestParam(required = false) final UUID branchId,
+			@RequestParam(required = false) final UUID bankAccountId, @RequestParam(required = false) final UUID costCenterId,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate to,
+			@RequestParam(required = false) final BigDecimal openingBalance) {
 		return ResponseEntity.ok(CashFlowResponse.from(getCashFlowUseCase.execute(new GetCashFlowQuery(granularity,
 				companyId, branchId, bankAccountId, costCenterId, from, to, openingBalance))));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

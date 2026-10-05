@@ -25,7 +25,7 @@ public class AuthController {
 	private final AuthenticateUseCase authenticateUseCase;
 	private final GetCurrentUserUseCase getCurrentUserUseCase;
 
-	public AuthController(AuthenticateUseCase authenticateUseCase, GetCurrentUserUseCase getCurrentUserUseCase) {
+	public AuthController(final AuthenticateUseCase authenticateUseCase, final GetCurrentUserUseCase getCurrentUserUseCase) {
 		this.authenticateUseCase = authenticateUseCase;
 		this.getCurrentUserUseCase = getCurrentUserUseCase;
 	}
@@ -33,8 +33,8 @@ public class AuthController {
 	/** The logged user behind {@code Authorization: Bearer <sessionToken>}; 401 when there is no valid session. */
 	@GetMapping("/me")
 	public ResponseEntity<CurrentUserResponse> me(
-			@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization) {
-		String token = authorization != null && authorization.startsWith(BEARER)
+			@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) final String authorization) {
+		final String token = authorization != null && authorization.startsWith(BEARER)
 				? authorization.substring(BEARER.length()).strip()
 				: null;
 		return getCurrentUserUseCase.execute(token)
@@ -43,22 +43,22 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest servletRequest) {
-		AuthResult result = authenticateUseCase.execute(
+	public ResponseEntity<AuthResponse> login(@Valid @RequestBody final LoginRequest request, final HttpServletRequest servletRequest) {
+		final AuthResult result = authenticateUseCase.execute(
 				request.toCommand(servletRequest.getRemoteAddr(), servletRequest.getHeader("User-Agent")));
 		return toResponse(result);
 	}
 
 	@PostMapping("/2fa/verify")
-	public ResponseEntity<AuthResponse> verifyTwoFactor(@Valid @RequestBody TwoFactorVerifyRequest request,
-			HttpServletRequest servletRequest) {
-		AuthResult result = authenticateUseCase.execute(
+	public ResponseEntity<AuthResponse> verifyTwoFactor(@Valid @RequestBody final TwoFactorVerifyRequest request,
+			final HttpServletRequest servletRequest) {
+		final AuthResult result = authenticateUseCase.execute(
 				request.toCommand(servletRequest.getRemoteAddr(), servletRequest.getHeader("User-Agent")));
 		return toResponse(result);
 	}
 
-	private ResponseEntity<AuthResponse> toResponse(AuthResult result) {
-		HttpStatus status = result.status() == AuthStatus.REJECTED ? HttpStatus.UNAUTHORIZED : HttpStatus.OK;
+	private ResponseEntity<AuthResponse> toResponse(final AuthResult result) {
+		final HttpStatus status = result.status() == AuthStatus.REJECTED ? HttpStatus.UNAUTHORIZED : HttpStatus.OK;
 		return ResponseEntity.status(status).body(AuthResponse.from(result));
 	}
 }

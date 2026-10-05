@@ -23,30 +23,30 @@ public class ReceivePurchaseOrderService implements ReceivePurchaseOrderUseCase 
 	private final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort;
 	private final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort;
 
-	public ReceivePurchaseOrderService(PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
-			PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort) {
+	public ReceivePurchaseOrderService(final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort,
+			final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort) {
 		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
 		this.purchaseReceiptRepositoryPort = purchaseReceiptRepositoryPort;
 	}
 
 	@Override
-	public PurchaseReceiptId execute(ReceivePurchaseOrderCommand command) {
-		PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
+	public PurchaseReceiptId execute(final ReceivePurchaseOrderCommand command) {
+		final PurchaseOrder order = purchaseOrderRepositoryPort.findById(command.orderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(command.orderId().value()));
 
 		order.assertReceivable();
 
-		List<PurchaseReceiptItem> items = command.receivedItems().stream()
+		final List<PurchaseReceiptItem> items = command.receivedItems().stream()
 				.map(item -> new PurchaseReceiptItem(item.productId(), resolveOrderedQty(order, item), item.receivedQty()))
 				.toList();
 
-		PurchaseReceiptId id = PurchaseReceiptId.of(UUID.randomUUID());
-		PurchaseReceipt receipt = PurchaseReceipt.pending(id, order.getId(), items);
-		PurchaseReceipt saved = purchaseReceiptRepositoryPort.save(receipt);
+		final PurchaseReceiptId id = PurchaseReceiptId.of(UUID.randomUUID());
+		final PurchaseReceipt receipt = PurchaseReceipt.pending(id, order.getId(), items);
+		final PurchaseReceipt saved = purchaseReceiptRepositoryPort.save(receipt);
 		return saved.getId();
 	}
 
-	private BigDecimal resolveOrderedQty(PurchaseOrder order, ReceivedItem item) {
+	private BigDecimal resolveOrderedQty(final PurchaseOrder order, final ReceivedItem item) {
 		return order.getItems().stream()
 				.filter(orderItem -> orderItem.productId().equals(item.productId()))
 				.map(PurchaseOrderItem::quantity)

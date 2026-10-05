@@ -20,36 +20,37 @@ public class ImportSupplierNfeXmlService implements ImportSupplierNfeXmlUseCase 
 	private final NfeXmlParser xmlParser;
 
 	@Autowired
-	public ImportSupplierNfeXmlService(InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			XmlObjectStoragePort xmlObjectStoragePort) {
+	public ImportSupplierNfeXmlService(final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final XmlObjectStoragePort xmlObjectStoragePort) {
 		this(inboundNfeRepositoryPort, xmlObjectStoragePort, new NfeXmlParser());
 	}
 
-	ImportSupplierNfeXmlService(InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			XmlObjectStoragePort xmlObjectStoragePort, NfeXmlParser xmlParser) {
+	ImportSupplierNfeXmlService(final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final XmlObjectStoragePort xmlObjectStoragePort, final NfeXmlParser xmlParser) {
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
 		this.xmlObjectStoragePort = xmlObjectStoragePort;
 		this.xmlParser = xmlParser;
 	}
 
 	@Override
-	public InboundNfe execute(ImportSupplierNfeXmlCommand command) {
-		ParsedSupplierNfe parsed = xmlParser.parse(command.xmlFile());
+	public InboundNfe execute(final ImportSupplierNfeXmlCommand command) {
+		final ParsedSupplierNfe parsed = xmlParser.parse(command.xmlFile());
 
-		String xmlStorageRef = xmlObjectStoragePort.store(command.companyId(), command.xmlFile());
+		final String xmlStorageRef = xmlObjectStoragePort.store(command.companyId(), command.xmlFile());
 
-		InboundNfe inboundNfe = InboundNfe.importedFromXml(
-				InboundNfeId.of(UUID.randomUUID()),
-				command.companyId(),
-				parsed.accessKey(),
-				parsed.series(),
-				parsed.number(),
-				Document.cnpj(parsed.supplierCnpj()),
-				parsed.supplierName(),
-				parsed.issuedAt(),
-				parsed.items(),
-				parsed.totals(),
-				xmlStorageRef);
+		final InboundNfe inboundNfe = InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(command.companyId())
+				.accessKey(parsed.accessKey())
+				.series(parsed.series())
+				.number(parsed.number())
+				.supplierDocument(Document.cnpj(parsed.supplierCnpj()))
+				.supplierName(parsed.supplierName())
+				.issuedAt(parsed.issuedAt())
+				.items(parsed.items())
+				.totals(parsed.totals())
+				.xmlStorageRef(xmlStorageRef)
+				.build();
 
 		return inboundNfeRepositoryPort.save(inboundNfe);
 	}

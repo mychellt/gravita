@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record ChangeOpportunityStageRequest(@NotNull OpportunityStage newStage) {
 
-	public ChangeOpportunityStageCommand toCommand(UUID opportunityId) {
+	public ChangeOpportunityStageCommand toCommand(final UUID opportunityId) {
 		return new ChangeOpportunityStageCommand(OpportunityId.of(opportunityId), newStage);
 	}
 }

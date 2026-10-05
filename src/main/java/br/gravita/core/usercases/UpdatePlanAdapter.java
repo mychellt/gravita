@@ -14,15 +14,15 @@ public class UpdatePlanAdapter implements UpdatePlanPort {
 	private final PlanRepositoryPort planRepositoryPort;
 	private final PlanCatalog planCatalog;
 
-	public UpdatePlanAdapter(PlanRepositoryPort planRepositoryPort) {
+	public UpdatePlanAdapter(final PlanRepositoryPort planRepositoryPort) {
 		this.planRepositoryPort = planRepositoryPort;
 		this.planCatalog = new PlanCatalog(planRepositoryPort);
 	}
 
 	@Override
 	@Transactional
-	public PlanDomain execute(Context context) {
-		PlanDomain plan = context.getData(PlanDomain.class);
+	public PlanDomain execute(final Context context) {
+		final PlanDomain plan = context.getData(PlanDomain.class);
 		planRepositoryPort.findById(plan.getId())
 				.orElseThrow(() -> new BusinessRuleException("Plan not found: " + plan.getId()));
 		return planCatalog.save(plan);

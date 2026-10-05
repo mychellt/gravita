@@ -23,7 +23,7 @@ public class Payment extends AbstractDomain {
 	@Builder.Default
 	private PaymentStatus status = PaymentStatus.PENDING;
 
-	public static Payment request(BigDecimal amount) {
+	public static Payment request(final BigDecimal amount) {
 		return Payment.builder()
 				.amount(amount)
 				.status(PaymentStatus.PENDING)

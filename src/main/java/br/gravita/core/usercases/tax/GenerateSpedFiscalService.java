@@ -47,18 +47,18 @@ public class GenerateSpedFiscalService implements GenerateSpedFiscalUseCase {
 	private final Clock clock;
 
 	@Autowired
-	public GenerateSpedFiscalService(CompanyRepositoryPort companyRepositoryPort, NfeRepositoryPort nfeRepositoryPort,
-			InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort,
-			GenerateSpedFilePort generateSpedFilePort) {
+	public GenerateSpedFiscalService(final CompanyRepositoryPort companyRepositoryPort, final NfeRepositoryPort nfeRepositoryPort,
+			final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort,
+			final GenerateSpedFilePort generateSpedFilePort) {
 		this(companyRepositoryPort, nfeRepositoryPort, inboundNfeRepositoryPort, voidedNumberRangeRepositoryPort,
 				generateSpedFilePort, Clock.systemDefaultZone());
 	}
 
-	public GenerateSpedFiscalService(CompanyRepositoryPort companyRepositoryPort, NfeRepositoryPort nfeRepositoryPort,
-			InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort,
-			GenerateSpedFilePort generateSpedFilePort, Clock clock) {
+	public GenerateSpedFiscalService(final CompanyRepositoryPort companyRepositoryPort, final NfeRepositoryPort nfeRepositoryPort,
+			final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort,
+			final GenerateSpedFilePort generateSpedFilePort, final Clock clock) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
@@ -68,35 +68,35 @@ public class GenerateSpedFiscalService implements GenerateSpedFiscalUseCase {
 	}
 
 	@Override
-	public SpedFiscalFile execute(GenerateSpedFiscalCommand command) {
-		CompanyId companyId = command.companyId();
-		Company company = companyRepositoryPort.findById(companyId)
+	public SpedFiscalFile execute(final GenerateSpedFiscalCommand command) {
+		final CompanyId companyId = command.companyId();
+		final Company company = companyRepositoryPort.findById(companyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + companyId.value()));
 
-		Period period = command.period();
-		ZoneId zone = clock.getZone();
-		Instant from = period.start().atStartOfDay(zone).toInstant();
-		Instant to = period.end().plusDays(1).atStartOfDay(zone).toInstant();
+		final Period period = command.period();
+		final ZoneId zone = clock.getZone();
+		final Instant from = period.start().atStartOfDay(zone).toInstant();
+		final Instant to = period.end().plusDays(1).atStartOfDay(zone).toInstant();
 
-		List<NfeDocument> issued = nfeRepositoryPort.findAuthorizedOrCancelledByCompanyBetween(companyId, from, to);
-		List<InboundNfe> received = inboundNfeRepositoryPort.findConfirmedByCompanyBetween(companyId, from, to);
-		List<VoidedNumberRange> voided = voidedNumberRangeRepositoryPort
+		final List<NfeDocument> issued = nfeRepositoryPort.findAuthorizedOrCancelledByCompanyBetween(companyId, from, to);
+		final List<InboundNfe> received = inboundNfeRepositoryPort.findConfirmedByCompanyBetween(companyId, from, to);
+		final List<VoidedNumberRange> voided = voidedNumberRangeRepositoryPort
 				.findByCompanyIdAndVoidedAtBetween(companyId, from, to).stream()
 				.filter(range -> range.getDocumentType() == FiscalDocumentType.NFE).toList();
 
-		SpedFiscalRecords records = new SpedFiscalRecords(command, company, zone);
+		final SpedFiscalRecords records = new SpedFiscalRecords(command, company, zone);
 		records.addIssued(issued);
 		records.addReceived(received);
 		records.addVoided(voided);
 
-		SpedValidationReport report = records.report();
+		final SpedValidationReport report = records.report();
 		if (report.hasErrors()) {
 			throw new SpedValidationException(report);
 		}
 		return new SpedFiscalFile(fileName(company, period), generateSpedFilePort.generate(records.layout()), report);
 	}
 
-	private static String fileName(Company company, Period period) {
+	private static String fileName(final Company company, final Period period) {
 		return "SPED-EFD-ICMS-IPI-" + company.getCnpj().number() + "-" + YearMonth.from(period.start()) + ".txt";
 	}
 }

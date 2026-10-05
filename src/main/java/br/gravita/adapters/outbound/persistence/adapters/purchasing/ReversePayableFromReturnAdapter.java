@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 class ReversePayableFromReturnAdapter implements ReversePayableFromReturnPort {
 
 	@Override
-	public void reversePayable(ReversePayableFromReturnCommand command) {
+	public void reversePayable(final ReversePayableFromReturnCommand command) {
 	}
 }

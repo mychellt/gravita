@@ -25,12 +25,12 @@ class CreatePaymentTermAdapterTest {
 	@DisplayName("Supports any number of installments with custom intervals")
 	@Test
 	void shouldSupportAFreeNumberOfInstallmentsWithCustomIntervals() {
-		CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);
-		List<Integer> intervals = List.of(0, 15, 45, 75, 90, 120, 150);
-		PaymentTermDomain command = PaymentTermDomain.builder().name("7x custom").installmentIntervalsDays(intervals).build();
+		final CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);
+		final List<Integer> intervals = List.of(0, 15, 45, 75, 90, 120, 150);
+		final PaymentTermDomain command = PaymentTermDomain.builder().name("7x custom").installmentIntervalsDays(intervals).build();
 		when(paymentTermRepositoryPort.save(command)).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PaymentTermDomain result = adapter.execute(new Context(command));
+		final PaymentTermDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getId()).isNotNull();
 		assertThat(result.getNumberOfInstallments()).isEqualTo(7);
@@ -40,8 +40,8 @@ class CreatePaymentTermAdapterTest {
 	@DisplayName("Rejects a payment term that has no installments")
 	@Test
 	void shouldRejectPaymentTermWithNoInstallments() {
-		CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);
-		PaymentTermDomain command = PaymentTermDomain.builder().name("Invalid").installmentIntervalsDays(List.of()).build();
+		final CreatePaymentTermAdapter adapter = new CreatePaymentTermAdapter(paymentTermRepositoryPort);
+		final PaymentTermDomain command = PaymentTermDomain.builder().name("Invalid").installmentIntervalsDays(List.of()).build();
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))
 				.isInstanceOf(BusinessRuleException.class);

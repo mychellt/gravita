@@ -11,7 +11,7 @@ public record PhysicalCountLine(UUID productId, BigDecimal systemQuantity, BigDe
 		Objects.requireNonNull(systemQuantity, "systemQuantity is required");
 	}
 
-	public PhysicalCountLine(UUID productId, BigDecimal systemQuantity) {
+	public PhysicalCountLine(final UUID productId, final BigDecimal systemQuantity) {
 		this(productId, systemQuantity, null);
 	}
 

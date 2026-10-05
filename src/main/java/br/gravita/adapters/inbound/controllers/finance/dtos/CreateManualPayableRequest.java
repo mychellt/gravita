@@ -20,7 +20,7 @@ public record CreateManualPayableRequest(
 	}
 
 	public CreateManualPayableCommand toCommand() {
-		List<CostCenterShare> split = costCenterSplit == null ? null
+		final List<CostCenterShare> split = costCenterSplit == null ? null
 				: costCenterSplit.stream().map(share -> new CostCenterShare(share.costCenterId(), share.percent()))
 						.toList();
 		return new CreateManualPayableCommand(supplierId, amount, dueDate, split);

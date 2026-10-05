@@ -14,16 +14,16 @@ public record ServiceCode(String value) {
 	private static final Pattern FORMAT = Pattern.compile("^(\\d{1,2})\\.?(\\d{2})$");
 	private static final int MAX_ITEM = 40;
 
-	public static ServiceCode of(String raw) {
+	public static ServiceCode of(final String raw) {
 		if (raw == null || raw.isBlank()) {
 			throw new BusinessRuleException("serviceCode is required");
 		}
-		Matcher matcher = FORMAT.matcher(raw.trim());
+		final Matcher matcher = FORMAT.matcher(raw.trim());
 		if (!matcher.matches()) {
 			throw new BusinessRuleException("serviceCode is not in the LC 116/2003 format (e.g. 01.05): " + raw);
 		}
-		int item = Integer.parseInt(matcher.group(1));
-		int subitem = Integer.parseInt(matcher.group(2));
+		final int item = Integer.parseInt(matcher.group(1));
+		final int subitem = Integer.parseInt(matcher.group(2));
 		if (item < 1 || item > MAX_ITEM || subitem < 1) {
 			throw new BusinessRuleException("serviceCode is not in the LC 116/2003 list: " + raw);
 		}

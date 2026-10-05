@@ -20,8 +20,8 @@ public record ClosePosSessionRequest(List<@Valid CountedAmount> closingCountedAm
 		closingCountedAmounts = closingCountedAmounts == null ? List.of() : List.copyOf(closingCountedAmounts);
 	}
 
-	public ClosePosSessionCommand toCommand(UUID sessionId) {
-		Map<PaymentMethodType, BigDecimal> countedAmounts = closingCountedAmounts.stream()
+	public ClosePosSessionCommand toCommand(final UUID sessionId) {
+		final Map<PaymentMethodType, BigDecimal> countedAmounts = closingCountedAmounts.stream()
 				.collect(Collectors.toMap(CountedAmount::method, CountedAmount::amount));
 		return new ClosePosSessionCommand(sessionId, countedAmounts);
 	}

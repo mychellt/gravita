@@ -17,15 +17,15 @@ class DiscriminationTemplateRepositoryAdapter implements DiscriminationTemplateR
 	private final DiscriminationTemplateJpaRepository jpaRepository;
 	private final DiscriminationTemplatePersistenceMapper mapper;
 
-	DiscriminationTemplateRepositoryAdapter(DiscriminationTemplateJpaRepository jpaRepository,
-			DiscriminationTemplatePersistenceMapper mapper) {
+	DiscriminationTemplateRepositoryAdapter(final DiscriminationTemplateJpaRepository jpaRepository,
+			final DiscriminationTemplatePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public DiscriminationTemplate save(DiscriminationTemplate template) {
-		DiscriminationTemplateJpaEntity entity = jpaRepository.findById(template.getId().value())
+	public DiscriminationTemplate save(final DiscriminationTemplate template) {
+		final DiscriminationTemplateJpaEntity entity = jpaRepository.findById(template.getId().value())
 				.map(existing -> {
 					// Update the managed row so audit columns (created_at) are preserved.
 					existing.setServiceCode(template.getServiceCode().value());
@@ -37,7 +37,7 @@ class DiscriminationTemplateRepositoryAdapter implements DiscriminationTemplateR
 	}
 
 	@Override
-	public Optional<DiscriminationTemplate> findById(DiscriminationTemplateId id) {
+	public Optional<DiscriminationTemplate> findById(final DiscriminationTemplateId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
@@ -47,13 +47,13 @@ class DiscriminationTemplateRepositoryAdapter implements DiscriminationTemplateR
 	}
 
 	@Override
-	public List<DiscriminationTemplate> findByServiceCode(ServiceCode serviceCode) {
+	public List<DiscriminationTemplate> findByServiceCode(final ServiceCode serviceCode) {
 		return jpaRepository.findByServiceCodeOrderByCreatedAtAsc(serviceCode.value()).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public void deleteById(DiscriminationTemplateId id) {
+	public void deleteById(final DiscriminationTemplateId id) {
 		jpaRepository.deleteTemplateById(id.value());
 	}
 }

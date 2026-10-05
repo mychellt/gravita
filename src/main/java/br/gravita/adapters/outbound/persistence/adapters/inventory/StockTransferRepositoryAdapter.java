@@ -15,20 +15,20 @@ class StockTransferRepositoryAdapter implements StockTransferRepositoryPort {
 	private final StockTransferJpaRepository jpaRepository;
 	private final StockTransferPersistenceMapper mapper;
 
-	StockTransferRepositoryAdapter(StockTransferJpaRepository jpaRepository, StockTransferPersistenceMapper mapper) {
+	StockTransferRepositoryAdapter(final StockTransferJpaRepository jpaRepository, final StockTransferPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public StockTransfer save(StockTransfer transfer) {
-		StockTransferJpaEntity entity = mapper.map(transfer);
+	public StockTransfer save(final StockTransfer transfer) {
+		final StockTransferJpaEntity entity = mapper.map(transfer);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public Optional<StockTransfer> findById(StockTransferId id) {
+	public Optional<StockTransfer> findById(final StockTransferId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

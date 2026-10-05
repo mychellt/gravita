@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class CommissionRateNotFoundException extends RuntimeException {
 
-	public CommissionRateNotFoundException(UUID salespersonId, UUID productId) {
+	public CommissionRateNotFoundException(final UUID salespersonId, final UUID productId) {
 		super("No commission rate configured for salesperson " + salespersonId + " and product " + productId);
 	}
 }

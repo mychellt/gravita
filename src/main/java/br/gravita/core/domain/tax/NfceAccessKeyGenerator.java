@@ -24,50 +24,50 @@ public final class NfceAccessKeyGenerator {
 	private NfceAccessKeyGenerator() {
 	}
 
-	public static String generate(String issuerState, String cnpj, String documentSeries, long documentNumber,
-			EmissionType emissionType) {
-		String ufCode = requireUfCode(issuerState);
-		String cnpjDigits = requireCnpj(cnpj);
-		String amCode = YearMonth.now().toString().replace("-", "").substring(2);
-		String serie = zeroPad(documentSeries, 3);
-		String number = zeroPad(Long.toString(documentNumber), 9);
-		String randomCode = zeroPad(Integer.toString(RANDOM.nextInt(100_000_000)), 8);
+	public static String generate(final String issuerState, final String cnpj, final String documentSeries, final long documentNumber,
+			final EmissionType emissionType) {
+		final String ufCode = requireUfCode(issuerState);
+		final String cnpjDigits = requireCnpj(cnpj);
+		final String amCode = YearMonth.now().toString().replace("-", "").substring(2);
+		final String serie = zeroPad(documentSeries, 3);
+		final String number = zeroPad(Long.toString(documentNumber), 9);
+		final String randomCode = zeroPad(Integer.toString(RANDOM.nextInt(100_000_000)), 8);
 
-		String first43 = ufCode + amCode + cnpjDigits + NFCE_MODEL + serie + number + emissionType.code() + randomCode;
+		final String first43 = ufCode + amCode + cnpjDigits + NFCE_MODEL + serie + number + emissionType.code() + randomCode;
 		return first43 + checkDigit(first43);
 	}
 
-	private static String requireUfCode(String issuerState) {
-		String code = issuerState == null ? null : UF_CODES.get(issuerState.trim().toUpperCase());
+	private static String requireUfCode(final String issuerState) {
+		final String code = issuerState == null ? null : UF_CODES.get(issuerState.trim().toUpperCase());
 		if (code == null) {
 			throw new BusinessRuleException("Unknown issuer state (UF): " + issuerState);
 		}
 		return code;
 	}
 
-	private static String requireCnpj(String cnpj) {
+	private static String requireCnpj(final String cnpj) {
 		if (cnpj == null || !CNPJ_DIGITS.matcher(cnpj).matches()) {
 			throw new BusinessRuleException("CNPJ must be 14 digits: " + cnpj);
 		}
 		return cnpj;
 	}
 
-	private static String zeroPad(String value, int length) {
+	private static String zeroPad(final String value, final int length) {
 		if (value.length() > length) {
 			throw new BusinessRuleException("Value " + value + " exceeds " + length + " digits");
 		}
 		return "0".repeat(length - value.length()) + value;
 	}
 
-	private static char checkDigit(String digits) {
+	private static char checkDigit(final String digits) {
 		int sum = 0;
 		int weight = 2;
 		for (int i = digits.length() - 1; i >= 0; i--) {
 			sum += (digits.charAt(i) - '0') * weight;
 			weight = weight == 9 ? 2 : weight + 1;
 		}
-		int remainder = sum % 11;
-		int dv = remainder < 2 ? 0 : 11 - remainder;
+		final int remainder = sum % 11;
+		final int dv = remainder < 2 ? 0 : 11 - remainder;
 		return Character.forDigit(dv, 10);
 	}
 
@@ -77,7 +77,7 @@ public final class NfceAccessKeyGenerator {
 
 		private final String code;
 
-		EmissionType(String code) {
+		EmissionType(final String code) {
 			this.code = code;
 		}
 

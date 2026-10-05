@@ -17,32 +17,32 @@ public class ReleaseStockReservationService implements ReleaseStockReservationUs
 	private final StockBalanceRepositoryPort stockBalanceRepositoryPort;
 	private final StockReservationRepositoryPort stockReservationRepositoryPort;
 
-	public ReleaseStockReservationService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockReservationRepositoryPort stockReservationRepositoryPort) {
+	public ReleaseStockReservationService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockReservationRepositoryPort stockReservationRepositoryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockReservationRepositoryPort = stockReservationRepositoryPort;
 	}
 
 	@Override
-	public void execute(ReleaseStockReservationCommand command) {
-		for (StockReservation reservation : resolveReservations(command)) {
+	public void execute(final ReleaseStockReservationCommand command) {
+		for (final StockReservation reservation : resolveReservations(command)) {
 			release(reservation);
 		}
 	}
 
-	private List<StockReservation> resolveReservations(ReleaseStockReservationCommand command) {
+	private List<StockReservation> resolveReservations(final ReleaseStockReservationCommand command) {
 		if (command.reservationId() != null) {
-			StockReservationId id = StockReservationId.of(command.reservationId());
+			final StockReservationId id = StockReservationId.of(command.reservationId());
 			return List.of(stockReservationRepositoryPort.findById(id)
 					.orElseThrow(() -> new ResourceNotFoundException("Stock reservation not found: " + id.value())));
 		}
 		return stockReservationRepositoryPort.findActiveByOrderRef(command.orderRef());
 	}
 
-	private void release(StockReservation reservation) {
-		StockReservation released = reservation.release();
+	private void release(final StockReservation reservation) {
+		final StockReservation released = reservation.release();
 
-		StockBalance balance = stockBalanceRepositoryPort
+		final StockBalance balance = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(reservation.getProductId(), reservation.getWarehouseId())
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Stock balance not found for product " + reservation.getProductId() + " and warehouse "

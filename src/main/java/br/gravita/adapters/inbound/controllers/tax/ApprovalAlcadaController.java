@@ -19,19 +19,19 @@ public class ApprovalAlcadaController {
 
 	private final ConfigureApprovalAlcadaUseCase configureApprovalAlcadaUseCase;
 
-	public ApprovalAlcadaController(ConfigureApprovalAlcadaUseCase configureApprovalAlcadaUseCase) {
+	public ApprovalAlcadaController(final ConfigureApprovalAlcadaUseCase configureApprovalAlcadaUseCase) {
 		this.configureApprovalAlcadaUseCase = configureApprovalAlcadaUseCase;
 	}
 
 	@PutMapping("/{module}")
-	public ResponseEntity<Void> configure(@PathVariable("module") String module,
-			@Valid @RequestBody ConfigureApprovalAlcadaRequest request) {
+	public ResponseEntity<Void> configure(@PathVariable("module") final String module,
+			@Valid @RequestBody final ConfigureApprovalAlcadaRequest request) {
 		configureApprovalAlcadaUseCase.execute(request.toCommand(module));
 		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

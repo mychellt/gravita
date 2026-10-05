@@ -20,8 +20,8 @@ public final class PriceTable {
 	private final MaxDiscountBehavior maxDiscountBehavior;
 	private final List<PriceTableEntry> entries;
 
-	public PriceTable(PriceTableId id, PriceFormation formation, LocalDate validFrom, LocalDate validTo,
-			BigDecimal maxDiscountPercent, MaxDiscountBehavior maxDiscountBehavior, List<PriceTableEntry> entries) {
+	public PriceTable(final PriceTableId id, final PriceFormation formation, final LocalDate validFrom, final LocalDate validTo,
+			final BigDecimal maxDiscountPercent, final MaxDiscountBehavior maxDiscountBehavior, final List<PriceTableEntry> entries) {
 		this.id = Objects.requireNonNull(id, "PriceTableId is required");
 		this.formation = Objects.requireNonNull(formation, "Price formation is required");
 		this.validFrom = Objects.requireNonNull(validFrom, "validFrom is required");
@@ -31,12 +31,12 @@ public final class PriceTable {
 		this.entries = requireValidEntries(formation, entries);
 	}
 
-	public static PriceTable of(PriceTableId id, PriceFormation formation, LocalDate validFrom, LocalDate validTo,
-			BigDecimal maxDiscountPercent, MaxDiscountBehavior maxDiscountBehavior, List<PriceTableEntry> entries) {
+	public static PriceTable of(final PriceTableId id, final PriceFormation formation, final LocalDate validFrom, final LocalDate validTo,
+			final BigDecimal maxDiscountPercent, final MaxDiscountBehavior maxDiscountBehavior, final List<PriceTableEntry> entries) {
 		return new PriceTable(id, formation, validFrom, validTo, maxDiscountPercent, maxDiscountBehavior, entries);
 	}
 
-	public boolean isActive(LocalDate referenceDate) {
+	public boolean isActive(final LocalDate referenceDate) {
 		Objects.requireNonNull(referenceDate, "referenceDate is required");
 		if (referenceDate.isBefore(validFrom)) {
 			return false;
@@ -44,8 +44,8 @@ public final class PriceTable {
 		return validTo == null || !referenceDate.isAfter(validTo);
 	}
 
-	public BigDecimal resolvePrice(ProductOrClassRef ref, BigDecimal productAverageCost, BigDecimal productBasePrice) {
-		PriceTableEntry entry = findEntry(ref);
+	public BigDecimal resolvePrice(final ProductOrClassRef ref, final BigDecimal productAverageCost, final BigDecimal productBasePrice) {
+		final PriceTableEntry entry = findEntry(ref);
 		return switch (formation) {
 			case FIXED -> entry.value();
 			case PERCENT_OVER_COST -> applyPercent(requireProductValue(productAverageCost, "average cost"), entry.value());
@@ -53,7 +53,7 @@ public final class PriceTable {
 		};
 	}
 
-	public DiscountCheckResult evaluateDiscount(BigDecimal requestedDiscountPercent) {
+	public DiscountCheckResult evaluateDiscount(final BigDecimal requestedDiscountPercent) {
 		Objects.requireNonNull(requestedDiscountPercent, "requestedDiscountPercent is required");
 		if (maxDiscountPercent == null || requestedDiscountPercent.compareTo(maxDiscountPercent) <= 0) {
 			return DiscountCheckResult.ALLOWED;
@@ -65,33 +65,33 @@ public final class PriceTable {
 		return DiscountCheckResult.ALERT;
 	}
 
-	private PriceTableEntry findEntry(ProductOrClassRef ref) {
+	private PriceTableEntry findEntry(final ProductOrClassRef ref) {
 		return entries.stream()
 				.filter(entry -> entry.ref().equals(ref))
 				.findFirst()
 				.orElseThrow(() -> new BusinessRuleException("No price table entry for reference: " + ref));
 	}
 
-	private static BigDecimal applyPercent(BigDecimal base, BigDecimal percent) {
-		BigDecimal factor = BigDecimal.ONE.add(percent.divide(BigDecimal.valueOf(100)));
+	private static BigDecimal applyPercent(final BigDecimal base, final BigDecimal percent) {
+		final BigDecimal factor = BigDecimal.ONE.add(percent.divide(BigDecimal.valueOf(100)));
 		return base.multiply(factor);
 	}
 
-	private static BigDecimal requireProductValue(BigDecimal value, String fieldName) {
+	private static BigDecimal requireProductValue(final BigDecimal value, final String fieldName) {
 		if (value == null) {
 			throw new BusinessRuleException("Product " + fieldName + " is required to resolve this price table's entries");
 		}
 		return value;
 	}
 
-	private static LocalDate requireValidToNotBeforeValidFrom(LocalDate validFrom, LocalDate validTo) {
+	private static LocalDate requireValidToNotBeforeValidFrom(final LocalDate validFrom, final LocalDate validTo) {
 		if (validTo != null && validTo.isBefore(validFrom)) {
 			throw new BusinessRuleException("validTo cannot be before validFrom");
 		}
 		return validTo;
 	}
 
-	private static BigDecimal requireValidMaxDiscountPercent(BigDecimal maxDiscountPercent) {
+	private static BigDecimal requireValidMaxDiscountPercent(final BigDecimal maxDiscountPercent) {
 		if (maxDiscountPercent == null) {
 			return null;
 		}
@@ -101,18 +101,18 @@ public final class PriceTable {
 		return maxDiscountPercent;
 	}
 
-	private static MaxDiscountBehavior requireConsistentMaxDiscountBehavior(BigDecimal maxDiscountPercent,
-			MaxDiscountBehavior maxDiscountBehavior) {
+	private static MaxDiscountBehavior requireConsistentMaxDiscountBehavior(final BigDecimal maxDiscountPercent,
+			final MaxDiscountBehavior maxDiscountBehavior) {
 		if ((maxDiscountPercent == null) != (maxDiscountBehavior == null)) {
 			throw new BusinessRuleException("maxDiscountPercent and maxDiscountBehavior must be set together");
 		}
 		return maxDiscountBehavior;
 	}
 
-	private static List<PriceTableEntry> requireValidEntries(PriceFormation formation, List<PriceTableEntry> entries) {
-		List<PriceTableEntry> copy = entries == null ? List.of() : List.copyOf(entries);
-		Set<ProductOrClassRef> seenRefs = new HashSet<>();
-		for (PriceTableEntry entry : copy) {
+	private static List<PriceTableEntry> requireValidEntries(final PriceFormation formation, final List<PriceTableEntry> entries) {
+		final List<PriceTableEntry> copy = entries == null ? List.of() : List.copyOf(entries);
+		final Set<ProductOrClassRef> seenRefs = new HashSet<>();
+		for (final PriceTableEntry entry : copy) {
 			if (!seenRefs.add(entry.ref())) {
 				throw new BusinessRuleException("Duplicate price table entry for reference: " + entry.ref());
 			}
@@ -121,8 +121,8 @@ public final class PriceTable {
 		return copy;
 	}
 
-	private static void validateEntryValue(PriceFormation formation, PriceTableEntry entry) {
-		BigDecimal value = entry.value();
+	private static void validateEntryValue(final PriceFormation formation, final PriceTableEntry entry) {
+		final BigDecimal value = entry.value();
 		if (formation == PriceFormation.FIXED) {
 			if (value.compareTo(BigDecimal.ZERO) <= 0) {
 				throw new BusinessRuleException("A FIXED price table entry value must be positive: " + value);

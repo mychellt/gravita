@@ -35,22 +35,22 @@ class GuidedManualUploadAdapter implements GenerateGuidedManualUploadPort {
 
 	private final CompanyRepositoryPort companyRepositoryPort;
 
-	GuidedManualUploadAdapter(CompanyRepositoryPort companyRepositoryPort) {
+	GuidedManualUploadAdapter(final CompanyRepositoryPort companyRepositoryPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 	}
 
 	@Override
-	public NfseTransmissionResult.GuidedManualUpload generate(NfseDocument document,
-			MunicipalityIntegration integration) {
-		Company provider = companyRepositoryPort.findById(document.getProviderCompanyId())
+	public NfseTransmissionResult.GuidedManualUpload generate(final NfseDocument document,
+			final MunicipalityIntegration integration) {
+		final Company provider = companyRepositoryPort.findById(document.getProviderCompanyId())
 				.orElseThrow(() -> new BusinessRuleException(
 						"Provider company not found: " + document.getProviderCompanyId().value()));
 		return new NfseTransmissionResult.GuidedManualUpload(renderXml(document, provider),
 				instructions(document, integration));
 	}
 
-	private static String renderXml(NfseDocument document, Company provider) {
-		StringBuilder xml = new StringBuilder();
+	private static String renderXml(final NfseDocument document, final Company provider) {
+		final StringBuilder xml = new StringBuilder();
 		xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		xml.append("<GerarNfseEnvio xmlns=\"http://www.abrasf.org.br/nfse.xsd\">");
 		xml.append("<Rps><InfDeclaracaoPrestacaoServico Id=\"rps").append(document.getRpsNumber()).append("\">");
@@ -93,12 +93,12 @@ class GuidedManualUploadAdapter implements GenerateGuidedManualUploadPort {
 		return xml.toString();
 	}
 
-	private static void renderTomador(StringBuilder xml, NfseTomador tomador) {
+	private static void renderTomador(final StringBuilder xml, final NfseTomador tomador) {
 		xml.append("<TomadorServico><IdentificacaoTomador><CpfCnpj>");
 		element(xml, tomador.isCompany() ? "Cnpj" : "Cpf", tomador.document().number());
 		xml.append("</CpfCnpj></IdentificacaoTomador>");
 		element(xml, "RazaoSocial", tomador.name());
-		TomadorAddress address = tomador.address();
+		final TomadorAddress address = tomador.address();
 		if (address != null) {
 			xml.append("<Endereco>");
 			element(xml, "Endereco", address.street());
@@ -117,12 +117,12 @@ class GuidedManualUploadAdapter implements GenerateGuidedManualUploadPort {
 		xml.append("</TomadorServico>");
 	}
 
-	private static boolean isIssWithheld(NfseDocument document) {
+	private static boolean isIssWithheld(final NfseDocument document) {
 		return document.getWithholdings().stream().map(NfseWithholding::taxType).anyMatch(TaxType.ISS::equals);
 	}
 
-	private static String instructions(NfseDocument document, MunicipalityIntegration integration) {
-		StringBuilder text = new StringBuilder();
+	private static String instructions(final NfseDocument document, final MunicipalityIntegration integration) {
+		final StringBuilder text = new StringBuilder();
 		text.append("Municipality ").append(integration.getIbgeCode())
 				.append(" has no homologated NFSe integration, so this NFSe was not transmitted automatically. ")
 				.append("Issue it manually on the municipality's own portal:\n");
@@ -144,15 +144,15 @@ class GuidedManualUploadAdapter implements GenerateGuidedManualUploadPort {
 		return text.toString();
 	}
 
-	private static void element(StringBuilder xml, String name, String value) {
+	private static void element(final StringBuilder xml, final String name, final String value) {
 		xml.append('<').append(name).append('>').append(escape(value)).append("</").append(name).append('>');
 	}
 
-	private static String money(BigDecimal value) {
+	private static String money(final BigDecimal value) {
 		return value.setScale(2, RoundingMode.HALF_UP).toPlainString();
 	}
 
-	private static String escape(String value) {
+	private static String escape(final String value) {
 		if (value == null) {
 			return "";
 		}

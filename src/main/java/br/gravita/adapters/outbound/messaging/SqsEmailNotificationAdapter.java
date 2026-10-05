@@ -16,24 +16,24 @@ public class SqsEmailNotificationAdapter implements EmailNotificationPort {
     private final ObjectMapper objectMapper;
     private final String queueUrl;
 
-    public SqsEmailNotificationAdapter(SqsClient sqsClient, ObjectMapper objectMapper,
-                                       @Value("${aws.sqs.email-queue-url}") String queueUrl) {
+    public SqsEmailNotificationAdapter(final SqsClient sqsClient, final ObjectMapper objectMapper,
+                                       @Value("${aws.sqs.email-queue-url}") final String queueUrl) {
         this.sqsClient = sqsClient;
         this.objectMapper = objectMapper;
         this.queueUrl = queueUrl;
     }
 
     @Override
-    public void send(String to, String subject, String body) {
+    public void send(final String to, final String subject, final String body) {
         publish(Map.of("to", to, "subject", subject, "body", body));
     }
 
     @Override
-    public void sendHtml(String to, String subject, String htmlBody, String plainTextBody) {
+    public void sendHtml(final String to, final String subject, final String htmlBody, final String plainTextBody) {
         publish(Map.of("to", to, "subject", subject, "body", plainTextBody, "htmlBody", htmlBody));
     }
 
-    private void publish(Map<String, String> message) {
+    private void publish(final Map<String, String> message) {
         sqsClient.sendMessage(SendMessageRequest.builder()
                 .queueUrl(queueUrl)
                 .messageBody(objectMapper.writeValueAsString(message))

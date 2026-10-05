@@ -17,25 +17,25 @@ class RenegotiationRepositoryAdapter implements RenegotiationRepositoryPort {
 	private final RenegotiationJpaRepository jpaRepository;
 	private final RenegotiationPersistenceMapper mapper;
 
-	RenegotiationRepositoryAdapter(RenegotiationJpaRepository jpaRepository, RenegotiationPersistenceMapper mapper) {
+	RenegotiationRepositoryAdapter(final RenegotiationJpaRepository jpaRepository, final RenegotiationPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Renegotiation save(Renegotiation renegotiation) {
-		RenegotiationJpaEntity entity = mapper.map(renegotiation);
+	public Renegotiation save(final Renegotiation renegotiation) {
+		final RenegotiationJpaEntity entity = mapper.map(renegotiation);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public Optional<Renegotiation> findByOriginalReceivableId(ReceivableId receivableId) {
+	public Optional<Renegotiation> findByOriginalReceivableId(final ReceivableId receivableId) {
 		return jpaRepository.findByOriginalReceivableId(receivableId.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<Renegotiation> findByCustomerId(UUID customerId) {
+	public List<Renegotiation> findByCustomerId(final UUID customerId) {
 		return jpaRepository.findByCustomerIdOrderByRenegotiatedAtAsc(customerId).stream().map(mapper::map)
 				.toList();
 	}

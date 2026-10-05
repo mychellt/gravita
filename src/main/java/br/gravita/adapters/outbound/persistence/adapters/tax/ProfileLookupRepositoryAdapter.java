@@ -14,17 +14,17 @@ class ProfileLookupRepositoryAdapter implements ProfileRepositoryPort {
 
 	private final ProfileLookupJpaRepository jpaRepository;
 
-	ProfileLookupRepositoryAdapter(ProfileLookupJpaRepository jpaRepository) {
+	ProfileLookupRepositoryAdapter(final ProfileLookupJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public Optional<ProfileReference> findById(UUID profileId) {
+	public Optional<ProfileReference> findById(final UUID profileId) {
 		return jpaRepository.findById(profileId).map(entity -> new ProfileReference(entity.getId(), entity.getName()));
 	}
 
 	@Override
-	public Optional<ProfileReference> findByName(String name) {
+	public Optional<ProfileReference> findByName(final String name) {
 		return jpaRepository.findByName(name).map(entity -> new ProfileReference(entity.getId(), entity.getName()));
 	}
 

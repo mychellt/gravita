@@ -13,13 +13,13 @@ public class ListOpportunitiesService implements ListOpportunitiesUseCase {
 
 	private final OpportunityRepositoryPort opportunityRepositoryPort;
 
-	public ListOpportunitiesService(OpportunityRepositoryPort opportunityRepositoryPort) {
+	public ListOpportunitiesService(final OpportunityRepositoryPort opportunityRepositoryPort) {
 		this.opportunityRepositoryPort = opportunityRepositoryPort;
 	}
 
 	@Override
-	public List<OpportunityView> execute(ListOpportunitiesQuery query) {
-		List<Opportunity> opportunities = query.stage() == null
+	public List<OpportunityView> execute(final ListOpportunitiesQuery query) {
+		final List<Opportunity> opportunities = query.stage() == null
 				? opportunityRepositoryPort.findAll()
 				: opportunityRepositoryPort.findByStage(query.stage());
 		return opportunities.stream().map(OpportunityView::from).toList();

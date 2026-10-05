@@ -14,12 +14,12 @@ class RegisterSalesReturnStockEntryAdapter implements RegisterStockEntryPort {
 
 	private final RegisterStockEntryUseCase registerStockEntryUseCase;
 
-	RegisterSalesReturnStockEntryAdapter(RegisterStockEntryUseCase registerStockEntryUseCase) {
+	RegisterSalesReturnStockEntryAdapter(final RegisterStockEntryUseCase registerStockEntryUseCase) {
 		this.registerStockEntryUseCase = registerStockEntryUseCase;
 	}
 
 	@Override
-	public void registerEntry(RegisterStockEntryCommand command) {
+	public void registerEntry(final RegisterStockEntryCommand command) {
 		registerStockEntryUseCase.execute(new br.gravita.core.ports.inbound.inventory.RegisterStockEntryCommand(
 				command.productOrServiceId(), DEFAULT_WAREHOUSE_ID, command.quantity(), command.unitCost(), null,
 				List.of(), "SALES_RETURN:" + command.sourceSalesReturnId(), SYSTEM_ACTOR_ID));

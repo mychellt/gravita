@@ -19,31 +19,31 @@ class PixChargeRepositoryAdapter implements PixChargeRepositoryPort {
 	private final PixChargeJpaRepository jpaRepository;
 	private final PixChargePersistenceMapper mapper;
 
-	PixChargeRepositoryAdapter(PixChargeJpaRepository jpaRepository, PixChargePersistenceMapper mapper) {
+	PixChargeRepositoryAdapter(final PixChargeJpaRepository jpaRepository, final PixChargePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PixCharge save(PixCharge pixCharge) {
-		PixChargeJpaEntity entity = mapper.map(pixCharge);
+	public PixCharge save(final PixCharge pixCharge) {
+		final PixChargeJpaEntity entity = mapper.map(pixCharge);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public Optional<PixCharge> findById(PixChargeId id) {
+	public Optional<PixCharge> findById(final PixChargeId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<PixCharge> findByReceivableId(ReceivableId receivableId) {
+	public List<PixCharge> findByReceivableId(final ReceivableId receivableId) {
 		return jpaRepository.findByReceivableIdOrderByCreatedAt(receivableId.value()).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public List<PixCharge> findPendingExpiredBefore(Instant now) {
+	public List<PixCharge> findPendingExpiredBefore(final Instant now) {
 		return jpaRepository.findByStatusAndExpiresAtBefore(PixChargeStatus.PENDING, now).stream()
 				.map(mapper::map).toList();
 	}

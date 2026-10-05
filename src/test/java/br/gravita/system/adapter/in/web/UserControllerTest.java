@@ -77,9 +77,9 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 201 with a Location header when user registration succeeds")
 	void shouldReturn201WithLocationWhenRegistrationSucceeds() throws Exception {
-		UUID profileId = UUID.randomUUID();
-		UserId createdId = UserId.generate();
-		RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", profileId);
+		final UUID profileId = UUID.randomUUID();
+		final UserId createdId = UserId.generate();
+		final RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", profileId);
 		when(registerUserUseCase.execute(any())).thenReturn(createdId);
 
 		mockMvc.perform(post("/api/users")
@@ -89,7 +89,7 @@ class UserControllerTest {
 				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.id").value(createdId.value().toString()));
 
-		ArgumentCaptor<RegisterUserCommand> captor = ArgumentCaptor.forClass(RegisterUserCommand.class);
+		final ArgumentCaptor<RegisterUserCommand> captor = ArgumentCaptor.forClass(RegisterUserCommand.class);
 		verify(registerUserUseCase).execute(captor.capture());
 		assertThat(captor.getValue().name()).isEqualTo("Jane Doe");
 		assertThat(captor.getValue().email()).isEqualTo("jane@example.com");
@@ -101,16 +101,16 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Ignores a client-supplied companyId on registration and uses the caller's session")
 	void shouldIgnoreClientSuppliedCompanyIdOnRegistration() throws Exception {
-		UUID profileId = UUID.randomUUID();
+		final UUID profileId = UUID.randomUUID();
 		when(registerUserUseCase.execute(any())).thenReturn(UserId.generate());
-		String body = """
+		final String body = """
 				{"name":"Jane Doe","email":"jane@example.com","password":"s3cret!","profileId":"%s","companyId":"%s"}"""
 				.formatted(profileId, UUID.randomUUID());
 
 		mockMvc.perform(post("/api/users").header("Authorization", BEARER).contentType("application/json").content(body))
 				.andExpect(status().isCreated());
 
-		ArgumentCaptor<RegisterUserCommand> captor = ArgumentCaptor.forClass(RegisterUserCommand.class);
+		final ArgumentCaptor<RegisterUserCommand> captor = ArgumentCaptor.forClass(RegisterUserCommand.class);
 		verify(registerUserUseCase).execute(captor.capture());
 		assertThat(captor.getValue().callerId()).isEqualTo(callerId);
 	}
@@ -118,7 +118,7 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 401 when registering a user without a session")
 	void shouldReturn401WhenRegisteringWithoutSession() throws Exception {
-		RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
+		final RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
 
 		mockMvc.perform(post("/api/users").contentType("application/json").content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isUnauthorized());
@@ -129,8 +129,8 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Lists the users of the caller's company")
 	void shouldListTheUsersOfTheCallersCompany() throws Exception {
-		UUID userId = UUID.randomUUID();
-		UUID profileId = UUID.randomUUID();
+		final UUID userId = UUID.randomUUID();
+		final UUID profileId = UUID.randomUUID();
 		when(listUsersUseCase.execute(callerId)).thenReturn(List.of(
 				new UserSummary(userId, "Jane Doe", "jane@example.com", profileId, "Salesperson", false, UserStatus.ACTIVE)));
 
@@ -170,7 +170,7 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the email is blank")
 	void shouldReturn400WhenEmailIsBlank() throws Exception {
-		String body = objectMapper.writeValueAsString(
+		final String body = objectMapper.writeValueAsString(
 				new RegisterUserRequest("Jane Doe", " ", "s3cret!", UUID.randomUUID()));
 
 		mockMvc.perform(post("/api/users").header("Authorization", BEARER).contentType("application/json").content(body))
@@ -180,7 +180,7 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the profile is unknown")
 	void shouldReturn400WhenProfileIsUnknown() throws Exception {
-		RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
+		final RegisterUserRequest request = new RegisterUserRequest("Jane Doe", "jane@example.com", "s3cret!", UUID.randomUUID());
 		doThrow(new UnknownProfileException(request.profileId())).when(registerUserUseCase).execute(any());
 
 		mockMvc.perform(post("/api/users")
@@ -194,16 +194,16 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 204 when the user update succeeds")
 	void shouldReturn204WhenUpdateSucceeds() throws Exception {
-		UUID userId = UUID.randomUUID();
-		UUID profileId = UUID.randomUUID();
-		UpdateUserRequest request = new UpdateUserRequest("Jane Roe", "jane.roe@example.com", profileId, UserStatus.INACTIVE);
+		final UUID userId = UUID.randomUUID();
+		final UUID profileId = UUID.randomUUID();
+		final UpdateUserRequest request = new UpdateUserRequest("Jane Roe", "jane.roe@example.com", profileId, UserStatus.INACTIVE);
 
 		mockMvc.perform(patch("/api/users/{id}", userId)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isNoContent());
 
-		ArgumentCaptor<UpdateUserCommand> captor = ArgumentCaptor.forClass(UpdateUserCommand.class);
+		final ArgumentCaptor<UpdateUserCommand> captor = ArgumentCaptor.forClass(UpdateUserCommand.class);
 		verify(updateUserUseCase).execute(captor.capture());
 		assertThat(captor.getValue().userId()).isEqualTo(userId);
 		assertThat(captor.getValue().name()).isEqualTo("Jane Roe");
@@ -215,8 +215,8 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 404 when the user to update is unknown")
 	void shouldReturn404WhenUserIsUnknown() throws Exception {
-		UUID userId = UUID.randomUUID();
-		UpdateUserRequest request = new UpdateUserRequest("Jane Roe", null, null, null);
+		final UUID userId = UUID.randomUUID();
+		final UpdateUserRequest request = new UpdateUserRequest("Jane Roe", null, null, null);
 		doThrow(new UserNotFoundException(userId)).when(updateUserUseCase).execute(any());
 
 		mockMvc.perform(patch("/api/users/{id}", userId)
@@ -229,8 +229,8 @@ class UserControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the updated email is invalid")
 	void shouldReturn400WhenUpdateEmailIsInvalid() throws Exception {
-		UUID userId = UUID.randomUUID();
-		String body = objectMapper.writeValueAsString(new UpdateUserRequest(null, "not-an-email", null, null));
+		final UUID userId = UUID.randomUUID();
+		final String body = objectMapper.writeValueAsString(new UpdateUserRequest(null, "not-an-email", null, null));
 
 		mockMvc.perform(patch("/api/users/{id}", userId).contentType("application/json").content(body))
 				.andExpect(status().isBadRequest());

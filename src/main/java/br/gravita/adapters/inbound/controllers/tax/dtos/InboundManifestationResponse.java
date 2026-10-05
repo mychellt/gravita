@@ -7,7 +7,7 @@ import java.util.UUID;
 public record InboundManifestationResponse(UUID id, String accessKey, String type, String sefazProtocol,
 		Instant manifestedAt) {
 
-	public static InboundManifestationResponse from(InboundManifestation manifestation) {
+	public static InboundManifestationResponse from(final InboundManifestation manifestation) {
 		return new InboundManifestationResponse(
 				manifestation.getId().value(),
 				manifestation.getAccessKey(),

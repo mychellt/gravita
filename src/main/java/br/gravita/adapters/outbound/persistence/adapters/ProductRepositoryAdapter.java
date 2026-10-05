@@ -17,21 +17,21 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 	private final ProductJpaRepository jpaRepository;
 	private final ProductPersistenceMapper mapper;
 
-	ProductRepositoryAdapter(ProductJpaRepository jpaRepository, ProductPersistenceMapper mapper) {
+	ProductRepositoryAdapter(final ProductJpaRepository jpaRepository, final ProductPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public ProductDomain save(ProductDomain product) {
-		ProductJpaEntity entity = mapper.map(product);
+	public ProductDomain save(final ProductDomain product) {
+		final ProductJpaEntity entity = mapper.map(product);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		ProductJpaEntity saved = jpaRepository.save(entity);
+		final ProductJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<ProductDomain> get(UUID id) {
+	public Optional<ProductDomain> get(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
@@ -41,7 +41,7 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 	}
 
 	@Override
-	public boolean existsByBarcode(String barcode) {
+	public boolean existsByBarcode(final String barcode) {
 		return jpaRepository.existsByBarcodesContaining(barcode);
 	}
 }

@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record PaymentMethodRequest(@NotBlank String name, @NotNull PaymentMethodType type) {
 
-	public PaymentMethodDomain toDomain(UUID id) {
+	public PaymentMethodDomain toDomain(final UUID id) {
 		return PaymentMethodDomain.builder()
 				.id(id)
 				.name(name)

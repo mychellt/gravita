@@ -20,7 +20,7 @@ public class BrasilApiCnpjLookupAdapter implements CnpjLookupPort {
 
     private final RestClient restClient;
 
-    public BrasilApiCnpjLookupAdapter(@Qualifier("cnpjLookupRestClient") RestClient restClient) {
+    public BrasilApiCnpjLookupAdapter(@Qualifier("cnpjLookupRestClient") final RestClient restClient) {
         this.restClient = restClient;
     }
 
@@ -33,7 +33,7 @@ public class BrasilApiCnpjLookupAdapter implements CnpjLookupPort {
                     .retrieve()
                     .body(BrasilApiCnpjResponse.class);
             return ofNullable(response).map(BrasilApiCnpjResponse::getDomain);
-        } catch (RestClientException e) {
+        } catch (final RestClientException e) {
             log.warn("CNPJ lookup failed for {}: {}", cnpj.formatted(), e.getMessage());
             return Optional.empty();
         }

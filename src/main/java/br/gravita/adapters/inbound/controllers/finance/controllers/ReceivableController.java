@@ -57,60 +57,60 @@ public class ReceivableController {
 	private final SettleTitleManuallyUseCase settleTitleManuallyUseCase;
 
 	@PostMapping
-	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody CreateManualReceivableRequest request) {
-		Receivable created = createManualReceivableUseCase.execute(request.toCommand());
+	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody final CreateManualReceivableRequest request) {
+		final Receivable created = createManualReceivableUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/finance/receivables/" + created.getId().value()))
 				.body(ReceivableResponse.from(created));
 	}
 
 	@GetMapping("/aging")
-	public ResponseEntity<AgingReportResponse> aging(@RequestParam(required = false) UUID customerId,
-			@RequestParam(required = false) UUID costCenterId,
-			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate asOfDate) {
+	public ResponseEntity<AgingReportResponse> aging(@RequestParam(required = false) final UUID customerId,
+			@RequestParam(required = false) final UUID costCenterId,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) final LocalDate asOfDate) {
 		return ResponseEntity.ok(AgingReportResponse
 				.from(getAgingListUseCase.execute(new GetAgingListQuery(customerId, costCenterId, asOfDate))));
 	}
 
 	@PostMapping("/{id}/boleto")
-	public ResponseEntity<BoletoResponse> generateBoleto(@PathVariable UUID id,
-			@Valid @RequestBody GenerateBoletoRequest request) {
-		Boleto boleto = generateBoletoUseCase.execute(request.toCommand(id));
+	public ResponseEntity<BoletoResponse> generateBoleto(@PathVariable final UUID id,
+			@Valid @RequestBody final GenerateBoletoRequest request) {
+		final Boleto boleto = generateBoletoUseCase.execute(request.toCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(BoletoResponse.from(boleto));
 	}
 
 	@PostMapping("/{id}/pix-charge")
-	public ResponseEntity<PixChargeResponse> generatePixCharge(@PathVariable UUID id) {
-		PixCharge pixCharge = generatePixChargeUseCase.execute(new GeneratePixChargeCommand(id));
+	public ResponseEntity<PixChargeResponse> generatePixCharge(@PathVariable final UUID id) {
+		final PixCharge pixCharge = generatePixChargeUseCase.execute(new GeneratePixChargeCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(PixChargeResponse.from(pixCharge));
 	}
 
 	@PostMapping("/{id}/renegotiate")
-	public ResponseEntity<RenegotiationResponse> renegotiate(@PathVariable UUID id,
-			@Valid @RequestBody RenegotiateTitleRequest request) {
-		Renegotiation renegotiation = renegotiateTitleUseCase.execute(request.toCommand(id));
+	public ResponseEntity<RenegotiationResponse> renegotiate(@PathVariable final UUID id,
+			@Valid @RequestBody final RenegotiateTitleRequest request) {
+		final Renegotiation renegotiation = renegotiateTitleUseCase.execute(request.toCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(RenegotiationResponse.from(renegotiation));
 	}
 
 	@PostMapping("/{id}/settle")
-	public ResponseEntity<SettlementResponse> settle(@PathVariable UUID id,
-			@Valid @RequestBody SettleTitleRequest request) {
-		Settlement settlement = settleTitleManuallyUseCase.execute(request.toCommand(id));
+	public ResponseEntity<SettlementResponse> settle(@PathVariable final UUID id,
+			@Valid @RequestBody final SettleTitleRequest request) {
+		final Settlement settlement = settleTitleManuallyUseCase.execute(request.toCommand(id));
 		return ResponseEntity.status(HttpStatus.CREATED).body(SettlementResponse.from(settlement));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(final ResourceNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BankIntegrationUnavailableException.class)
 	public ResponseEntity<Map<String, String>> handleBankIntegrationUnavailableException(
-			BankIntegrationUnavailableException exception) {
+			final BankIntegrationUnavailableException exception) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
 	}
 }

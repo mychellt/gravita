@@ -16,14 +16,14 @@ public class ImportDailyBankReturnService implements ImportDailyBankReturnUseCas
 	private final BankIntegrationPort bankIntegrationPort;
 	private final ImportBankReturnUseCase importBankReturnUseCase;
 
-	public ImportDailyBankReturnService(BankIntegrationPort bankIntegrationPort,
-			ImportBankReturnUseCase importBankReturnUseCase) {
+	public ImportDailyBankReturnService(final BankIntegrationPort bankIntegrationPort,
+			final ImportBankReturnUseCase importBankReturnUseCase) {
 		this.bankIntegrationPort = bankIntegrationPort;
 		this.importBankReturnUseCase = importBankReturnUseCase;
 	}
 
 	@Override
-	public Optional<BankReturnImportResult> execute(BankIntegration bankIntegration) {
+	public Optional<BankReturnImportResult> execute(final BankIntegration bankIntegration) {
 		Objects.requireNonNull(bankIntegration, "bankIntegration is required");
 		return bankIntegrationPort.fetchReturnFile(bankIntegration).filter(content -> !content.isBlank())
 				.map(content -> importBankReturnUseCase.execute(new ImportBankReturnCommand(bankIntegration, content)));

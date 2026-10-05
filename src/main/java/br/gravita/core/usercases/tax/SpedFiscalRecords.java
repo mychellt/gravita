@@ -80,29 +80,29 @@ final class SpedFiscalRecords {
 	private int regularDocuments;
 	private int receivedWithoutIcmsBase;
 
-	SpedFiscalRecords(GenerateSpedFiscalCommand command, Company company, ZoneId zone) {
+	SpedFiscalRecords(final GenerateSpedFiscalCommand command, final Company company, final ZoneId zone) {
 		this.command = command;
 		this.company = company;
 		this.zone = zone;
 		validateIdentification();
 	}
 
-	void addIssued(List<NfeDocument> documents) {
+	void addIssued(final List<NfeDocument> documents) {
 		documents.forEach(this::addIssued);
 	}
 
-	void addReceived(List<InboundNfe> documents) {
+	void addReceived(final List<InboundNfe> documents) {
 		documents.forEach(this::addReceived);
 	}
 
-	void addVoided(List<VoidedNumberRange> ranges) {
+	void addVoided(final List<VoidedNumberRange> ranges) {
 		ranges.forEach(this::addVoided);
 	}
 
 	// ---- own NFe -----------------------------------------------------------------------------------------------
 
-	private void addIssued(NfeDocument nfe) {
-		String reference = "NFe " + nfe.getDocumentSeries() + "/" + nfe.getDocumentNumber();
+	private void addIssued(final NfeDocument nfe) {
+		final String reference = "NFe " + nfe.getDocumentSeries() + "/" + nfe.getDocumentNumber();
 		boolean valid = requireKey("C100", reference, nfe.getAccessKey());
 		valid &= requireSeries("C100", reference, nfe.getDocumentSeries());
 		valid &= requireNumber("C100", reference, nfe.getDocumentNumber());
@@ -117,23 +117,23 @@ final class SpedFiscalRecords {
 				|| !requireUnique("C100", reference, "key:" + nfe.getAccessKey())) {
 			return;
 		}
-		LocalDate date = nfe.getAuthorizedAt().atZone(zone).toLocalDate();
-		String operation = switch (nfe.getCfop().code().charAt(0)) {
+		final LocalDate date = nfe.getAuthorizedAt().atZone(zone).toLocalDate();
+		final String operation = switch (nfe.getCfop().code().charAt(0)) {
 			case '1', '2', '3' -> ENTRY;
 			default -> EXIT;
 		};
-		long number = nfe.getDocumentNumber();
+		final long number = nfe.getDocumentNumber();
 		if (nfe.getStatus() == NfeDocumentStatus.CANCELLED) {
 			rows.add(new Row(date, operation, nfe.getDocumentSeries(), number, identification(operation, OWN_ISSUE,
 					null, CANCELLED, nfe.getDocumentSeries(), number, nfe.getAccessKey())));
 			return;
 		}
-		Document recipient = nfe.getRecipient().document();
+		final Document recipient = nfe.getRecipient().document();
 		participate(recipient, nfe.getRecipient().name(), nfe.getRecipient().stateRegistration());
-		BigDecimal discount = nfe.getItems().stream().map(NfeItem::discount).reduce(BigDecimal.ZERO,
+		final BigDecimal discount = nfe.getItems().stream().map(NfeItem::discount).reduce(BigDecimal.ZERO,
 				BigDecimal::add);
-		BigDecimal icms = taxTotal(nfe, TaxType.ICMS);
-		Amounts amounts = new Amounts(nfe.getDocumentTotal(), discount, nfe.getItemsSubtotal().add(discount),
+		final BigDecimal icms = taxTotal(nfe, TaxType.ICMS);
+		final Amounts amounts = new Amounts(nfe.getDocumentTotal(), discount, nfe.getItemsSubtotal().add(discount),
 				freightIndicator(nfe), nfe.getFreight(), nfe.getInsurance(), nfe.getOtherExpenses(),
 				icmsBase(nfe), icms, taxTotal(nfe, TaxType.IPI), taxTotal(nfe, TaxType.PIS),
 				taxTotal(nfe, TaxType.COFINS));
@@ -142,30 +142,30 @@ final class SpedFiscalRecords {
 		book(operation, icms);
 	}
 
-	private static String freightIndicator(NfeDocument nfe) {
+	private static String freightIndicator(final NfeDocument nfe) {
 		if (nfe.getTransport() == null || nfe.getTransport().modality() == null) {
 			return "9";
 		}
 		return nfe.getTransport().modality() == TransportModality.CIF ? "0" : "1";
 	}
 
-	private static BigDecimal icmsBase(NfeDocument nfe) {
+	private static BigDecimal icmsBase(final NfeDocument nfe) {
 		return nfe.getItems().stream().flatMap(item -> item.taxBreakdown().taxLines().stream())
 				.filter(line -> line.taxType() == TaxType.ICMS).map(TaxLineBreakdown::base)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	private static BigDecimal taxTotal(NfeDocument nfe, TaxType type) {
+	private static BigDecimal taxTotal(final NfeDocument nfe, final TaxType type) {
 		return nfe.getTaxTotals().byTaxType().getOrDefault(type, BigDecimal.ZERO);
 	}
 
 	// ---- received NFe ------------------------------------------------------------------------------------------
 
-	private void addReceived(InboundNfe nfe) {
-		String reference = "NFe recebida " + nfe.getSeries() + "/" + nfe.getNumber();
+	private void addReceived(final InboundNfe nfe) {
+		final String reference = "NFe recebida " + nfe.getSeries() + "/" + nfe.getNumber();
 		boolean valid = requireKey("C100", reference, nfe.getAccessKey());
 		valid &= requireSeries("C100", reference, nfe.getSeries());
-		Long number = parseNumber(nfe.getNumber());
+		final Long number = parseNumber(nfe.getNumber());
 		if (number == null) {
 			error("C100", reference, "NUM_DOC: '" + nfe.getNumber() + "' is not a number of up to 9 digits");
 			valid = false;
@@ -173,11 +173,11 @@ final class SpedFiscalRecords {
 		if (!valid || !requireUnique("C100", reference, "key:" + nfe.getAccessKey())) {
 			return;
 		}
-		LocalDate issued = nfe.getIssuedAt().atZone(zone).toLocalDate();
-		LocalDate received = clamp(nfe.getImportedAt().atZone(zone).toLocalDate(), issued, command.period().end());
+		final LocalDate issued = nfe.getIssuedAt().atZone(zone).toLocalDate();
+		final LocalDate received = clamp(nfe.getImportedAt().atZone(zone).toLocalDate(), issued, command.period().end());
 		participate(nfe.getSupplierDocument(), nfe.getSupplierName(), null);
-		var totals = nfe.getTotals();
-		Amounts amounts = new Amounts(totals.totalValue(), totals.discountValue(), totals.productsValue(), "9",
+		final var totals = nfe.getTotals();
+		final Amounts amounts = new Amounts(totals.totalValue(), totals.discountValue(), totals.productsValue(), "9",
 				totals.freightValue(), totals.insuranceValue(), totals.otherExpensesValue(), null,
 				totals.icmsValue(), totals.ipiValue(), totals.pisValue(), totals.cofinsValue());
 		rows.add(new Row(issued, ENTRY, nfe.getSeries(), number, regular(ENTRY, THIRD_PARTY_ISSUE,
@@ -190,21 +190,21 @@ final class SpedFiscalRecords {
 	}
 
 	/** The day goods came in cannot precede their issue nor fall after the period the file covers. */
-	private static LocalDate clamp(LocalDate day, LocalDate earliest, LocalDate latest) {
-		LocalDate bounded = day.isAfter(latest) ? latest : day;
+	private static LocalDate clamp(final LocalDate day, final LocalDate earliest, final LocalDate latest) {
+		final LocalDate bounded = day.isAfter(latest) ? latest : day;
 		return bounded.isBefore(earliest) ? earliest : bounded;
 	}
 
 	// ---- voided numbers ----------------------------------------------------------------------------------------
 
-	private void addVoided(VoidedNumberRange range) {
-		String reference = "inutilização " + range.getSeries() + "/" + range.getStartNumber() + "-"
+	private void addVoided(final VoidedNumberRange range) {
+		final String reference = "inutilização " + range.getSeries() + "/" + range.getStartNumber() + "-"
 				+ range.getEndNumber();
 		if (range.getEndNumber() > MAX_DOCUMENT_NUMBER) {
 			error("C100", reference, "NUM_DOC: numbers above " + MAX_DOCUMENT_NUMBER + " do not fit the layout");
 			return;
 		}
-		LocalDate day = range.getVoidedAt().atZone(zone).toLocalDate();
+		final LocalDate day = range.getVoidedAt().atZone(zone).toLocalDate();
 		for (long number = range.getStartNumber(); number <= range.getEndNumber(); number++) {
 			if (!requireUnique("C100", reference, "own:" + range.getSeries() + "/" + number)) {
 				continue;
@@ -217,14 +217,14 @@ final class SpedFiscalRecords {
 	// ---- C100 --------------------------------------------------------------------------------------------------
 
 	/** What the layout keeps of a cancelled document or a voided number: who, which, and its situation. */
-	private static SpedRecord identification(String operation, String emitter, String participant, String situation,
-			String series, long number, String accessKey) {
+	private static SpedRecord identification(final String operation, final String emitter, final String participant, final String situation,
+			final String series, final long number, final String accessKey) {
 		return SpedRecord.of("C100", operation, emitter, participant, MODEL_NFE, situation, series,
 				String.valueOf(number), accessKey);
 	}
 
-	private static SpedRecord regular(String operation, String emitter, String participant, String series, long number,
-			String accessKey, LocalDate issued, LocalDate settled, Amounts a) {
+	private static SpedRecord regular(final String operation, final String emitter, final String participant, final String series, final long number,
+			final String accessKey, final LocalDate issued, final LocalDate settled, final Amounts a) {
 		return SpedRecord.of("C100", operation, emitter, participant, MODEL_NFE, REGULAR, series,
 				String.valueOf(number), accessKey, issued, settled,
 				money(a.total()), "2", money(a.discount()), money(BigDecimal.ZERO),
@@ -235,7 +235,7 @@ final class SpedFiscalRecords {
 				money(a.cofins()), money(BigDecimal.ZERO), money(BigDecimal.ZERO));
 	}
 
-	private void book(String operation, BigDecimal icms) {
+	private void book(final String operation, final BigDecimal icms) {
 		regularDocuments++;
 		if (operation.equals(EXIT)) {
 			icmsDebit = icmsDebit.add(icms);
@@ -246,9 +246,9 @@ final class SpedFiscalRecords {
 
 	// ---- 0150 --------------------------------------------------------------------------------------------------
 
-	private void participate(Document document, String name, String stateRegistration) {
-		boolean legalEntity = document.personType() == PersonType.COMPANY;
-		String ie = stateRegistration != null && DIGITS.matcher(stateRegistration).matches() ? stateRegistration : null;
+	private void participate(final Document document, final String name, final String stateRegistration) {
+		final boolean legalEntity = document.personType() == PersonType.COMPANY;
+		final String ie = stateRegistration != null && DIGITS.matcher(stateRegistration).matches() ? stateRegistration : null;
 		participants.putIfAbsent(document.number(), SpedRecord.of("0150", document.number(), name, COUNTRY_BRAZIL,
 				legalEntity ? document.number() : null, legalEntity ? null : document.number(), ie, null, null, null, null,
 				null, null));
@@ -257,12 +257,12 @@ final class SpedFiscalRecords {
 	// ---- identification (0000, 0005, 0100) ---------------------------------------------------------------------
 
 	private void validateIdentification() {
-		Period period = command.period();
+		final Period period = command.period();
 		if (!period.isWithinOneMonth()) {
 			error("0000", "período", "DT_INI/DT_FIN: the EFD covers one calendar month, but the period spans "
 					+ period.start() + " to " + period.end());
 		}
-		Taxpayer taxpayer = command.taxpayer();
+		final Taxpayer taxpayer = command.taxpayer();
 		requireText("0000", "empresa", "NOME", taxpayer.legalName());
 		if (taxpayer.municipalityCode() == null || !MUNICIPALITY_CODE.matcher(taxpayer.municipalityCode()).matches()) {
 			error("0000", "empresa", "COD_MUN: the 7-digit IBGE municipality code is required");
@@ -281,19 +281,19 @@ final class SpedFiscalRecords {
 		}
 		requireText("0005", "empresa", "END", company.getAddress());
 
-		Accountant accountant = command.accountant();
+		final Accountant accountant = command.accountant();
 		requireText("0100", "contabilista", "NOME", accountant.name());
 		requireText("0100", "contabilista", "CRC", accountant.crc());
 		try {
 			Document.cpf(accountant.cpf());
-		} catch (BusinessRuleException ex) {
+		} catch (final BusinessRuleException ex) {
 			error("0100", "contabilista", "CPF: the accountant's CPF is missing or invalid");
 		}
 	}
 
 	// ---- validation helpers ------------------------------------------------------------------------------------
 
-	private boolean requireKey(String record, String reference, String accessKey) {
+	private boolean requireKey(final String record, final String reference, final String accessKey) {
 		if (accessKey == null || !ACCESS_KEY.matcher(accessKey).matches()) {
 			error(record, reference, "CHV_NFE: the access key is missing or is not 44 digits");
 			return false;
@@ -301,7 +301,7 @@ final class SpedFiscalRecords {
 		return true;
 	}
 
-	private boolean requireSeries(String record, String reference, String series) {
+	private boolean requireSeries(final String record, final String reference, final String series) {
 		if (series == null || series.isBlank() || series.trim().length() > 3) {
 			error(record, reference, "SER: the series is missing or longer than 3 characters");
 			return false;
@@ -309,7 +309,7 @@ final class SpedFiscalRecords {
 		return true;
 	}
 
-	private boolean requireNumber(String record, String reference, Long number) {
+	private boolean requireNumber(final String record, final String reference, final Long number) {
 		if (number == null || number <= 0 || number > MAX_DOCUMENT_NUMBER) {
 			error(record, reference, "NUM_DOC: the number is missing or does not fit 9 digits");
 			return false;
@@ -317,7 +317,7 @@ final class SpedFiscalRecords {
 		return true;
 	}
 
-	private boolean requireUnique(String record, String reference, String key) {
+	private boolean requireUnique(final String record, final String reference, final String key) {
 		if (!seen.add(key)) {
 			error(record, reference, "the document appears more than once in the period (" + key + ")");
 			return false;
@@ -325,32 +325,32 @@ final class SpedFiscalRecords {
 		return true;
 	}
 
-	private void requireText(String record, String reference, String field, String value) {
+	private void requireText(final String record, final String reference, final String field, final String value) {
 		if (value == null || value.isBlank()) {
 			error(record, reference, field + ": is required");
 		}
 	}
 
-	private static Long parseNumber(String number) {
+	private static Long parseNumber(final String number) {
 		if (number == null || !DIGITS.matcher(number.trim()).matches() || number.trim().length() > 9) {
 			return null;
 		}
-		long value = Long.parseLong(number.trim());
+		final long value = Long.parseLong(number.trim());
 		return value > 0 ? value : null;
 	}
 
-	private void error(String record, String reference, String message) {
+	private void error(final String record, final String reference, final String message) {
 		issues.add(new Issue(Severity.ERROR, record, reference, message));
 	}
 
-	private void warning(String record, String reference, String message) {
+	private void warning(final String record, final String reference, final String message) {
 		issues.add(new Issue(Severity.WARNING, record, reference, message));
 	}
 
 	// ---- output ------------------------------------------------------------------------------------------------
 
 	SpedValidationReport report() {
-		List<Issue> all = new ArrayList<>(issues);
+		final List<Issue> all = new ArrayList<>(issues);
 		if (!participants.isEmpty()) {
 			all.add(new Issue(Severity.WARNING, "0150", participants.size() + " participante(s)",
 					"COD_MUN, END, NUM and BAIRRO are not held for customers and suppliers and go out empty"));
@@ -371,28 +371,28 @@ final class SpedFiscalRecords {
 
 	/** The 0000 and every block of the layout in file order; those with nothing to report are empty. */
 	SpedLayout layout() {
-		Taxpayer taxpayer = command.taxpayer();
-		Period period = command.period();
-		SpedRecord header = SpedRecord.of("0000", LAYOUT_VERSION, command.finality().code(),
+		final Taxpayer taxpayer = command.taxpayer();
+		final Period period = command.period();
+		final SpedRecord header = SpedRecord.of("0000", LAYOUT_VERSION, command.finality().code(),
 				period.start(), period.end(), taxpayer.legalName(),
 				company.getCnpj().number(), null, company.getState(), company.getIe(), taxpayer.municipalityCode(),
 				company.getIm(), null, taxpayer.profile().name(), taxpayer.activity().code());
-		List<SpedRecord> identification = new ArrayList<>();
+		final List<SpedRecord> identification = new ArrayList<>();
 		identification.add(SpedRecord.of("0005", taxpayer.tradeName(), taxpayer.zipCode(), company.getAddress(),
 				taxpayer.number(), null, taxpayer.neighborhood(), digits(company.getPhone()), null,
 				company.getIssuingEmail()));
-		Accountant accountant = command.accountant();
+		final Accountant accountant = command.accountant();
 		identification.add(SpedRecord.of("0100", accountant.name(), digits(accountant.cpf()), accountant.crc(), null,
 				null, null, null, null, null, null, null, accountant.email(), null));
 		identification.addAll(participants.values());
 
-		List<SpedRecord> documents = rows.stream().sorted(ROW_ORDER).map(Row::record).toList();
-		List<SpedRecord> assessment = List.of(
+		final List<SpedRecord> documents = rows.stream().sorted(ROW_ORDER).map(Row::record).toList();
+		final List<SpedRecord> assessment = List.of(
 				SpedRecord.of("E100", period.start(), period.end()), icmsAssessment());
-		List<SpedRecord> indicators = List.of(SpedRecord.of("1010", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N",
+		final List<SpedRecord> indicators = List.of(SpedRecord.of("1010", "N", "N", "N", "N", "N", "N", "N", "N", "N", "N",
 				"N", "N", "N"));
 
-		List<SpedBlock> blocks = new ArrayList<>();
+		final List<SpedBlock> blocks = new ArrayList<>();
 		blocks.add(new SpedBlock('0', identification));
 		blocks.add(new SpedBlock('B', List.of()));
 		blocks.add(new SpedBlock('C', documents));
@@ -407,10 +407,10 @@ final class SpedFiscalRecords {
 
 	/** E110: debits of the exits against credits of the entries; a negative balance is a credit to carry forward. */
 	private SpedRecord icmsAssessment() {
-		BigDecimal balance = icmsDebit.subtract(icmsCredit);
-		BigDecimal payable = balance.max(BigDecimal.ZERO);
-		BigDecimal carried = balance.min(BigDecimal.ZERO).negate();
-		BigDecimal zero = BigDecimal.ZERO;
+		final BigDecimal balance = icmsDebit.subtract(icmsCredit);
+		final BigDecimal payable = balance.max(BigDecimal.ZERO);
+		final BigDecimal carried = balance.min(BigDecimal.ZERO).negate();
+		final BigDecimal zero = BigDecimal.ZERO;
 		return SpedRecord.of("E110", money(icmsDebit), money(zero), money(zero),
 				money(zero), money(icmsCredit), money(zero), money(zero),
 				money(zero), money(zero), money(payable), money(zero),
@@ -418,11 +418,11 @@ final class SpedFiscalRecords {
 	}
 
 	/** An amount of money as the layout writes it: two decimal places, the port adds the comma. */
-	private static BigDecimal money(BigDecimal amount) {
+	private static BigDecimal money(final BigDecimal amount) {
 		return amount == null ? null : amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	private static String digits(String value) {
+	private static String digits(final String value) {
 		return value == null ? null : Document.digitsOnly(value);
 	}
 

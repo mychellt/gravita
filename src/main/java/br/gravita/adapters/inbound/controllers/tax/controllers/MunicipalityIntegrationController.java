@@ -20,8 +20,8 @@ public class MunicipalityIntegrationController {
 	private final RegisterMunicipalityIntegrationUseCase registerMunicipalityIntegrationUseCase;
 
 	@PostMapping("/{ibgeCode}/integration")
-	public ResponseEntity<RegisterMunicipalityIntegrationResponse> register(@PathVariable String ibgeCode,
-			@Valid @RequestBody RegisterMunicipalityIntegrationRequest request) {
+	public ResponseEntity<RegisterMunicipalityIntegrationResponse> register(@PathVariable final String ibgeCode,
+			@Valid @RequestBody final RegisterMunicipalityIntegrationRequest request) {
 		return ResponseEntity.ok(RegisterMunicipalityIntegrationResponse
 				.from(registerMunicipalityIntegrationUseCase.execute(request.toCommand(ibgeCode))));
 	}

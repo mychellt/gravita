@@ -12,13 +12,13 @@ public class UpdatePaymentTermAdapter implements UpdatePaymentTermPort {
 
 	private final PaymentTermRepositoryPort paymentTermRepositoryPort;
 
-	public UpdatePaymentTermAdapter(PaymentTermRepositoryPort paymentTermRepositoryPort) {
+	public UpdatePaymentTermAdapter(final PaymentTermRepositoryPort paymentTermRepositoryPort) {
 		this.paymentTermRepositoryPort = paymentTermRepositoryPort;
 	}
 
 	@Override
-	public PaymentTermDomain execute(Context context) {
-		PaymentTermDomain paymentTerm = context.getData(PaymentTermDomain.class);
+	public PaymentTermDomain execute(final Context context) {
+		final PaymentTermDomain paymentTerm = context.getData(PaymentTermDomain.class);
 		CreatePaymentTermAdapter.validateInstallments(paymentTerm);
 		paymentTermRepositoryPort.get(paymentTerm.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Payment term not found: " + paymentTerm.getId()));

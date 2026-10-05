@@ -50,47 +50,74 @@ class GuidedManualUploadAdapterTest {
 	@BeforeEach
 	void setUp() {
 		adapter = new GuidedManualUploadAdapter(companyRepositoryPort);
-		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
-				Document.cnpj("11222333000181"), "123456789", "987654", "6201500", TaxRegime.SIMPLES_NACIONAL, true,
-				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfse@example.com", "11999999999", null,
-				null)));
+		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11222333000181"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfse@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build()));
 	}
 
-	private NfseDocument draft(NfseTomador tomador, List<NfseWithholding> withholdings, String discrimination) {
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), companyId, SP, tomador, ServiceCode.of("1.05"),
-				PlaceOfProvision.PROVIDER, SP, new BigDecimal("1000.00"), new BigDecimal("5.0000"),
-				new BigDecimal("50.00"), null, withholdings, discrimination, "RPS", 12L,
-				Instant.parse("2026-10-01T15:00:00Z")).convertToNfse("1", 3L, Instant.now());
+	private NfseDocument draft(final NfseTomador tomador, final List<NfseWithholding> withholdings, final String discrimination) {
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(companyId)
+				.providerMunicipalityIbgeCode(SP)
+				.tomador(tomador)
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode(SP)
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(withholdings)
+				.discrimination(discrimination)
+				.rpsSeries("RPS")
+				.rpsNumber(12L)
+				.createdAt(Instant.parse("2026-10-01T15:00:00Z"))
+				.build().convertToNfse("1", 3L, Instant.now());
 	}
 
-	private static MunicipalityIntegration integration(NfseStandard standard, boolean homologated,
-			List<String> requiredFields) {
+	private static MunicipalityIntegration integration(final NfseStandard standard, final boolean homologated,
+			final List<String> requiredFields) {
 		return MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), SP, standard,
 				homologated ? "2.04" : null, homologated ? "https://nfse.example/ws" : null, CertificateType.A1,
 				requiredFields, homologated);
 	}
 
-	private static org.w3c.dom.Document parse(String xml) throws Exception {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	private static org.w3c.dom.Document parse(final String xml) throws Exception {
+		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		return factory.newDocumentBuilder().parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	private static String text(org.w3c.dom.Document doc, String tag) {
-		NodeList nodes = doc.getElementsByTagNameNS("*", tag);
+	private static String text(final org.w3c.dom.Document doc, final String tag) {
+		final NodeList nodes = doc.getElementsByTagNameNS("*", tag);
 		return nodes.getLength() == 0 ? null : nodes.item(0).getTextContent();
 	}
 
 	@Test
 	@DisplayName("Renders a well-formed ABRASF XML with the provider, tomador and service data")
 	void rendersAWellFormedAbrasfXmlWithTheProviderTomadorAndServiceData() throws Exception {
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Maria & Filhos <ME>", SP,
+		final NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Maria & Filhos <ME>", SP,
 				new TomadorAddress("Rua A", "10", null, "Centro", "01001000", "SP"));
 
-		NfseTransmissionResult.GuidedManualUpload result = adapter.generate(
+		final NfseTransmissionResult.GuidedManualUpload result = adapter.generate(
 				draft(tomador, List.of(), "Consultoria \"premium\""), integration(NfseStandard.ABRASF, false, List.of()));
 
-		org.w3c.dom.Document xml = parse(result.xml());
+		final org.w3c.dom.Document xml = parse(result.xml());
 		assertThat(xml.getDocumentElement().getLocalName()).isEqualTo("GerarNfseEnvio");
 		assertThat(text(xml, "Cnpj")).isEqualTo("11222333000181");
 		assertThat(text(xml, "InscricaoMunicipal")).isEqualTo("987654");
@@ -110,13 +137,13 @@ class GuidedManualUploadAdapterTest {
 
 	@Test
 	@DisplayName("Identifies a company tomador by CNPJ and flags withheld ISS")
-	void aCompanyTomadorIsIdentifiedByCnpjAndWithheldIssIsFlagged() throws Exception {
-		NfseTomador tomador = NfseTomador.of(null, "11222333000181", PersonType.COMPANY, "Tomador SA", SP,
+	void companyTomadorIsIdentifiedByCnpjAndWithheldIssIsFlagged() throws Exception {
+		final NfseTomador tomador = NfseTomador.of(null, "11222333000181", PersonType.COMPANY, "Tomador SA", SP,
 				new TomadorAddress("Rua A", "10", "Sala 2", "Centro", "01001000", "SP"));
-		List<NfseWithholding> withholdings = List.of(new NfseWithholding(TaxType.ISS, new BigDecimal("1000.00"),
+		final List<NfseWithholding> withholdings = List.of(new NfseWithholding(TaxType.ISS, new BigDecimal("1000.00"),
 				new BigDecimal("5.0000"), new BigDecimal("50.00")));
 
-		org.w3c.dom.Document xml = parse(adapter.generate(draft(tomador, withholdings, "Servico"),
+		final org.w3c.dom.Document xml = parse(adapter.generate(draft(tomador, withholdings, "Servico"),
 				integration(NfseStandard.BETHA, false, List.of())).xml());
 
 		assertThat(text(xml, "IssRetido")).isEqualTo("1");
@@ -128,11 +155,11 @@ class GuidedManualUploadAdapterTest {
 	@Test
 	@DisplayName("Produces guided instructions for every standard, naming the standard certificate and required fields")
 	void producesGuidedInstructionsForEveryStandardNamingTheStandardCertificateAndRequiredFields() {
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
-		NfseDocument draft = draft(tomador, List.of(), "Servico");
+		final NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
+		final NfseDocument draft = draft(tomador, List.of(), "Servico");
 
-		for (NfseStandard standard : NfseStandard.values()) {
-			NfseTransmissionResult.GuidedManualUpload result = adapter.generate(draft,
+		for (final NfseStandard standard : NfseStandard.values()) {
+			final NfseTransmissionResult.GuidedManualUpload result = adapter.generate(draft,
 					integration(standard, false, List.of("inscricaoMunicipal", "codigoTributacao")));
 
 			assertThat(result.xml()).startsWith("<?xml");
@@ -145,7 +172,7 @@ class GuidedManualUploadAdapterTest {
 	@DisplayName("Rejects an unknown provider company as a business rule violation")
 	void anUnknownProviderCompanyIsABusinessRuleViolation() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
-		NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
+		final NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 
 		assertThatThrownBy(() -> adapter.generate(draft(tomador, List.of(), "Servico"),
 				integration(NfseStandard.ABRASF, false, List.of()))).isInstanceOf(BusinessRuleException.class);

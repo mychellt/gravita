@@ -26,9 +26,9 @@ public class AuthenticateService implements AuthenticateUseCase {
 	private final PasswordVerificationPort passwordVerificationPort;
 	private final SessionStorePort sessionStorePort;
 
-	public AuthenticateService(UserRepositoryPort userRepositoryPort, TotpVerificationPort totpVerificationPort,
-			AccessLogRepositoryPort accessLogRepositoryPort, PasswordVerificationPort passwordVerificationPort,
-			SessionStorePort sessionStorePort) {
+	public AuthenticateService(final UserRepositoryPort userRepositoryPort, final TotpVerificationPort totpVerificationPort,
+			final AccessLogRepositoryPort accessLogRepositoryPort, final PasswordVerificationPort passwordVerificationPort,
+			final SessionStorePort sessionStorePort) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.totpVerificationPort = totpVerificationPort;
 		this.accessLogRepositoryPort = accessLogRepositoryPort;
@@ -37,14 +37,14 @@ public class AuthenticateService implements AuthenticateUseCase {
 	}
 
 	@Override
-	public AuthResult execute(AuthenticateCommand command) {
-		Optional<User> maybeUser = userRepositoryPort.findByEmail(command.email());
+	public AuthResult execute(final AuthenticateCommand command) {
+		final Optional<User> maybeUser = userRepositoryPort.findByEmail(command.email());
 		if (maybeUser.isEmpty()) {
 			return reject(null, command);
 		}
 
-		User user = maybeUser.get();
-		boolean credentialsValid = user.getStatus() == UserStatus.ACTIVE
+		final User user = maybeUser.get();
+		final boolean credentialsValid = user.getStatus() == UserStatus.ACTIVE
 				&& passwordVerificationPort.matches(command.rawPassword(), user.getRawPassword());
 		if (!credentialsValid) {
 			return reject(user.getId(), command);
@@ -62,14 +62,14 @@ public class AuthenticateService implements AuthenticateUseCase {
 		return authenticate(user.getId(), command);
 	}
 
-	private AuthResult reject(UserId userId, AuthenticateCommand command) {
+	private AuthResult reject(final UserId userId, final AuthenticateCommand command) {
 		accessLogRepositoryPort.save(AccessLog.login(userId, command.email(), false, command.ip(), command.device()));
 		return AuthResult.rejected();
 	}
 
-	private AuthResult authenticate(UserId userId, AuthenticateCommand command) {
+	private AuthResult authenticate(final UserId userId, final AuthenticateCommand command) {
 		accessLogRepositoryPort.save(AccessLog.login(userId, command.email(), true, command.ip(), command.device()));
-		String sessionToken = UUID.randomUUID().toString();
+		final String sessionToken = UUID.randomUUID().toString();
 		sessionStorePort.store(sessionToken, userId);
 		return AuthResult.authenticated(sessionToken);
 	}

@@ -24,8 +24,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TotpVerificationAdapterTest {
 
-	private static final String RFC4226_SECRET_BASE32 = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
-	private static final String RFC4226_COUNTER_1_CODE = "287082";
+	private static final String RFC_SECRET_BASE_THIRTY_TWO = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
+	private static final String RFC_COUNTER_ONE_CODE = "287082";
 
 	@Mock
 	private UserJpaRepository repository;
@@ -42,9 +42,9 @@ class TotpVerificationAdapterTest {
 	@DisplayName("Accepts the code matching the current time window")
 	void shouldAcceptTheCodeMatchingTheCurrentTimeWindow() {
 		final UUID userId = UUID.randomUUID();
-		when(repository.findById(userId)).thenReturn(Optional.of(buildUser(userId, RFC4226_SECRET_BASE32)));
+		when(repository.findById(userId)).thenReturn(Optional.of(buildUser(userId, RFC_SECRET_BASE_THIRTY_TWO)));
 
-		assertThat(adapter.verify(UserId.of(userId), RFC4226_COUNTER_1_CODE)).isTrue();
+		assertThat(adapter.verify(UserId.of(userId), RFC_COUNTER_ONE_CODE)).isTrue();
 		verify(repository).findById(userId);
 	}
 
@@ -52,7 +52,7 @@ class TotpVerificationAdapterTest {
 	@DisplayName("Rejects an incorrect code")
 	void shouldRejectAnIncorrectCode() {
 		final UUID userId = UUID.randomUUID();
-		when(repository.findById(userId)).thenReturn(Optional.of(buildUser(userId, RFC4226_SECRET_BASE32)));
+		when(repository.findById(userId)).thenReturn(Optional.of(buildUser(userId, RFC_SECRET_BASE_THIRTY_TWO)));
 
 		assertThat(adapter.verify(UserId.of(userId), "000000")).isFalse();
 	}
@@ -63,7 +63,7 @@ class TotpVerificationAdapterTest {
 		final UUID userId = UUID.randomUUID();
 		when(repository.findById(userId)).thenReturn(Optional.of(buildUser(userId, null)));
 
-		assertThat(adapter.verify(UserId.of(userId), RFC4226_COUNTER_1_CODE)).isFalse();
+		assertThat(adapter.verify(UserId.of(userId), RFC_COUNTER_ONE_CODE)).isFalse();
 	}
 
 	@Test
@@ -72,7 +72,7 @@ class TotpVerificationAdapterTest {
 		final UUID userId = UUID.randomUUID();
 		when(repository.findById(userId)).thenReturn(Optional.empty());
 
-		assertThat(adapter.verify(UserId.of(userId), RFC4226_COUNTER_1_CODE)).isFalse();
+		assertThat(adapter.verify(UserId.of(userId), RFC_COUNTER_ONE_CODE)).isFalse();
 	}
 
 	private UserJpaEntity buildUser(final UUID id, final String secret) {

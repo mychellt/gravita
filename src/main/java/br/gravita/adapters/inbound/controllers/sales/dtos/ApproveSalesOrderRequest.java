@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record ApproveSalesOrderRequest(@NotNull UUID approvedBy) {
 
-	public ApproveSalesOrderCommand toCommand(UUID orderId) {
+	public ApproveSalesOrderCommand toCommand(final UUID orderId) {
 		return new ApproveSalesOrderCommand(orderId, approvedBy);
 	}
 }

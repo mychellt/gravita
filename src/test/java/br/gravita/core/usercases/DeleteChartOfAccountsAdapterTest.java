@@ -33,8 +33,8 @@ class DeleteChartOfAccountsAdapterTest {
 	@DisplayName("Fails with not found when the chart-of-accounts entry to delete does not exist")
 	@Test
 	void shouldFailWhenAccountNotFound() {
-		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(chartOfAccountsRepositoryPort.get(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id)))
@@ -44,8 +44,8 @@ class DeleteChartOfAccountsAdapterTest {
 	@DisplayName("Rejects deleting an account that still has child accounts")
 	@Test
 	void shouldRejectDeletionWhenAccountHasChildren() {
-		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		lenient().when(chartOfAccountsRepositoryPort.get(id)).thenReturn(Optional.of(ChartOfAccountsDomain.builder().id(id).build()));
 		when(chartOfAccountsRepositoryPort.existsByParentId(id)).thenReturn(true);
 
@@ -58,8 +58,8 @@ class DeleteChartOfAccountsAdapterTest {
 	@DisplayName("Rejects deleting an account that Finance reports as in use")
 	@Test
 	void shouldRejectDeletionWhenInUseByFinance() {
-		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(chartOfAccountsRepositoryPort.get(id)).thenReturn(Optional.of(ChartOfAccountsDomain.builder().id(id).build()));
 		when(chartOfAccountsRepositoryPort.existsByParentId(id)).thenReturn(false);
 		when(financeUsageQueryPort.isChartOfAccountInUse(id)).thenReturn(true);
@@ -73,8 +73,8 @@ class DeleteChartOfAccountsAdapterTest {
 	@DisplayName("Deletes a leaf account that is not in use by Finance")
 	@Test
 	void shouldDeleteWhenLeafAndNotInUse() {
-		DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
-		UUID id = UUID.randomUUID();
+		final DeleteChartOfAccountsAdapter adapter = new DeleteChartOfAccountsAdapter(chartOfAccountsRepositoryPort, financeUsageQueryPort);
+		final UUID id = UUID.randomUUID();
 		when(chartOfAccountsRepositoryPort.get(id)).thenReturn(Optional.of(ChartOfAccountsDomain.builder().id(id).build()));
 		when(chartOfAccountsRepositoryPort.existsByParentId(id)).thenReturn(false);
 		when(financeUsageQueryPort.isChartOfAccountInUse(id)).thenReturn(false);

@@ -23,26 +23,26 @@ public class RegisterUserService implements RegisterUserUseCase {
 	private final ProfileRepositoryPort profileRepositoryPort;
 	private final CallerCompanyResolver callerCompanyResolver;
 
-	public RegisterUserService(UserRepositoryPort userRepositoryPort, ProfileRepositoryPort profileRepositoryPort,
-			CallerCompanyResolver callerCompanyResolver) {
+	public RegisterUserService(final UserRepositoryPort userRepositoryPort, final ProfileRepositoryPort profileRepositoryPort,
+			final CallerCompanyResolver callerCompanyResolver) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.profileRepositoryPort = profileRepositoryPort;
 		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
-	public UserId execute(RegisterUserCommand command) {
-		UUID companyId = callerCompanyResolver.resolve(new Context().withCaller(command.callerId()))
+	public UserId execute(final RegisterUserCommand command) {
+		final UUID companyId = callerCompanyResolver.resolve(new Context().withCaller(command.callerId()))
 				.orElseThrow(() -> new ForbiddenException("The caller does not belong to a company"));
 
 		if (userRepositoryPort.existsByEmail(command.email())) {
 			throw new BusinessRuleException("Email already registered: " + command.email());
 		}
 
-		ProfileReference profile = profileRepositoryPort.findById(command.profileId())
+		final ProfileReference profile = profileRepositoryPort.findById(command.profileId())
 				.orElseThrow(() -> new UnknownProfileException(command.profileId()));
 
-		User user = User.register(command.name(), command.email(), command.rawPassword(), profile, companyId);
+		final User user = User.register(command.name(), command.email(), command.rawPassword(), profile, companyId);
 		return userRepositoryPort.save(user).getId();
 	}
 }

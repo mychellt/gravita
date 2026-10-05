@@ -14,14 +14,14 @@ public class LowStockReorderTrigger {
 	private final SuggestReorderUseCase suggestReorderUseCase;
 	private final CreatePurchaseRequestPort createPurchaseRequestPort;
 
-	public LowStockReorderTrigger(SuggestReorderUseCase suggestReorderUseCase,
-			CreatePurchaseRequestPort createPurchaseRequestPort) {
+	public LowStockReorderTrigger(final SuggestReorderUseCase suggestReorderUseCase,
+			final CreatePurchaseRequestPort createPurchaseRequestPort) {
 		this.suggestReorderUseCase = suggestReorderUseCase;
 		this.createPurchaseRequestPort = createPurchaseRequestPort;
 	}
 
-	public void evaluate(UUID warehouseId) {
-		for (ReorderSuggestion suggestion : suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))) {
+	public void evaluate(final UUID warehouseId) {
+		for (final ReorderSuggestion suggestion : suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))) {
 			if (suggestion.suggestedQuantity().compareTo(BigDecimal.ZERO) <= 0) {
 				continue;
 			}

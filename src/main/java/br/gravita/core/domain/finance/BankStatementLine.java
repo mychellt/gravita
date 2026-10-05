@@ -25,8 +25,8 @@ public final class BankStatementLine {
 	private final SettlementId settlementId;
 	private final CashMovementId cashMovementId;
 
-	private BankStatementLine(int lineNumber, LocalDate postedOn, BigDecimal amount, String description,
-			String reference, SettlementId settlementId, CashMovementId cashMovementId) {
+	private BankStatementLine(final int lineNumber, final LocalDate postedOn, final BigDecimal amount, final String description,
+			final String reference, final SettlementId settlementId, final CashMovementId cashMovementId) {
 		if (lineNumber < 1) {
 			throw new BusinessRuleException("lineNumber must be positive: " + lineNumber);
 		}
@@ -40,17 +40,17 @@ public final class BankStatementLine {
 	}
 
 	/** A line as read from the statement, not matched to anything yet; {@code reference} is the bank's id for the entry, if it has one. */
-	public static BankStatementLine unmatched(int lineNumber, LocalDate postedOn, BigDecimal amount,
-			String description, String reference) {
+	public static BankStatementLine unmatched(final int lineNumber, final LocalDate postedOn, final BigDecimal amount,
+			final String description, final String reference) {
 		return new BankStatementLine(lineNumber, postedOn, amount, description, reference, null, null);
 	}
 
-	public BankStatementLine matchedTo(SettlementId settlementId) {
+	public BankStatementLine matchedTo(final SettlementId settlementId) {
 		Objects.requireNonNull(settlementId, "settlementId is required");
 		return new BankStatementLine(lineNumber, postedOn, amount, description, reference, settlementId, null);
 	}
 
-	public BankStatementLine matchedTo(CashMovementId cashMovementId) {
+	public BankStatementLine matchedTo(final CashMovementId cashMovementId) {
 		Objects.requireNonNull(cashMovementId, "cashMovementId is required");
 		return new BankStatementLine(lineNumber, postedOn, amount, description, reference, null, cashMovementId);
 	}

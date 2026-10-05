@@ -9,7 +9,7 @@ public record PixChargeId(UUID value) {
 		Objects.requireNonNull(value, "PixChargeId value is required");
 	}
 
-	public static PixChargeId of(UUID value) {
+	public static PixChargeId of(final UUID value) {
 		return new PixChargeId(value);
 	}
 }

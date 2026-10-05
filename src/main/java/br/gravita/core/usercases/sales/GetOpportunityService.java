@@ -13,13 +13,13 @@ public class GetOpportunityService implements GetOpportunityUseCase {
 
 	private final OpportunityRepositoryPort opportunityRepositoryPort;
 
-	public GetOpportunityService(OpportunityRepositoryPort opportunityRepositoryPort) {
+	public GetOpportunityService(final OpportunityRepositoryPort opportunityRepositoryPort) {
 		this.opportunityRepositoryPort = opportunityRepositoryPort;
 	}
 
 	@Override
-	public OpportunityView execute(GetOpportunityQuery query) {
-		Opportunity opportunity = opportunityRepositoryPort.findById(query.opportunityId())
+	public OpportunityView execute(final GetOpportunityQuery query) {
+		final Opportunity opportunity = opportunityRepositoryPort.findById(query.opportunityId())
 				.orElseThrow(() -> new OpportunityNotFoundException(query.opportunityId().value()));
 		return OpportunityView.from(opportunity);
 	}

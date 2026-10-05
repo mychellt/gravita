@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class PriceTableNotFoundException extends RuntimeException {
 
-	public PriceTableNotFoundException(UUID priceTableId) {
+	public PriceTableNotFoundException(final UUID priceTableId) {
 		super("Price table not found: " + priceTableId);
 	}
 }

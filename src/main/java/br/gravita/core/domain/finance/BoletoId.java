@@ -9,7 +9,7 @@ public record BoletoId(UUID value) {
 		Objects.requireNonNull(value, "BoletoId value is required");
 	}
 
-	public static BoletoId of(UUID value) {
+	public static BoletoId of(final UUID value) {
 		return new BoletoId(value);
 	}
 }

@@ -53,83 +53,83 @@ public class PayableController {
 	private final AttachPayableDocumentUseCase attachPayableDocumentUseCase;
 
 	@PostMapping
-	public ResponseEntity<PayableResponse> create(@Valid @RequestBody CreateManualPayableRequest request) {
-		Payable created = createManualPayableUseCase.execute(request.toCommand());
+	public ResponseEntity<PayableResponse> create(@Valid @RequestBody final CreateManualPayableRequest request) {
+		final Payable created = createManualPayableUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/finance/payables/" + created.getId().value()))
 				.body(PayableResponse.from(created));
 	}
 
 	@PatchMapping("/{id}")
-	public PayableResponse split(@PathVariable UUID id, @Valid @RequestBody SplitPayableRequest request) {
+	public PayableResponse split(@PathVariable final UUID id, @Valid @RequestBody final SplitPayableRequest request) {
 		return PayableResponse.from(splitPayableByCostCenterUseCase.execute(request.toCommand(id)));
 	}
 
 	@PostMapping("/{id}/approve")
-	public PayableResponse approve(@PathVariable UUID id, @Valid @RequestBody ApprovePayableRequest request) {
+	public PayableResponse approve(@PathVariable final UUID id, @Valid @RequestBody final ApprovePayableRequest request) {
 		return PayableResponse.from(approvePayableUseCase.execute(request.toCommand(id)));
 	}
 
 	@PostMapping("/batch-pay")
-	public CnabRemittanceResponse batchPay(@Valid @RequestBody BatchPayRequest request) {
+	public CnabRemittanceResponse batchPay(@Valid @RequestBody final BatchPayRequest request) {
 		return CnabRemittanceResponse.from(batchPayUseCase.execute(request.toCommand()));
 	}
 
 	@PostMapping("/{id}/pix-pay")
-	public PayableResponse pixPay(@PathVariable UUID id, @Valid @RequestBody PayViaPixRequest request) {
+	public PayableResponse pixPay(@PathVariable final UUID id, @Valid @RequestBody final PayViaPixRequest request) {
 		return PayableResponse.from(payViaPixUseCase.execute(request.toCommand(id)));
 	}
 
 	@PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<PayableResponse> attach(@PathVariable UUID id,
-			@RequestPart("file") MultipartFile file) {
-		Payable payable = attachPayableDocumentUseCase.execute(new AttachPayableDocumentCommand(id,
+	public ResponseEntity<PayableResponse> attach(@PathVariable final UUID id,
+			@RequestPart("file") final MultipartFile file) {
+		final Payable payable = attachPayableDocumentUseCase.execute(new AttachPayableDocumentCommand(id,
 				new AttachPayableDocumentCommand.File(fileNameOf(file), contentTypeOf(file), readBytes(file))));
 		return ResponseEntity.status(HttpStatus.CREATED).body(PayableResponse.from(payable));
 	}
 
-	private static String fileNameOf(MultipartFile file) {
-		String fileName = file.getOriginalFilename();
+	private static String fileNameOf(final MultipartFile file) {
+		final String fileName = file.getOriginalFilename();
 		return fileName == null || fileName.isBlank() ? "document" : fileName;
 	}
 
-	private static String contentTypeOf(MultipartFile file) {
-		String contentType = file.getContentType();
+	private static String contentTypeOf(final MultipartFile file) {
+		final String contentType = file.getContentType();
 		return contentType == null || contentType.isBlank() ? MediaType.APPLICATION_OCTET_STREAM_VALUE
 				: contentType;
 	}
 
-	private static byte[] readBytes(MultipartFile file) {
+	private static byte[] readBytes(final MultipartFile file) {
 		try {
 			return file.getBytes();
-		} catch (IOException exception) {
+		} catch (final IOException exception) {
 			throw new UncheckedIOException("Unable to read uploaded document", exception);
 		}
 	}
 
 	@ExceptionHandler(UserNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleUserNotFoundException(final UserNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(final ResourceNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BankIntegrationUnavailableException.class)
 	public ResponseEntity<Map<String, String>> handleBankIntegrationUnavailableException(
-			BankIntegrationUnavailableException exception) {
+			final BankIntegrationUnavailableException exception) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(DocumentStorageUnavailableException.class)
 	public ResponseEntity<Map<String, String>> handleDocumentStorageUnavailableException(
-			DocumentStorageUnavailableException exception) {
+			final DocumentStorageUnavailableException exception) {
 		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", exception.getMessage()));
 	}
 }

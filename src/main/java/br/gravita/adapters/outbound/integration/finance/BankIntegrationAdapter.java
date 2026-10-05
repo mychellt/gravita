@@ -17,39 +17,39 @@ import org.springframework.stereotype.Component;
 class BankIntegrationAdapter implements BankIntegrationPort {
 
 	@Override
-	public IssuedBoleto issueBoleto(BoletoIssueRequest request) {
+	public IssuedBoleto issueBoleto(final BoletoIssueRequest request) {
 		throw new BankIntegrationUnavailableException(
 				"Bank integration not configured: " + request.bankIntegration());
 	}
 
 	@Override
-	public IssuedPixCharge issuePixCharge(PixChargeIssueRequest request) {
+	public IssuedPixCharge issuePixCharge(final PixChargeIssueRequest request) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured for PIX charges");
 	}
 
 	@Override
-	public PixPaymentReceipt payViaPix(PixPaymentRequest request) {
+	public PixPaymentReceipt payViaPix(final PixPaymentRequest request) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured for PIX payments");
 	}
 
 	@Override
-	public IssuedRemittance sendRemittance(RemittanceRequest request) {
+	public IssuedRemittance sendRemittance(final RemittanceRequest request) {
 		throw new BankIntegrationUnavailableException(
 				"Bank integration not configured: " + request.bankIntegration());
 	}
 
 	@Override
-	public Optional<String> fetchReturnFile(BankIntegration bankIntegration) {
+	public Optional<String> fetchReturnFile(final BankIntegration bankIntegration) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
 	}
 
 	@Override
-	public Optional<String> fetchPaymentReturnFile(BankIntegration bankIntegration) {
+	public Optional<String> fetchPaymentReturnFile(final BankIntegration bankIntegration) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
 	}
 
 	@Override
-	public List<BankReturnLine> parseReturnFile(BankIntegration bankIntegration, String fileContent) {
+	public List<BankReturnLine> parseReturnFile(final BankIntegration bankIntegration, final String fileContent) {
 		throw new BankIntegrationUnavailableException("Bank integration not configured: " + bankIntegration);
 	}
 }

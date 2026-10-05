@@ -21,7 +21,7 @@ class ApprovalAlcadaTest {
 	@Test
 	@DisplayName("Configures an alcada with a threshold value only")
 	void shouldConfigureAlcadaWithThresholdValueOnly() {
-		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("5000.00"), null,
+		final ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.PURCHASING, new BigDecimal("5000.00"), null,
 				APPROVER);
 
 		assertThat(alcada.getId()).isNotNull();
@@ -35,7 +35,7 @@ class ApprovalAlcadaTest {
 	@Test
 	@DisplayName("Configures an alcada with a discount percent only")
 	void shouldConfigureAlcadaWithDiscountPercentOnly() {
-		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("15.00"),
+		final ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.SALES, null, new BigDecimal("15.00"),
 				APPROVER);
 
 		assertThat(alcada.getThresholdValue()).isNull();
@@ -63,11 +63,11 @@ class ApprovalAlcadaTest {
 	@Test
 	@DisplayName("Reconfigures in place without changing id or module")
 	void shouldReconfigureInPlaceWithoutChangingIdOrModule() {
-		ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("1000.00"), null,
+		final ApprovalAlcada alcada = ApprovalAlcada.configure(ApprovalModule.FINANCE, new BigDecimal("1000.00"), null,
 				APPROVER);
-		UUID originalId = alcada.getId();
-		Instant originalConfiguredAt = alcada.getConfiguredAt();
-		ProfileReference newApprover = new ProfileReference(UUID.randomUUID(), "CFO");
+		final UUID originalId = alcada.getId();
+		final Instant originalConfiguredAt = alcada.getConfiguredAt();
+		final ProfileReference newApprover = new ProfileReference(UUID.randomUUID(), "CFO");
 
 		alcada.reconfigure(new BigDecimal("2000.00"), new BigDecimal("10.00"), newApprover);
 

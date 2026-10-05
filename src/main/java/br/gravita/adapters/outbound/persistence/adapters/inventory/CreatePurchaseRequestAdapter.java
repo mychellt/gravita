@@ -15,14 +15,14 @@ class CreatePurchaseRequestAdapter implements CreatePurchaseRequestPort {
 	private final CreatePurchaseRequestUseCase createPurchaseRequestUseCase;
 	private final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
 
-	CreatePurchaseRequestAdapter(CreatePurchaseRequestUseCase createPurchaseRequestUseCase,
-			PurchaseRequestRepositoryPort purchaseRequestRepositoryPort) {
+	CreatePurchaseRequestAdapter(final CreatePurchaseRequestUseCase createPurchaseRequestUseCase,
+			final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort) {
 		this.createPurchaseRequestUseCase = createPurchaseRequestUseCase;
 		this.purchaseRequestRepositoryPort = purchaseRequestRepositoryPort;
 	}
 
 	@Override
-	public void createIfNotAlreadyOpen(ReorderCommand command) {
+	public void createIfNotAlreadyOpen(final ReorderCommand command) {
 		if (purchaseRequestRepositoryPort.existsOpenByOriginAndProductId(PurchaseRequestOrigin.MIN_STOCK_TRIGGER,
 				command.productId())) {
 			return;

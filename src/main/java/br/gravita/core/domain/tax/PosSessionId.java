@@ -9,7 +9,7 @@ public record PosSessionId(UUID value) {
 		Objects.requireNonNull(value, "PosSessionId value is required");
 	}
 
-	public static PosSessionId of(UUID value) {
+	public static PosSessionId of(final UUID value) {
 		return new PosSessionId(value);
 	}
 }

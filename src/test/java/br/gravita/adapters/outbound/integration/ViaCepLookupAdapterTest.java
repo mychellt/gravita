@@ -20,8 +20,8 @@ class ViaCepLookupAdapterTest {
 	@Test
 	@DisplayName("Returns the address when the ViaCEP lookup succeeds")
 	void shouldReturnAddressOnSuccess() {
-		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
-		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+		final RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
+		final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 		server.expect(requestTo("http://viacep.test/ws/20000000/json/"))
 				.andRespond(withSuccess("""
 						{
@@ -32,9 +32,9 @@ class ViaCepLookupAdapterTest {
 						  "uf": "RJ"
 						}
 						""", MediaType.APPLICATION_JSON));
-		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
+		final ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.execute(new Context("20000-000"));
+		final Optional<AddressDomain> result = adapter.execute(new Context("20000-000"));
 
 		assertThat(result).isPresent();
 		assertThat(result.get().getCity()).isEqualTo("Rio de Janeiro");
@@ -43,15 +43,15 @@ class ViaCepLookupAdapterTest {
 	@Test
 	@DisplayName("Degrades to an empty result when the CEP is not found")
 	void shouldDegradeToEmptyWhenCepNotFound() {
-		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
-		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+		final RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
+		final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 		server.expect(requestTo("http://viacep.test/ws/99999999/json/"))
 				.andRespond(withSuccess("""
 						{ "erro": true }
 						""", MediaType.APPLICATION_JSON));
-		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
+		final ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.execute(new Context("99999999"));
+		final Optional<AddressDomain> result = adapter.execute(new Context("99999999"));
 
 		assertThat(result).isEmpty();
 	}
@@ -59,13 +59,13 @@ class ViaCepLookupAdapterTest {
 	@Test
 	@DisplayName("Degrades to an empty result when the ViaCEP service fails")
 	void shouldDegradeToEmptyWhenServiceFails() {
-		RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
-		MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
+		final RestClient.Builder builder = RestClient.builder().baseUrl("http://viacep.test/ws");
+		final MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
 		server.expect(requestTo("http://viacep.test/ws/20000000/json/"))
 				.andRespond(withServerError());
-		ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
+		final ViaCepLookupAdapter adapter = new ViaCepLookupAdapter(builder.build());
 
-		Optional<AddressDomain> result = adapter.execute(new Context("20000000"));
+		final Optional<AddressDomain> result = adapter.execute(new Context("20000000"));
 
 		assertThat(result).isEmpty();
 	}

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 class NotifyPayableGeneratedAdapter implements NotifyPayableGeneratedPort {
 
 	@Override
-	public void notifyGenerated(NotifyPayableGeneratedCommand command) {
+	public void notifyGenerated(final NotifyPayableGeneratedCommand command) {
 	}
 }

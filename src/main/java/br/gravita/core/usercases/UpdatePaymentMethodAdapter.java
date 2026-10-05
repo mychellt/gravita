@@ -12,13 +12,13 @@ public class UpdatePaymentMethodAdapter implements UpdatePaymentMethodPort {
 
 	private final PaymentMethodRepositoryPort paymentMethodRepositoryPort;
 
-	public UpdatePaymentMethodAdapter(PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
+	public UpdatePaymentMethodAdapter(final PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
 		this.paymentMethodRepositoryPort = paymentMethodRepositoryPort;
 	}
 
 	@Override
-	public PaymentMethodDomain execute(Context context) {
-		PaymentMethodDomain paymentMethod = context.getData(PaymentMethodDomain.class);
+	public PaymentMethodDomain execute(final Context context) {
+		final PaymentMethodDomain paymentMethod = context.getData(PaymentMethodDomain.class);
 		paymentMethodRepositoryPort.get(paymentMethod.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Payment method not found: " + paymentMethod.getId()));
 		return paymentMethodRepositoryPort.save(paymentMethod);

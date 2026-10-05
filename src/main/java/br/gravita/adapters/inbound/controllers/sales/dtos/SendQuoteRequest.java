@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record SendQuoteRequest(@NotNull QuoteDeliveryChannel channel) {
 
-	public SendQuoteCommand toCommand(UUID quoteId) {
+	public SendQuoteCommand toCommand(final UUID quoteId) {
 		return new SendQuoteCommand(quoteId, channel);
 	}
 }

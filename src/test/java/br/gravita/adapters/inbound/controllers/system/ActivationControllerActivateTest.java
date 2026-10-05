@@ -34,9 +34,9 @@ class ActivationControllerActivateTest {
 	@MockitoBean
 	private ResendActivationUseCase resendActivationUseCase;
 
-	private void assertRedirectsTo(String token, String expectedStatus) throws Exception {
-		var request = token == null ? get("/api/activate") : get("/api/activate").param("token", token);
-		var location = mockMvc.perform(request)
+	private void assertRedirectsTo(final String token, final String expectedStatus) throws Exception {
+		final var request = token == null ? get("/api/activate") : get("/api/activate").param("token", token);
+		final var location = mockMvc.perform(request)
 				.andExpect(status().isFound())
 				.andExpect(header().string("Cache-Control", "no-store"))
 				.andReturn().getResponse().getHeader("Location");

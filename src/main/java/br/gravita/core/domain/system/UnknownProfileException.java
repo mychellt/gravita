@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class UnknownProfileException extends BusinessRuleException {
 
-	public UnknownProfileException(UUID profileId) {
+	public UnknownProfileException(final UUID profileId) {
 		super("Unknown profile: " + profileId);
 	}
 }

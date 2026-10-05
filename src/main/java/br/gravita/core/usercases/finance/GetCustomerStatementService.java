@@ -29,16 +29,16 @@ public class GetCustomerStatementService implements GetCustomerStatementUseCase 
 	private final Clock clock;
 
 	@Autowired
-	public GetCustomerStatementService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort,
-			RenegotiationRepositoryPort renegotiationRepositoryPort) {
+	public GetCustomerStatementService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort,
+			final RenegotiationRepositoryPort renegotiationRepositoryPort) {
 		this(receivableRepositoryPort, settlementRepositoryPort, renegotiationRepositoryPort,
 				Clock.systemDefaultZone());
 	}
 
-	public GetCustomerStatementService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort,
-			RenegotiationRepositoryPort renegotiationRepositoryPort, Clock clock) {
+	public GetCustomerStatementService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort,
+			final RenegotiationRepositoryPort renegotiationRepositoryPort, final Clock clock) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.settlementRepositoryPort = settlementRepositoryPort;
 		this.renegotiationRepositoryPort = renegotiationRepositoryPort;
@@ -52,26 +52,26 @@ public class GetCustomerStatementService implements GetCustomerStatementUseCase 
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public CustomerStatement execute(GetCustomerStatementQuery query) {
-		LocalDate from = query.from();
-		LocalDate to = query.to();
+	public CustomerStatement execute(final GetCustomerStatementQuery query) {
+		final LocalDate from = query.from();
+		final LocalDate to = query.to();
 		if (from != null && to != null && to.isBefore(from)) {
 			throw new BusinessRuleException("to must not be before from: " + from + " > " + to);
 		}
 
-		List<Receivable> receivables = receivableRepositoryPort.findByCustomerId(query.customerId());
-		List<Settlement> settlements = settlementRepositoryPort
+		final List<Receivable> receivables = receivableRepositoryPort.findByCustomerId(query.customerId());
+		final List<Settlement> settlements = settlementRepositoryPort
 				.findByReceivableIds(receivables.stream().map(Receivable::getId).toList());
-		BigDecimal openBalance = openBalance(receivables, settlements);
+		final BigDecimal openBalance = openBalance(receivables, settlements);
 
-		List<Receivable> titles = receivables.stream().filter(receivable -> within(receivable.getDueDate(), from, to))
+		final List<Receivable> titles = receivables.stream().filter(receivable -> within(receivable.getDueDate(), from, to))
 				.sorted(Comparator.comparing(Receivable::getDueDate)
 						.thenComparing(Receivable::getInstallmentNumber, Comparator.nullsFirst(Comparator.naturalOrder())))
 				.toList();
-		List<Settlement> statementSettlements = settlements.stream()
+		final List<Settlement> statementSettlements = settlements.stream()
 				.filter(settlement -> within(settlement.getTimestamp(), from, to))
 				.sorted(Comparator.comparing(Settlement::getTimestamp)).toList();
-		List<Renegotiation> renegotiations = renegotiationRepositoryPort.findByCustomerId(query.customerId())
+		final List<Renegotiation> renegotiations = renegotiationRepositoryPort.findByCustomerId(query.customerId())
 				.stream().filter(renegotiation -> within(renegotiation.getCreatedAt(), from, to))
 				.sorted(Comparator.comparing(Renegotiation::getCreatedAt)).toList();
 
@@ -79,18 +79,18 @@ public class GetCustomerStatementService implements GetCustomerStatementUseCase 
 				openBalance);
 	}
 
-	private static BigDecimal openBalance(List<Receivable> receivables, List<Settlement> settlements) {
+	private static BigDecimal openBalance(final List<Receivable> receivables, final List<Settlement> settlements) {
 		return receivables.stream().filter(Receivable::isOutstanding)
 				.map(receivable -> receivable.remainingBalance(settlements.stream()
 						.filter(settlement -> settlement.getReceivableId().equals(receivable.getId())).toList()))
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	private static boolean within(LocalDate date, LocalDate from, LocalDate to) {
+	private static boolean within(final LocalDate date, final LocalDate from, final LocalDate to) {
 		return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
 	}
 
-	private boolean within(Instant instant, LocalDate from, LocalDate to) {
+	private boolean within(final Instant instant, final LocalDate from, final LocalDate to) {
 		return within(instant.atZone(clock.getZone()).toLocalDate(), from, to);
 	}
 }

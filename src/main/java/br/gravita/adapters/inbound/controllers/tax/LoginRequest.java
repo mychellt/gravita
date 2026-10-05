@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(@NotBlank String email, @NotBlank String password) {
 
-	public AuthenticateCommand toCommand(String ip, String device) {
+	public AuthenticateCommand toCommand(final String ip, final String device) {
 		return new AuthenticateCommand(email, password, null, ip, device);
 	}
 }

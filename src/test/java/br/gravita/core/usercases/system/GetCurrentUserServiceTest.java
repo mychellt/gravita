@@ -36,8 +36,8 @@ class GetCurrentUserServiceTest {
 	@Test
 	@DisplayName("Resolves the session to the user's name, e-mail, profile name and company")
 	void shouldResolveTheLoggedUser() {
-		UUID companyId = UUID.randomUUID();
-		User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR, companyId);
+		final UUID companyId = UUID.randomUUID();
+		final User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR, companyId);
 		when(sessionStorePort.resolve("token")).thenReturn(Optional.of(user.getId()));
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(ADMINISTRATOR.id())).thenReturn(Optional.of(ADMINISTRATOR));
@@ -66,7 +66,7 @@ class GetCurrentUserServiceTest {
 	@Test
 	@DisplayName("A session whose user no longer exists has no user")
 	void shouldBeEmptyWhenTheUserIsGone() {
-		User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR);
+		final User user = User.register("Ana Souza", "ana@acme.com", "s3cret-pass", ADMINISTRATOR);
 		when(sessionStorePort.resolve("token")).thenReturn(Optional.of(user.getId()));
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.empty());
 

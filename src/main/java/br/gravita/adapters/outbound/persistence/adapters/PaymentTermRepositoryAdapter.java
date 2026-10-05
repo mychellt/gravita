@@ -17,21 +17,21 @@ class PaymentTermRepositoryAdapter implements PaymentTermRepositoryPort {
 	private final PaymentTermJpaRepository jpaRepository;
 	private final PaymentTermPersistenceMapper mapper;
 
-	PaymentTermRepositoryAdapter(PaymentTermJpaRepository jpaRepository, PaymentTermPersistenceMapper mapper) {
+	PaymentTermRepositoryAdapter(final PaymentTermJpaRepository jpaRepository, final PaymentTermPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PaymentTermDomain save(PaymentTermDomain model) {
-		PaymentTermJpaEntity entity = mapper.map(model);
+	public PaymentTermDomain save(final PaymentTermDomain model) {
+		final PaymentTermJpaEntity entity = mapper.map(model);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PaymentTermJpaEntity saved = jpaRepository.save(entity);
+		final PaymentTermJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PaymentTermDomain> get(UUID id) {
+	public Optional<PaymentTermDomain> get(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
@@ -41,7 +41,7 @@ class PaymentTermRepositoryAdapter implements PaymentTermRepositoryPort {
 	}
 
 	@Override
-	public void deleteById(UUID id) {
+	public void deleteById(final UUID id) {
 		jpaRepository.findById(id).ifPresent(entity -> {
 			entity.setNew(false);
 			jpaRepository.delete(entity);

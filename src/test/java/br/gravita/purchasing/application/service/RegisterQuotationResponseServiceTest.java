@@ -42,16 +42,16 @@ class RegisterQuotationResponseServiceTest {
 	@Test
 	@DisplayName("Registering a response from a supplier the quotation was sent to saves the updated quotation")
 	void registeringAResponseFromASentSupplierSavesTheUpdatedQuotation() {
-		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
-		Quotation quotation = sentQuotation(quotationId);
+		final QuotationId quotationId = QuotationId.of(UUID.randomUUID());
+		final Quotation quotation = sentQuotation(quotationId);
 		when(quotationRepositoryPort.findById(quotationId)).thenReturn(Optional.of(quotation));
 		when(quotationRepositoryPort.save(any(Quotation.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
+		final RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
 
 		service.execute(new RegisterQuotationResponseCommand(quotationId, supplierId,
 				List.of(new QuotationItemPrice(productId, BigDecimal.TEN)), LocalDate.now().plusDays(7)));
 
-		ArgumentCaptor<Quotation> saved = ArgumentCaptor.forClass(Quotation.class);
+		final ArgumentCaptor<Quotation> saved = ArgumentCaptor.forClass(Quotation.class);
 		verify(quotationRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getResponses()).hasSize(1);
 		assertThat(saved.getValue().getResponses().get(0).supplierId()).isEqualTo(supplierId);
@@ -60,9 +60,9 @@ class RegisterQuotationResponseServiceTest {
 	@Test
 	@DisplayName("Rejects a response registered against a missing quotation")
 	void registeringAResponseForAMissingQuotationIsRejected() {
-		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
+		final QuotationId quotationId = QuotationId.of(UUID.randomUUID());
 		when(quotationRepositoryPort.findById(quotationId)).thenReturn(Optional.empty());
-		RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
+		final RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(new RegisterQuotationResponseCommand(quotationId, supplierId,
 				List.of(new QuotationItemPrice(productId, BigDecimal.TEN)), LocalDate.now())))
@@ -73,11 +73,11 @@ class RegisterQuotationResponseServiceTest {
 	@Test
 	@DisplayName("Rejects a response from a supplier the quotation was not sent to, without saving")
 	void registeringAResponseFromASupplierNotSentTheQuotationIsRejectedWithoutSaving() {
-		QuotationId quotationId = QuotationId.of(UUID.randomUUID());
-		Quotation quotation = sentQuotation(quotationId);
+		final QuotationId quotationId = QuotationId.of(UUID.randomUUID());
+		final Quotation quotation = sentQuotation(quotationId);
 		when(quotationRepositoryPort.findById(quotationId)).thenReturn(Optional.of(quotation));
-		RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
-		SupplierId strangerSupplier = SupplierId.of(UUID.randomUUID());
+		final RegisterQuotationResponseService service = new RegisterQuotationResponseService(quotationRepositoryPort);
+		final SupplierId strangerSupplier = SupplierId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> service.execute(new RegisterQuotationResponseCommand(quotationId, strangerSupplier,
 				List.of(new QuotationItemPrice(productId, BigDecimal.TEN)), LocalDate.now())))
@@ -85,7 +85,7 @@ class RegisterQuotationResponseServiceTest {
 		verify(quotationRepositoryPort, never()).save(any());
 	}
 
-	private Quotation sentQuotation(QuotationId id) {
+	private Quotation sentQuotation(final QuotationId id) {
 		return Quotation.send(id, PurchaseRequestId.of(UUID.randomUUID()),
 				List.of(new QuotationItem(productId, BigDecimal.TEN)), List.of(supplierId));
 	}

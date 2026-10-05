@@ -19,7 +19,7 @@ public class GenerateReceivableFromInvoicingService implements GenerateReceivabl
 
 	private final ReceivableRepositoryPort receivableRepositoryPort;
 
-	public GenerateReceivableFromInvoicingService(ReceivableRepositoryPort receivableRepositoryPort) {
+	public GenerateReceivableFromInvoicingService(final ReceivableRepositoryPort receivableRepositoryPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 	}
 
@@ -30,21 +30,21 @@ public class GenerateReceivableFromInvoicingService implements GenerateReceivabl
 	 */
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
-	public List<Receivable> execute(GenerateReceivableFromInvoicingCommand command) {
+	public List<Receivable> execute(final GenerateReceivableFromInvoicingCommand command) {
 		if (command.installments().isEmpty()) {
 			throw new BusinessRuleException("At least one installment is required");
 		}
 
-		List<Receivable> existing = receivableRepositoryPort.findByOriginDocumentRef(command.originDocumentRef());
+		final List<Receivable> existing = receivableRepositoryPort.findByOriginDocumentRef(command.originDocumentRef());
 		if (!existing.isEmpty()) {
 			return existing;
 		}
 
-		int total = command.installments().size();
-		List<Receivable> created = new ArrayList<>(total);
+		final int total = command.installments().size();
+		final List<Receivable> created = new ArrayList<>(total);
 		for (int i = 0; i < total; i++) {
-			Installment installment = command.installments().get(i);
-			Receivable receivable = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()),
+			final Installment installment = command.installments().get(i);
+			final Receivable receivable = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()),
 					command.customerId(), command.originDocumentRef(), installment.amount(), installment.dueDate(),
 					i + 1, total);
 			created.add(receivableRepositoryPort.save(receivable));

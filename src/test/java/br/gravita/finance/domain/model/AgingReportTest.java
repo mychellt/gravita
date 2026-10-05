@@ -19,11 +19,11 @@ class AgingReportTest {
 
 	private static final LocalDate AS_OF = LocalDate.of(2026, 9, 28);
 
-	private static AgingEntry dueDaysAgo(int days, String outstanding) {
+	private static AgingEntry dueDaysAgo(final int days, final String outstanding) {
 		return new AgingEntry(AS_OF.minusDays(days), new BigDecimal(outstanding));
 	}
 
-	private static AgingBucket bucket(AgingReport report, AgingRange range) {
+	private static AgingBucket bucket(final AgingReport report, final AgingRange range) {
 		return report.getBuckets().stream().filter(bucket -> bucket.range() == range).findFirst().orElseThrow();
 	}
 
@@ -31,20 +31,20 @@ class AgingReportTest {
 	@CsvSource({ "0,UP_TO_30", "1,UP_TO_30", "30,UP_TO_30", "31,FROM_31_TO_60", "60,FROM_31_TO_60",
 			"61,FROM_61_TO_90", "90,FROM_61_TO_90", "91,OVER_90", "5000,OVER_90" })
 	@DisplayName("Includes both boundaries of each aging range")
-	void rangeBoundariesAreInclusive(long days, AgingRange expected) {
+	void rangeBoundariesAreInclusive(final long days, final AgingRange expected) {
 		assertThat(AgingRange.of(days)).contains(expected);
 	}
 
 	@Test
 	@DisplayName("Assigns no aging range to a title that is not due yet")
-	void aTitleNotDueYetHasNoRange() {
+	void titleNotDueYetHasNoRange() {
 		assertThat(AgingRange.of(-1)).isEqualTo(Optional.empty());
 	}
 
 	@Test
 	@DisplayName("Buckets each title by days overdue as of the report date")
 	void bucketsEachTitleByDaysOverdueAsOfTheReportDate() {
-		AgingReport report = AgingReport.of(AS_OF, List.of(dueDaysAgo(0, "1.00"), dueDaysAgo(30, "2.00"),
+		final AgingReport report = AgingReport.of(AS_OF, List.of(dueDaysAgo(0, "1.00"), dueDaysAgo(30, "2.00"),
 				dueDaysAgo(31, "4.00"), dueDaysAgo(60, "8.00"), dueDaysAgo(61, "16.00"), dueDaysAgo(90, "32.00"),
 				dueDaysAgo(91, "64.00"), dueDaysAgo(400, "128.00")));
 
@@ -60,7 +60,7 @@ class AgingReportTest {
 	@Test
 	@DisplayName("Lists every range in order, including empty ones")
 	void listsEveryRangeInOrderEvenWhenEmpty() {
-		AgingReport report = AgingReport.of(AS_OF, List.of());
+		final AgingReport report = AgingReport.of(AS_OF, List.of());
 
 		assertThat(report.getBuckets()).extracting(AgingBucket::range).containsExactly(AgingRange.UP_TO_30,
 				AgingRange.FROM_31_TO_60, AgingRange.FROM_61_TO_90, AgingRange.OVER_90);
@@ -71,7 +71,7 @@ class AgingReportTest {
 	@Test
 	@DisplayName("Leaves out titles not yet due and fully paid ones")
 	void leavesOutTitlesNotDueYetAndFullyPaidOnes() {
-		AgingReport report = AgingReport.of(AS_OF, List.of(dueDaysAgo(-1, "10.00"), dueDaysAgo(5, "0.00")));
+		final AgingReport report = AgingReport.of(AS_OF, List.of(dueDaysAgo(-1, "10.00"), dueDaysAgo(5, "0.00")));
 
 		assertThat(report.getTitleCount()).isZero();
 		assertThat(report.getTotal()).isEqualByComparingTo("0");

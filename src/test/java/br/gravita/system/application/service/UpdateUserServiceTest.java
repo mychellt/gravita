@@ -42,8 +42,8 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Updates name, email, profile and status")
 	void shouldUpdateNameEmailProfileAndStatus() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(userRepositoryPort.existsByEmail("jane.roe@example.com")).thenReturn(false);
 		when(profileRepositoryPort.findById(ADMINISTRATOR.id())).thenReturn(Optional.of(ADMINISTRATOR));
@@ -51,9 +51,9 @@ class UpdateUserServiceTest {
 		service.execute(new UpdateUserCommand(user.getId().value(), "Jane Roe", "jane.roe@example.com",
 				ADMINISTRATOR.id(), UserStatus.INACTIVE));
 
-		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+		final ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 		verify(userRepositoryPort).update(captor.capture());
-		User updated = captor.getValue();
+		final User updated = captor.getValue();
 		assertThat(updated.getName()).isEqualTo("Jane Roe");
 		assertThat(updated.getEmail()).isEqualTo("jane.roe@example.com");
 		assertThat(updated.getProfileId()).isEqualTo(ADMINISTRATOR.id());
@@ -63,14 +63,14 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Forces two-factor on when the profile switches to administrator")
 	void shouldForceTwoFactorEnabledWhenProfileSwitchesToAdministrator() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(ADMINISTRATOR.id())).thenReturn(Optional.of(ADMINISTRATOR));
 
 		service.execute(new UpdateUserCommand(user.getId().value(), null, null, ADMINISTRATOR.id(), null));
 
-		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+		final ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
 		verify(userRepositoryPort).update(captor.capture());
 		assertThat(captor.getValue().isTwoFactorEnabled()).isTrue();
 	}
@@ -78,8 +78,8 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown user id")
 	void shouldRejectUnknownUserId() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		UUID userId = UUID.randomUUID();
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final UUID userId = UUID.randomUUID();
 		when(userRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new UpdateUserCommand(userId, "Jane Roe", null, null, null)))
@@ -91,8 +91,8 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Rejects an email already used by another user on update")
 	void shouldRejectDuplicateEmailOnUpdate() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(userRepositoryPort.existsByEmail("taken@example.com")).thenReturn(true);
 
@@ -107,8 +107,8 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Does not treat an unchanged email as a duplicate")
 	void shouldNotTreatUnchangedEmailAsDuplicate() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 
 		service.execute(new UpdateUserCommand(user.getId().value(), "Jane Roe", "jane@example.com", null, null));
@@ -120,9 +120,9 @@ class UpdateUserServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown profile on update")
 	void shouldRejectUnknownProfileOnUpdate() {
-		UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
-		UUID unknownProfileId = UUID.randomUUID();
+		final UpdateUserService service = new UpdateUserService(userRepositoryPort, profileRepositoryPort);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final UUID unknownProfileId = UUID.randomUUID();
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(unknownProfileId)).thenReturn(Optional.empty());
 

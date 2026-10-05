@@ -46,9 +46,9 @@ class ListCustomersAdapterTest {
 	@DisplayName("Returns only the customers of the caller's company")
 	@Test
 	void shouldReturnOnlyCustomersOfTheCallersCompany() {
-		UUID companyId = UUID.randomUUID();
+		final UUID companyId = UUID.randomUUID();
 		when(userRepositoryPort.findById(callerId)).thenReturn(Optional.of(User.builder().companyId(companyId).build()));
-		List<CustomerDomain> customers = List.of(
+		final List<CustomerDomain> customers = List.of(
 				CustomerDomain.builder().name("Maria Silva").companyId(companyId).build(),
 				CustomerDomain.builder().name("João Souza").companyId(companyId).build());
 		when(customerRepositoryPort.findAllByCompanyId(companyId)).thenReturn(customers);

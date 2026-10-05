@@ -43,18 +43,18 @@ class AccountingFileAdapter implements ExportAccountingFilePort {
 	private static final int AMOUNT_WIDTH = 15;
 
 	@Override
-	public byte[] export(List<AccountingEntry> entries, AccountingExportFormat format) {
-		String content = switch (format) {
+	public byte[] export(final List<AccountingEntry> entries, final AccountingExportFormat format) {
+		final String content = switch (format) {
 			case CSV -> csv(entries);
 			case TXT -> txt(entries);
 		};
 		return content.getBytes(StandardCharsets.UTF_8);
 	}
 
-	private static String csv(List<AccountingEntry> entries) {
-		StringBuilder csv = new StringBuilder();
+	private static String csv(final List<AccountingEntry> entries) {
+		final StringBuilder csv = new StringBuilder();
 		appendCsvRow(csv, CSV_HEADER);
-		for (AccountingEntry entry : entries) {
+		for (final AccountingEntry entry : entries) {
 			appendCsvRow(csv, List.of(entry.date().format(DATE), flow(entry), asText(entry.series()),
 					asText(entry.number()), asText(entry.accessKey()), asText(entry.counterpartName()),
 					asText(entry.counterpartDocument()), asText(entry.cfop()), amount(entry.totalValue()),
@@ -64,21 +64,21 @@ class AccountingFileAdapter implements ExportAccountingFilePort {
 		return csv.toString();
 	}
 
-	private static void appendCsvRow(StringBuilder csv, List<String> cells) {
+	private static void appendCsvRow(final StringBuilder csv, final List<String> cells) {
 		csv.append(cells.stream().map(AccountingFileAdapter::quoteIfNeeded)
 				.collect(Collectors.joining(String.valueOf(CSV_SEPARATOR)))).append(EOL);
 	}
 
-	private static String quoteIfNeeded(String cell) {
-		boolean needsQuotes = cell.indexOf(CSV_SEPARATOR) >= 0 || cell.indexOf('"') >= 0 || cell.indexOf('\n') >= 0
+	private static String quoteIfNeeded(final String cell) {
+		final boolean needsQuotes = cell.indexOf(CSV_SEPARATOR) >= 0 || cell.indexOf('"') >= 0 || cell.indexOf('\n') >= 0
 				|| cell.indexOf('\r') >= 0;
 		return needsQuotes ? '"' + cell.replace("\"", "\"\"") + '"' : cell;
 	}
 
-	private static String txt(List<AccountingEntry> entries) {
-		StringBuilder txt = new StringBuilder();
-		for (AccountingEntry entry : entries) {
-			String line = String.join(" ", entry.date().format(DATE), left(flow(entry), FLOW_WIDTH),
+	private static String txt(final List<AccountingEntry> entries) {
+		final StringBuilder txt = new StringBuilder();
+		for (final AccountingEntry entry : entries) {
+			final String line = String.join(" ", entry.date().format(DATE), left(flow(entry), FLOW_WIDTH),
 					left(singleLine(entry.series()), SERIES_WIDTH), left(singleLine(entry.number()), NUMBER_WIDTH),
 					left(singleLine(entry.accessKey()), ACCESS_KEY_WIDTH),
 					left(singleLine(entry.counterpartName()), NAME_WIDTH, true),
@@ -91,7 +91,7 @@ class AccountingFileAdapter implements ExportAccountingFilePort {
 		return txt.toString();
 	}
 
-	private static String flow(AccountingEntry entry) {
+	private static String flow(final AccountingEntry entry) {
 		return switch (entry.flow()) {
 			case ENTRY -> "ENTRADA";
 			case EXIT -> "SAIDA";
@@ -99,32 +99,32 @@ class AccountingFileAdapter implements ExportAccountingFilePort {
 	}
 
 	/** A text cell of the CSV: empty when absent, and never read as a formula. */
-	private static String asText(String value) {
+	private static String asText(final String value) {
 		if (value == null) {
 			return "";
 		}
-		boolean formula = !value.isEmpty() && "=+-@\t\r".indexOf(value.charAt(0)) >= 0;
+		final boolean formula = !value.isEmpty() && "=+-@\t\r".indexOf(value.charAt(0)) >= 0;
 		return formula ? "'" + value : value;
 	}
 
 	/** A text field of the TXT: blank when absent, and kept to the one line its record has. */
-	private static String singleLine(String value) {
+	private static String singleLine(final String value) {
 		return value == null ? "" : value.replaceAll("\\p{Cntrl}", " ").strip();
 	}
 
-	private static String left(String value, int width) {
+	private static String left(final String value, final int width) {
 		return String.format("%-" + width + "s", value);
 	}
 
-	private static String left(String value, int width, boolean truncate) {
+	private static String left(final String value, final int width, final boolean truncate) {
 		return left(truncate && value.length() > width ? value.substring(0, width) : value, width);
 	}
 
-	private static String right(String value) {
+	private static String right(final String value) {
 		return String.format("%" + AMOUNT_WIDTH + "s", value);
 	}
 
-	private static String amount(BigDecimal value) {
+	private static String amount(final BigDecimal value) {
 		return value.setScale(2, RoundingMode.HALF_UP).toPlainString().replace('.', ',');
 	}
 }

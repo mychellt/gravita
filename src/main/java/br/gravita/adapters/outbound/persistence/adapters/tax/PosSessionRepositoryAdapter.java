@@ -17,26 +17,26 @@ class PosSessionRepositoryAdapter implements PosSessionRepositoryPort {
 	private final PosSessionJpaRepository jpaRepository;
 	private final PosSessionPersistenceMapper mapper;
 
-	PosSessionRepositoryAdapter(PosSessionJpaRepository jpaRepository, PosSessionPersistenceMapper mapper) {
+	PosSessionRepositoryAdapter(final PosSessionJpaRepository jpaRepository, final PosSessionPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PosSession save(PosSession posSession) {
-		PosSessionJpaEntity entity = mapper.map(posSession);
+	public PosSession save(final PosSession posSession) {
+		final PosSessionJpaEntity entity = mapper.map(posSession);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PosSessionJpaEntity saved = jpaRepository.save(entity);
+		final PosSessionJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PosSession> findById(PosSessionId id) {
+	public Optional<PosSession> findById(final PosSessionId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public boolean existsByRegisterIdAndStatus(UUID registerId, PosSessionStatus status) {
+	public boolean existsByRegisterIdAndStatus(final UUID registerId, final PosSessionStatus status) {
 		return jpaRepository.existsByRegisterIdAndStatus(registerId, status);
 	}
 }

@@ -62,10 +62,10 @@ public class IssueNfeService implements IssueNfeUseCase {
 	private final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase;
 	private final TransmissionQueuePort transmissionQueuePort;
 
-	public IssueNfeService(NfeRepositoryPort nfeRepositoryPort, CompanyRepositoryPort companyRepositoryPort,
-			PriceTableRepositoryPort priceTableRepositoryPort, CfopRegistryPort cfopRegistryPort,
-			CalculateTaxUseCase calculateTaxUseCase, AllocateDocumentNumberUseCase allocateDocumentNumberUseCase,
-			TransmissionQueuePort transmissionQueuePort) {
+	public IssueNfeService(final NfeRepositoryPort nfeRepositoryPort, final CompanyRepositoryPort companyRepositoryPort,
+			final PriceTableRepositoryPort priceTableRepositoryPort, final CfopRegistryPort cfopRegistryPort,
+			final CalculateTaxUseCase calculateTaxUseCase, final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase,
+			final TransmissionQueuePort transmissionQueuePort) {
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.priceTableRepositoryPort = priceTableRepositoryPort;
@@ -76,52 +76,65 @@ public class IssueNfeService implements IssueNfeUseCase {
 	}
 
 	@Override
-	public NfeDocument execute(IssueNfeCommand command) {
-		Company company = companyRepositoryPort.findById(CompanyId.of(command.issuerCompanyId()))
+	public NfeDocument execute(final IssueNfeCommand command) {
+		final Company company = companyRepositoryPort.findById(CompanyId.of(command.issuerCompanyId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + command.issuerCompanyId()));
 
 		// AC3: recipient CPF/CNPJ check-digit + IE-taxpayer validation.
-		NfeRecipient recipient = buildRecipient(command.recipient());
+		final NfeRecipient recipient = buildRecipient(command.recipient());
 
 		// AC2: CFOP always comes from the registry, keyed by operation type.
-		Cfop cfop = cfopRegistryPort.resolve(command.naturezaOperacao());
+		final Cfop cfop = cfopRegistryPort.resolve(command.naturezaOperacao());
 
 		// AC5: discount vs. the linked price table's max-discount rule, unless justified.
-		PriceTable priceTable = resolvePriceTable(command.priceTableId());
+		final PriceTable priceTable = resolvePriceTable(command.priceTableId());
 		checkDiscounts(priceTable, command.items(), command.discountOverrideJustification());
 
 		// AC4: a manual tax override is only accepted with a justification.
 		requireJustifiedOverrides(command.taxOverrides());
 
 		// AC4: tax totals always come from the shared engine, never recomputed here.
-		TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(command, company, recipient));
-		List<NfeItem> items = buildItems(command.items(), taxResult.items());
+		final TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(command, company, recipient));
+		final List<NfeItem> items = buildItems(command.items(), taxResult.items());
 
 		// AC1/AC6: originSalesOrderId and referencedAccessKey are preserved/enforced by the aggregate itself.
-		NfeDocument draft = NfeDocument.draft(NfeDocumentId.of(UUID.randomUUID()), company.getId(),
-				command.originSalesOrderId(), command.naturezaOperacao(), cfop, recipient, items, command.freight(),
-				command.insurance(), command.otherExpenses(), buildTransport(command.transport()),
-				command.referencedAccessKey(), command.additionalInfo(), taxResult.totals(), Instant.now());
+		final NfeDocument draft = NfeDocument.draft()
+				.id(NfeDocumentId.of(UUID.randomUUID()))
+				.issuerCompanyId(company.getId())
+				.originSalesOrderId(command.originSalesOrderId())
+				.naturezaOperacao(command.naturezaOperacao())
+				.cfop(cfop)
+				.recipient(recipient)
+				.items(items)
+				.freight(command.freight())
+				.insurance(command.insurance())
+				.otherExpenses(command.otherExpenses())
+				.transport(buildTransport(command.transport()))
+				.referencedAccessKey(command.referencedAccessKey())
+				.additionalInfo(command.additionalInfo())
+				.taxTotals(taxResult.totals())
+				.createdAt(Instant.now())
+				.build();
 
-		DocumentNumber documentNumber = allocateDocumentNumberUseCase
+		final DocumentNumber documentNumber = allocateDocumentNumberUseCase
 				.execute(new AllocateDocumentNumberCommand(company.getId(), FiscalDocumentType.NFE));
-		String accessKey = NfeAccessKeyGenerator.generate(company.getState(), company.getCnpj().number(),
+		final String accessKey = NfeAccessKeyGenerator.generate(company.getState(), company.getCnpj().number(),
 				documentNumber.series(), documentNumber.number());
 
 		// AC7: on success, the document is QUEUED and a TransmissionQueueEntry exists for it.
-		NfeDocument queued = draft.queue(documentNumber.series(), documentNumber.number(), accessKey);
-		NfeDocument saved = nfeRepositoryPort.save(queued);
+		final NfeDocument queued = draft.queue(documentNumber.series(), documentNumber.number(), accessKey);
+		final NfeDocument saved = nfeRepositoryPort.save(queued);
 		transmissionQueuePort.enqueue(saved.getId());
 
 		return saved;
 	}
 
-	private NfeRecipient buildRecipient(RecipientCommand recipient) {
+	private NfeRecipient buildRecipient(final RecipientCommand recipient) {
 		return NfeRecipient.of(PersonRef.of(recipient.personId()), recipient.document(), recipient.personType(),
 				recipient.name(), recipient.stateRegistration(), recipient.state());
 	}
 
-	private NfeTransportInfo buildTransport(TransportCommand transport) {
+	private NfeTransportInfo buildTransport(final TransportCommand transport) {
 		if (transport == null) {
 			return null;
 		}
@@ -129,7 +142,7 @@ public class IssueNfeService implements IssueNfeUseCase {
 				transport.grossWeight(), transport.netWeight(), transport.rntrc());
 	}
 
-	private PriceTable resolvePriceTable(UUID priceTableId) {
+	private PriceTable resolvePriceTable(final UUID priceTableId) {
 		if (priceTableId == null) {
 			return null;
 		}
@@ -145,24 +158,24 @@ public class IssueNfeService implements IssueNfeUseCase {
 	 * bypasses the limit entirely, per the AC's "unless override is explicitly
 	 * justified".
 	 */
-	private void checkDiscounts(PriceTable priceTable, List<ItemCommand> items, String overrideJustification) {
+	private void checkDiscounts(final PriceTable priceTable, final List<ItemCommand> items, final String overrideJustification) {
 		if (priceTable == null || (overrideJustification != null && !overrideJustification.isBlank())) {
 			return;
 		}
-		for (ItemCommand item : items) {
-			BigDecimal discount = item.discount();
-			BigDecimal subtotal = item.unitPrice().multiply(item.quantity());
+		for (final ItemCommand item : items) {
+			final BigDecimal discount = item.discount();
+			final BigDecimal subtotal = item.unitPrice().multiply(item.quantity());
 			if (discount == null || discount.compareTo(BigDecimal.ZERO) <= 0
 					|| subtotal.compareTo(BigDecimal.ZERO) <= 0) {
 				continue;
 			}
-			BigDecimal discountPercent = discount.divide(subtotal, 4, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
+			final BigDecimal discountPercent = discount.divide(subtotal, 4, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
 			priceTable.evaluateDiscount(discountPercent);
 		}
 	}
 
-	private void requireJustifiedOverrides(List<TaxOverrideCommand> overrides) {
-		for (TaxOverrideCommand override : overrides) {
+	private void requireJustifiedOverrides(final List<TaxOverrideCommand> overrides) {
+		for (final TaxOverrideCommand override : overrides) {
 			if (override.justification() == null || override.justification().isBlank()) {
 				throw new BusinessRuleException(
 						"Manual tax override for item " + override.itemIndex() + " requires a justification");
@@ -170,23 +183,23 @@ public class IssueNfeService implements IssueNfeUseCase {
 		}
 	}
 
-	private CalculateTaxCommand buildTaxCommand(IssueNfeCommand command, Company company, NfeRecipient recipient) {
-		List<TaxItemCommand> items = command.items().stream()
+	private CalculateTaxCommand buildTaxCommand(final IssueNfeCommand command, final Company company, final NfeRecipient recipient) {
+		final List<TaxItemCommand> items = command.items().stream()
 				.map(item -> new TaxItemCommand(item.productId().toString(), item.quantity(), item.unitPrice()))
 				.toList();
 		// masterdata.TaxRegime and tax.TaxRegime are separate enums with the same
 		// values (one per module's package boundary); convert by name at the seam.
-		TaxRegime taxRegime = TaxRegime.valueOf(company.getTaxRegime().name());
+		final TaxRegime taxRegime = TaxRegime.valueOf(company.getTaxRegime().name());
 		return new CalculateTaxCommand(items, company.getState(), recipient.state(), taxRegime,
 				command.naturezaOperacao().name(), command.taxOverrides());
 	}
 
-	private List<NfeItem> buildItems(List<ItemCommand> inputs, List<ItemTaxBreakdown> breakdowns) {
-		List<NfeItem> items = new ArrayList<>();
+	private List<NfeItem> buildItems(final List<ItemCommand> inputs, final List<ItemTaxBreakdown> breakdowns) {
+		final List<NfeItem> items = new ArrayList<>();
 		for (int index = 0; index < inputs.size(); index++) {
-			ItemCommand input = inputs.get(index);
-			int itemIndex = index;
-			ItemTaxBreakdown breakdown = breakdowns.stream().filter(b -> b.itemIndex() == itemIndex).findFirst()
+			final ItemCommand input = inputs.get(index);
+			final int itemIndex = index;
+			final ItemTaxBreakdown breakdown = breakdowns.stream().filter(b -> b.itemIndex() == itemIndex).findFirst()
 					.orElseThrow(() -> new BusinessRuleException("Missing tax breakdown for item index " + itemIndex));
 			items.add(new NfeItem(input.productId(), input.description(), input.quantity(), input.unitPrice(),
 					input.discount(), breakdown));

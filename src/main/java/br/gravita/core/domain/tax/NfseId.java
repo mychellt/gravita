@@ -9,7 +9,7 @@ public record NfseId(UUID value) {
 		Objects.requireNonNull(value, "NfseId value is required");
 	}
 
-	public static NfseId of(UUID value) {
+	public static NfseId of(final UUID value) {
 		return new NfseId(value);
 	}
 }

@@ -18,7 +18,7 @@ class DiscriminationTemplateTest {
 	@Test
 	@DisplayName("Creates and updates a template while keeping its identity")
 	void createsAndUpdatesKeepingIdentity() {
-		DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("1.05"), "Licenciamento");
+		final DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("1.05"), "Licenciamento");
 
 		template.update(ServiceCode.of("0801"), "Treinamento");
 
@@ -37,8 +37,8 @@ class DiscriminationTemplateTest {
 
 	@Test
 	@DisplayName("Leaves the template unchanged when an update fails")
-	void aFailedUpdateLeavesTheTemplateUnchanged() {
-		DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("01.05"), "keep");
+	void failedUpdateLeavesTheTemplateUnchanged() {
+		final DiscriminationTemplate template = DiscriminationTemplate.of(ID, ServiceCode.of("01.05"), "keep");
 
 		assertThatThrownBy(() -> template.update(ServiceCode.of("02.01"), "")).isInstanceOf(BusinessRuleException.class);
 

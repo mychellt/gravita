@@ -17,23 +17,23 @@ public class ApprovePhysicalCountService implements ApprovePhysicalCountUseCase 
 	private final PhysicalCountRepositoryPort physicalCountRepositoryPort;
 	private final AdjustInventoryUseCase adjustInventoryUseCase;
 
-	public ApprovePhysicalCountService(PhysicalCountRepositoryPort physicalCountRepositoryPort,
-			AdjustInventoryUseCase adjustInventoryUseCase) {
+	public ApprovePhysicalCountService(final PhysicalCountRepositoryPort physicalCountRepositoryPort,
+			final AdjustInventoryUseCase adjustInventoryUseCase) {
 		this.physicalCountRepositoryPort = physicalCountRepositoryPort;
 		this.adjustInventoryUseCase = adjustInventoryUseCase;
 	}
 
 	@Override
 	@Transactional
-	public PhysicalCount execute(ApprovePhysicalCountCommand command) {
-		PhysicalCount physicalCount = physicalCountRepositoryPort.findById(command.physicalCountId())
+	public PhysicalCount execute(final ApprovePhysicalCountCommand command) {
+		final PhysicalCount physicalCount = physicalCountRepositoryPort.findById(command.physicalCountId())
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"PhysicalCount not found: " + command.physicalCountId().value()));
 
-		PhysicalCount approved = physicalCount.approve();
+		final PhysicalCount approved = physicalCount.approve();
 
-		String justification = "Physical count " + command.physicalCountId().value() + " approval";
-		for (PhysicalCountLine line : physicalCount.getLines()) {
+		final String justification = "Physical count " + command.physicalCountId().value() + " approval";
+		for (final PhysicalCountLine line : physicalCount.getLines()) {
 			if (line.hasDivergence()) {
 				adjustInventoryUseCase.execute(new AdjustInventoryCommand(line.productId(),
 						physicalCount.getWarehouseId(), line.divergence(), justification, command.approvedBy()));

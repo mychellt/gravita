@@ -11,7 +11,7 @@ public enum ExportFormat {
 	private final String extension;
 	private final String contentType;
 
-	ExportFormat(String extension, String contentType) {
+	ExportFormat(final String extension, final String contentType) {
 		this.extension = extension;
 		this.contentType = contentType;
 	}
@@ -24,7 +24,7 @@ public enum ExportFormat {
 		return contentType;
 	}
 
-	public static Optional<ExportFormat> fromExtension(String extension) {
+	public static Optional<ExportFormat> fromExtension(final String extension) {
 		return Arrays.stream(values()).filter(format -> format.extension.equalsIgnoreCase(extension == null ? "" : extension.trim()))
 				.findFirst();
 	}

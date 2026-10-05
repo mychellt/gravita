@@ -20,48 +20,48 @@ public class ManageOpportunityService implements ManageOpportunityUseCase {
 	private final OpportunityRepositoryPort opportunityRepositoryPort;
 	private final StageTransitionRepositoryPort stageTransitionRepositoryPort;
 
-	public ManageOpportunityService(OpportunityRepositoryPort opportunityRepositoryPort,
-			StageTransitionRepositoryPort stageTransitionRepositoryPort) {
+	public ManageOpportunityService(final OpportunityRepositoryPort opportunityRepositoryPort,
+			final StageTransitionRepositoryPort stageTransitionRepositoryPort) {
 		this.opportunityRepositoryPort = opportunityRepositoryPort;
 		this.stageTransitionRepositoryPort = stageTransitionRepositoryPort;
 	}
 
 	@Override
-	public OpportunityView create(CreateOpportunityCommand command) {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
-		Opportunity opportunity = Opportunity.create(id, command.customerId(), command.estimatedValue(),
+	public OpportunityView create(final CreateOpportunityCommand command) {
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final Opportunity opportunity = Opportunity.create(id, command.customerId(), command.estimatedValue(),
 				command.probability(), command.expectedCloseDate(), command.owner());
 
-		Opportunity saved = opportunityRepositoryPort.save(opportunity);
+		final Opportunity saved = opportunityRepositoryPort.save(opportunity);
 		return OpportunityView.from(saved);
 	}
 
 	@Override
-	public OpportunityView update(UpdateOpportunityCommand command) {
-		Opportunity existing = findOrThrow(command.opportunityId());
+	public OpportunityView update(final UpdateOpportunityCommand command) {
+		final Opportunity existing = findOrThrow(command.opportunityId());
 
-		Opportunity updated = existing.withUpdatedFields(command.customerId(), command.estimatedValue(),
+		final Opportunity updated = existing.withUpdatedFields(command.customerId(), command.estimatedValue(),
 				command.probability(), command.expectedCloseDate(), command.owner());
 
-		Opportunity saved = opportunityRepositoryPort.save(updated);
+		final Opportunity saved = opportunityRepositoryPort.save(updated);
 		return OpportunityView.from(saved);
 	}
 
 	@Override
-	public OpportunityView changeStage(ChangeOpportunityStageCommand command) {
-		Opportunity existing = findOrThrow(command.opportunityId());
+	public OpportunityView changeStage(final ChangeOpportunityStageCommand command) {
+		final Opportunity existing = findOrThrow(command.opportunityId());
 
-		Opportunity moved = existing.moveToStage(command.newStage());
-		Opportunity saved = opportunityRepositoryPort.save(moved);
+		final Opportunity moved = existing.moveToStage(command.newStage());
+		final Opportunity saved = opportunityRepositoryPort.save(moved);
 
-		StageTransition transition = StageTransition.append(existing.getId(), existing.getStage(),
+		final StageTransition transition = StageTransition.append(existing.getId(), existing.getStage(),
 				moved.getStage());
 		stageTransitionRepositoryPort.save(transition);
 
 		return OpportunityView.from(saved);
 	}
 
-	private Opportunity findOrThrow(OpportunityId opportunityId) {
+	private Opportunity findOrThrow(final OpportunityId opportunityId) {
 		return opportunityRepositoryPort.findById(opportunityId)
 				.orElseThrow(() -> new OpportunityNotFoundException(opportunityId.value()));
 	}

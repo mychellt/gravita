@@ -29,7 +29,7 @@ public record RegisterCompanyRequest(
 		String logoUrl,
 		UUID parentCompanyId) {
 
-	public RegisterCompanyCommand toCommand(CompanyId id) {
+	public RegisterCompanyCommand toCommand(final CompanyId id) {
 		return new RegisterCompanyCommand(
 				id,
 				name,

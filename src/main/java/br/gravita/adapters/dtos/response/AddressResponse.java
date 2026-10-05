@@ -11,7 +11,7 @@ public record AddressResponse(
 		String state,
 		String zipCode) {
 
-	public static AddressResponse from(AddressDomain domain) {
+	public static AddressResponse from(final AddressDomain domain) {
 		if (domain == null) {
 			return null;
 		}

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 class ReverseStockEntryAdapter implements ReverseStockEntryPort {
 
 	@Override
-	public void reverseEntry(ReverseStockEntryCommand command) {
+	public void reverseEntry(final ReverseStockEntryCommand command) {
 	}
 }

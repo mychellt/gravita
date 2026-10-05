@@ -54,15 +54,29 @@ class OpenPosSessionServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfce@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11222333000181"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfce@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	@Test
 	@DisplayName("Rejects opening a session on a register that already has an open session")
-	void ac1_rejectsOpeningASessionOnARegisterThatAlreadyHasAnOpenSession() {
-		UUID registerId = UUID.randomUUID();
+	void ac1RejectsOpeningASessionOnARegisterThatAlreadyHasAnOpenSession() {
+		final UUID registerId = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(registerId, PosSessionStatus.OPEN))
 				.thenReturn(true);
 
@@ -75,17 +89,17 @@ class OpenPosSessionServiceTest {
 
 	@Test
 	@DisplayName("Saves the session open with its opened-at time and the given amount")
-	void ac2_theSavedSessionIsOpenWithOpenedAtAndTheGivenAmount() {
-		UUID registerId = UUID.randomUUID();
+	void ac2TheSavedSessionIsOpenWithOpenedAtAndTheGivenAmount() {
+		final UUID registerId = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(eq(registerId), any())).thenReturn(false);
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PosSessionId id = service.execute(
+		final PosSessionId id = service.execute(
 				new OpenPosSessionCommand(registerId, UUID.randomUUID(), companyId, new BigDecimal("150.00")));
 
-		ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
+		final ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
 		verify(posSessionRepositoryPort).save(captor.capture());
-		PosSession saved = captor.getValue();
+		final PosSession saved = captor.getValue();
 		assertThat(saved.getStatus()).isEqualTo(PosSessionStatus.OPEN);
 		assertThat(saved.getOpenedAt()).isNotNull();
 		assertThat(saved.getOpeningChangeAmount()).isEqualByComparingTo("150.00");
@@ -94,15 +108,15 @@ class OpenPosSessionServiceTest {
 
 	@Test
 	@DisplayName("Links the operator to the register on the saved session")
-	void ac3_theOperatorIsLinkedToTheRegisterOnTheSavedSession() {
-		UUID registerId = UUID.randomUUID();
-		UUID operatorId = UUID.randomUUID();
+	void ac3TheOperatorIsLinkedToTheRegisterOnTheSavedSession() {
+		final UUID registerId = UUID.randomUUID();
+		final UUID operatorId = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(eq(registerId), any())).thenReturn(false);
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new OpenPosSessionCommand(registerId, operatorId, companyId, new BigDecimal("50.00")));
 
-		ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
+		final ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
 		verify(posSessionRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getRegisterId()).isEqualTo(registerId);
 		assertThat(captor.getValue().getOperatorId()).isEqualTo(operatorId);
@@ -110,15 +124,15 @@ class OpenPosSessionServiceTest {
 
 	@Test
 	@DisplayName("Lets multiple registers each hold an independent open session")
-	void ac4_multipleRegistersCanEachHoldAnIndependentOpenSession() {
-		UUID registerA = UUID.randomUUID();
-		UUID registerB = UUID.randomUUID();
+	void ac4MultipleRegistersCanEachHoldAnIndependentOpenSession() {
+		final UUID registerA = UUID.randomUUID();
+		final UUID registerB = UUID.randomUUID();
 		when(posSessionRepositoryPort.existsByRegisterIdAndStatus(any(), any())).thenReturn(false);
 		when(posSessionRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PosSessionId idA = service.execute(
+		final PosSessionId idA = service.execute(
 				new OpenPosSessionCommand(registerA, UUID.randomUUID(), companyId, new BigDecimal("50.00")));
-		PosSessionId idB = service.execute(
+		final PosSessionId idB = service.execute(
 				new OpenPosSessionCommand(registerB, UUID.randomUUID(), companyId, new BigDecimal("75.00")));
 
 		assertThat(idA).isNotEqualTo(idB);

@@ -1,5 +1,6 @@
 package br.gravita.core.domain.tax;
 
+import lombok.Builder;
 import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import java.math.BigDecimal;
@@ -26,10 +27,11 @@ public final class CashClosingReport {
 	private final Instant openedAt;
 	private final Instant closedAt;
 
-	public CashClosingReport(CashClosingReportId id, PosSessionId sessionId, UUID registerId, UUID operatorId,
-			BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
-			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
-			BigDecimal totalSuprimentoAmount, int saleCount, Instant openedAt, Instant closedAt) {
+	@Builder
+	public CashClosingReport(final CashClosingReportId id, final PosSessionId sessionId, final UUID registerId, final UUID operatorId,
+			final BigDecimal openingAmount, final Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
+			final Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, final BigDecimal totalSangriaAmount,
+			final BigDecimal totalSuprimentoAmount, final int saleCount, final Instant openedAt, final Instant closedAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.sessionId = Objects.requireNonNull(sessionId, "sessionId is required");
 		this.registerId = Objects.requireNonNull(registerId, "registerId is required");
@@ -51,41 +53,23 @@ public final class CashClosingReport {
 				.subtract(this.totalSangriaAmount);
 	}
 
-	public static CashClosingReport close(CashClosingReportId id, PosSessionId sessionId, UUID registerId,
-			UUID operatorId, BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
-			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
-			BigDecimal totalSuprimentoAmount, int saleCount, Instant openedAt, Instant closedAt) {
-		return new CashClosingReport(id, sessionId, registerId, operatorId, openingAmount,
-				expectedAmountsByPaymentMethod, countedAmountsByPaymentMethod, totalSangriaAmount, totalSuprimentoAmount,
-				saleCount, openedAt, closedAt);
-	}
-
-	public static CashClosingReport of(CashClosingReportId id, PosSessionId sessionId, UUID registerId,
-			UUID operatorId, BigDecimal openingAmount, Map<PaymentMethodType, BigDecimal> expectedAmountsByPaymentMethod,
-			Map<PaymentMethodType, BigDecimal> countedAmountsByPaymentMethod, BigDecimal totalSangriaAmount,
-			BigDecimal totalSuprimentoAmount, int saleCount, Instant openedAt, Instant closedAt) {
-		return new CashClosingReport(id, sessionId, registerId, operatorId, openingAmount,
-				expectedAmountsByPaymentMethod, countedAmountsByPaymentMethod, totalSangriaAmount, totalSuprimentoAmount,
-				saleCount, openedAt, closedAt);
-	}
-
-	public BigDecimal differenceFor(PaymentMethodType method) {
-		BigDecimal counted = countedAmountsByPaymentMethod.get(method);
+	public BigDecimal differenceFor(final PaymentMethodType method) {
+		final BigDecimal counted = countedAmountsByPaymentMethod.get(method);
 		if (counted == null) {
 			return null;
 		}
-		BigDecimal expected = expectedAmountsByPaymentMethod.getOrDefault(method, BigDecimal.ZERO);
+		final BigDecimal expected = expectedAmountsByPaymentMethod.getOrDefault(method, BigDecimal.ZERO);
 		return counted.subtract(expected);
 	}
 
-	private static Map<PaymentMethodType, BigDecimal> copyOf(Map<PaymentMethodType, BigDecimal> source) {
+	private static Map<PaymentMethodType, BigDecimal> copyOf(final Map<PaymentMethodType, BigDecimal> source) {
 		if (source == null || source.isEmpty()) {
 			return Map.of();
 		}
 		return Map.copyOf(source);
 	}
 
-	private static BigDecimal zeroIfNull(BigDecimal value) {
+	private static BigDecimal zeroIfNull(final BigDecimal value) {
 		return value == null ? BigDecimal.ZERO : value;
 	}
 }

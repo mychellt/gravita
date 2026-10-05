@@ -17,11 +17,23 @@ public interface CompanyPersistenceMapper {
 
     /** Hand-written so a draft company (fiscal profile not filled in yet) can be loaded without tripping the strict rules. */
     default Company map(final CompanyJpaEntity entity) {
-        return Company.rehydrate(CompanyId.of(entity.getId()), entity.getName(), Document.cnpj(entity.getDocument()),
-                entity.getIe(), entity.getIm(), entity.getCnae(), entity.getTaxRegime(), entity.isSimplesOptante(),
-                entity.getSefazEnvironment(), entity.getAddress(), entity.getState(), entity.getIssuingEmail(),
-                entity.getPhone(), entity.getLogoUrl(),
-                entity.getParentCompanyId() == null ? null : CompanyId.of(entity.getParentCompanyId()));
+        return Company.rehydrate()
+        		.id(CompanyId.of(entity.getId()))
+        		.name(entity.getName())
+        		.cnpj(Document.cnpj(entity.getDocument()))
+        		.ie(entity.getIe())
+        		.im(entity.getIm())
+        		.cnae(entity.getCnae())
+        		.taxRegime(entity.getTaxRegime())
+        		.simplesOptante(entity.isSimplesOptante())
+        		.sefazEnvironment(entity.getSefazEnvironment())
+        		.address(entity.getAddress())
+        		.state(entity.getState())
+        		.issuingEmail(entity.getIssuingEmail())
+        		.phone(entity.getPhone())
+        		.logoUrl(entity.getLogoUrl())
+        		.parentCompanyId(entity.getParentCompanyId() == null ? null : CompanyId.of(entity.getParentCompanyId()))
+        		.build();
     }
 
     @Mapping(target = "id", source = "id.value")

@@ -13,20 +13,20 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 class HexagonalArchitectureTest {
 
 	@ArchTest
-	static final ArchRule domain_should_not_depend_on_application_or_adapters =
+	static final ArchRule DOMAIN_SHOULD_NOT_DEPEND_ON_APPLICATION_OR_ADAPTERS =
 			noClasses().that().resideInAnyPackage("..domain..")
 					.should().dependOnClassesThat().resideInAnyPackage(
 							"..ports..", "..usercases..", "..application..", "..adapter..", "..adapters..");
 
 	@ArchTest
-	static final ArchRule application_should_not_depend_on_adapters =
+	static final ArchRule APPLICATION_SHOULD_NOT_DEPEND_ON_ADAPTERS =
 			noClasses().that().resideInAnyPackage("..core..", "..application..")
 					.and().resideOutsideOfPackage("..adapter..")
 					.and().resideOutsideOfPackage("..adapters..")
 					.should().dependOnClassesThat().resideInAnyPackage("..adapter..", "..adapters..");
 
 	@ArchTest
-	static final ArchRule domain_should_be_free_of_web_and_persistence_frameworks =
+	static final ArchRule DOMAIN_SHOULD_BE_FREE_OF_WEB_AND_PERSISTENCE_FRAMEWORKS =
 			noClasses().that().resideInAnyPackage("..domain..")
 					.should().dependOnClassesThat().resideInAnyPackage(
 							"org.springframework..", "jakarta.persistence..", "jakarta.validation..");

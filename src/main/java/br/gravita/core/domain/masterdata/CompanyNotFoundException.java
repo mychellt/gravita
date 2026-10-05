@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class CompanyNotFoundException extends RuntimeException {
 
-	public CompanyNotFoundException(UUID companyId) {
+	public CompanyNotFoundException(final UUID companyId) {
 		super("Company not found: " + companyId);
 	}
 }

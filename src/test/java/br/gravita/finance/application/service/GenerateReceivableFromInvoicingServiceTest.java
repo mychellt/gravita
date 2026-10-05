@@ -43,13 +43,13 @@ class GenerateReceivableFromInvoicingServiceTest {
 	@Test
 	@DisplayName("Creates one open receivable per installment referencing the fiscal document")
 	void createsOneOpenInvoicingReceivablePerInstallmentReferencingTheFiscalDocument() {
-		UUID customerId = UUID.randomUUID();
-		UUID documentId = UUID.randomUUID();
+		final UUID customerId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of());
 		when(receivableRepositoryPort.save(any(Receivable.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		List<Receivable> created = service.execute(new GenerateReceivableFromInvoicingCommand(customerId,
+		final List<Receivable> created = service.execute(new GenerateReceivableFromInvoicingCommand(customerId,
 				documentId, List.of(new Installment(FIRST_DUE, new BigDecimal("100.00")),
 						new Installment(FIRST_DUE.plusDays(30), new BigDecimal("100.00")),
 						new Installment(FIRST_DUE.plusDays(60), new BigDecimal("50.00")))));
@@ -74,13 +74,13 @@ class GenerateReceivableFromInvoicingServiceTest {
 	@Test
 	@DisplayName("Is idempotent per origin document and returns the receivables that already exist")
 	void isIdempotentPerOriginDocumentAndReturnsTheExistingReceivables() {
-		UUID customerId = UUID.randomUUID();
-		UUID documentId = UUID.randomUUID();
-		Receivable existing = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()), customerId,
+		final UUID customerId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
+		final Receivable existing = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()), customerId,
 				documentId, BigDecimal.TEN, FIRST_DUE, 1, 1);
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of(existing));
 
-		List<Receivable> result = service.execute(new GenerateReceivableFromInvoicingCommand(customerId,
+		final List<Receivable> result = service.execute(new GenerateReceivableFromInvoicingCommand(customerId,
 				documentId, List.of(new Installment(FIRST_DUE, BigDecimal.TEN))));
 
 		assertThat(result).containsExactly(existing);
@@ -90,7 +90,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	@Test
 	@DisplayName("Rejects a command without installments and saves nothing")
 	void rejectsACommandWithoutInstallmentsWithoutSavingAnything() {
-		UUID documentId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
 
 		assertThatThrownBy(() -> service
 				.execute(new GenerateReceivableFromInvoicingCommand(UUID.randomUUID(), documentId, List.of())))
@@ -102,7 +102,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	@Test
 	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
-		UUID documentId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of());
 
 		assertThatThrownBy(() -> service.execute(new GenerateReceivableFromInvoicingCommand(UUID.randomUUID(),
@@ -115,7 +115,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 	@Test
 	@DisplayName("Saves each receivable with its own id")
 	void savesEachReceivableWithItsOwnId() {
-		UUID documentId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
 		when(receivableRepositoryPort.findByOriginDocumentRef(documentId)).thenReturn(List.of());
 		when(receivableRepositoryPort.save(any(Receivable.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
@@ -123,7 +123,7 @@ class GenerateReceivableFromInvoicingServiceTest {
 		service.execute(new GenerateReceivableFromInvoicingCommand(UUID.randomUUID(), documentId,
 				List.of(new Installment(FIRST_DUE, BigDecimal.ONE), new Installment(FIRST_DUE, BigDecimal.ONE))));
 
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort, times(2)).save(saved.capture());
 		assertThat(saved.getAllValues()).extracting(Receivable::getId).doesNotHaveDuplicates();
 	}

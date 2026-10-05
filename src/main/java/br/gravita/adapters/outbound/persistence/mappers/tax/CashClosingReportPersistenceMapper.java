@@ -35,7 +35,7 @@ public interface CashClosingReportPersistenceMapper {
 	// JPA needs a mutable map it can merge into in place; a null source yields an empty one.
 	@Named("toMutableMap")
 	static Map<PaymentMethodType, BigDecimal> toMutableMap(final Map<PaymentMethodType, BigDecimal> source) {
-		Map<PaymentMethodType, BigDecimal> map = new EnumMap<>(PaymentMethodType.class);
+		final Map<PaymentMethodType, BigDecimal> map = new EnumMap<>(PaymentMethodType.class);
 		if (source != null) {
 			map.putAll(source);
 		}

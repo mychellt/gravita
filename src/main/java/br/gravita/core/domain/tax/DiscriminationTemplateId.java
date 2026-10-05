@@ -9,7 +9,7 @@ public record DiscriminationTemplateId(UUID value) {
 		Objects.requireNonNull(value, "DiscriminationTemplateId value is required");
 	}
 
-	public static DiscriminationTemplateId of(UUID value) {
+	public static DiscriminationTemplateId of(final UUID value) {
 		return new DiscriminationTemplateId(value);
 	}
 }

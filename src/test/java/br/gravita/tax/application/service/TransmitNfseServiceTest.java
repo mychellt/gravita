@@ -79,48 +79,61 @@ class TransmitNfseServiceTest {
 				xmlObjectStoragePort, List.of(abrasf, betha));
 	}
 
-	private static IssueNfsePort issuer(NfseStandard standard) {
-		IssueNfsePort port = mock(IssueNfsePort.class);
+	private static IssueNfsePort issuer(final NfseStandard standard) {
+		final IssueNfsePort port = mock(IssueNfsePort.class);
 		when(port.standard()).thenReturn(standard);
 		return port;
 	}
 
 	private NfseDocument draft() {
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), companyId, SP,
-				NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null),
-				ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, SP, new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(), "Consultoria", "RPS", 1L,
-				Instant.now()).convertToNfse("1", 10L, Instant.now());
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(companyId)
+				.providerMunicipalityIbgeCode(SP)
+				.tomador(NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null))
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode(SP)
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("Consultoria")
+				.rpsSeries("RPS")
+				.rpsNumber(1L)
+				.createdAt(Instant.now())
+				.build().convertToNfse("1", 10L, Instant.now());
 	}
 
-	private MunicipalityIntegration integration(NfseStandard standard, boolean homologated) {
+	private MunicipalityIntegration integration(final NfseStandard standard, final boolean homologated) {
 		return MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()), SP, standard,
 				homologated ? "2.04" : null, homologated ? "https://nfse.example/ws" : null, CertificateType.A1,
 				List.of("inscricaoMunicipal"), homologated);
 	}
 
-	private void stored(NfseDocument document, MunicipalityIntegration integration) {
+	private void stored(final NfseDocument document, final MunicipalityIntegration integration) {
 		when(nfseRepositoryPort.findByIdForUpdate(document.getId())).thenReturn(Optional.of(document));
 		when(integrationRepositoryPort.findByIbgeCode(SP)).thenReturn(Optional.of(integration));
 	}
 
-	private static TransmitNfseCommand commandFor(NfseDocument document) {
+	private static TransmitNfseCommand commandFor(final NfseDocument document) {
 		return new TransmitNfseCommand(document.getId());
 	}
 
 	@Test
 	@DisplayName("Transmits a homologated document through the adapter of its municipality's standard")
-	void ac1_aHomologatedDocumentIsTransmittedThroughTheAdapterOfItsMunicipalitysStandard() {
-		NfseDocument draft = draft();
-		MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
+	void ac1AHomologatedDocumentIsTransmittedThroughTheAdapterOfItsMunicipalitysStandard() {
+		final NfseDocument draft = draft();
+		final MunicipalityIntegration integration = integration(NfseStandard.BETHA, true);
 		stored(draft, integration);
 		when(betha.issue(any())).thenReturn(NfseIssueResult.authorized("PROT-1", AUTHORIZED_AT, XML));
 		when(xmlObjectStoragePort.store(companyId, XML)).thenReturn("ref-1");
 
-		NfseTransmissionResult result = service.execute(commandFor(draft));
+		final NfseTransmissionResult result = service.execute(commandFor(draft));
 
 		assertThat(result).isEqualTo(new NfseTransmissionResult.Authorized("PROT-1", AUTHORIZED_AT));
-		ArgumentCaptor<NfseIssueRequest> request = ArgumentCaptor.forClass(NfseIssueRequest.class);
+		final ArgumentCaptor<NfseIssueRequest> request = ArgumentCaptor.forClass(NfseIssueRequest.class);
 		verify(betha).issue(request.capture());
 		assertThat(request.getValue().integration()).isSameAs(integration);
 		assertThat(request.getValue().document().getId()).isEqualTo(draft.getId());
@@ -130,23 +143,23 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Marks the document sent, then authorized, with the protocol and only the XML reference")
-	void ac3and5_successMarksTheDocumentSentThenAuthorizedWithProtocolAndOnlyTheXmlReference() {
-		NfseDocument draft = draft();
+	void ac3and5SuccessMarksTheDocumentSentThenAuthorizedWithProtocolAndOnlyTheXmlReference() {
+		final NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
 		when(abrasf.issue(any())).thenReturn(NfseIssueResult.authorized("PROT-1", AUTHORIZED_AT, XML));
 		when(xmlObjectStoragePort.store(companyId, XML)).thenReturn("ref-1");
 
 		service.execute(commandFor(draft));
 
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
-		InOrder order = inOrder(nfseRepositoryPort, abrasf, xmlObjectStoragePort);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final InOrder order = inOrder(nfseRepositoryPort, abrasf, xmlObjectStoragePort);
 		order.verify(nfseRepositoryPort).save(saved.capture());
 		order.verify(abrasf).issue(any());
 		order.verify(xmlObjectStoragePort).store(companyId, XML);
 		order.verify(nfseRepositoryPort).save(saved.capture());
 		assertThat(saved.getAllValues()).extracting(NfseDocument::getStatus)
 				.containsExactly(NfseStatus.SENT, NfseStatus.AUTHORIZED);
-		NfseDocument authorized = saved.getAllValues().get(1);
+		final NfseDocument authorized = saved.getAllValues().get(1);
 		assertThat(authorized.getProtocol()).isEqualTo("PROT-1");
 		assertThat(authorized.getAuthorizedAt()).isEqualTo(AUTHORIZED_AT);
 		assertThat(authorized.getXmlReference()).isEqualTo("ref-1");
@@ -154,17 +167,17 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Treats a rejection as a result and leaves the document a draft that can be transmitted again")
-	void ac3_aRejectionIsAResultAndLeavesTheDocumentADraftThatCanBeTransmittedAgain() {
-		NfseDocument draft = draft();
+	void ac3ARejectionIsAResultAndLeavesTheDocumentADraftThatCanBeTransmittedAgain() {
+		final NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
 		when(abrasf.issue(any())).thenReturn(NfseIssueResult.rejected("E160 - Arquivo em desacordo"));
 
-		NfseTransmissionResult result = service.execute(commandFor(draft));
+		final NfseTransmissionResult result = service.execute(commandFor(draft));
 
 		assertThat(result).isEqualTo(new NfseTransmissionResult.Rejected("E160 - Arquivo em desacordo"));
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort, org.mockito.Mockito.times(2)).save(saved.capture());
-		NfseDocument last = saved.getAllValues().get(1);
+		final NfseDocument last = saved.getAllValues().get(1);
 		assertThat(last.getStatus()).isEqualTo(NfseStatus.DRAFT);
 		assertThat(last.getLastRejectionReason()).isEqualTo("E160 - Arquivo em desacordo");
 		assertThat(last.send(Instant.now()).getStatus()).isEqualTo(NfseStatus.SENT);
@@ -173,8 +186,8 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Propagates a municipality that does not answer and never saves an authorized document")
-	void ac3_aMunicipalityThatDoesNotAnswerPropagatesAndNeverSavesAnAuthorizedDocument() {
-		NfseDocument draft = draft();
+	void ac3AMunicipalityThatDoesNotAnswerPropagatesAndNeverSavesAnAuthorizedDocument() {
+		final NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.ABRASF, true));
 		when(abrasf.issue(any())).thenThrow(new NfseMunicipalityUnavailableException("timeout", null));
 
@@ -182,7 +195,7 @@ class TransmitNfseServiceTest {
 				.isInstanceOf(NfseMunicipalityUnavailableException.class);
 
 		// Only the in-flight SENT save happened; the transaction around execute() rolls it back (see the e2e test).
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(NfseStatus.SENT);
 		verifyNoInteractions(xmlObjectStoragePort);
@@ -190,15 +203,15 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Gives a non-homologated municipality the guided upload instead of a transmission")
-	void ac2_aNonHomologatedMunicipalityGetsTheGuidedUploadInsteadOfATransmission() {
-		NfseDocument draft = draft();
-		MunicipalityIntegration integration = integration(NfseStandard.ISSNET, false);
+	void ac2ANonHomologatedMunicipalityGetsTheGuidedUploadInsteadOfATransmission() {
+		final NfseDocument draft = draft();
+		final MunicipalityIntegration integration = integration(NfseStandard.ISSNET, false);
 		stored(draft, integration);
-		NfseTransmissionResult.GuidedManualUpload guided = new NfseTransmissionResult.GuidedManualUpload("<xml/>",
+		final NfseTransmissionResult.GuidedManualUpload guided = new NfseTransmissionResult.GuidedManualUpload("<xml/>",
 				"Upload it");
 		when(guidedManualUploadPort.generate(draft, integration)).thenReturn(guided);
 
-		NfseTransmissionResult result = service.execute(commandFor(draft));
+		final NfseTransmissionResult result = service.execute(commandFor(draft));
 
 		assertThat(result).isSameAs(guided);
 		verify(nfseRepositoryPort, never()).save(any());
@@ -209,8 +222,8 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Fails before the document leaves draft when its standard has no adapter")
-	void ac4_aStandardWithoutAnAdapterFailsBeforeTheDocumentLeavesDraft() {
-		NfseDocument draft = draft();
+	void ac4AStandardWithoutAnAdapterFailsBeforeTheDocumentLeavesDraft() {
+		final NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.NFSE_NACIONAL, true));
 
 		assertThatThrownBy(() -> service.execute(commandFor(draft))).isInstanceOf(BusinessRuleException.class)
@@ -221,13 +234,13 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Needs nothing but registering an adapter to support a new standard")
-	void ac4_registeringAnAdapterForANewStandardIsAllItTakes() {
-		NfseDocument draft = draft();
+	void ac4RegisteringAnAdapterForANewStandardIsAllItTakes() {
+		final NfseDocument draft = draft();
 		stored(draft, integration(NfseStandard.NFSE_NACIONAL, true));
-		IssueNfsePort nacional = issuer(NfseStandard.NFSE_NACIONAL);
+		final IssueNfsePort nacional = issuer(NfseStandard.NFSE_NACIONAL);
 		when(nacional.issue(any())).thenReturn(NfseIssueResult.authorized("N-1", AUTHORIZED_AT, XML));
 		when(xmlObjectStoragePort.store(companyId, XML)).thenReturn("ref");
-		TransmitNfseService extended = new TransmitNfseService(nfseRepositoryPort, integrationRepositoryPort,
+		final TransmitNfseService extended = new TransmitNfseService(nfseRepositoryPort, integrationRepositoryPort,
 				guidedManualUploadPort, xmlObjectStoragePort, List.of(abrasf, betha, nacional));
 
 		assertThat(extended.execute(commandFor(draft))).isEqualTo(
@@ -245,7 +258,7 @@ class TransmitNfseServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown document")
 	void anUnknownDocumentIsNotFound() {
-		NfseId id = NfseId.of(UUID.randomUUID());
+		final NfseId id = NfseId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new TransmitNfseCommand(id)))
@@ -255,13 +268,26 @@ class TransmitNfseServiceTest {
 	@Test
 	@DisplayName("Only a draft is transmittable")
 	void onlyADraftIsTransmittable() {
-		NfseDocument draft = draft();
-		NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
-		NfseDocument rps = NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), companyId, SP,
-				NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null),
-				ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, SP, new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(), "Consultoria", "RPS", 2L,
-				Instant.now());
+		final NfseDocument draft = draft();
+		final NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
+		final NfseDocument rps = NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(companyId)
+				.providerMunicipalityIbgeCode(SP)
+				.tomador(NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null))
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode(SP)
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("Consultoria")
+				.rpsSeries("RPS")
+				.rpsNumber(2L)
+				.createdAt(Instant.now())
+				.build();
 		when(nfseRepositoryPort.findByIdForUpdate(authorized.getId())).thenReturn(Optional.of(authorized));
 		when(nfseRepositoryPort.findByIdForUpdate(rps.getId())).thenReturn(Optional.of(rps));
 
@@ -276,8 +302,8 @@ class TransmitNfseServiceTest {
 
 	@Test
 	@DisplayName("Treats a municipality without a registered integration as a business rule violation")
-	void aMunicipalityWithoutARegisteredIntegrationIsABusinessRuleViolation() {
-		NfseDocument draft = draft();
+	void municipalityWithoutARegisteredIntegrationIsABusinessRuleViolation() {
+		final NfseDocument draft = draft();
 		when(nfseRepositoryPort.findByIdForUpdate(draft.getId())).thenReturn(Optional.of(draft));
 		when(integrationRepositoryPort.findByIbgeCode(SP)).thenReturn(Optional.empty());
 

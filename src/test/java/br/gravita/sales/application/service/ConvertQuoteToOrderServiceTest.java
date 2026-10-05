@@ -48,18 +48,18 @@ class ConvertQuoteToOrderServiceTest {
 	@Test
 	@DisplayName("Converts a draft quote into a draft order carrying over customer, items, prices and discounts")
 	void convertsADraftQuoteIntoADraftOrderCarryingOverCustomerItemsPricesAndDiscounts() {
-		UUID customerId = UUID.randomUUID();
-		List<QuoteItem> items = List.of(
+		final UUID customerId = UUID.randomUUID();
+		final List<QuoteItem> items = List.of(
 				new QuoteItem(UUID.randomUUID(), new BigDecimal("2"), new BigDecimal("19.90"), new BigDecimal("3.80")),
 				new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("150.00"), BigDecimal.ZERO));
-		Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId, UUID.randomUUID(), items,
+		final Quote quote = Quote.create(QuoteId.of(UUID.randomUUID()), customerId, UUID.randomUUID(), items,
 				LocalDate.now().plusDays(5), LocalDate.now());
 		when(quoteRepositoryPort.findById(quote.getId())).thenReturn(Optional.of(quote));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesOrderView view = service.execute(new ConvertQuoteToOrderCommand(quote.getId().value()));
+		final SalesOrderView view = service.execute(new ConvertQuoteToOrderCommand(quote.getId().value()));
 
-		ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
+		final ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(SalesOrderStatus.DRAFT);
 		assertThat(savedOrder.getValue().getOriginQuoteId()).isEqualTo(quote.getId());
@@ -70,7 +70,7 @@ class ConvertQuoteToOrderServiceTest {
 		assertThat(savedOrder.getValue().getItems().get(0).unitPrice()).isEqualByComparingTo(items.get(0).unitPrice());
 		assertThat(savedOrder.getValue().getItems().get(0).discount()).isEqualByComparingTo(items.get(0).discount());
 
-		ArgumentCaptor<Quote> savedQuote = ArgumentCaptor.forClass(Quote.class);
+		final ArgumentCaptor<Quote> savedQuote = ArgumentCaptor.forClass(Quote.class);
 		verify(quoteRepositoryPort).save(savedQuote.capture());
 		assertThat(savedQuote.getValue().getStatus()).isEqualTo(QuoteStatus.CONVERTED);
 
@@ -82,7 +82,7 @@ class ConvertQuoteToOrderServiceTest {
 	@Test
 	@DisplayName("Rejects converting a quote that does not exist")
 	void rejectsConvertingAQuoteThatDoesNotExist() {
-		UUID quoteId = UUID.randomUUID();
+		final UUID quoteId = UUID.randomUUID();
 		when(quoteRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ConvertQuoteToOrderCommand(quoteId)))
@@ -95,7 +95,7 @@ class ConvertQuoteToOrderServiceTest {
 	@Test
 	@DisplayName("Rejects converting an already converted quote and persists no order")
 	void rejectsConvertingAnAlreadyConvertedQuoteWithoutPersistingAnOrder() {
-		Quote convertedQuote = Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+		final Quote convertedQuote = Quote.create(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),
 				LocalDate.now().plusDays(5), LocalDate.now()).convert(LocalDate.now());
 		when(quoteRepositoryPort.findById(convertedQuote.getId())).thenReturn(Optional.of(convertedQuote));
@@ -110,7 +110,7 @@ class ConvertQuoteToOrderServiceTest {
 	@Test
 	@DisplayName("Rejects converting an expired quote and persists no order")
 	void rejectsConvertingAnExpiredQuoteWithoutPersistingAnOrder() {
-		Quote expiredQuote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
+		final Quote expiredQuote = Quote.of(QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null)),
 				LocalDate.now().minusDays(1), QuoteStatus.SENT);
 		when(quoteRepositoryPort.findById(expiredQuote.getId())).thenReturn(Optional.of(expiredQuote));

@@ -59,7 +59,7 @@ class AccessLogControllerTest {
 	@DisplayName("Returns a page of access log entries when the caller is authorized")
 	void shouldReturnAPageOfAccessLogEntriesWhenCallerIsAuthorized() throws Exception {
 		when(checkPermissionUseCase.execute(any())).thenReturn(true);
-		AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
+		final AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
 		when(getAccessLogUseCase.execute(any())).thenReturn(new Page<>(List.of(entry), 0, 20, 1));
 
 		mockMvc.perform(get("/api/system/access-log").header("Authorization", "Bearer valid-token"))
@@ -68,7 +68,7 @@ class AccessLogControllerTest {
 				.andExpect(jsonPath("$.totalElements").value(1))
 				.andExpect(jsonPath("$.page").value(0));
 
-		ArgumentCaptor<CheckPermissionQuery> captor = ArgumentCaptor.forClass(CheckPermissionQuery.class);
+		final ArgumentCaptor<CheckPermissionQuery> captor = ArgumentCaptor.forClass(CheckPermissionQuery.class);
 		verify(checkPermissionUseCase).execute(captor.capture());
 		assertThat(captor.getValue().userId()).isEqualTo(callerId);
 		assertThat(captor.getValue().module()).isEqualTo("system");
@@ -80,7 +80,7 @@ class AccessLogControllerTest {
 	@DisplayName("Forwards the user id and pagination filters to the use case")
 	void shouldForwardUserIdAndPaginationFiltersToTheUseCase() throws Exception {
 		when(checkPermissionUseCase.execute(any())).thenReturn(true);
-		UUID userId = UUID.randomUUID();
+		final UUID userId = UUID.randomUUID();
 		when(getAccessLogUseCase.execute(any())).thenReturn(new Page<>(List.of(), 1, 5, 0));
 
 		mockMvc.perform(get("/api/system/access-log")
@@ -92,7 +92,7 @@ class AccessLogControllerTest {
 						.param("size", "5"))
 				.andExpect(status().isOk());
 
-		ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
+		final ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
 		verify(getAccessLogUseCase).execute(captor.capture());
 		assertThat(captor.getValue().userId()).isEqualTo(UserId.of(userId));
 		assertThat(captor.getValue().ip()).isEqualTo("1.2.3.4");

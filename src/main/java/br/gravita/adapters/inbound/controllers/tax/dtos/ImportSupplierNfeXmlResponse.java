@@ -12,7 +12,7 @@ public record ImportSupplierNfeXmlResponse(
 		BigDecimal totalValue,
 		String status) {
 
-	public static ImportSupplierNfeXmlResponse from(InboundNfe inboundNfe) {
+	public static ImportSupplierNfeXmlResponse from(final InboundNfe inboundNfe) {
 		return new ImportSupplierNfeXmlResponse(
 				inboundNfe.getId().value(),
 				inboundNfe.getAccessKey(),

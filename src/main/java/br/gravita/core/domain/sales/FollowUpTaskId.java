@@ -9,7 +9,7 @@ public record FollowUpTaskId(UUID value) {
 		Objects.requireNonNull(value, "FollowUpTaskId value is required");
 	}
 
-	public static FollowUpTaskId of(UUID value) {
+	public static FollowUpTaskId of(final UUID value) {
 		return new FollowUpTaskId(value);
 	}
 }

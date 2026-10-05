@@ -29,62 +29,82 @@ public class TransferStockService implements TransferStockUseCase {
 	private final StockMovementRepositoryPort stockMovementRepositoryPort;
 	private final StockTransferRepositoryPort stockTransferRepositoryPort;
 
-	public TransferStockService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockMovementRepositoryPort stockMovementRepositoryPort,
-			StockTransferRepositoryPort stockTransferRepositoryPort) {
+	public TransferStockService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockMovementRepositoryPort stockMovementRepositoryPort,
+			final StockTransferRepositoryPort stockTransferRepositoryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.stockTransferRepositoryPort = stockTransferRepositoryPort;
 	}
 
 	@Override
-	public StockMovement initiate(InitiateTransferCommand command) {
+	public StockMovement initiate(final InitiateTransferCommand command) {
 		if (command.quantity().signum() <= 0) {
 			throw new BusinessRuleException("Transfer quantity must be greater than zero");
 		}
 
-		StockBalance source = stockBalanceRepositoryPort
+		final StockBalance source = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(command.productId(), command.sourceWarehouseId())
 				.orElseThrow(() -> new BusinessRuleException("Insufficient available stock to transfer: requested "
 						+ command.quantity() + ", available 0"));
 		stockBalanceRepositoryPort.save(source.decreaseOnHandAndIncreaseInTransit(command.quantity()));
 
-		UUID transferId = UUID.randomUUID();
-		StockTransfer transfer = StockTransfer.initiate(StockTransferId.of(transferId), command.productId(),
+		final UUID transferId = UUID.randomUUID();
+		final StockTransfer transfer = StockTransfer.initiate(StockTransferId.of(transferId), command.productId(),
 				command.sourceWarehouseId(), command.destinationWarehouseId(), command.quantity());
 		stockTransferRepositoryPort.save(transfer);
 
-		StockMovement movement = StockMovement.of(StockMovementId.of(transferId), StockMovementType.TRANSFER,
-				command.productId(), command.sourceWarehouseId(), command.quantity(), source.getAverageCost(),
-				command.lotCode(), command.serials(),
-				"Transfer to warehouse " + command.destinationWarehouseId(), null, command.user(), Instant.now());
+		final StockMovement movement = StockMovement.builder()
+				.id(StockMovementId.of(transferId))
+				.type(StockMovementType.TRANSFER)
+				.productId(command.productId())
+				.warehouseId(command.sourceWarehouseId())
+				.quantity(command.quantity())
+				.unitCost(source.getAverageCost())
+				.lotCode(command.lotCode())
+				.serialNumbers(command.serials())
+				.originReference("Transfer to warehouse " + command.destinationWarehouseId())
+				.justification(null)
+				.user(command.user())
+				.timestamp(Instant.now())
+				.build();
 		return stockMovementRepositoryPort.save(movement);
 	}
 
 	@Override
-	public StockMovement confirm(ConfirmTransferCommand command) {
-		StockTransfer transfer = stockTransferRepositoryPort.findById(StockTransferId.of(command.transferMovementId()))
+	public StockMovement confirm(final ConfirmTransferCommand command) {
+		final StockTransfer transfer = stockTransferRepositoryPort.findById(StockTransferId.of(command.transferMovementId()))
 				.orElseThrow(
 						() -> new ResourceNotFoundException("Transfer not found: " + command.transferMovementId()));
 		stockTransferRepositoryPort.save(transfer.confirm());
 
-		StockBalance source = stockBalanceRepositoryPort
+		final StockBalance source = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(transfer.getProductId(), transfer.getSourceWarehouseId())
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Source stock balance not found for transfer: " + command.transferMovementId()));
 		stockBalanceRepositoryPort.save(source.releaseInTransit(transfer.getQuantity()));
 
-		StockBalance destination = stockBalanceRepositoryPort
+		final StockBalance destination = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(transfer.getProductId(), transfer.getDestinationWarehouseId())
 				.orElseGet(() -> StockBalance.of(StockBalanceId.of(UUID.randomUUID()), transfer.getProductId(),
 						transfer.getDestinationWarehouseId(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 						BigDecimal.ZERO));
 		stockBalanceRepositoryPort.save(destination.increaseOnHand(transfer.getQuantity()));
 
-		StockMovement movement = StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.TRANSFER,
-				transfer.getProductId(), transfer.getDestinationWarehouseId(), transfer.getQuantity(),
-				destination.getAverageCost(), null, List.of(),
-				"Transfer confirmation for " + transfer.getId().value(), null, command.user(), Instant.now());
+		final StockMovement movement = StockMovement.builder()
+				.id(StockMovementId.of(UUID.randomUUID()))
+				.type(StockMovementType.TRANSFER)
+				.productId(transfer.getProductId())
+				.warehouseId(transfer.getDestinationWarehouseId())
+				.quantity(transfer.getQuantity())
+				.unitCost(destination.getAverageCost())
+				.lotCode(null)
+				.serialNumbers(List.of())
+				.originReference("Transfer confirmation for " + transfer.getId().value())
+				.justification(null)
+				.user(command.user())
+				.timestamp(Instant.now())
+				.build();
 		return stockMovementRepositoryPort.save(movement);
 	}
 }

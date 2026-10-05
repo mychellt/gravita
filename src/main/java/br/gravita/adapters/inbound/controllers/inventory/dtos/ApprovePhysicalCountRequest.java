@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record ApprovePhysicalCountRequest(@NotNull UUID approvedBy) {
 
-	public ApprovePhysicalCountCommand toCommand(UUID physicalCountId) {
+	public ApprovePhysicalCountCommand toCommand(final UUID physicalCountId) {
 		return new ApprovePhysicalCountCommand(PhysicalCountId.of(physicalCountId), approvedBy);
 	}
 }

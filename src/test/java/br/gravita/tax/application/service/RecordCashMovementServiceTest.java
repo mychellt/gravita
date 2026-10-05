@@ -48,23 +48,23 @@ class RecordCashMovementServiceTest {
 		service = new RecordCashMovementService(posSessionRepositoryPort, cashMovementRepositoryPort);
 	}
 
-	private PosSession openSession(UUID sessionId) {
+	private PosSession openSession(final UUID sessionId) {
 		return PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
 	}
 
 	@Test
 	@DisplayName("Records a sangria against the open session")
-	void ac1_recordsASangriaAgainstTheOpenSession() {
-		UUID sessionId = UUID.randomUUID();
+	void ac1RecordsASangriaAgainstTheOpenSession() {
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
 				.thenReturn(Optional.of(openSession(sessionId)));
 		when(cashMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CashMovementId id = service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA,
+		final CashMovementId id = service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA,
 				new BigDecimal("50.00"), "Bank deposit"));
 
-		ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
+		final ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
 		verify(cashMovementRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getType()).isEqualTo(CashMovementType.SANGRIA);
 		assertThat(id).isEqualTo(captor.getValue().getId());
@@ -72,8 +72,8 @@ class RecordCashMovementServiceTest {
 
 	@Test
 	@DisplayName("Records a suprimento against the open session")
-	void ac1_recordsASuprimentoAgainstTheOpenSession() {
-		UUID sessionId = UUID.randomUUID();
+	void ac1RecordsASuprimentoAgainstTheOpenSession() {
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
 				.thenReturn(Optional.of(openSession(sessionId)));
 		when(cashMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -81,15 +81,15 @@ class RecordCashMovementServiceTest {
 		service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SUPRIMENTO,
 				new BigDecimal("30.00"), "Change top-up"));
 
-		ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
+		final ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
 		verify(cashMovementRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getType()).isEqualTo(CashMovementType.SUPRIMENTO);
 	}
 
 	@Test
 	@DisplayName("Rejects a blank justification before touching the repository")
-	void ac2_blankJustificationIsRejectedBeforeTouchingTheRepository() {
-		UUID sessionId = UUID.randomUUID();
+	void ac2BlankJustificationIsRejectedBeforeTouchingTheRepository() {
+		final UUID sessionId = UUID.randomUUID();
 
 		assertThatThrownBy(() -> service.execute(
 				new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA, new BigDecimal("50.00"), "  ")))
@@ -101,8 +101,8 @@ class RecordCashMovementServiceTest {
 
 	@Test
 	@DisplayName("Gives the saved movement a timestamp")
-	void ac3_theSavedMovementHasATimestamp() {
-		UUID sessionId = UUID.randomUUID();
+	void ac3TheSavedMovementHasATimestamp() {
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
 				.thenReturn(Optional.of(openSession(sessionId)));
 		when(cashMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -110,15 +110,15 @@ class RecordCashMovementServiceTest {
 		service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA, new BigDecimal("50.00"),
 				"Bank deposit"));
 
-		ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
+		final ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
 		verify(cashMovementRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getTimestamp()).isNotNull();
 	}
 
 	@Test
 	@DisplayName("Links the movement to the given session")
-	void ac4_theMovementIsLinkedToTheGivenSession() {
-		UUID sessionId = UUID.randomUUID();
+	void ac4TheMovementIsLinkedToTheGivenSession() {
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId)))
 				.thenReturn(Optional.of(openSession(sessionId)));
 		when(cashMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -126,16 +126,16 @@ class RecordCashMovementServiceTest {
 		service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA, new BigDecimal("50.00"),
 				"Bank deposit"));
 
-		ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
+		final ArgumentCaptor<CashMovement> captor = ArgumentCaptor.forClass(CashMovement.class);
 		verify(cashMovementRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getSessionId()).isEqualTo(PosSessionId.of(sessionId));
 	}
 
 	@Test
 	@DisplayName("Rejects recording a movement against a closed session")
-	void ac4_recordingAgainstAClosedSessionIsRejected() {
-		UUID sessionId = UUID.randomUUID();
-		PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
+	void ac4RecordingAgainstAClosedSessionIsRejected() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),
 				Instant.now());
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.of(closedSession));
@@ -149,8 +149,8 @@ class RecordCashMovementServiceTest {
 
 	@Test
 	@DisplayName("Rejects recording a movement against a non-existent session")
-	void ac4_recordingAgainstANonExistentSessionIsRejected() {
-		UUID sessionId = UUID.randomUUID();
+	void ac4RecordingAgainstANonExistentSessionIsRejected() {
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new RecordCashMovementCommand(sessionId, CashMovementType.SANGRIA,

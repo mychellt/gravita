@@ -10,8 +10,8 @@ import java.util.UUID;
 
 public record SplitPayableRequest(@NotEmpty @Valid List<CostCenterShareRequest> costCenterSplit) {
 
-	public SplitPayableByCostCenterCommand toCommand(UUID payableId) {
-		List<CostCenterShare> split = costCenterSplit.stream()
+	public SplitPayableByCostCenterCommand toCommand(final UUID payableId) {
+		final List<CostCenterShare> split = costCenterSplit.stream()
 				.map(share -> new CostCenterShare(share.costCenterId(), share.percent())).toList();
 		return new SplitPayableByCostCenterCommand(payableId, split);
 	}

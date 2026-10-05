@@ -12,7 +12,7 @@ public enum IntegrationName {
 
 	private final String code;
 
-	IntegrationName(String code) {
+	IntegrationName(final String code) {
 		this.code = code;
 	}
 
@@ -20,9 +20,9 @@ public enum IntegrationName {
 		return code;
 	}
 
-	public static IntegrationName fromCode(String code) {
+	public static IntegrationName fromCode(final String code) {
 		if (code != null) {
-			for (IntegrationName value : values()) {
+			for (final IntegrationName value : values()) {
 				if (value.code.equalsIgnoreCase(code)) {
 					return value;
 				}

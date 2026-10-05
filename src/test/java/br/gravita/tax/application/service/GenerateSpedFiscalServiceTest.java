@@ -76,10 +76,23 @@ class GenerateSpedFiscalServiceTest {
 	void setUp() {
 		service = new GenerateSpedFiscalService(companies, nfes, inbound, voided, spedFile,
 				Clock.system(ZoneOffset.UTC));
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
-				Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500", TaxRegime.LUCRO_PRESUMIDO,
-				false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "(11) 99999-9999",
-				null, null)));
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.LUCRO_PRESUMIDO)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("(11) 99999-9999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build()));
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(voided.findByCompanyIdAndVoidedAtBetween(any(), any(), any())).thenReturn(List.of());
@@ -89,7 +102,7 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown company without reading or writing anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrWritingAnything() {
-		CompanyId stranger = CompanyId.of(UUID.randomUUID());
+		final CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(SpedFiscalFixtures.command(stranger, PERIOD)))
@@ -118,7 +131,7 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Returns the generated file named after the company and the month")
 	void returnsTheGeneratedFileNamedAfterTheCompanyAndMonth() {
-		SpedFiscalFile file = service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
+		final SpedFiscalFile file = service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
 		assertThat(file.content()).isEqualTo(TXT);
 		assertThat(file.fileName()).isEqualTo("SPED-EFD-ICMS-IPI-11222333000181-2028-02.txt");
@@ -130,7 +143,7 @@ class GenerateSpedFiscalServiceTest {
 	void laysOutEveryBlockOfTheLayoutInOrderWithTheEmptyOnesEmpty() {
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		List<SpedBlock> blocks = blocks();
+		final List<SpedBlock> blocks = blocks();
 		assertThat(blocks).extracting(SpedBlock::id).containsExactly('0', 'B', 'C', 'D', 'E', 'G', 'H', 'K', '1');
 		assertThat(blocks).filteredOn(block -> "BDGHK".indexOf(block.id()) >= 0)
 				.allMatch(block -> block.records().isEmpty());
@@ -143,7 +156,7 @@ class GenerateSpedFiscalServiceTest {
 		service.execute(new GenerateSpedFiscalCommand(companyId, PERIOD, Finality.SUBSTITUTE,
 				SpedFiscalFixtures.taxpayer(), SpedFiscalFixtures.accountant()));
 
-		SpedBlock zero = block('0');
+		final SpedBlock zero = block('0');
 		assertThat(layout().header().register()).isEqualTo("0000");
 		assertThat(texts(layout().header())).containsExactly("020", "1", "01022028", "29022028",
 				"Empresa Teste Ltda", "11222333000181", null, "SP", "123456789", "3550308", "987654", null, "A", "1");
@@ -163,7 +176,7 @@ class GenerateSpedFiscalServiceTest {
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		SpedRecord c100 = block('C').records().get(0);
+		final SpedRecord c100 = block('C').records().get(0);
 		assertThat(c100.register()).isEqualTo("C100");
 		assertThat(texts(c100)).hasSize(28);
 		assertThat(texts(c100)).containsExactly("1", "0", "11222333000181", "55", "00", "1", "20",
@@ -187,13 +200,13 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Keeps a cancelled NF-e with only the fields the layout keeps for it")
 	void keepsACancelledNfeWithOnlyTheFieldsTheLayoutKeepsForIt() {
-		var cancelled = LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.CANCELLED, "5102", "1", 21L,
+		final var cancelled = LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.CANCELLED, "5102", "1", 21L,
 				Instant.parse("2028-02-11T12:00:00Z"));
 		when(nfes.findAuthorizedOrCancelledByCompanyBetween(any(), any(), any())).thenReturn(List.of(cancelled));
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		SpedRecord c100 = block('C').records().get(0);
+		final SpedRecord c100 = block('C').records().get(0);
 		assertThat(texts(c100)).containsExactly("1", "0", null, "55", "02", "1", "21", cancelled.getAccessKey());
 		assertThat(block('0').records()).extracting(SpedRecord::register).doesNotContain("0150");
 		assertThat(texts(block('E').records().get(1)).get(0)).isEqualTo("0,00");
@@ -202,14 +215,14 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Reports a confirmed received NF-e as a third-party entry received within the period")
 	void reportsAConfirmedReceivedNfeAsAThirdPartyEntryReceivedWithinThePeriod() {
-		InboundNfe received = SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10",
-				"Alfa SA", "1102", "1102", "300.00", "36.00", "4.00", "0.65", "3.00",
+		final InboundNfe received = SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1",
+				"10", "Alfa SA", "1102", "1102", "300.00", new LivrosFiscaisFixtures.Taxes("36.00", "4.00", "0.65", "3.00"),
 				Instant.parse("2028-02-20T12:00:00Z")));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(received));
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		SpedRecord c100 = block('C').records().get(0);
+		final SpedRecord c100 = block('C').records().get(0);
 		assertThat(texts(c100)).containsExactly("0", "1", "11222333000181", "55", "00", "1", "10",
 				received.getAccessKey(), "20022028", "20022028", "300,00", "2", "0,00", "0,00", "300,00", "9", "0,00",
 				"0,00", "0,00", null, "36,00", "0,00", "0,00", "4,00", "0,65", "3,00", "0,00", "0,00");
@@ -220,8 +233,8 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Never dates the receipt of goods before its issue or after the period")
 	void neverDatesTheReceiptOfAGoodBeforeItsIssueOrAfterThePeriod() {
-		InboundNfe late = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-04-02T10:00:00Z")));
-		InboundNfe early = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-02-01T10:00:00Z")));
+		final InboundNfe late = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-04-02T10:00:00Z")));
+		final InboundNfe early = SpedFiscalFixtures.confirmed(withImportedAt(Instant.parse("2028-02-01T10:00:00Z")));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(late, early));
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
@@ -230,13 +243,24 @@ class GenerateSpedFiscalServiceTest {
 				.containsExactlyInAnyOrder("29022028", "10022028");
 	}
 
-	private InboundNfe withImportedAt(Instant importedAt) {
-		InboundNfe base = LivrosFiscaisFixtures.receivedNfe(companyId, "1", importedAt.toString().substring(5, 7)
-				+ importedAt.toString().substring(8, 10), "Alfa SA", "1102", "1102", "10.00", "0", "0", "0", "0",
-				Instant.parse("2028-02-10T12:00:00Z"));
-		return InboundNfe.of(base.getId(), companyId, base.getAccessKey(), base.getSeries(), base.getNumber(),
-				base.getSupplierDocument(), base.getSupplierName(), base.getIssuedAt(), base.getItems(),
-				base.getTotals(), base.getXmlStorageRef(), InboundNfeStatus.PENDING_CONFERENCE, importedAt);
+	private InboundNfe withImportedAt(final Instant importedAt) {
+		final InboundNfe base = LivrosFiscaisFixtures.receivedNfe(companyId, "1", importedAt.toString().substring(5, 7)
+				+ importedAt.toString().substring(8, 10), "Alfa SA", "1102", "1102", "10.00", new LivrosFiscaisFixtures.Taxes("0", "0", "0", "0"), Instant.parse("2028-02-10T12:00:00Z"));
+		return InboundNfe.builder()
+				.id(base.getId())
+				.companyId(companyId)
+				.accessKey(base.getAccessKey())
+				.series(base.getSeries())
+				.number(base.getNumber())
+				.supplierDocument(base.getSupplierDocument())
+				.supplierName(base.getSupplierName())
+				.issuedAt(base.getIssuedAt())
+				.items(base.getItems())
+				.totals(base.getTotals())
+				.xmlStorageRef(base.getXmlStorageRef())
+				.status(InboundNfeStatus.PENDING_CONFERENCE)
+				.importedAt(importedAt)
+				.build();
 	}
 
 	@Test
@@ -265,8 +289,9 @@ class GenerateSpedFiscalServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 2L,
 						Instant.parse("2028-02-11T13:00:00Z"))));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "77", "Alfa SA",
-						"1102", "1102", "10.00", "0", "0", "0", "0", Instant.parse("2028-02-10T08:00:00Z")))));
+				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "77",
+						"Alfa SA", "1102", "1102", "10.00", new LivrosFiscaisFixtures.Taxes("0", "0", "0", "0"),
+						Instant.parse("2028-02-10T08:00:00Z")))));
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
@@ -283,12 +308,13 @@ class GenerateSpedFiscalServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.CANCELLED, "5102", "1", 21L,
 						Instant.parse("2028-02-11T12:00:00Z"))));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "5", "Alfa SA",
-						"1102", "1102", "300.00", "27.00", "0", "0", "0", Instant.parse("2028-02-05T08:00:00Z")))));
+				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "5",
+						"Alfa SA", "1102", "1102", "300.00", new LivrosFiscaisFixtures.Taxes("27.00", "0", "0",
+						"0"), Instant.parse("2028-02-05T08:00:00Z")))));
 
 		service.execute(SpedFiscalFixtures.command(companyId, PERIOD));
 
-		SpedBlock e = block('E');
+		final SpedBlock e = block('E');
 		assertThat(e.records()).extracting(SpedRecord::register).containsExactly("E100", "E110");
 		assertThat(texts(e.records().get(0))).containsExactly("01022028", "29022028");
 		// debits 18,00 (the cancelled NFe counts for nothing); credits 27,00; a 9,00 credit to carry forward
@@ -332,7 +358,7 @@ class GenerateSpedFiscalServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20L,
 						Instant.parse("2028-02-10T12:00:00Z"))));
 
-		SpedValidationReport report = service.execute(SpedFiscalFixtures.command(companyId, PERIOD)).report();
+		final SpedValidationReport report = service.execute(SpedFiscalFixtures.command(companyId, PERIOD)).report();
 
 		assertThat(report.errors()).isEmpty();
 		assertThat(report.warnings()).extracting(Issue::record).containsExactly("0150", "C170/C190", "E110");
@@ -341,9 +367,9 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Fails listing every missing or invalid record instead of emitting an incomplete file")
 	void failsListingEveryMissingOrInvalidRecordInsteadOfEmittingAnIncompleteFile() {
-		Taxpayer taxpayer = new Taxpayer(" ", "355", null, null, null, "123", null, null);
-		Accountant accountant = new Accountant(null, "111.111.111-11", "", null);
-		GenerateSpedFiscalCommand command = new GenerateSpedFiscalCommand(companyId,
+		final Taxpayer taxpayer = new Taxpayer(" ", "355", null, null, null, "123", null, null);
+		final Accountant accountant = new Accountant(null, "111.111.111-11", "", null);
+		final GenerateSpedFiscalCommand command = new GenerateSpedFiscalCommand(companyId,
 				new Period(LocalDate.of(2028, 2, 20), LocalDate.of(2028, 3, 5)), null, taxpayer, accountant);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOfSatisfying(SpedValidationException.class,
@@ -368,11 +394,24 @@ class GenerateSpedFiscalServiceTest {
 	@Test
 	@DisplayName("Fails on a received NF-e whose series or number cannot fill its C100")
 	void failsOnAReceivedNfeWhoseSeriesOrNumberCannotFillItsC100() {
-		InboundNfe base = LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Alfa SA", "1102", "1102",
-				"10.00", "0", "0", "0", "0", Instant.parse("2028-02-10T12:00:00Z"));
-		InboundNfe broken = InboundNfe.of(base.getId(), companyId, base.getAccessKey(), "1234", "12A", base.getSupplierDocument(),
-				"Alfa SA", base.getIssuedAt(), base.getItems(), base.getTotals(), "xml", InboundNfeStatus.CONFIRMED,
-				base.getImportedAt(), SpedFiscalFixtures.confirmed(base).getConferenceResult());
+		final InboundNfe base = LivrosFiscaisFixtures.receivedNfe(companyId, "1", "10", "Alfa SA", "1102", "1102",
+				"10.00", new LivrosFiscaisFixtures.Taxes("0", "0", "0", "0"), Instant.parse("2028-02-10T12:00:00Z"));
+		final InboundNfe broken = InboundNfe.builder()
+				.id(base.getId())
+				.companyId(companyId)
+				.accessKey(base.getAccessKey())
+				.series("1234")
+				.number("12A")
+				.supplierDocument(base.getSupplierDocument())
+				.supplierName("Alfa SA")
+				.issuedAt(base.getIssuedAt())
+				.items(base.getItems())
+				.totals(base.getTotals())
+				.xmlStorageRef("xml")
+				.status(InboundNfeStatus.CONFIRMED)
+				.importedAt(base.getImportedAt())
+				.conferenceResult(SpedFiscalFixtures.confirmed(base).getConferenceResult())
+				.build();
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(broken));
 
 		assertThatThrownBy(() -> service.execute(SpedFiscalFixtures.command(companyId, PERIOD)))
@@ -415,13 +454,13 @@ class GenerateSpedFiscalServiceTest {
 						ex -> assertThat(ex.report().errors().get(0).message()).contains("NUM_DOC"));
 	}
 
-	private VoidedNumberRange range(FiscalDocumentType type, String series, long start, long end, String at) {
+	private VoidedNumberRange range(final FiscalDocumentType type, final String series, final long start, final long end, final String at) {
 		return VoidedNumberRange.of(VoidedNumberRangeId.of(UUID.randomUUID()), companyId, type, series, start, end,
 				"formulários danificados", "protocol", Instant.parse(at));
 	}
 
 	private SpedLayout layout() {
-		ArgumentCaptor<SpedLayout> captor = ArgumentCaptor.forClass(SpedLayout.class);
+		final ArgumentCaptor<SpedLayout> captor = ArgumentCaptor.forClass(SpedLayout.class);
 		verify(spedFile).generate(captor.capture());
 		return captor.getValue();
 	}
@@ -430,12 +469,12 @@ class GenerateSpedFiscalServiceTest {
 		return layout().blocks();
 	}
 
-	private SpedBlock block(char letter) {
+	private SpedBlock block(final char letter) {
 		return blocks().stream().filter(block -> block.id() == letter).findFirst().orElseThrow();
 	}
 
 	/** The fields as the port writes them: amounts with a comma, dates as ddMMyyyy, empty ones as null. */
-	private static List<String> texts(SpedRecord record) {
+	private static List<String> texts(final SpedRecord record) {
 		return record.fields().stream().map(field -> switch (field) {
 			case null -> null;
 			case java.math.BigDecimal amount -> amount.toPlainString().replace('.', ',');

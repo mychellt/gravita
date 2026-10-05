@@ -18,7 +18,7 @@ public record UpsertPriceTableRequest(
 		MaxDiscountBehavior maxDiscountBehavior,
 		List<@Valid EntryRequest> entries) {
 
-	public UpsertPriceTableCommand toCommand(UUID priceTableId) {
+	public UpsertPriceTableCommand toCommand(final UUID priceTableId) {
 		return new UpsertPriceTableCommand(
 				priceTableId,
 				formation,

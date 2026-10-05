@@ -15,14 +15,14 @@ public class FindPlanAdapter implements FindPlanPort {
 
 	private final PlanRepositoryPort planRepositoryPort;
 
-	public FindPlanAdapter(PlanRepositoryPort planRepositoryPort) {
+	public FindPlanAdapter(final PlanRepositoryPort planRepositoryPort) {
 		this.planRepositoryPort = planRepositoryPort;
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public PlanDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public PlanDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return planRepositoryPort.findById(id)
 				.orElseThrow(() -> new BusinessRuleException("Plan not found: " + id));
 	}

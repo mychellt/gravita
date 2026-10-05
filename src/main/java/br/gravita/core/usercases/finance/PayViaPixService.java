@@ -16,14 +16,12 @@ import br.gravita.core.ports.outbound.finance.DocumentAttachmentStoragePort.Docu
 import br.gravita.core.ports.outbound.finance.DocumentAttachmentStoragePort.DocumentStorageUnavailableException;
 import br.gravita.core.ports.outbound.persistence.finance.PayableRepositoryPort;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @UseCase
+@Slf4j
 public class PayViaPixService implements PayViaPixUseCase {
-
-	private static final Logger log = LoggerFactory.getLogger(PayViaPixService.class);
 
 	private final PayableRepositoryPort payableRepositoryPort;
 	private final BankIntegrationPort bankIntegrationPort;
@@ -32,8 +30,8 @@ public class PayViaPixService implements PayViaPixUseCase {
 	// Not transactional on purpose: the bank call must not hold a database transaction open, and the
 	// payable is only written once, after the money has moved.
 	@Override
-	public Payable execute(PayViaPixCommand command) {
-		Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
+	public Payable execute(final PayViaPixCommand command) {
+		final Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Payable not found: " + command.payableId()));
 		// Checked before the bank is contacted so a rejected payment never moves money.
 		if (payable.getStatus() != PayableStatus.APPROVED) {
@@ -42,7 +40,7 @@ public class PayViaPixService implements PayViaPixUseCase {
 		}
 
 		// A failed transfer throws here, before anything is written: the payable stays APPROVED.
-		PixPaymentReceipt receipt = bankIntegrationPort.payViaPix(
+		final PixPaymentReceipt receipt = bankIntegrationPort.payViaPix(
 				new PixPaymentRequest(payable.getId().value(), payable.getScope(), command.pixKey(),
 						payable.getAmount()));
 
@@ -54,19 +52,19 @@ public class PayViaPixService implements PayViaPixUseCase {
 	 * keep the payable {@code APPROVED} (it would be paid again): it is recorded
 	 * as paid without the attachment and can still be attached later (UC-M8-15).
 	 */
-	private String storeReceipt(Payable payable, PixPaymentReceipt receipt) {
+	private String storeReceipt(final Payable payable, final PixPaymentReceipt receipt) {
 		try {
 			return documentAttachmentStoragePort.store(new Document(
 					"pix-receipt-" + receipt.endToEndId() + extensionOf(receipt), receipt.contentType(),
 					receipt.content()));
-		} catch (DocumentStorageUnavailableException exception) {
+		} catch (final DocumentStorageUnavailableException exception) {
 			log.error("PIX payment {} of payable {} went through but its receipt could not be stored",
 					receipt.endToEndId(), payable.getId().value(), exception);
 			return null;
 		}
 	}
 
-	private static String extensionOf(PixPaymentReceipt receipt) {
+	private static String extensionOf(final PixPaymentReceipt receipt) {
 		return "application/pdf".equals(receipt.contentType()) ? ".pdf" : "";
 	}
 }

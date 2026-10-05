@@ -13,12 +13,12 @@ public class ListPaymentMethodsAdapter implements ListPaymentMethodsPort {
 
 	private final PaymentMethodRepositoryPort paymentMethodRepositoryPort;
 
-	public ListPaymentMethodsAdapter(PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
+	public ListPaymentMethodsAdapter(final PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
 		this.paymentMethodRepositoryPort = paymentMethodRepositoryPort;
 	}
 
 	@Override
-	public List<PaymentMethodDomain> execute(Context context) {
+	public List<PaymentMethodDomain> execute(final Context context) {
 		return paymentMethodRepositoryPort.findAll();
 	}
 }

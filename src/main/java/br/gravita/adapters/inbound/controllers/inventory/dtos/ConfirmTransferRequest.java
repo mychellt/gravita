@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record ConfirmTransferRequest(@NotNull UUID user) {
 
-	public ConfirmTransferCommand toCommand(UUID transferMovementId) {
+	public ConfirmTransferCommand toCommand(final UUID transferMovementId) {
 		return new ConfirmTransferCommand(transferMovementId, user);
 	}
 }

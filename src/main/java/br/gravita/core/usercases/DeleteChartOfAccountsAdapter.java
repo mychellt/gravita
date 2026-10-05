@@ -16,14 +16,14 @@ public class DeleteChartOfAccountsAdapter implements DeleteChartOfAccountsPort {
 	private final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort;
 	private final FinanceUsageQueryPort financeUsageQueryPort;
 
-	public DeleteChartOfAccountsAdapter(ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort, FinanceUsageQueryPort financeUsageQueryPort) {
+	public DeleteChartOfAccountsAdapter(final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort, final FinanceUsageQueryPort financeUsageQueryPort) {
 		this.chartOfAccountsRepositoryPort = chartOfAccountsRepositoryPort;
 		this.financeUsageQueryPort = financeUsageQueryPort;
 	}
 
 	@Override
-	public Void execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public Void execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		chartOfAccountsRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Chart of accounts entry not found: " + id));
 		if (chartOfAccountsRepositoryPort.existsByParentId(id)) {

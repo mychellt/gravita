@@ -9,7 +9,7 @@ import java.util.UUID;
 public record SalesReturnView(UUID id, UUID orderId, List<SalesReturnItem> items, FiscalDocumentRef returnNfeRef,
 		boolean total) {
 
-	public static SalesReturnView from(SalesReturn salesReturn) {
+	public static SalesReturnView from(final SalesReturn salesReturn) {
 		return new SalesReturnView(salesReturn.getId().value(), salesReturn.getOrderId().value(),
 				salesReturn.getItems(), salesReturn.getReturnNfeRef(), salesReturn.isTotal());
 	}

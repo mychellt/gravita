@@ -9,7 +9,7 @@ public record OpportunityId(UUID value) {
 		Objects.requireNonNull(value, "OpportunityId value is required");
 	}
 
-	public static OpportunityId of(UUID value) {
+	public static OpportunityId of(final UUID value) {
 		return new OpportunityId(value);
 	}
 }

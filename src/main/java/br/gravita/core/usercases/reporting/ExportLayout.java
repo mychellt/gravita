@@ -40,21 +40,21 @@ record ExportLayout(String title, List<String> headerLines, List<Table> tables) 
 		return new ExcelWorkbook(title, headerLines, tables.stream().map(ExportLayout::sheet).toList());
 	}
 
-	private static Section section(Table table) {
-		List<Column> columns = table.columns().stream()
+	private static Section section(final Table table) {
+		final List<Column> columns = table.columns().stream()
 				.map(col -> new Column(col.header(), col.weight(), col.rightAligned())).toList();
-		List<List<String>> rows = table.rows().stream()
+		final List<List<String>> rows = table.rows().stream()
 				.map(row -> row.stream().map(ExportLayout::text).toList()).toList();
 		return new Section(table.heading(), columns, rows, table.footerLines());
 	}
 
-	private static Sheet sheet(Table table) {
+	private static Sheet sheet(final Table table) {
 		return new Sheet(table.heading(), table.columns().stream().map(Col::header).toList(), table.rows(),
 				table.footerLines());
 	}
 
 	/** Amounts keep the scale they were reported with. */
-	static String text(Object cell) {
+	static String text(final Object cell) {
 		return switch (cell) {
 			case null -> NONE;
 			case String value -> value.isBlank() ? NONE : value;
@@ -65,13 +65,13 @@ record ExportLayout(String title, List<String> headerLines, List<Table> tables) 
 	}
 
 	/** A total shown in the footers, always with cents even when it sums nothing. */
-	static String money(BigDecimal value) {
+	static String money(final BigDecimal value) {
 		return number(value.setScale(2, RoundingMode.HALF_UP));
 	}
 
-	static String number(BigDecimal value) {
-		NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
-		int scale = Math.max(0, value.scale());
+	static String number(final BigDecimal value) {
+		final NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
+		final int scale = Math.max(0, value.scale());
 		format.setMinimumFractionDigits(scale);
 		format.setMaximumFractionDigits(scale);
 		return format.format(value);

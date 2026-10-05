@@ -13,13 +13,13 @@ public class UpdateChartOfAccountsAdapter implements UpdateChartOfAccountsPort {
 
 	private final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort;
 
-	public UpdateChartOfAccountsAdapter(ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
+	public UpdateChartOfAccountsAdapter(final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
 		this.chartOfAccountsRepositoryPort = chartOfAccountsRepositoryPort;
 	}
 
 	@Override
-	public ChartOfAccountsDomain execute(Context context) {
-		ChartOfAccountsDomain account = context.getData(ChartOfAccountsDomain.class);
+	public ChartOfAccountsDomain execute(final Context context) {
+		final ChartOfAccountsDomain account = context.getData(ChartOfAccountsDomain.class);
 		chartOfAccountsRepositoryPort.get(account.getId())
 				.orElseThrow(() -> new ResourceNotFoundException("Chart of accounts entry not found: " + account.getId()));
 		if (account.getParentId() != null) {

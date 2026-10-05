@@ -24,7 +24,7 @@ public record RegisterSupplierRequest(
 		String defaultPurchaseCfop) {
 
 	public RegisterSupplierCommand toCommand() {
-		Document supplierDocument = personType == PersonType.INDIVIDUAL ? Document.cpf(document) : Document.cnpj(document);
+		final Document supplierDocument = personType == PersonType.INDIVIDUAL ? Document.cpf(document) : Document.cnpj(document);
 		return new RegisterSupplierCommand(
 				supplierDocument,
 				name,

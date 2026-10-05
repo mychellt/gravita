@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class InboundNfeNotFoundException extends RuntimeException {
 
-	public InboundNfeNotFoundException(UUID inboundNfeId) {
+	public InboundNfeNotFoundException(final UUID inboundNfeId) {
 		super("Inbound NFe not found: " + inboundNfeId);
 	}
 }

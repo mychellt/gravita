@@ -9,7 +9,7 @@ import java.util.UUID;
 public record SalesInvoiceView(UUID id, UUID orderId, List<FiscalDocumentRef> fiscalDocuments,
 		SalesInvoiceStatus status) {
 
-	public static SalesInvoiceView from(SalesInvoice invoice) {
+	public static SalesInvoiceView from(final SalesInvoice invoice) {
 		return new SalesInvoiceView(invoice.getId().value(), invoice.getOrderId().value(),
 				invoice.getFiscalDocuments(), invoice.getStatus());
 	}

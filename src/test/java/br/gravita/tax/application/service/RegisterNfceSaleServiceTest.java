@@ -71,25 +71,25 @@ class RegisterNfceSaleServiceTest {
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
 	}
 
-	private RegisterNfceSaleCommand commandWithItemDiscount(BigDecimal itemDiscount, UUID priceTableId) {
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"),
+	private RegisterNfceSaleCommand commandWithItemDiscount(final BigDecimal itemDiscount, final UUID priceTableId) {
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("100.00"),
 				itemDiscount);
-		PaymentCommand payment = new PaymentCommand(PaymentMethodType.CASH,
+		final PaymentCommand payment = new PaymentCommand(PaymentMethodType.CASH,
 				new BigDecimal("100.00").subtract(itemDiscount == null ? BigDecimal.ZERO : itemDiscount));
 		return new RegisterNfceSaleCommand(sessionId, List.of(item), null, List.of(payment), null, priceTableId);
 	}
 
-	private PriceTable priceTableWithMaxDiscount(String maxDiscountPercent, MaxDiscountBehavior behavior) {
+	private PriceTable priceTableWithMaxDiscount(final String maxDiscountPercent, final MaxDiscountBehavior behavior) {
 		return PriceTable.of(PriceTableId.of(UUID.randomUUID()), PriceFormation.FIXED, java.time.LocalDate.now(), null,
 				new BigDecimal(maxDiscountPercent), behavior, List.of());
 	}
 
 	@Test
 	@DisplayName("Registers a cart item and produces a draft sale")
-	void ac1_registersACartItemAndProducesADraftSale() {
-		NfceSaleId id = service.execute(commandWithItemDiscount(null, null));
+	void ac1RegistersACartItemAndProducesADraftSale() {
+		final NfceSaleId id = service.execute(commandWithItemDiscount(null, null));
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getItems()).hasSize(1);
 		assertThat(id).isEqualTo(captor.getValue().getId());
@@ -97,8 +97,8 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Accepts an item discount within the linked price table's cap")
-	void ac2_anItemDiscountWithinTheLinkedPriceTablesCapIsAccepted() {
-		UUID priceTableId = UUID.randomUUID();
+	void ac2AnItemDiscountWithinTheLinkedPriceTablesCapIsAccepted() {
+		final UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
 				.thenReturn(Optional.of(priceTableWithMaxDiscount("20", MaxDiscountBehavior.BLOCK)));
 
@@ -109,8 +109,8 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Rejects an item discount exceeding a blocking price table's cap")
-	void ac2_anItemDiscountExceedingABlockPriceTablesCapIsRejected() {
-		UUID priceTableId = UUID.randomUUID();
+	void ac2AnItemDiscountExceedingABlockPriceTablesCapIsRejected() {
+		final UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
 				.thenReturn(Optional.of(priceTableWithMaxDiscount("5", MaxDiscountBehavior.BLOCK)));
 
@@ -122,12 +122,12 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Still creates the sale when an item discount exceeds only an alerting price table's cap")
-	void ac2_anItemDiscountExceedingAnAlertPriceTablesCapStillCreatesTheSale() {
-		UUID priceTableId = UUID.randomUUID();
+	void ac2AnItemDiscountExceedingAnAlertPriceTablesCapStillCreatesTheSale() {
+		final UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
 				.thenReturn(Optional.of(priceTableWithMaxDiscount("5", MaxDiscountBehavior.ALERT)));
 
-		NfceSaleId id = service.execute(commandWithItemDiscount(new BigDecimal("10.00"), priceTableId));
+		final NfceSaleId id = service.execute(commandWithItemDiscount(new BigDecimal("10.00"), priceTableId));
 
 		assertThat(id).isNotNull();
 		verify(nfceRepositoryPort).save(any());
@@ -135,39 +135,39 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Combines multiple payment methods in the same sale")
-	void ac3_multiplePaymentMethodsAreCombinedInTheSameSale() {
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("80.00"), null);
-		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
+	void ac3MultiplePaymentMethodsAreCombinedInTheSameSale() {
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("80.00"), null);
+		final RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
 				List.of(new PaymentCommand(PaymentMethodType.CASH, new BigDecimal("50.00")),
 						new PaymentCommand(PaymentMethodType.CREDIT_CARD, new BigDecimal("30.00"))),
 				null, null);
 
 		service.execute(command);
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getPayments()).hasSize(2);
 	}
 
 	@Test
 	@DisplayName("Derives the change given from the payments minus the sale total")
-	void ac4_changeGivenIsDerivedFromPaymentsMinusSaleTotal() {
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("18.00"), null);
-		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
+	void ac4ChangeGivenIsDerivedFromPaymentsMinusSaleTotal() {
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("18.00"), null);
+		final RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
 				List.of(new PaymentCommand(PaymentMethodType.CASH, new BigDecimal("20.00"))), null, null);
 
 		service.execute(command);
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getChangeGiven()).isEqualByComparingTo("2.00");
 	}
 
 	@Test
 	@DisplayName("Rejects payments that do not cover the sale total")
-	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() {
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("50.00"), null);
-		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
+	void ac5PaymentsThatDoNotCoverTheSaleTotalAreRejected() {
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("50.00"), null);
+		final RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
 				List.of(new PaymentCommand(PaymentMethodType.CASH, new BigDecimal("40.00"))), null, null);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(BusinessRuleException.class);
@@ -177,25 +177,25 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Records a typed customer CPF on the sale")
-	void ac6_aTypedCustomerCpfIsRecordedOnTheSale() {
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
+	void ac6ATypedCustomerCpfIsRecordedOnTheSale() {
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		final RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(sessionId, List.of(item), null,
 				List.of(new PaymentCommand(PaymentMethodType.CASH, new BigDecimal("10.00"))), "529.982.247-25", null);
 
 		service.execute(command);
 
-		ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> captor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getCustomerCpf()).isEqualTo("52998224725");
 	}
 
 	@Test
 	@DisplayName("Rejects a sale for a non-existent session")
-	void aNonExistentSessionIsRejected() {
-		UUID unknownSession = UUID.randomUUID();
+	void nonExistentSessionIsRejected() {
+		final UUID unknownSession = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(unknownSession))).thenReturn(Optional.empty());
-		SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-		RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(unknownSession, List.of(item), null,
+		final SaleItemCommand item = new SaleItemCommand(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		final RegisterNfceSaleCommand command = new RegisterNfceSaleCommand(unknownSession, List.of(item), null,
 				List.of(new PaymentCommand(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, null);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(ResourceNotFoundException.class);
@@ -205,8 +205,8 @@ class RegisterNfceSaleServiceTest {
 
 	@Test
 	@DisplayName("Rejects a sale for a closed session")
-	void aClosedSessionIsRejected() {
-		PosSession closed = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
+	void closedSessionIsRejected() {
+		final PosSession closed = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),
 				Instant.now());
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.of(closed));

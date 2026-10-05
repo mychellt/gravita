@@ -41,8 +41,8 @@ class ApprovalAlcadaControllerTest {
 	@Test
 	@DisplayName("Responds 204 when configuring an approval alcada succeeds")
 	void shouldReturn204WhenConfiguringAlcadaSucceeds() throws Exception {
-		UUID approverProfileId = UUID.randomUUID();
-		ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("5000.00"), null,
+		final UUID approverProfileId = UUID.randomUUID();
+		final ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("5000.00"), null,
 				approverProfileId);
 
 		mockMvc.perform(put("/api/system/alcadas/purchasing")
@@ -50,7 +50,7 @@ class ApprovalAlcadaControllerTest {
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isNoContent());
 
-		ArgumentCaptor<ConfigureApprovalAlcadaCommand> captor =
+		final ArgumentCaptor<ConfigureApprovalAlcadaCommand> captor =
 				ArgumentCaptor.forClass(ConfigureApprovalAlcadaCommand.class);
 		verify(configureApprovalAlcadaUseCase).execute(captor.capture());
 		assertThat(captor.getValue().module()).isEqualTo("purchasing");
@@ -61,7 +61,7 @@ class ApprovalAlcadaControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the approval module is unknown")
 	void shouldReturn400WhenModuleIsUnknown() throws Exception {
-		ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
+		final ConfigureApprovalAlcadaRequest request = new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
 				UUID.randomUUID());
 		doThrow(new UnknownApprovalModuleException("logistics"))
 				.when(configureApprovalAlcadaUseCase).execute(ArgumentMatchers.any());
@@ -76,7 +76,7 @@ class ApprovalAlcadaControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the approver profile id is missing")
 	void shouldReturn400WhenApproverProfileIdIsMissing() throws Exception {
-		String body = objectMapper.writeValueAsString(new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
+		final String body = objectMapper.writeValueAsString(new ConfigureApprovalAlcadaRequest(new BigDecimal("100"), null,
 				null));
 
 		mockMvc.perform(put("/api/system/alcadas/finance")

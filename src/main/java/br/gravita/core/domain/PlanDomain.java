@@ -62,19 +62,19 @@ public class PlanDomain extends AbstractDomain {
 		}
 	}
 
-	private static void requireText(String value, String field) {
+	private static void requireText(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException("Plan " + field + " is required");
 		}
 	}
 
-	private static void requireNonNegative(BigDecimal value, String field) {
+	private static void requireNonNegative(final BigDecimal value, final String field) {
 		if (value == null || value.signum() < 0) {
 			throw new BusinessRuleException("Plan " + field + " must be zero or greater");
 		}
 	}
 
-	private static <T> T requirePresent(T value, String field) {
+	private static <T> T requirePresent(final T value, final String field) {
 		if (value == null) {
 			throw new BusinessRuleException("Plan " + field + " is required");
 		}

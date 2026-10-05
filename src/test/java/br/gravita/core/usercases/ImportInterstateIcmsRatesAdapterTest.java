@@ -26,8 +26,8 @@ class ImportInterstateIcmsRatesAdapterTest {
 	@DisplayName("Importing a rate for a state pair not seen before assigns it a new id")
 	@Test
 	void shouldAssignNewIdForUnseenStatePair() {
-		ImportInterstateIcmsRatesAdapter adapter = new ImportInterstateIcmsRatesAdapter(interstateIcmsRateRepositoryPort);
-		InterstateIcmsRateDomain incoming = InterstateIcmsRateDomain.builder()
+		final ImportInterstateIcmsRatesAdapter adapter = new ImportInterstateIcmsRatesAdapter(interstateIcmsRateRepositoryPort);
+		final InterstateIcmsRateDomain incoming = InterstateIcmsRateDomain.builder()
 				.originState("SP").destinationState("RJ").ratePercent(new BigDecimal("12.00")).build();
 		when(interstateIcmsRateRepositoryPort.findByOriginStateAndDestinationState("SP", "RJ")).thenReturn(Optional.empty());
 		when(interstateIcmsRateRepositoryPort.saveAll(List.of(incoming))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -40,9 +40,9 @@ class ImportInterstateIcmsRatesAdapterTest {
 	@DisplayName("Upserts by state pair so that re-importing updates the existing rate")
 	@Test
 	void shouldUpsertByStatePairSoReimportUpdatesTheExistingRate() {
-		ImportInterstateIcmsRatesAdapter adapter = new ImportInterstateIcmsRatesAdapter(interstateIcmsRateRepositoryPort);
-		UUID existingId = UUID.randomUUID();
-		InterstateIcmsRateDomain incoming = InterstateIcmsRateDomain.builder()
+		final ImportInterstateIcmsRatesAdapter adapter = new ImportInterstateIcmsRatesAdapter(interstateIcmsRateRepositoryPort);
+		final UUID existingId = UUID.randomUUID();
+		final InterstateIcmsRateDomain incoming = InterstateIcmsRateDomain.builder()
 				.originState("SP").destinationState("RJ").ratePercent(new BigDecimal("7.00")).build();
 		when(interstateIcmsRateRepositoryPort.findByOriginStateAndDestinationState("SP", "RJ"))
 				.thenReturn(Optional.of(InterstateIcmsRateDomain.builder().id(existingId).originState("SP").destinationState("RJ").build()));

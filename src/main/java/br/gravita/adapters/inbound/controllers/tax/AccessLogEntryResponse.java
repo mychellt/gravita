@@ -9,7 +9,7 @@ import java.util.UUID;
 public record AccessLogEntryResponse(
 		UUID id, UUID userId, String email, AccessLogEvent event, boolean successful, String ip, String device, Instant timestamp) {
 
-	public static AccessLogEntryResponse from(AccessLog accessLog) {
+	public static AccessLogEntryResponse from(final AccessLog accessLog) {
 		return new AccessLogEntryResponse(
 				accessLog.getId(),
 				accessLog.getUserId() == null ? null : accessLog.getUserId().value(),

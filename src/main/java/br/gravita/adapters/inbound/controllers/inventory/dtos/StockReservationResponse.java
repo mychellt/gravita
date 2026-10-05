@@ -8,7 +8,7 @@ import java.util.UUID;
 public record StockReservationResponse(UUID id, UUID orderRef, UUID productId, UUID warehouseId, BigDecimal quantity,
 		StockReservationStatus status) {
 
-	public static StockReservationResponse from(StockReservation reservation) {
+	public static StockReservationResponse from(final StockReservation reservation) {
 		return new StockReservationResponse(reservation.getId().value(), reservation.getOrderRef(),
 				reservation.getProductId(), reservation.getWarehouseId(), reservation.getQuantity(),
 				reservation.getStatus());

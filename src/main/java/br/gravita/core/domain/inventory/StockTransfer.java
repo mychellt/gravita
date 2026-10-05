@@ -17,8 +17,8 @@ public final class StockTransfer {
 	private final BigDecimal quantity;
 	private final StockTransferStatus status;
 
-	public StockTransfer(StockTransferId id, UUID productId, UUID sourceWarehouseId, UUID destinationWarehouseId,
-			BigDecimal quantity, StockTransferStatus status) {
+	public StockTransfer(final StockTransferId id, final UUID productId, final UUID sourceWarehouseId, final UUID destinationWarehouseId,
+			final BigDecimal quantity, final StockTransferStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
 		this.sourceWarehouseId = Objects.requireNonNull(sourceWarehouseId, "sourceWarehouseId is required");
@@ -28,13 +28,13 @@ public final class StockTransfer {
 		this.status = Objects.requireNonNull(status, "status is required");
 	}
 
-	public static StockTransfer of(StockTransferId id, UUID productId, UUID sourceWarehouseId,
-			UUID destinationWarehouseId, BigDecimal quantity, StockTransferStatus status) {
+	public static StockTransfer of(final StockTransferId id, final UUID productId, final UUID sourceWarehouseId,
+			final UUID destinationWarehouseId, final BigDecimal quantity, final StockTransferStatus status) {
 		return new StockTransfer(id, productId, sourceWarehouseId, destinationWarehouseId, quantity, status);
 	}
 
-	public static StockTransfer initiate(StockTransferId id, UUID productId, UUID sourceWarehouseId,
-			UUID destinationWarehouseId, BigDecimal quantity) {
+	public static StockTransfer initiate(final StockTransferId id, final UUID productId, final UUID sourceWarehouseId,
+			final UUID destinationWarehouseId, final BigDecimal quantity) {
 		return new StockTransfer(id, productId, sourceWarehouseId, destinationWarehouseId, quantity,
 				StockTransferStatus.PENDING);
 	}

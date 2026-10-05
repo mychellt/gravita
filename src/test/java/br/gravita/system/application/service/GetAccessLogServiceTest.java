@@ -41,9 +41,9 @@ class GetAccessLogServiceTest {
 
 		service().execute(new GetAccessLogQuery(null, null, null, null, null, 0, 20));
 
-		ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
+		final ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
 		verify(accessLogRepositoryPort).search(captor.capture());
-		Instant expectedCutoff = Instant.now().minus(365, ChronoUnit.DAYS);
+		final Instant expectedCutoff = Instant.now().minus(365, ChronoUnit.DAYS);
 		assertThat(captor.getValue().dateFrom()).isCloseTo(expectedCutoff, within(Duration.ofMinutes(1)));
 	}
 
@@ -51,11 +51,11 @@ class GetAccessLogServiceTest {
 	@DisplayName("Clamps dateFrom to the retention cutoff when the requested date is older")
 	void shouldClampDateFromToTheRetentionCutoffWhenARequestedDateIsOlder() {
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
-		Instant thirteenMonthsAgo = Instant.now().minus(395, ChronoUnit.DAYS);
+		final Instant thirteenMonthsAgo = Instant.now().minus(395, ChronoUnit.DAYS);
 
 		service().execute(new GetAccessLogQuery(null, thirteenMonthsAgo, null, null, null, 0, 20));
 
-		ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
+		final ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
 		verify(accessLogRepositoryPort).search(captor.capture());
 		assertThat(captor.getValue().dateFrom()).isAfter(thirteenMonthsAgo);
 	}
@@ -64,11 +64,11 @@ class GetAccessLogServiceTest {
 	@DisplayName("Keeps the requested dateFrom when it is within the retention window")
 	void shouldKeepARequestedDateFromWhenItIsWithinTheRetentionWindow() {
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
-		Instant oneWeekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+		final Instant oneWeekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
 
 		service().execute(new GetAccessLogQuery(null, oneWeekAgo, null, null, null, 0, 20));
 
-		ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
+		final ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
 		verify(accessLogRepositoryPort).search(captor.capture());
 		assertThat(captor.getValue().dateFrom()).isEqualTo(oneWeekAgo);
 	}
@@ -76,12 +76,12 @@ class GetAccessLogServiceTest {
 	@Test
 	@DisplayName("Passes the user id and other filters through unchanged")
 	void shouldPassUserIdAndOtherFiltersThroughUnchanged() {
-		UserId userId = UserId.generate();
+		final UserId userId = UserId.generate();
 		when(accessLogRepositoryPort.search(any())).thenReturn(new Page<>(List.of(), 0, 20, 0));
 
 		service().execute(new GetAccessLogQuery(userId, null, null, "1.2.3.4", "Chrome", 1, 10));
 
-		ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
+		final ArgumentCaptor<GetAccessLogQuery> captor = ArgumentCaptor.forClass(GetAccessLogQuery.class);
 		verify(accessLogRepositoryPort).search(captor.capture());
 		assertThat(captor.getValue().userId()).isEqualTo(userId);
 		assertThat(captor.getValue().ip()).isEqualTo("1.2.3.4");
@@ -93,11 +93,11 @@ class GetAccessLogServiceTest {
 	@Test
 	@DisplayName("Returns whatever page the repository produces")
 	void shouldReturnWhateverPageTheRepositoryProduces() {
-		AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
-		Page<AccessLog> repositoryPage = new Page<>(List.of(entry), 0, 20, 1);
+		final AccessLog entry = AccessLog.login(UserId.generate(), "jane@example.com", true, "1.2.3.4", "Chrome");
+		final Page<AccessLog> repositoryPage = new Page<>(List.of(entry), 0, 20, 1);
 		when(accessLogRepositoryPort.search(any())).thenReturn(repositoryPage);
 
-		Page<AccessLog> result = service().execute(new GetAccessLogQuery(null, null, null, null, null, 0, 20));
+		final Page<AccessLog> result = service().execute(new GetAccessLogQuery(null, null, null, null, null, 0, 20));
 
 		assertThat(result).isSameAs(repositoryPage);
 	}

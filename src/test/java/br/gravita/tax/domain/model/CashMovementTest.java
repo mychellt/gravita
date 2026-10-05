@@ -18,13 +18,13 @@ class CashMovementTest {
 
 	@Test
 	@DisplayName("Recording a sangria or suprimento captures the given type, amount and session")
-	void ac1_recordingASangriaOrSuprimentoCapturesTheGivenTypeAmountAndSession() {
-		PosSessionId sessionId = PosSessionId.of(UUID.randomUUID());
-		Instant now = Instant.now();
+	void ac1RecordingASangriaOrSuprimentoCapturesTheGivenTypeAmountAndSession() {
+		final PosSessionId sessionId = PosSessionId.of(UUID.randomUUID());
+		final Instant now = Instant.now();
 
-		CashMovement sangria = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId,
+		final CashMovement sangria = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId,
 				CashMovementType.SANGRIA, new BigDecimal("50.00"), "Deposit at bank", now);
-		CashMovement suprimento = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId,
+		final CashMovement suprimento = CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId,
 				CashMovementType.SUPRIMENTO, new BigDecimal("30.00"), "Change top-up", now);
 
 		assertThat(sangria.getType()).isEqualTo(CashMovementType.SANGRIA);
@@ -35,7 +35,7 @@ class CashMovementTest {
 
 	@Test
 	@DisplayName("Rejects a blank justification")
-	void ac2_blankJustificationIsRejected() {
+	void ac2BlankJustificationIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, new BigDecimal("50.00"), " ",
 				Instant.now()))
@@ -44,7 +44,7 @@ class CashMovementTest {
 
 	@Test
 	@DisplayName("Rejects a null justification")
-	void ac2_nullJustificationIsRejected() {
+	void ac2NullJustificationIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, new BigDecimal("50.00"), null,
 				Instant.now()))
@@ -53,10 +53,10 @@ class CashMovementTest {
 
 	@Test
 	@DisplayName("Records the given timestamp")
-	void ac3_theGivenTimestampIsRecorded() {
-		Instant now = Instant.now();
+	void ac3TheGivenTimestampIsRecorded() {
+		final Instant now = Instant.now();
 
-		CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()),
+		final CashMovement movement = CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, new BigDecimal("50.00"), "Justified",
 				now);
 
@@ -65,7 +65,7 @@ class CashMovementTest {
 
 	@Test
 	@DisplayName("Rejects a non-positive amount")
-	void aNonPositiveAmountIsRejected() {
+	void nonPositiveAmountIsRejected() {
 		assertThatThrownBy(() -> CashMovement.of(CashMovementId.of(UUID.randomUUID()),
 				PosSessionId.of(UUID.randomUUID()), CashMovementType.SANGRIA, BigDecimal.ZERO, "Justified",
 				Instant.now()))

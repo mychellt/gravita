@@ -57,53 +57,53 @@ public class ReturnSalesOrderService implements ReturnSalesOrderUseCase {
 
 	@Override
 	@Transactional
-	public SalesReturnView execute(ReturnSalesOrderCommand command) {
-		SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
+	public SalesReturnView execute(final ReturnSalesOrderCommand command) {
+		final SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
 				.orElseThrow(() -> new SalesOrderNotFoundException(command.orderId()));
 
-		List<SalesReturnItem> items = command.items().stream()
+		final List<SalesReturnItem> items = command.items().stream()
 				.map(item -> new SalesReturnItem(item.productOrServiceId(), item.quantity()))
 				.toList();
-		List<SalesReturn> previousReturns = salesReturnRepositoryPort.findByOrderId(order.getId());
+		final List<SalesReturn> previousReturns = salesReturnRepositoryPort.findByOrderId(order.getId());
 
 		// AC1: validated up front, before any fiscal/stock/finance side effect below.
-		SalesReturn salesReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order, items,
+		final SalesReturn salesReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order, items,
 				previousReturns);
 
-		SalesInvoice invoice = salesInvoiceRepositoryPort.findByOrderId(order.getId())
+		final SalesInvoice invoice = salesInvoiceRepositoryPort.findByOrderId(order.getId())
 				.orElseThrow(() -> new BusinessRuleException(
 						"Order " + order.getId().value() + " is INVOICED but has no linked SalesInvoice"));
-		FiscalDocumentRef originalDocument = invoice.getFiscalDocuments().get(0);
+		final FiscalDocumentRef originalDocument = invoice.getFiscalDocuments().get(0);
 
-		List<Item> fiscalItems = new ArrayList<>();
+		final List<Item> fiscalItems = new ArrayList<>();
 		BigDecimal returnedAmount = BigDecimal.ZERO;
-		for (SalesReturnItem item : salesReturn.getItems()) {
-			SalesOrderItem orderItem = findOrderItem(order, item.productOrServiceId());
-			ProductDomain product = productRepositoryPort.get(item.productOrServiceId())
+		for (final SalesReturnItem item : salesReturn.getItems()) {
+			final SalesOrderItem orderItem = findOrderItem(order, item.productOrServiceId());
+			final ProductDomain product = productRepositoryPort.get(item.productOrServiceId())
 					.orElseThrow(() -> new ResourceNotFoundException(
 							"Product or service not found: " + item.productOrServiceId()));
 
-			BigDecimal netUnitPrice = orderItem.lineTotal().divide(orderItem.quantity(), 4, RoundingMode.HALF_UP);
+			final BigDecimal netUnitPrice = orderItem.lineTotal().divide(orderItem.quantity(), 4, RoundingMode.HALF_UP);
 			fiscalItems.add(new Item(item.productOrServiceId(), product.getInternalCode(), item.quantity(),
 					netUnitPrice, BigDecimal.ZERO));
 			returnedAmount = returnedAmount.add(netUnitPrice.multiply(item.quantity()));
 
-			BigDecimal unitCost = product.getAverageCost() == null ? BigDecimal.ZERO : product.getAverageCost();
+			final BigDecimal unitCost = product.getAverageCost() == null ? BigDecimal.ZERO : product.getAverageCost();
 			registerStockEntryPort.registerEntry(new RegisterStockEntryCommand(item.productOrServiceId(),
 					item.quantity(), unitCost, salesReturn.getId().value()));
 		}
 
-		FiscalDocumentRef returnNfeRef = issueFiscalDocumentPort.issueForReturn(new IssueReturnFiscalDocumentCommand(
+		final FiscalDocumentRef returnNfeRef = issueFiscalDocumentPort.issueForReturn(new IssueReturnFiscalDocumentCommand(
 				order.getId().value(), order.getCustomerId(), originalDocument, fiscalItems));
 
 		adjustReceivableForReturnPort.adjust(new AdjustReceivableForReturnCommand(salesReturn.getId().value(),
 				order.getCustomerId(), returnedAmount));
 
-		SalesReturn saved = salesReturnRepositoryPort.save(salesReturn.withNfeRef(returnNfeRef));
+		final SalesReturn saved = salesReturnRepositoryPort.save(salesReturn.withNfeRef(returnNfeRef));
 		return SalesReturnView.from(saved);
 	}
 
-	private SalesOrderItem findOrderItem(SalesOrder order, UUID productOrServiceId) {
+	private SalesOrderItem findOrderItem(final SalesOrder order, final UUID productOrServiceId) {
 		return order.getItems().stream().filter(orderItem -> orderItem.productOrServiceId().equals(productOrServiceId))
 				.findFirst()
 				.orElseThrow(() -> new BusinessRuleException(

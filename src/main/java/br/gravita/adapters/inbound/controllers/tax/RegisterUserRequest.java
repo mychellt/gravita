@@ -14,7 +14,7 @@ public record RegisterUserRequest(
 		@NotBlank String password,
 		@NotNull UUID profileId) {
 
-	public RegisterUserCommand toCommand(UserId callerId) {
+	public RegisterUserCommand toCommand(final UserId callerId) {
 		return new RegisterUserCommand(name, email, password, profileId, callerId);
 	}
 }

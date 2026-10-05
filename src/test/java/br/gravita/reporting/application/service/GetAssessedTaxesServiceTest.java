@@ -44,7 +44,7 @@ class GetAssessedTaxesServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the summary, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheSummaryWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "assessed-taxes")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new AssessedTaxesQuery(stranger, PERIOD)))
@@ -69,7 +69,7 @@ class GetAssessedTaxesServiceTest {
 				nfe("50.50", "5.25", "0.83", "3.80"),
 				nfse("30.00")));
 
-		AssessedTaxSummary summary = service.execute(new AssessedTaxesQuery(user, PERIOD));
+		final AssessedTaxSummary summary = service.execute(new AssessedTaxesQuery(user, PERIOD));
 
 		assertThat(summary.period()).isEqualTo(PERIOD);
 		assertThat(summary.icms()).isEqualByComparingTo("150.50");
@@ -82,7 +82,7 @@ class GetAssessedTaxesServiceTest {
 	@DisplayName("Totals zero for every tax when the period has no authorized document")
 	@Test
 	void totalsZeroForEveryTaxWhenThePeriodHasNoAuthorizedDocument() {
-		AssessedTaxSummary summary = service.execute(new AssessedTaxesQuery(user, PERIOD));
+		final AssessedTaxSummary summary = service.execute(new AssessedTaxesQuery(user, PERIOD));
 
 		assertThat(summary.icms()).isEqualByComparingTo("0");
 		assertThat(summary.ipi()).isEqualByComparingTo("0");
@@ -91,12 +91,12 @@ class GetAssessedTaxesServiceTest {
 		assertThat(summary.iss()).isEqualByComparingTo("0");
 	}
 
-	private static DocumentTaxRecord nfe(String icms, String ipi, String pis, String cofins) {
+	private static DocumentTaxRecord nfe(final String icms, final String ipi, final String pis, final String cofins) {
 		return new DocumentTaxRecord("NFE", LocalDate.of(2028, 2, 10), new BigDecimal(icms), new BigDecimal(ipi),
 				new BigDecimal(pis), new BigDecimal(cofins), BigDecimal.ZERO);
 	}
 
-	private static DocumentTaxRecord nfse(String iss) {
+	private static DocumentTaxRecord nfse(final String iss) {
 		return new DocumentTaxRecord("NFSE", LocalDate.of(2028, 2, 12), BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(iss));
 	}

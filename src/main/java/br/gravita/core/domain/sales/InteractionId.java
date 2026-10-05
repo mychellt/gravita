@@ -9,7 +9,7 @@ public record InteractionId(UUID value) {
 		Objects.requireNonNull(value, "InteractionId value is required");
 	}
 
-	public static InteractionId of(UUID value) {
+	public static InteractionId of(final UUID value) {
 		return new InteractionId(value);
 	}
 }

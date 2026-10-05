@@ -14,13 +14,13 @@ public class FindCostCenterAdapter implements FindCostCenterPort {
 
 	private final CostCenterRepositoryPort costCenterRepositoryPort;
 
-	public FindCostCenterAdapter(CostCenterRepositoryPort costCenterRepositoryPort) {
+	public FindCostCenterAdapter(final CostCenterRepositoryPort costCenterRepositoryPort) {
 		this.costCenterRepositoryPort = costCenterRepositoryPort;
 	}
 
 	@Override
-	public CostCenterDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public CostCenterDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return costCenterRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Cost center not found: " + id));
 	}

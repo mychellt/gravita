@@ -27,13 +27,13 @@ public class GetAgingListService implements GetAgingListUseCase {
 	private final Clock clock;
 
 	@Autowired
-	public GetAgingListService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort) {
+	public GetAgingListService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort) {
 		this(receivableRepositoryPort, settlementRepositoryPort, Clock.systemDefaultZone());
 	}
 
-	public GetAgingListService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort, Clock clock) {
+	public GetAgingListService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort, final Clock clock) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.settlementRepositoryPort = settlementRepositoryPort;
 		this.clock = clock;
@@ -47,21 +47,21 @@ public class GetAgingListService implements GetAgingListUseCase {
 	 */
 	@Override
 	@Transactional(readOnly = true)
-	public AgingReport execute(GetAgingListQuery query) {
-		LocalDate asOfDate = query.asOfDate() != null ? query.asOfDate() : LocalDate.now(clock);
+	public AgingReport execute(final GetAgingListQuery query) {
+		final LocalDate asOfDate = query.asOfDate() != null ? query.asOfDate() : LocalDate.now(clock);
 		if (query.costCenterId() != null) {
 			return AgingReport.of(asOfDate, List.of());
 		}
-		List<Receivable> receivables = receivableRepositoryPort.findOutstandingByCustomerDueUntil(query.customerId(),
+		final List<Receivable> receivables = receivableRepositoryPort.findOutstandingByCustomerDueUntil(query.customerId(),
 				asOfDate);
 		if (receivables.isEmpty()) {
 			return AgingReport.of(asOfDate, List.of());
 		}
-		Map<ReceivableId, List<Settlement>> settlements = new HashMap<>();
+		final Map<ReceivableId, List<Settlement>> settlements = new HashMap<>();
 		settlementRepositoryPort.findByReceivableIds(receivables.stream().map(Receivable::getId).toList())
 				.forEach(settlement -> settlements.computeIfAbsent(settlement.getReceivableId(), id -> new ArrayList<>())
 						.add(settlement));
-		List<AgingEntry> entries = receivables.stream()
+		final List<AgingEntry> entries = receivables.stream()
 				.filter(Receivable::isOutstanding)
 				.map(receivable -> new AgingEntry(receivable.getDueDate(),
 						receivable.remainingBalance(settlements.getOrDefault(receivable.getId(), List.of()))))

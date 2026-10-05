@@ -24,14 +24,14 @@ public class StockMovementController {
 	private final RegisterStockExitUseCase registerStockExitUseCase;
 
 	@PostMapping("/entry")
-	public ResponseEntity<StockMovementResponse> registerEntry(@Valid @RequestBody RegisterStockEntryRequest request) {
-		StockMovement movement = registerStockEntryUseCase.execute(request.toCommand());
+	public ResponseEntity<StockMovementResponse> registerEntry(@Valid @RequestBody final RegisterStockEntryRequest request) {
+		final StockMovement movement = registerStockEntryUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(StockMovementResponse.from(movement));
 	}
 
 	@PostMapping("/exit")
-	public ResponseEntity<StockMovementResponse> registerExit(@Valid @RequestBody RegisterStockExitRequest request) {
-		StockMovement movement = registerStockExitUseCase.execute(request.toCommand());
+	public ResponseEntity<StockMovementResponse> registerExit(@Valid @RequestBody final RegisterStockExitRequest request) {
+		final StockMovement movement = registerStockExitUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(StockMovementResponse.from(movement));
 	}
 }

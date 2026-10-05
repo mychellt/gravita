@@ -24,7 +24,7 @@ public class PasswordResetToken extends AbstractDomain {
     private String tokenHash;
     private LocalDateTime expiresAt;
 
-    public static IssuedPasswordResetToken issue(UserId userId, LocalDateTime now) {
+    public static IssuedPasswordResetToken issue(final UserId userId, final LocalDateTime now) {
         final var rawToken = TokenSecret.generate();
         final var token = PasswordResetToken.builder()
                 .id(UUID.randomUUID())
@@ -36,7 +36,7 @@ public class PasswordResetToken extends AbstractDomain {
         return new IssuedPasswordResetToken(rawToken, token);
     }
 
-    public static String hash(String rawToken) {
+    public static String hash(final String rawToken) {
         return TokenSecret.hash(rawToken);
     }
 
@@ -44,18 +44,18 @@ public class PasswordResetToken extends AbstractDomain {
         return getModifiedAt() != null;
     }
 
-    public boolean wasIssuedWithin(Duration window, LocalDateTime now) {
+    public boolean wasIssuedWithin(final Duration window, final LocalDateTime now) {
         return getCreatedAt() != null && now.isBefore(getCreatedAt().plus(window));
     }
 
     /** Cuts the link short so it can no longer be used; a spent token stays as it is. */
-    public void expire(LocalDateTime now) {
+    public void expire(final LocalDateTime now) {
         if (!isUsed() && expiresAt.isAfter(now)) {
             this.expiresAt = now;
         }
     }
 
-    public void consume(LocalDateTime now) {
+    public void consume(final LocalDateTime now) {
         if (isUsed()) {
             throw new PasswordResetRejectedException(Reason.ALREADY_USED, "Este link de redefinição já foi utilizado.");
         }

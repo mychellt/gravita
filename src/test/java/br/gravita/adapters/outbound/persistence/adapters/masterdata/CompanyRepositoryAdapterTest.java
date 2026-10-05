@@ -95,8 +95,22 @@ class CompanyRepositoryAdapterTest {
 	}
 
 	private Company buildCompany() {
-		return Company.of(CompanyId.of(UUID.randomUUID()), "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654",
-				"6201-5/01", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"fiscal@empresa.com", "11999999999", null, null);
+		return Company.builder()
+				.id(CompanyId.of(UUID.randomUUID()))
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11222333000181"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201-5/01")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("fiscal@empresa.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 }

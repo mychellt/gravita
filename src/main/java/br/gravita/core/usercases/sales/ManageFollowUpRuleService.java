@@ -16,38 +16,38 @@ public class ManageFollowUpRuleService implements ManageFollowUpRuleUseCase {
 
 	private final FollowUpRuleRepositoryPort followUpRuleRepositoryPort;
 
-	public ManageFollowUpRuleService(FollowUpRuleRepositoryPort followUpRuleRepositoryPort) {
+	public ManageFollowUpRuleService(final FollowUpRuleRepositoryPort followUpRuleRepositoryPort) {
 		this.followUpRuleRepositoryPort = followUpRuleRepositoryPort;
 	}
 
 	@Override
-	public FollowUpRuleView create(CreateFollowUpRuleCommand command) {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
-		FollowUpRule rule = FollowUpRule.of(id, command.daysWithoutContact(), command.target(),
+	public FollowUpRuleView create(final CreateFollowUpRuleCommand command) {
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRule rule = FollowUpRule.of(id, command.daysWithoutContact(), command.target(),
 				command.notifyOwner(), command.active());
 
-		FollowUpRule saved = followUpRuleRepositoryPort.save(rule);
+		final FollowUpRule saved = followUpRuleRepositoryPort.save(rule);
 		return FollowUpRuleView.from(saved);
 	}
 
 	@Override
-	public FollowUpRuleView update(UpdateFollowUpRuleCommand command) {
-		FollowUpRule existing = findOrThrow(command.ruleId());
+	public FollowUpRuleView update(final UpdateFollowUpRuleCommand command) {
+		final FollowUpRule existing = findOrThrow(command.ruleId());
 
-		FollowUpRule updated = existing.withUpdatedFields(command.daysWithoutContact(), command.target(),
+		final FollowUpRule updated = existing.withUpdatedFields(command.daysWithoutContact(), command.target(),
 				command.notifyOwner(), command.active());
 
-		FollowUpRule saved = followUpRuleRepositoryPort.save(updated);
+		final FollowUpRule saved = followUpRuleRepositoryPort.save(updated);
 		return FollowUpRuleView.from(saved);
 	}
 
 	@Override
-	public void delete(FollowUpRuleId ruleId) {
+	public void delete(final FollowUpRuleId ruleId) {
 		findOrThrow(ruleId);
 		followUpRuleRepositoryPort.deleteById(ruleId);
 	}
 
-	private FollowUpRule findOrThrow(FollowUpRuleId ruleId) {
+	private FollowUpRule findOrThrow(final FollowUpRuleId ruleId) {
 		return followUpRuleRepositoryPort.findById(ruleId)
 				.orElseThrow(() -> new FollowUpRuleNotFoundException(ruleId.value()));
 	}

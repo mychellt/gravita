@@ -25,21 +25,21 @@ public final class PurchaseOrder {
     private PurchaseOrderStatus status;
     private UUID approvedBy;
 
-    public static PurchaseOrder create(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
-                                       SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired) {
+    public static PurchaseOrder create(final PurchaseOrderId id, final PurchaseRequestId requestId, final UUID quotationId,
+                                       final SupplierId supplierId, final List<PurchaseOrderItem> items, final boolean approvalRequired) {
         return new PurchaseOrder(id, requestId, quotationId, supplierId, requireNonEmptyItems(items), approvalRequired,
                 PurchaseOrderStatus.OPEN, null);
     }
 
-    public static PurchaseOrder of(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
-                                   SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired,
-                                   PurchaseOrderStatus status) {
+    public static PurchaseOrder of(final PurchaseOrderId id, final PurchaseRequestId requestId, final UUID quotationId,
+                                   final SupplierId supplierId, final List<PurchaseOrderItem> items, final boolean approvalRequired,
+                                   final PurchaseOrderStatus status) {
         return of(id, requestId, quotationId, supplierId, items, approvalRequired, status, null);
     }
 
-    public static PurchaseOrder of(PurchaseOrderId id, PurchaseRequestId requestId, UUID quotationId,
-                                   SupplierId supplierId, List<PurchaseOrderItem> items, boolean approvalRequired,
-                                   PurchaseOrderStatus status, UUID approvedBy) {
+    public static PurchaseOrder of(final PurchaseOrderId id, final PurchaseRequestId requestId, final UUID quotationId,
+                                   final SupplierId supplierId, final List<PurchaseOrderItem> items, final boolean approvalRequired,
+                                   final PurchaseOrderStatus status, final UUID approvedBy) {
         return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, status, approvedBy);
     }
 
@@ -53,7 +53,7 @@ public final class PurchaseOrder {
         }
     }
 
-    public PurchaseOrder approve(UUID approvedBy) {
+    public PurchaseOrder approve(final UUID approvedBy) {
         assertPendingApproval("approve");
         return new PurchaseOrder(id, requestId, quotationId, supplierId, items, false, status, approvedBy);
     }
@@ -64,7 +64,7 @@ public final class PurchaseOrder {
                 PurchaseOrderStatus.CANCELLED, approvedBy);
     }
 
-    private void assertPendingApproval(String action) {
+    private void assertPendingApproval(final String action) {
         if (!approvalRequired) {
             throw new BusinessRuleException(
                     "Cannot " + action + " an order that does not require approval (UC-M6-05)");
@@ -74,11 +74,11 @@ public final class PurchaseOrder {
         }
     }
 
-    public PurchaseOrder afterReceiptConfirmed(boolean fullyReceived) {
+    public PurchaseOrder afterReceiptConfirmed(final boolean fullyReceived) {
         if (status == PurchaseOrderStatus.CLOSED || status == PurchaseOrderStatus.CANCELLED) {
             throw new BusinessRuleException("Cannot confirm a receipt against a " + status + " order");
         }
-        PurchaseOrderStatus newStatus = fullyReceived ? PurchaseOrderStatus.CLOSED
+        final PurchaseOrderStatus newStatus = fullyReceived ? PurchaseOrderStatus.CLOSED
                 : PurchaseOrderStatus.PARTIALLY_RECEIVED;
         return new PurchaseOrder(id, requestId, quotationId, supplierId, items, approvalRequired, newStatus, approvedBy);
     }
@@ -87,12 +87,12 @@ public final class PurchaseOrder {
         return totalValue(items);
     }
 
-    public static BigDecimal totalValue(List<PurchaseOrderItem> items) {
+    public static BigDecimal totalValue(final List<PurchaseOrderItem> items) {
         return items.stream().map(PurchaseOrderItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private static List<PurchaseOrderItem> requireNonEmptyItems(List<PurchaseOrderItem> items) {
-        List<PurchaseOrderItem> copy = items == null ? List.of() : List.copyOf(items);
+    private static List<PurchaseOrderItem> requireNonEmptyItems(final List<PurchaseOrderItem> items) {
+        final List<PurchaseOrderItem> copy = items == null ? List.of() : List.copyOf(items);
         if (copy.isEmpty()) {
             throw new BusinessRuleException("A purchase order must have at least one item");
         }

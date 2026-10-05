@@ -11,7 +11,7 @@ public class ActivationRejectedException extends BusinessRuleException {
 
 	private final Reason reason;
 
-	public ActivationRejectedException(Reason reason, String message) {
+	public ActivationRejectedException(final Reason reason, final String message) {
 		super(message);
 		this.reason = reason;
 	}

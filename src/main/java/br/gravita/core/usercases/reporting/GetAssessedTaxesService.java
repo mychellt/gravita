@@ -26,25 +26,25 @@ public class GetAssessedTaxesService implements GetAssessedTaxesUseCase {
 	private final TaxReadModelPort taxReadModelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetAssessedTaxesService(TaxReadModelPort taxReadModelPort, PermissionCheckPort permissionCheckPort) {
+	public GetAssessedTaxesService(final TaxReadModelPort taxReadModelPort, final PermissionCheckPort permissionCheckPort) {
 		this.taxReadModelPort = taxReadModelPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public AssessedTaxSummary execute(AssessedTaxesQuery query) {
+	public AssessedTaxSummary execute(final AssessedTaxesQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the assessed taxes");
 		}
-		LocalDate from = query.period().atDay(1);
-		LocalDate to = query.period().atEndOfMonth();
-		List<DocumentTaxRecord> documents = taxReadModelPort.authorizedDocumentTaxes(from, to);
+		final LocalDate from = query.period().atDay(1);
+		final LocalDate to = query.period().atEndOfMonth();
+		final List<DocumentTaxRecord> documents = taxReadModelPort.authorizedDocumentTaxes(from, to);
 		return new AssessedTaxSummary(query.period(), total(documents, DocumentTaxRecord::icms),
 				total(documents, DocumentTaxRecord::ipi), total(documents, DocumentTaxRecord::pis),
 				total(documents, DocumentTaxRecord::cofins), total(documents, DocumentTaxRecord::iss));
 	}
 
-	private static BigDecimal total(List<DocumentTaxRecord> documents, Function<DocumentTaxRecord, BigDecimal> tax) {
+	private static BigDecimal total(final List<DocumentTaxRecord> documents, final Function<DocumentTaxRecord, BigDecimal> tax) {
 		return documents.stream().map(tax).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 }

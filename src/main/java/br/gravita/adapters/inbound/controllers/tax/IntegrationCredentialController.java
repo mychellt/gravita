@@ -20,20 +20,20 @@ public class IntegrationCredentialController {
 
 	private final ConfigureIntegrationCredentialUseCase configureIntegrationCredentialUseCase;
 
-	public IntegrationCredentialController(ConfigureIntegrationCredentialUseCase configureIntegrationCredentialUseCase) {
+	public IntegrationCredentialController(final ConfigureIntegrationCredentialUseCase configureIntegrationCredentialUseCase) {
 		this.configureIntegrationCredentialUseCase = configureIntegrationCredentialUseCase;
 	}
 
 	@PutMapping("/{name}/credentials")
-	public ResponseEntity<Void> configureCredentials(@PathVariable("name") String name,
-			@Valid @RequestBody ConfigureIntegrationCredentialRequest request) {
+	public ResponseEntity<Void> configureCredentials(@PathVariable("name") final String name,
+			@Valid @RequestBody final ConfigureIntegrationCredentialRequest request) {
 		configureIntegrationCredentialUseCase.execute(new ConfigureIntegrationCredentialCommand(name,
 				request.environment(), request.endpoint(), request.credentialPayload()));
 		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

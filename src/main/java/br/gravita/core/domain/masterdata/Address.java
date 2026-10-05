@@ -13,7 +13,7 @@ public record Address(String street, String number, String complement, String ne
 		requireNonBlank(zipCode, "zip code");
 	}
 
-	private static void requireNonBlank(String value, String field) {
+	private static void requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException("Address " + field + " is required");
 		}

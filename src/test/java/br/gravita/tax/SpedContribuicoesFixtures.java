@@ -36,9 +36,9 @@ public final class SpedContribuicoesFixtures {
 	 * An authorized NFe {@code company} issued for 10 x 10.00 of goods, with ICMS stated and PIS/COFINS lines at
 	 * {@code pisRate}/{@code cofinsRate} percent over the 100.00 (a {@code null} rate states no line at all).
 	 */
-	public static NfeDocument issuedNfe(CompanyId company, String cfop, String series, long number,
-			Instant authorizedAt, String pisRate, String cofinsRate) {
-		List<TaxLineBreakdown> lines = new ArrayList<>();
+	public static NfeDocument issuedNfe(final CompanyId company, final String cfop, final String series, final long number,
+			final Instant authorizedAt, final String pisRate, final String cofinsRate) {
+		final List<TaxLineBreakdown> lines = new ArrayList<>();
 		lines.add(line(TaxType.ICMS, "100.00", "18", "18.00"));
 		if (pisRate != null) {
 			lines.add(line(TaxType.PIS, "100.00", pisRate, percentOf("100.00", pisRate)));
@@ -46,42 +46,79 @@ public final class SpedContribuicoesFixtures {
 		if (cofinsRate != null) {
 			lines.add(line(TaxType.COFINS, "100.00", cofinsRate, percentOf("100.00", cofinsRate)));
 		}
-		ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, "rice", lines);
-		NfeItem item = new NfeItem(UUID.fromString("00000000-0000-0000-0000-000000000042"), "Arroz",
+		final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, "rice", lines);
+		final NfeItem item = new NfeItem(UUID.fromString("00000000-0000-0000-0000-000000000042"), "Arroz",
 				BigDecimal.TEN, BigDecimal.TEN, BigDecimal.ZERO, breakdown);
-		NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), "11.444.777/0001-61",
+		final NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), "11.444.777/0001-61",
 				PersonType.COMPANY, "Cliente SA", "123456789", "RJ");
-		return NfeDocument.of(NfeDocumentId.of(UUID.randomUUID()), company, null, NaturezaOperacao.VENDA,
-				new Cfop(cfop), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
-				null, null, TaxCalculationTotals.from(List.of(breakdown)), NfeDocumentStatus.AUTHORIZED,
-				authorizedAt.minusSeconds(60), series, number, String.format("%044d", number), "protocol", false,
-				null, null, null, List.of(), authorizedAt, null, null);
+		return NfeDocument.builder()
+				.id(NfeDocumentId.of(UUID.randomUUID()))
+				.issuerCompanyId(company)
+				.originSalesOrderId(null)
+				.naturezaOperacao(NaturezaOperacao.VENDA)
+				.cfop(new Cfop(cfop))
+				.recipient(recipient)
+				.items(List.of(item))
+				.freight(BigDecimal.ZERO)
+				.insurance(BigDecimal.ZERO)
+				.otherExpenses(BigDecimal.ZERO)
+				.transport(null)
+				.referencedAccessKey(null)
+				.additionalInfo(null)
+				.taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
+				.status(NfeDocumentStatus.AUTHORIZED)
+				.createdAt(authorizedAt.minusSeconds(60))
+				.documentSeries(series)
+				.documentNumber(number)
+				.accessKey(String.format("%044d", number))
+				.sefazProtocol("protocol")
+				.contingencyMode(false)
+				.rejectionReason(null)
+				.xmlStorageRef(null)
+				.danfeStorageRef(null)
+				.correctionLetters(List.of())
+				.authorizedAt(authorizedAt)
+				.cancellationJustification(null)
+				.cancelledAt(null)
+				.build();
 	}
 
 	/**
 	 * An NFe {@code company} received from {@code supplierCnpj}: one item of {@code value} under {@code cfop}, on
 	 * which the supplier stated {@code pis} and {@code cofins}.
 	 */
-	public static InboundNfe receivedNfe(CompanyId company, InboundNfeStatus status, String number,
-			String supplierCnpj, String supplierName, String cfop, String value, String pis, String cofins,
-			Instant issuedAt) {
-		BigDecimal total = new BigDecimal(value);
-		InboundNfeItem item = new InboundNfeItem("SKU-1", "Parafuso", "73181500", cfop, "UN", BigDecimal.ONE, total,
+	public static InboundNfe receivedNfe(final CompanyId company, final InboundNfeStatus status, final String number,
+			final String supplierCnpj, final String supplierName, final String cfop, final String value, final String pis, final String cofins,
+			final Instant issuedAt) {
+		final BigDecimal total = new BigDecimal(value);
+		final InboundNfeItem item = new InboundNfeItem("SKU-1", "Parafuso", "73181500", cfop, "UN", BigDecimal.ONE, total,
 				total, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(pis), new BigDecimal(cofins));
-		InboundNfeTotals totals = new InboundNfeTotals(total, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+		final InboundNfeTotals totals = new InboundNfeTotals(total, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal(pis), new BigDecimal(cofins),
 				total);
-		return InboundNfe.of(InboundNfeId.of(UUID.randomUUID()), company, "35" + String.format("%042d", Long.parseLong(number)),
-				"1", number, Document.cnpj(supplierCnpj), supplierName, issuedAt, List.of(item), totals, "xml-ref",
-				status, issuedAt);
+		return InboundNfe.builder()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(company)
+				.accessKey("35" + String.format("%042d", Long.parseLong(number)))
+				.series("1")
+				.number(number)
+				.supplierDocument(Document.cnpj(supplierCnpj))
+				.supplierName(supplierName)
+				.issuedAt(issuedAt)
+				.items(List.of(item))
+				.totals(totals)
+				.xmlStorageRef("xml-ref")
+				.status(status)
+				.importedAt(issuedAt)
+				.build();
 	}
 
-	private static TaxLineBreakdown line(TaxType type, String base, String rate, String amount) {
+	private static TaxLineBreakdown line(final TaxType type, final String base, final String rate, final String amount) {
 		return new TaxLineBreakdown(type, new BigDecimal(base), new BigDecimal(rate), new BigDecimal(amount),
 				new BigDecimal(amount), false, null);
 	}
 
-	private static String percentOf(String base, String rate) {
+	private static String percentOf(final String base, final String rate) {
 		return new BigDecimal(base).multiply(new BigDecimal(rate)).movePointLeft(2).toPlainString();
 	}
 }

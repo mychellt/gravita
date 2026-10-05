@@ -17,16 +17,16 @@ import org.junit.jupiter.api.Test;
 
 class InternalCashBoxTest {
 
-	private static CashMovement movement(InternalCashBoxId boxId, CashMovementDirection direction, String amount,
-			String justification) {
+	private static CashMovement movement(final InternalCashBoxId boxId, final CashMovementDirection direction, final String amount,
+			final String justification) {
 		return CashMovement.of(CashMovementId.of(UUID.randomUUID()), boxId, direction, new BigDecimal(amount),
 				justification, Instant.now());
 	}
 
 	@Test
 	@DisplayName("Records a movement with its direction, amount and justification")
-	void aMovementRecordsItsDirectionAmountAndJustification() {
-		CashMovement movement = movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "150.00",
+	void movementRecordsItsDirectionAmountAndJustification() {
+		final CashMovement movement = movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "150.00",
 				"Deposit of the day's cash");
 
 		assertThat(movement.getDirection()).isEqualTo(CashMovementDirection.TO_BANK);
@@ -37,7 +37,7 @@ class InternalCashBoxTest {
 
 	@Test
 	@DisplayName("Requires a movement to have a positive amount")
-	void aMovementRequiresAPositiveAmount() {
+	void movementRequiresAPositiveAmount() {
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "0", "x"))
 				.isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.FROM_BANK, "-1.00", "x"))
@@ -46,7 +46,7 @@ class InternalCashBoxTest {
 
 	@Test
 	@DisplayName("Requires a movement to have a non-blank justification")
-	void aMovementRequiresANonBlankJustification() {
+	void movementRequiresANonBlankJustification() {
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "10", " "))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("justification");
 		assertThatThrownBy(() -> movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "10", null))
@@ -56,11 +56,11 @@ class InternalCashBoxTest {
 	@Test
 	@DisplayName("Adds to the balance on a movement from the bank and subtracts on a movement to the bank")
 	void fromBankAddsToTheBalanceAndToBankSubtractsFromIt() {
-		InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal("100.00"));
+		final InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal("100.00"));
 
-		InternalCashBox afterWithdrawal = box
+		final InternalCashBox afterWithdrawal = box
 				.apply(movement(InternalCashBoxId.MAIN, CashMovementDirection.FROM_BANK, "50.00", "Change float"));
-		InternalCashBox afterDeposit = afterWithdrawal
+		final InternalCashBox afterDeposit = afterWithdrawal
 				.apply(movement(InternalCashBoxId.MAIN, CashMovementDirection.TO_BANK, "120.00", "Deposit"));
 
 		assertThat(afterWithdrawal.getBalance()).isEqualByComparingTo("150.00");
@@ -71,8 +71,8 @@ class InternalCashBoxTest {
 	@Test
 	@DisplayName("Rejects a movement that belongs to another cash box")
 	void rejectsAMovementOfAnotherCashBox() {
-		InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, BigDecimal.ZERO);
-		CashMovement other = movement(InternalCashBoxId.of(UUID.randomUUID()), CashMovementDirection.FROM_BANK,
+		final InternalCashBox box = InternalCashBox.of(InternalCashBoxId.MAIN, BigDecimal.ZERO);
+		final CashMovement other = movement(InternalCashBoxId.of(UUID.randomUUID()), CashMovementDirection.FROM_BANK,
 				"10.00", "x");
 
 		assertThatThrownBy(() -> box.apply(other)).isInstanceOf(BusinessRuleException.class);

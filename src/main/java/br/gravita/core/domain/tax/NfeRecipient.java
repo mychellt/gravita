@@ -38,14 +38,14 @@ public record NfeRecipient(PersonRef personRef, Document document, String name, 
 	 * COMPANY (CNPJ) recipient must carry a valid IE or an explicit exemption
 	 * ("ISENTO") before the document can be created.
 	 */
-	public static NfeRecipient of(PersonRef personRef, String documentNumber, PersonType personType, String name,
-			String stateRegistration, String state) {
-		Document document = personType == PersonType.COMPANY ? Document.cnpj(documentNumber)
+	public static NfeRecipient of(final PersonRef personRef, final String documentNumber, final PersonType personType, final String name,
+			final String stateRegistration, final String state) {
+		final Document document = personType == PersonType.COMPANY ? Document.cnpj(documentNumber)
 				: Document.cpf(documentNumber);
 		return new NfeRecipient(personRef, document, name, stateRegistration, state.trim().toUpperCase());
 	}
 
-	private static String validateStateRegistration(PersonType personType, String stateRegistration) {
+	private static String validateStateRegistration(final PersonType personType, final String stateRegistration) {
 		if (personType != PersonType.COMPANY) {
 			// Individuals are typically final consumers with no state registration.
 			return stateRegistration == null ? null : stateRegistration.trim();
@@ -53,7 +53,7 @@ public record NfeRecipient(PersonRef personRef, Document document, String name, 
 		if (stateRegistration == null || stateRegistration.isBlank()) {
 			throw new BusinessRuleException("Recipient IE is required for a company (CNPJ) recipient");
 		}
-		String trimmed = stateRegistration.trim();
+		final String trimmed = stateRegistration.trim();
 		if (!ISENTO.equalsIgnoreCase(trimmed) && !IE_DIGITS.matcher(trimmed).matches()) {
 			throw new BusinessRuleException("Invalid recipient IE: " + stateRegistration);
 		}

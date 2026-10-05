@@ -72,7 +72,7 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the dashboard, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheDashboardWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "dashboard")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new DashboardQuery(stranger, DashboardPeriod.MONTH, null)))
@@ -93,7 +93,7 @@ class GetExecutiveDashboardServiceTest {
 				LocalDate.of(2026, 8, 5), new BigDecimal("1000"),
 				LocalDate.of(2026, 8, 17), new BigDecimal("5000")));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 
 		assertThat(view.revenue().day().current()).isEqualByComparingTo("100");
 		assertThat(view.revenue().day().previous()).isEqualByComparingTo("50");
@@ -112,7 +112,7 @@ class GetExecutiveDashboardServiceTest {
 	void leavesTheVariationEmptyWhenThePriorPeriodHadNoRevenue() {
 		when(sales.dailyRevenue(any(), any(), any())).thenReturn(Map.of(TODAY, new BigDecimal("100")));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.DAY, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.DAY, null));
 
 		assertThat(view.revenue().day().previous()).isEqualByComparingTo("0");
 		assertThat(view.revenue().day().variationPercent()).isNull();
@@ -121,7 +121,7 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Computes CMV and gross margin for the selected period and reconciles with the invoiced total")
 	@Test
 	void computesCmvAndGrossMarginForTheSelectedPeriodAndReconcilesWithInvoicedTotal() {
-		UUID product = UUID.randomUUID();
+		final UUID product = UUID.randomUUID();
 		when(sales.dailyRevenue(any(), any(), any()))
 				.thenReturn(Map.of(TODAY, new BigDecimal("1000"), TODAY.minusDays(1), new BigDecimal("500")));
 		when(sales.productSales(eq(TODAY.minusDays(2)), eq(TODAY), any()))
@@ -130,7 +130,7 @@ class GetExecutiveDashboardServiceTest {
 				.thenReturn(new BigDecimal("900"));
 		when(tax.invoicedTotal(eq(TODAY.minusDays(2)), eq(TODAY), any())).thenReturn(new BigDecimal("1400"));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.WEEK, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.WEEK, null));
 
 		assertThat(view.from()).isEqualTo(TODAY.minusDays(2));
 		assertThat(view.to()).isEqualTo(TODAY);
@@ -145,7 +145,7 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Leaves the margin percentage empty when there is no revenue")
 	@Test
 	void leavesTheMarginPercentEmptyWithoutRevenue() {
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.DAY, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.DAY, null));
 
 		assertThat(view.margin().grossMarginPercent()).isNull();
 	}
@@ -163,7 +163,7 @@ class GetExecutiveDashboardServiceTest {
 				new OverdueBalance(TODAY, new BigDecimal("999")),
 				new OverdueBalance(TODAY.minusDays(5), BigDecimal.ZERO)));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 
 		assertThat(view.delinquency().totalOverdue()).isEqualByComparingTo("210");
 		assertThat(view.delinquency().titleCount()).isEqualTo(6);
@@ -175,16 +175,16 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Lists below-minimum products before near-expiry lots, ordered by expiry")
 	@Test
 	void listsBelowMinimumProductsBeforeNearExpiryLotsOrderedByExpiry() {
-		UUID low = UUID.randomUUID();
-		UUID lotA = UUID.randomUUID();
-		UUID lotB = UUID.randomUUID();
-		UUID warehouse = UUID.randomUUID();
+		final UUID low = UUID.randomUUID();
+		final UUID lotA = UUID.randomUUID();
+		final UUID lotB = UUID.randomUUID();
+		final UUID warehouse = UUID.randomUUID();
 		when(inventory.criticalStock(eq(TODAY), eq(30), any())).thenReturn(List.of(
 				new StockAlert(lotA, null, null, warehouse, "L2", TODAY.plusDays(20)),
 				new StockAlert(low, new BigDecimal("2"), new BigDecimal("10"), null, null, null),
 				new StockAlert(lotB, null, null, warehouse, "L1", TODAY.minusDays(3))));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 
 		assertThat(view.criticalStock()).extracting(item -> item.productId()).containsExactly(low, lotB, lotA);
 		assertThat(view.criticalStock()).extracting(item -> item.reason()).containsExactly(
@@ -197,14 +197,14 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Ranks the top ten products by quantity and by value separately")
 	@Test
 	void ranksTheTopTenProductsByQuantityAndByValueSeparately() {
-		List<ProductSales> products = new ArrayList<>();
+		final List<ProductSales> products = new ArrayList<>();
 		for (int i = 1; i <= 12; i++) {
 			// quantity rises with i while value falls with i, so the two rankings are mirror images.
 			products.add(new ProductSales(new UUID(0, i), BigDecimal.valueOf(i), BigDecimal.valueOf(100 - i)));
 		}
 		when(sales.productSales(any(), any(), any())).thenReturn(products);
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 
 		assertThat(view.topProducts().byQuantity()).hasSize(10);
 		assertThat(view.topProducts().byQuantity()).extracting(p -> p.productId())
@@ -218,15 +218,15 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Reports target progress per salesperson and for the company")
 	@Test
 	void reportsTargetProgressPerSalespersonAndForTheCompany() {
-		UUID ana = UUID.randomUUID();
-		UUID bruno = UUID.randomUUID();
-		UUID carla = UUID.randomUUID();
+		final UUID ana = UUID.randomUUID();
+		final UUID bruno = UUID.randomUUID();
+		final UUID carla = UUID.randomUUID();
 		when(sales.targetAchievement(eq(java.time.YearMonth.of(2026, 9)), any())).thenReturn(List.of(
 				new SalespersonAchievement(ana, new BigDecimal("1000"), new BigDecimal("600")),
 				new SalespersonAchievement(bruno, new BigDecimal("1000"), new BigDecimal("1200")),
 				new SalespersonAchievement(carla, BigDecimal.ZERO, new BigDecimal("200"))));
 
-		ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
 
 		assertThat(view.targets().month()).isEqualTo(java.time.YearMonth.of(2026, 9));
 		assertThat(view.targets().company().valueTarget()).isEqualByComparingTo("2000");
@@ -241,7 +241,7 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Passes the company to every read port")
 	@Test
 	void passesTheCompanyToEveryReadPort() {
-		UUID company = UUID.randomUUID();
+		final UUID company = UUID.randomUUID();
 
 		service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, company));
 
@@ -256,10 +256,10 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Serves repeated requests from cache but still checks permission every time")
 	@Test
 	void servesRepeatedRequestsFromCacheButStillChecksPermissionEachTime() {
-		DashboardQuery query = new DashboardQuery(user, DashboardPeriod.MONTH, null);
+		final DashboardQuery query = new DashboardQuery(user, DashboardPeriod.MONTH, null);
 
-		ExecutiveDashboardView first = service.execute(query);
-		ExecutiveDashboardView second = service.execute(query);
+		final ExecutiveDashboardView first = service.execute(query);
+		final ExecutiveDashboardView second = service.execute(query);
 
 		assertThat(second).isSameAs(first);
 		verify(sales, times(1)).dailyRevenue(any(), any(), any());
@@ -269,9 +269,9 @@ class GetExecutiveDashboardServiceTest {
 	@DisplayName("Recomposes the dashboard once the cache entry expires")
 	@Test
 	void recomposesOnceTheCacheEntryExpires() {
-		var clock = new MutableClock(NOW);
+		final var clock = new MutableClock(NOW);
 		service = new GetExecutiveDashboardService(sales, inventory, finance, tax, permissions, clock, Runnable::run);
-		DashboardQuery query = new DashboardQuery(user, DashboardPeriod.MONTH, null);
+		final DashboardQuery query = new DashboardQuery(user, DashboardPeriod.MONTH, null);
 
 		service.execute(query);
 		clock.advanceSeconds(61);
@@ -284,11 +284,11 @@ class GetExecutiveDashboardServiceTest {
 	private static final class MutableClock extends Clock {
 		private Instant now;
 
-		MutableClock(Instant now) {
+		MutableClock(final Instant now) {
 			this.now = now;
 		}
 
-		void advanceSeconds(long seconds) {
+		void advanceSeconds(final long seconds) {
 			now = now.plusSeconds(seconds);
 		}
 
@@ -298,7 +298,7 @@ class GetExecutiveDashboardServiceTest {
 		}
 
 		@Override
-		public Clock withZone(java.time.ZoneId zone) {
+		public Clock withZone(final java.time.ZoneId zone) {
 			return this;
 		}
 

@@ -47,7 +47,7 @@ class AuthControllerTest {
 	@Test
 	@DisplayName("GET /me answers with the logged user behind the bearer session token")
 	void shouldReturnTheLoggedUser() throws Exception {
-		UUID companyId = UUID.randomUUID();
+		final UUID companyId = UUID.randomUUID();
 		when(getCurrentUserUseCase.execute("token-123"))
 				.thenReturn(Optional.of(new CurrentUser("Ana Souza", "ana@acme.com", "Administrator", companyId)));
 
@@ -90,7 +90,7 @@ class AuthControllerTest {
 				.andExpect(jsonPath("$.status").value("AUTHENTICATED"))
 				.andExpect(jsonPath("$.sessionToken").value("token-123"));
 
-		ArgumentCaptor<AuthenticateCommand> captor = ArgumentCaptor.forClass(AuthenticateCommand.class);
+		final ArgumentCaptor<AuthenticateCommand> captor = ArgumentCaptor.forClass(AuthenticateCommand.class);
 		verify(authenticateUseCase).execute(captor.capture());
 		assertThat(captor.getValue().email()).isEqualTo("jane@example.com");
 		assertThat(captor.getValue().rawPassword()).isEqualTo("s3cret!");
@@ -143,7 +143,7 @@ class AuthControllerTest {
 				.andExpect(jsonPath("$.status").value("AUTHENTICATED"))
 				.andExpect(jsonPath("$.sessionToken").value("token-456"));
 
-		ArgumentCaptor<AuthenticateCommand> captor = ArgumentCaptor.forClass(AuthenticateCommand.class);
+		final ArgumentCaptor<AuthenticateCommand> captor = ArgumentCaptor.forClass(AuthenticateCommand.class);
 		verify(authenticateUseCase).execute(captor.capture());
 		assertThat(captor.getValue().totpCode()).isEqualTo("123456");
 	}

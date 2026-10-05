@@ -18,26 +18,26 @@ class StockReservationRepositoryAdapter implements StockReservationRepositoryPor
 	private final StockReservationJpaRepository jpaRepository;
 	private final StockReservationPersistenceMapper mapper;
 
-	StockReservationRepositoryAdapter(StockReservationJpaRepository jpaRepository,
-			StockReservationPersistenceMapper mapper) {
+	StockReservationRepositoryAdapter(final StockReservationJpaRepository jpaRepository,
+			final StockReservationPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public StockReservation save(StockReservation reservation) {
-		StockReservationJpaEntity entity = mapper.map(reservation);
+	public StockReservation save(final StockReservation reservation) {
+		final StockReservationJpaEntity entity = mapper.map(reservation);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public Optional<StockReservation> findById(StockReservationId id) {
+	public Optional<StockReservation> findById(final StockReservationId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<StockReservation> findActiveByOrderRef(UUID orderRef) {
+	public List<StockReservation> findActiveByOrderRef(final UUID orderRef) {
 		return jpaRepository.findByOrderRefAndStatus(orderRef, StockReservationStatus.ACTIVE).stream()
 				.map(mapper::map)
 				.toList();

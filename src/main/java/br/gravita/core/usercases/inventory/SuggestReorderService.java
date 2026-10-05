@@ -20,26 +20,26 @@ public class SuggestReorderService implements SuggestReorderUseCase {
 	private final ProductRepositoryPort productRepositoryPort;
 	private final NotifyLowStockPort notifyLowStockPort;
 
-	public SuggestReorderService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			ProductRepositoryPort productRepositoryPort, NotifyLowStockPort notifyLowStockPort) {
+	public SuggestReorderService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final ProductRepositoryPort productRepositoryPort, final NotifyLowStockPort notifyLowStockPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.productRepositoryPort = productRepositoryPort;
 		this.notifyLowStockPort = notifyLowStockPort;
 	}
 
 	@Override
-	public List<ReorderSuggestion> execute(SuggestReorderQuery query) {
-		List<StockBalance> balances = query.warehouseId() != null
+	public List<ReorderSuggestion> execute(final SuggestReorderQuery query) {
+		final List<StockBalance> balances = query.warehouseId() != null
 				? stockBalanceRepositoryPort.findByWarehouseId(query.warehouseId())
 				: stockBalanceRepositoryPort.findAll();
 
-		List<ReorderSuggestion> suggestions = balances.stream().map(this::toSuggestion).flatMap(Optional::stream)
+		final List<ReorderSuggestion> suggestions = balances.stream().map(this::toSuggestion).flatMap(Optional::stream)
 				.toList();
 		notifyLowStockPort.notify(suggestions);
 		return suggestions;
 	}
 
-	private Optional<ReorderSuggestion> toSuggestion(StockBalance balance) {
+	private Optional<ReorderSuggestion> toSuggestion(final StockBalance balance) {
 		return productRepositoryPort.get(balance.getProductId())
 				.map(ProductDomain::getStock)
 				.filter(stock -> stock != null && stock.reorderPoint() != null)

@@ -23,7 +23,7 @@ public class SignupController {
     private final SignupUseCase signupUseCase;
 
     @PostMapping
-    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody final SignupRequest request) {
         final var response = signupUseCase.execute(new Context(SignupCommand.builder()
                 .fullName(request.fullName())
                 .email(request.email())
@@ -39,13 +39,13 @@ public class SignupController {
     }
 
     @ExceptionHandler(SignupRejectedException.class)
-    public ResponseEntity<Map<String, String>> handleSignupRejected(SignupRejectedException exception) {
+    public ResponseEntity<Map<String, String>> handleSignupRejected(final SignupRejectedException exception) {
         return ResponseEntity.badRequest()
                 .body(Map.of("message", exception.getMessage(), "field", exception.getField()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
@@ -53,12 +53,12 @@ public class SignupController {
      * Two signups racing past the duplicate checks still hit the unique constraints; nothing is persisted.
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolation(DataIntegrityViolationException exception) {
-        String cause = String.valueOf(exception.getMostSpecificCause().getMessage()).toLowerCase(Locale.ROOT);
+    public ResponseEntity<Map<String, String>> handleConstraintViolation(final DataIntegrityViolationException exception) {
+        final String cause = String.valueOf(exception.getMostSpecificCause().getMessage()).toLowerCase(Locale.ROOT);
         if (!cause.contains("duplicate key")) {
             return ResponseEntity.badRequest().body(Map.of("message", "Dados inválidos. Revise o formulário."));
         }
-        boolean duplicateCnpj = cause.contains("document");
+        final boolean duplicateCnpj = cause.contains("document");
         return ResponseEntity.badRequest().body(Map.of(
                 "message", duplicateCnpj ? "Este CNPJ já está cadastrado." : "Este e-mail já está cadastrado.",
                 "field", duplicateCnpj ? SignupRejectedException.CNPJ : SignupRejectedException.EMAIL));

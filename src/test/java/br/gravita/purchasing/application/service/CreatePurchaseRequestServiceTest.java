@@ -35,16 +35,16 @@ class CreatePurchaseRequestServiceTest {
 	void shouldCreateAManualRequestWithAnArbitraryItemList() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
-		UUID requestedBy = UUID.randomUUID();
-		List<PurchaseRequestItem> items = List.of(
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final UUID requestedBy = UUID.randomUUID();
+		final List<PurchaseRequestItem> items = List.of(
 				new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN),
 				new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE));
 
-		var id = service.execute(new CreatePurchaseRequestCommand(PurchaseRequestOrigin.USER, items, requestedBy));
+		final var id = service.execute(new CreatePurchaseRequestCommand(PurchaseRequestOrigin.USER, items, requestedBy));
 
 		assertThat(id).isNotNull();
-		ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
+		final ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
 		verify(purchaseRequestRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(id);
 		assertThat(saved.getValue().getOrigin()).isEqualTo(PurchaseRequestOrigin.USER);
@@ -58,13 +58,13 @@ class CreatePurchaseRequestServiceTest {
 	void shouldCreateARequestFromInventorysMinStockTriggerWithoutARequester() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
-		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
 
-		var id = service.execute(
+		final var id = service.execute(
 				new CreatePurchaseRequestCommand(PurchaseRequestOrigin.MIN_STOCK_TRIGGER, items, null));
 
-		ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
+		final ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
 		verify(purchaseRequestRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getOrigin()).isEqualTo(PurchaseRequestOrigin.MIN_STOCK_TRIGGER);
 		assertThat(saved.getValue().getRequestedBy()).isNull();
@@ -76,13 +76,13 @@ class CreatePurchaseRequestServiceTest {
 	void shouldCreateARequestFromSalesOrderDemandWithoutARequester() {
 		when(purchaseRequestRepositoryPort.save(any(PurchaseRequest.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
-		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
 
-		var id = service.execute(
+		final var id = service.execute(
 				new CreatePurchaseRequestCommand(PurchaseRequestOrigin.SALES_ORDER_DEMAND, items, null));
 
-		ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
+		final ArgumentCaptor<PurchaseRequest> saved = ArgumentCaptor.forClass(PurchaseRequest.class);
 		verify(purchaseRequestRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getOrigin()).isEqualTo(PurchaseRequestOrigin.SALES_ORDER_DEMAND);
 		assertThat(id).isNotNull();
@@ -91,7 +91,7 @@ class CreatePurchaseRequestServiceTest {
 	@Test
 	@DisplayName("Rejects a request with an empty item list")
 	void shouldRejectAnEmptyItemList() {
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(
 				new CreatePurchaseRequestCommand(PurchaseRequestOrigin.USER, List.of(), UUID.randomUUID())))
@@ -102,8 +102,8 @@ class CreatePurchaseRequestServiceTest {
 	@Test
 	@DisplayName("Rejects a user-originated request that has no requester")
 	void shouldRejectAUserOriginRequestWithoutARequester() {
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
-		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
 
 		assertThatThrownBy(() -> service.execute(new CreatePurchaseRequestCommand(PurchaseRequestOrigin.USER, items, null)))
 				.isInstanceOf(BusinessRuleException.class)
@@ -113,8 +113,8 @@ class CreatePurchaseRequestServiceTest {
 	@Test
 	@DisplayName("Rejects a system-triggered request that carries a requester")
 	void shouldRejectASystemTriggeredRequestThatCarriesARequester() {
-		CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
-		List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
+		final CreatePurchaseRequestService service = new CreatePurchaseRequestService(purchaseRequestRepositoryPort);
+		final List<PurchaseRequestItem> items = List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN));
 
 		assertThatThrownBy(() -> service.execute(new CreatePurchaseRequestCommand(
 				PurchaseRequestOrigin.MIN_STOCK_TRIGGER, items, UUID.randomUUID())))

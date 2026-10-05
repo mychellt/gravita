@@ -16,14 +16,14 @@ public class ConfirmDailyBatchPaymentService implements ConfirmDailyBatchPayment
 	private final BankIntegrationPort bankIntegrationPort;
 	private final ConfirmBatchPaymentUseCase confirmBatchPaymentUseCase;
 
-	public ConfirmDailyBatchPaymentService(BankIntegrationPort bankIntegrationPort,
-			ConfirmBatchPaymentUseCase confirmBatchPaymentUseCase) {
+	public ConfirmDailyBatchPaymentService(final BankIntegrationPort bankIntegrationPort,
+			final ConfirmBatchPaymentUseCase confirmBatchPaymentUseCase) {
 		this.bankIntegrationPort = bankIntegrationPort;
 		this.confirmBatchPaymentUseCase = confirmBatchPaymentUseCase;
 	}
 
 	@Override
-	public Optional<BankReturnImportResult> execute(BankIntegration bankIntegration) {
+	public Optional<BankReturnImportResult> execute(final BankIntegration bankIntegration) {
 		Objects.requireNonNull(bankIntegration, "bankIntegration is required");
 		return bankIntegrationPort.fetchPaymentReturnFile(bankIntegration).filter(content -> !content.isBlank())
 				.map(content -> confirmBatchPaymentUseCase

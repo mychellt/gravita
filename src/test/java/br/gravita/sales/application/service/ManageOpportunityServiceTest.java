@@ -49,10 +49,10 @@ class ManageOpportunityServiceTest {
 	void createsAnOpportunityInTheProspectingStage() {
 		when(opportunityRepositoryPort.save(any(Opportunity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CreateOpportunityCommand command = new CreateOpportunityCommand(UUID.randomUUID(), BigDecimal.TEN, 50,
+		final CreateOpportunityCommand command = new CreateOpportunityCommand(UUID.randomUUID(), BigDecimal.TEN, 50,
 				LocalDate.now().plusDays(30), UUID.randomUUID());
 
-		OpportunityView view = service.create(command);
+		final OpportunityView view = service.create(command);
 
 		assertThat(view.stage()).isEqualTo(OpportunityStage.PROSPECTING);
 		verify(stageTransitionRepositoryPort, never()).save(any());
@@ -61,16 +61,16 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("Changing the stage appends exactly one stage transition")
 	void changingStageAppendsExactlyOneStageTransition() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.PROSPECTING)));
 		when(opportunityRepositoryPort.save(any(Opportunity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(stageTransitionRepositoryPort.save(any(StageTransition.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		OpportunityView view = service.changeStage(
+		final OpportunityView view = service.changeStage(
 				new ChangeOpportunityStageCommand(id, OpportunityStage.NEGOTIATION));
 
 		assertThat(view.stage()).isEqualTo(OpportunityStage.NEGOTIATION);
-		ArgumentCaptor<StageTransition> transition = ArgumentCaptor.forClass(StageTransition.class);
+		final ArgumentCaptor<StageTransition> transition = ArgumentCaptor.forClass(StageTransition.class);
 		verify(stageTransitionRepositoryPort).save(transition.capture());
 		assertThat(transition.getValue().getFromStage()).isEqualTo(OpportunityStage.PROSPECTING);
 		assertThat(transition.getValue().getToStage()).isEqualTo(OpportunityStage.NEGOTIATION);
@@ -79,12 +79,12 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("Arbitrary stage jumps are allowed in the flat kanban model")
 	void arbitraryStageJumpsAreAllowedInTheFlatKanbanModel() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.PROSPECTING)));
 		when(opportunityRepositoryPort.save(any(Opportunity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(stageTransitionRepositoryPort.save(any(StageTransition.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		OpportunityView view = service.changeStage(new ChangeOpportunityStageCommand(id, OpportunityStage.CLOSED));
+		final OpportunityView view = service.changeStage(new ChangeOpportunityStageCommand(id, OpportunityStage.CLOSED));
 
 		assertThat(view.stage()).isEqualTo(OpportunityStage.CLOSED);
 	}
@@ -92,7 +92,7 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("An opportunity in a terminal stage rejects further stage changes")
 	void terminalStagesRejectFurtherStageChanges() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.CLOSED)));
 
 		assertThatThrownBy(() -> service.changeStage(new ChangeOpportunityStageCommand(id, OpportunityStage.NEGOTIATION)))
@@ -104,10 +104,10 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("An opportunity in a terminal stage rejects field updates")
 	void terminalStagesRejectFieldUpdates() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(opportunity(id, OpportunityStage.LOST)));
 
-		UpdateOpportunityCommand command = UpdateOpportunityCommand.builder().opportunityId(id).owner(UUID.randomUUID()).build();
+		final UpdateOpportunityCommand command = UpdateOpportunityCommand.builder().opportunityId(id).owner(UUID.randomUUID()).build();
 
 		assertThatThrownBy(() -> service.update(command)).isInstanceOf(BusinessRuleException.class);
 	}
@@ -115,14 +115,14 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("Field updates are allowed in any non-terminal stage and keep unspecified fields unchanged")
 	void fieldUpdatesAreAllowedAtAnyNonTerminalStageAndKeepUnspecifiedFieldsUnchanged() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
-		Opportunity existing = opportunity(id, OpportunityStage.PROPOSAL);
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final Opportunity existing = opportunity(id, OpportunityStage.PROPOSAL);
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.of(existing));
 		when(opportunityRepositoryPort.save(any(Opportunity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpdateOpportunityCommand command = UpdateOpportunityCommand.builder().opportunityId(id).probability(90).build();
+		final UpdateOpportunityCommand command = UpdateOpportunityCommand.builder().opportunityId(id).probability(90).build();
 
-		OpportunityView view = service.update(command);
+		final OpportunityView view = service.update(command);
 
 		assertThat(view.probability()).isEqualTo(90);
 		assertThat(view.estimatedValue()).isEqualTo(existing.getEstimatedValue());
@@ -132,14 +132,14 @@ class ManageOpportunityServiceTest {
 	@Test
 	@DisplayName("Changing the stage of an opportunity that does not exist throws not-found")
 	void changingStageOfAnUnknownOpportunityThrows() {
-		OpportunityId id = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId id = OpportunityId.of(UUID.randomUUID());
 		when(opportunityRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.changeStage(new ChangeOpportunityStageCommand(id, OpportunityStage.PROPOSAL)))
 				.isInstanceOf(OpportunityNotFoundException.class);
 	}
 
-	private Opportunity opportunity(OpportunityId id, OpportunityStage stage) {
+	private Opportunity opportunity(final OpportunityId id, final OpportunityStage stage) {
 		return Opportunity.of(id, UUID.randomUUID(), BigDecimal.valueOf(1000), 20, LocalDate.now().plusDays(10),
 				UUID.randomUUID(), stage);
 	}

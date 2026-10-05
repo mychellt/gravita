@@ -38,9 +38,9 @@ public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceipt
 	private final NotifyStockEntryPort notifyStockEntryPort;
 	private final NotifyPayableGeneratedPort notifyPayableGeneratedPort;
 
-	public ConfirmInboundNfeReceiptService(InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			CompanyRepositoryPort companyRepositoryPort, CalculateTaxUseCase calculateTaxUseCase,
-			NotifyStockEntryPort notifyStockEntryPort, NotifyPayableGeneratedPort notifyPayableGeneratedPort) {
+	public ConfirmInboundNfeReceiptService(final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final CompanyRepositoryPort companyRepositoryPort, final CalculateTaxUseCase calculateTaxUseCase,
+			final NotifyStockEntryPort notifyStockEntryPort, final NotifyPayableGeneratedPort notifyPayableGeneratedPort) {
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.calculateTaxUseCase = calculateTaxUseCase;
@@ -49,22 +49,22 @@ public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceipt
 	}
 
 	@Override
-	public InboundNfe execute(ConfirmInboundNfeReceiptCommand command) {
-		InboundNfeId id = InboundNfeId.of(command.inboundNfeId());
-		InboundNfe inboundNfe = inboundNfeRepositoryPort.findById(id)
+	public InboundNfe execute(final ConfirmInboundNfeReceiptCommand command) {
+		final InboundNfeId id = InboundNfeId.of(command.inboundNfeId());
+		final InboundNfe inboundNfe = inboundNfeRepositoryPort.findById(id)
 				.orElseThrow(() -> new InboundNfeNotFoundException(command.inboundNfeId()));
 
-		List<InboundNfeConferenceItem> conferenceResult = toConferenceItems(command.conferenceResult());
+		final List<InboundNfeConferenceItem> conferenceResult = toConferenceItems(command.conferenceResult());
 
-		InboundNfe confirmed = inboundNfe.confirm(conferenceResult);
+		final InboundNfe confirmed = inboundNfe.confirm(conferenceResult);
 
-		Company company = companyRepositoryPort.findById(confirmed.getCompanyId())
+		final Company company = companyRepositoryPort.findById(confirmed.getCompanyId())
 				.orElseThrow(
 						() -> new BusinessRuleException("Company not found: " + confirmed.getCompanyId().value()));
 
 		for (int i = 0; i < conferenceResult.size(); i++) {
-			InboundNfeConferenceItem conferenceItem = conferenceResult.get(i);
-			InboundNfeItem nfItem = confirmed.getItems().get(i);
+			final InboundNfeConferenceItem conferenceItem = conferenceResult.get(i);
+			final InboundNfeItem nfItem = confirmed.getItems().get(i);
 			notifyStockEntryPort.notifyEntry(new NotifyStockEntryCommand(conferenceItem.itemRef(),
 					conferenceItem.receivedQty(), nfItem.unitValue(), confirmed.getId().value()));
 		}
@@ -78,27 +78,27 @@ public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceipt
 	}
 
 	private List<InboundNfeConferenceItem> toConferenceItems(
-			List<ConfirmInboundNfeReceiptCommand.ConferenceItem> conferenceResult) {
+			final List<ConfirmInboundNfeReceiptCommand.ConferenceItem> conferenceResult) {
 		return conferenceResult.stream()
 				.map(item -> new InboundNfeConferenceItem(item.itemRef(), item.orderedQty(), item.receivedQty()))
 				.toList();
 	}
 
-	private List<Installment> toInstallments(InboundNfe confirmed) {
-		LocalDate dueDate = confirmed.getIssuedAt().atZone(ZoneOffset.UTC).toLocalDate()
+	private List<Installment> toInstallments(final InboundNfe confirmed) {
+		final LocalDate dueDate = confirmed.getIssuedAt().atZone(ZoneOffset.UTC).toLocalDate()
 				.plusDays(DEFAULT_PAYMENT_TERM_DAYS);
 		return List.of(new Installment(confirmed.getTotals().totalValue(), dueDate));
 	}
 
-	private CalculateTaxCommand buildTaxCommand(InboundNfe confirmed, List<InboundNfeConferenceItem> conferenceResult,
-			Company company) {
-		List<TaxItemCommand> items = new ArrayList<>();
+	private CalculateTaxCommand buildTaxCommand(final InboundNfe confirmed, final List<InboundNfeConferenceItem> conferenceResult,
+			final Company company) {
+		final List<TaxItemCommand> items = new ArrayList<>();
 		for (int i = 0; i < conferenceResult.size(); i++) {
-			InboundNfeItem nfItem = confirmed.getItems().get(i);
+			final InboundNfeItem nfItem = confirmed.getItems().get(i);
 			items.add(new TaxItemCommand(conferenceResult.get(i).itemRef().toString(), nfItem.quantity(),
 					nfItem.unitValue()));
 		}
-		TaxRegime taxRegime = TaxRegime.valueOf(company.getTaxRegime().name());
+		final TaxRegime taxRegime = TaxRegime.valueOf(company.getTaxRegime().name());
 		return new CalculateTaxCommand(items, company.getState(), company.getState(), taxRegime, OPERATION_TYPE,
 				List.of());
 	}

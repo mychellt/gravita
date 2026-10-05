@@ -15,21 +15,21 @@ class PhysicalCountRepositoryAdapter implements PhysicalCountRepositoryPort {
 	private final PhysicalCountJpaRepository jpaRepository;
 	private final PhysicalCountPersistenceMapper mapper;
 
-	PhysicalCountRepositoryAdapter(PhysicalCountJpaRepository jpaRepository, PhysicalCountPersistenceMapper mapper) {
+	PhysicalCountRepositoryAdapter(final PhysicalCountJpaRepository jpaRepository, final PhysicalCountPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PhysicalCount save(PhysicalCount physicalCount) {
-		PhysicalCountJpaEntity entity = mapper.map(physicalCount);
+	public PhysicalCount save(final PhysicalCount physicalCount) {
+		final PhysicalCountJpaEntity entity = mapper.map(physicalCount);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PhysicalCountJpaEntity saved = jpaRepository.save(entity);
+		final PhysicalCountJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PhysicalCount> findById(PhysicalCountId id) {
+	public Optional<PhysicalCount> findById(final PhysicalCountId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

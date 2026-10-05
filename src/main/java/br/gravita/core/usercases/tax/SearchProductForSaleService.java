@@ -29,16 +29,16 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 	private final PriceTableRepositoryPort priceTableRepositoryPort;
 	private final CustomerRepositoryPort customerRepositoryPort;
 
-	public SearchProductForSaleService(ProductRepositoryPort productRepositoryPort,
-			PriceTableRepositoryPort priceTableRepositoryPort, CustomerRepositoryPort customerRepositoryPort) {
+	public SearchProductForSaleService(final ProductRepositoryPort productRepositoryPort,
+			final PriceTableRepositoryPort priceTableRepositoryPort, final CustomerRepositoryPort customerRepositoryPort) {
 		this.productRepositoryPort = productRepositoryPort;
 		this.priceTableRepositoryPort = priceTableRepositoryPort;
 		this.customerRepositoryPort = customerRepositoryPort;
 	}
 
 	@Override
-	public List<ProductSearchResult> execute(SearchProductQuery query) {
-		List<CustomerPriceTableLink> customerPriceTables = resolveCustomerPriceTables(query.customerId());
+	public List<ProductSearchResult> execute(final SearchProductQuery query) {
+		final List<CustomerPriceTableLink> customerPriceTables = resolveCustomerPriceTables(query.customerId());
 
 		return productRepositoryPort.findAll().stream()
 				.filter(product -> product.getStatus() == ProductStatus.ACTIVE)
@@ -47,7 +47,7 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 				.toList();
 	}
 
-	private List<CustomerPriceTableLink> resolveCustomerPriceTables(java.util.UUID customerId) {
+	private List<CustomerPriceTableLink> resolveCustomerPriceTables(final java.util.UUID customerId) {
 		if (customerId == null) {
 			return List.of();
 		}
@@ -59,8 +59,8 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 				.toList();
 	}
 
-	private boolean matches(ProductDomain product, String searchTerm) {
-		String normalizedTerm = searchTerm.trim().toLowerCase();
+	private boolean matches(final ProductDomain product, final String searchTerm) {
+		final String normalizedTerm = searchTerm.trim().toLowerCase();
 		if (product.getBarcodes() != null
 				&& product.getBarcodes().stream().anyMatch(barcode -> barcode.equalsIgnoreCase(normalizedTerm))) {
 			return true;
@@ -68,18 +68,18 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 		return product.getInternalCode() != null && product.getInternalCode().toLowerCase().contains(normalizedTerm);
 	}
 
-	private ProductSearchResult toResult(ProductDomain product, List<CustomerPriceTableLink> customerPriceTables) {
-		BigDecimal price = resolvePrice(product, customerPriceTables);
+	private ProductSearchResult toResult(final ProductDomain product, final List<CustomerPriceTableLink> customerPriceTables) {
+		final BigDecimal price = resolvePrice(product, customerPriceTables);
 		return new ProductSearchResult(product.getId(), product.getInternalCode(), price,
 				product.getStatus() == ProductStatus.ACTIVE);
 	}
 
-	private BigDecimal resolvePrice(ProductDomain product, List<CustomerPriceTableLink> customerPriceTables) {
-		ProductOrClassRef ref = ProductOrClassRef.product(product.getId().toString());
-		LocalDate today = LocalDate.now();
+	private BigDecimal resolvePrice(final ProductDomain product, final List<CustomerPriceTableLink> customerPriceTables) {
+		final ProductOrClassRef ref = ProductOrClassRef.product(product.getId().toString());
+		final LocalDate today = LocalDate.now();
 
-		for (CustomerPriceTableLink link : customerPriceTables) {
-			Optional<PriceTable> table = priceTableRepositoryPort.findById(PriceTableId.of(link.getPriceTableId()));
+		for (final CustomerPriceTableLink link : customerPriceTables) {
+			final Optional<PriceTable> table = priceTableRepositoryPort.findById(PriceTableId.of(link.getPriceTableId()));
 			if (table.isEmpty() || !table.get().isActive(today) || !hasEntryFor(table.get(), ref)) {
 				continue;
 			}
@@ -88,7 +88,7 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 		return product.getBasePrice();
 	}
 
-	private boolean hasEntryFor(PriceTable table, ProductOrClassRef ref) {
+	private boolean hasEntryFor(final PriceTable table, final ProductOrClassRef ref) {
 		return table.getEntries().stream().anyMatch(entry -> Objects.equals(entry.ref(), ref));
 	}
 }

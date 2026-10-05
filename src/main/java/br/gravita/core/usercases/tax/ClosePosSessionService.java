@@ -40,10 +40,10 @@ public class ClosePosSessionService implements ClosePosSessionUseCase {
 	private final CashClosingReportRepositoryPort cashClosingReportRepositoryPort;
 	private final PrintNonFiscalReceiptPort printNonFiscalReceiptPort;
 
-	public ClosePosSessionService(PosSessionRepositoryPort posSessionRepositoryPort,
-			NfceRepositoryPort nfceRepositoryPort, CashMovementRepositoryPort cashMovementRepositoryPort,
-			CashClosingReportRepositoryPort cashClosingReportRepositoryPort,
-			PrintNonFiscalReceiptPort printNonFiscalReceiptPort) {
+	public ClosePosSessionService(final PosSessionRepositoryPort posSessionRepositoryPort,
+			final NfceRepositoryPort nfceRepositoryPort, final CashMovementRepositoryPort cashMovementRepositoryPort,
+			final CashClosingReportRepositoryPort cashClosingReportRepositoryPort,
+			final PrintNonFiscalReceiptPort printNonFiscalReceiptPort) {
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.nfceRepositoryPort = nfceRepositoryPort;
 		this.cashMovementRepositoryPort = cashMovementRepositoryPort;
@@ -52,42 +52,52 @@ public class ClosePosSessionService implements ClosePosSessionUseCase {
 	}
 
 	@Override
-	public CashClosingReport execute(ClosePosSessionCommand command) {
-		PosSessionId sessionId = PosSessionId.of(command.sessionId());
-		PosSession session = posSessionRepositoryPort.findById(sessionId)
+	public CashClosingReport execute(final ClosePosSessionCommand command) {
+		final PosSessionId sessionId = PosSessionId.of(command.sessionId());
+		final PosSession session = posSessionRepositoryPort.findById(sessionId)
 				.orElseThrow(() -> new ResourceNotFoundException("PosSession not found: " + command.sessionId()));
 
-		Instant closedAt = Instant.now();
-		PosSession closedSession = session.close(closedAt);
+		final Instant closedAt = Instant.now();
+		final PosSession closedSession = session.close(closedAt);
 
-		List<NfceSale> issuedSales = nfceRepositoryPort.findBySessionId(sessionId).stream()
+		final List<NfceSale> issuedSales = nfceRepositoryPort.findBySessionId(sessionId).stream()
 				.filter(sale -> ISSUED_STATUSES.contains(sale.getStatus()))
 				.toList();
 
-		Map<PaymentMethodType, BigDecimal> expectedAmounts = new EnumMap<>(PaymentMethodType.class);
-		for (NfceSale sale : issuedSales) {
-			for (Payment payment : sale.getPayments()) {
+		final Map<PaymentMethodType, BigDecimal> expectedAmounts = new EnumMap<>(PaymentMethodType.class);
+		for (final NfceSale sale : issuedSales) {
+			for (final Payment payment : sale.getPayments()) {
 				expectedAmounts.merge(payment.method(), payment.amount(), BigDecimal::add);
 			}
 		}
 
-		List<CashMovement> movements = cashMovementRepositoryPort.findBySessionId(sessionId);
-		BigDecimal totalSangria = sumByType(movements, CashMovementType.SANGRIA);
-		BigDecimal totalSuprimento = sumByType(movements, CashMovementType.SUPRIMENTO);
+		final List<CashMovement> movements = cashMovementRepositoryPort.findBySessionId(sessionId);
+		final BigDecimal totalSangria = sumByType(movements, CashMovementType.SANGRIA);
+		final BigDecimal totalSuprimento = sumByType(movements, CashMovementType.SUPRIMENTO);
 
-		CashClosingReport report = CashClosingReport.close(CashClosingReportId.of(UUID.randomUUID()), sessionId,
-				session.getRegisterId(), session.getOperatorId(), session.getOpeningChangeAmount(), expectedAmounts,
-				command.closingCountedAmounts(), totalSangria, totalSuprimento, issuedSales.size(),
-				session.getOpenedAt(), closedAt);
+		final CashClosingReport report = CashClosingReport.builder()
+				.id(CashClosingReportId.of(UUID.randomUUID()))
+				.sessionId(sessionId)
+				.registerId(session.getRegisterId())
+				.operatorId(session.getOperatorId())
+				.openingAmount(session.getOpeningChangeAmount())
+				.expectedAmountsByPaymentMethod(expectedAmounts)
+				.countedAmountsByPaymentMethod(command.closingCountedAmounts())
+				.totalSangriaAmount(totalSangria)
+				.totalSuprimentoAmount(totalSuprimento)
+				.saleCount(issuedSales.size())
+				.openedAt(session.getOpenedAt())
+				.closedAt(closedAt)
+				.build();
 
 		posSessionRepositoryPort.save(closedSession);
-		CashClosingReport savedReport = cashClosingReportRepositoryPort.save(report);
+		final CashClosingReport savedReport = cashClosingReportRepositoryPort.save(report);
 		printNonFiscalReceiptPort.print(savedReport);
 
 		return savedReport;
 	}
 
-	private static BigDecimal sumByType(List<CashMovement> movements, CashMovementType type) {
+	private static BigDecimal sumByType(final List<CashMovement> movements, final CashMovementType type) {
 		return movements.stream()
 				.filter(movement -> movement.getType() == type)
 				.map(CashMovement::getAmount)

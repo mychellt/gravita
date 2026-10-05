@@ -65,7 +65,7 @@ public record EnterInboundNfeManuallyRequest(UUID companyId, String accessKey, M
 				toItems(manualData.items()), toTotals(manualData.totals()));
 	}
 
-	private List<InboundNfeItem> toItems(List<Item> items) {
+	private List<InboundNfeItem> toItems(final List<Item> items) {
 		if (items == null) {
 			return List.of();
 		}
@@ -76,7 +76,7 @@ public record EnterInboundNfeManuallyRequest(UUID companyId, String accessKey, M
 				.toList();
 	}
 
-	private InboundNfeTotals toTotals(Totals totals) {
+	private InboundNfeTotals toTotals(final Totals totals) {
 		if (totals == null) {
 			return null;
 		}

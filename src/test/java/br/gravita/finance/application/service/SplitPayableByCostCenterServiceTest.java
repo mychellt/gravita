@@ -43,34 +43,34 @@ class SplitPayableByCostCenterServiceTest {
 	private SplitPayableByCostCenterService service;
 
 	private Payable existingPayable() {
-		Payable payable = Payable.createManual(PayableId.of(UUID.randomUUID()), null, new BigDecimal("500.00"),
+		final Payable payable = Payable.createManual(PayableId.of(UUID.randomUUID()), null, new BigDecimal("500.00"),
 				LocalDate.now().plusDays(10), null);
 		when(payableRepositoryPort.findById(payable.getId())).thenReturn(Optional.of(payable));
 		return payable;
 	}
 
-	private static CostCenterShare share(UUID costCenterId, String percent) {
+	private static CostCenterShare share(final UUID costCenterId, final String percent) {
 		return new CostCenterShare(costCenterId, new BigDecimal(percent));
 	}
 
-	private void costCenterExists(UUID id) {
+	private void costCenterExists(final UUID id) {
 		when(costCenterRepositoryPort.get(id)).thenReturn(Optional.of(CostCenterDomain.builder().build()));
 	}
 
 	@Test
 	@DisplayName("Saves the payable with the new cost center split")
 	void savesThePayableWithTheNewSplit() {
-		Payable payable = existingPayable();
-		UUID a = UUID.randomUUID();
-		UUID b = UUID.randomUUID();
+		final Payable payable = existingPayable();
+		final UUID a = UUID.randomUUID();
+		final UUID b = UUID.randomUUID();
 		costCenterExists(a);
 		costCenterExists(b);
 		when(payableRepositoryPort.save(any(Payable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		Payable result = service.execute(new SplitPayableByCostCenterCommand(payable.getId().value(),
+		final Payable result = service.execute(new SplitPayableByCostCenterCommand(payable.getId().value(),
 				List.of(share(a, "70"), share(b, "30"))));
 
-		ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
+		final ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
 		verify(payableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(payable.getId());
 		assertThat(saved.getValue().getCostCenterSplit()).extracting(CostCenterShare::costCenterId)
@@ -81,7 +81,7 @@ class SplitPayableByCostCenterServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown payable")
 	void rejectsAnUnknownPayable() {
-		PayableId id = PayableId.of(UUID.randomUUID());
+		final PayableId id = PayableId.of(UUID.randomUUID());
 		when(payableRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new SplitPayableByCostCenterCommand(id.value(),
@@ -93,8 +93,8 @@ class SplitPayableByCostCenterServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown cost center without saving")
 	void rejectsAnUnknownCostCenterWithoutSaving() {
-		Payable payable = existingPayable();
-		UUID unknown = UUID.randomUUID();
+		final Payable payable = existingPayable();
+		final UUID unknown = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(unknown)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -107,7 +107,7 @@ class SplitPayableByCostCenterServiceTest {
 	@Test
 	@DisplayName("Rejects percentages that do not sum to 100% without saving")
 	void rejectsPercentagesNotSummingTo100WithoutSaving() {
-		Payable payable = existingPayable();
+		final Payable payable = existingPayable();
 
 		assertThatThrownBy(() -> service.execute(new SplitPayableByCostCenterCommand(payable.getId().value(),
 				List.of(share(UUID.randomUUID(), "60"), share(UUID.randomUUID(), "30")))))
@@ -119,7 +119,7 @@ class SplitPayableByCostCenterServiceTest {
 	@Test
 	@DisplayName("Rejects an empty split without saving")
 	void rejectsAnEmptySplitWithoutSaving() {
-		Payable payable = existingPayable();
+		final Payable payable = existingPayable();
 
 		assertThatThrownBy(() -> service.execute(new SplitPayableByCostCenterCommand(payable.getId().value(), List.of())))
 				.isInstanceOf(BusinessRuleException.class);

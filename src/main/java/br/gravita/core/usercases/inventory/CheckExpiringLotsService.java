@@ -17,20 +17,20 @@ public class CheckExpiringLotsService implements CheckExpiringLotsUseCase {
 	private final LotRepositoryPort lotRepositoryPort;
 	private final NotifyExpiringLotPort notifyExpiringLotPort;
 
-	public CheckExpiringLotsService(LotRepositoryPort lotRepositoryPort, NotifyExpiringLotPort notifyExpiringLotPort) {
+	public CheckExpiringLotsService(final LotRepositoryPort lotRepositoryPort, final NotifyExpiringLotPort notifyExpiringLotPort) {
 		this.lotRepositoryPort = lotRepositoryPort;
 		this.notifyExpiringLotPort = notifyExpiringLotPort;
 	}
 
 	@Override
-	public List<ExpiringLotView> execute(CheckExpiringLotsQuery query) {
-		LocalDate cutoffDate = LocalDate.now().plusDays(query.withinDays());
+	public List<ExpiringLotView> execute(final CheckExpiringLotsQuery query) {
+		final LocalDate cutoffDate = LocalDate.now().plusDays(query.withinDays());
 
-		List<Lot> candidates = query.warehouseId() != null
+		final List<Lot> candidates = query.warehouseId() != null
 				? lotRepositoryPort.findByExpiryDateLessThanEqualAndWarehouseId(cutoffDate, query.warehouseId())
 				: lotRepositoryPort.findByExpiryDateLessThanEqual(cutoffDate);
 
-		List<ExpiringLotView> expiringLots = candidates.stream()
+		final List<ExpiringLotView> expiringLots = candidates.stream()
 				.filter(lot -> lot.getQuantity().signum() > 0)
 				.map(ExpiringLotView::from)
 				.toList();

@@ -17,31 +17,31 @@ class LotRepositoryAdapter implements LotRepositoryPort {
 	private final LotJpaRepository jpaRepository;
 	private final LotPersistenceMapper mapper;
 
-	LotRepositoryAdapter(LotJpaRepository jpaRepository, LotPersistenceMapper mapper) {
+	LotRepositoryAdapter(final LotJpaRepository jpaRepository, final LotPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Optional<Lot> findByProductIdAndWarehouseIdAndCode(UUID productId, UUID warehouseId, String code) {
+	public Optional<Lot> findByProductIdAndWarehouseIdAndCode(final UUID productId, final UUID warehouseId, final String code) {
 		return jpaRepository.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, code).map(mapper::map);
 	}
 
 	@Override
-	public List<Lot> findByExpiryDateLessThanEqual(LocalDate cutoffDate) {
+	public List<Lot> findByExpiryDateLessThanEqual(final LocalDate cutoffDate) {
 		return jpaRepository.findByExpiryDateLessThanEqual(cutoffDate).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Lot> findByExpiryDateLessThanEqualAndWarehouseId(LocalDate cutoffDate, UUID warehouseId) {
+	public List<Lot> findByExpiryDateLessThanEqualAndWarehouseId(final LocalDate cutoffDate, final UUID warehouseId) {
 		return jpaRepository.findByExpiryDateLessThanEqualAndWarehouseId(cutoffDate, warehouseId).stream()
 				.map(mapper::map)
 				.toList();
 	}
 
 	@Override
-	public Lot save(Lot lot) {
-		LotJpaEntity entity = mapper.map(lot);
+	public Lot save(final Lot lot) {
+		final LotJpaEntity entity = mapper.map(lot);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}

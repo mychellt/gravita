@@ -13,17 +13,17 @@ public class ApprovalWorkflowNotificationAdapter implements NotifyApprovalWorkfl
 	private final EmailNotificationPort emailNotificationPort;
 	private final String approverEmail;
 
-	public ApprovalWorkflowNotificationAdapter(EmailNotificationPort emailNotificationPort,
-			@Value("${notifications.purchasing.approver-email}") String approverEmail) {
+	public ApprovalWorkflowNotificationAdapter(final EmailNotificationPort emailNotificationPort,
+			@Value("${notifications.purchasing.approver-email}") final String approverEmail) {
 		this.emailNotificationPort = emailNotificationPort;
 		this.approverEmail = approverEmail;
 	}
 
 	@Override
-	public void notifyDecision(PurchaseOrder order, ApprovalDecision decision) {
-		String verb = decision == ApprovalDecision.APPROVE ? "approved" : "rejected";
-		String subject = "Purchase order " + order.getId().value() + " " + verb;
-		String body = decision == ApprovalDecision.APPROVE
+	public void notifyDecision(final PurchaseOrder order, final ApprovalDecision decision) {
+		final String verb = decision == ApprovalDecision.APPROVE ? "approved" : "rejected";
+		final String subject = "Purchase order " + order.getId().value() + " " + verb;
+		final String body = decision == ApprovalDecision.APPROVE
 				? "Purchase order " + order.getId().value() + " was approved by " + order.getApprovedBy() + "."
 				: "Purchase order " + order.getId().value() + " was rejected and cancelled.";
 		emailNotificationPort.send(approverEmail, subject, body);

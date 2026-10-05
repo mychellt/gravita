@@ -15,21 +15,21 @@ class PriceTableRepositoryAdapter implements PriceTableRepositoryPort {
 	private final PriceTableJpaRepository jpaRepository;
 	private final PriceTablePersistenceMapper mapper;
 
-	PriceTableRepositoryAdapter(PriceTableJpaRepository jpaRepository, PriceTablePersistenceMapper mapper) {
+	PriceTableRepositoryAdapter(final PriceTableJpaRepository jpaRepository, final PriceTablePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PriceTable save(PriceTable priceTable) {
-		PriceTableJpaEntity entity = mapper.map(priceTable);
+	public PriceTable save(final PriceTable priceTable) {
+		final PriceTableJpaEntity entity = mapper.map(priceTable);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PriceTableJpaEntity saved = jpaRepository.save(entity);
+		final PriceTableJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PriceTable> findById(PriceTableId id) {
+	public Optional<PriceTable> findById(final PriceTableId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 }

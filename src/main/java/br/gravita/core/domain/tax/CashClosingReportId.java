@@ -9,7 +9,7 @@ public record CashClosingReportId(UUID value) {
 		Objects.requireNonNull(value, "CashClosingReportId value is required");
 	}
 
-	public static CashClosingReportId of(UUID value) {
+	public static CashClosingReportId of(final UUID value) {
 		return new CashClosingReportId(value);
 	}
 }

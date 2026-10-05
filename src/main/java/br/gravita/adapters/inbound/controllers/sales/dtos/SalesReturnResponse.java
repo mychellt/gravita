@@ -11,7 +11,7 @@ import java.util.UUID;
 public record SalesReturnResponse(UUID id, UUID orderId, List<ItemResponse> items, FiscalDocumentResponse returnNfeRef,
 		boolean total) {
 
-	public static SalesReturnResponse from(SalesReturnView view) {
+	public static SalesReturnResponse from(final SalesReturnView view) {
 		return new SalesReturnResponse(view.id(), view.orderId(),
 				view.items().stream().map(ItemResponse::from).toList(),
 				FiscalDocumentResponse.from(view.returnNfeRef()), view.total());
@@ -19,14 +19,14 @@ public record SalesReturnResponse(UUID id, UUID orderId, List<ItemResponse> item
 
 	public record ItemResponse(UUID productOrServiceId, BigDecimal quantity) {
 
-		static ItemResponse from(SalesReturnItem item) {
+		static ItemResponse from(final SalesReturnItem item) {
 			return new ItemResponse(item.productOrServiceId(), item.quantity());
 		}
 	}
 
 	public record FiscalDocumentResponse(FiscalDocumentType type, UUID documentId) {
 
-		static FiscalDocumentResponse from(FiscalDocumentRef ref) {
+		static FiscalDocumentResponse from(final FiscalDocumentRef ref) {
 			return ref == null ? null : new FiscalDocumentResponse(ref.type(), ref.documentId());
 		}
 	}

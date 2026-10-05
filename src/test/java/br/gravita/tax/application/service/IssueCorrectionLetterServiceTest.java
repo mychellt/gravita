@@ -84,11 +84,11 @@ class IssueCorrectionLetterServiceTest {
 	@Test
 	@DisplayName("Rejects a new correction letter once twenty correction letter events already exist")
 	void rejectsOnceTwentyCorrectionLetterEventsAlreadyExist() {
-		List<CorrectionLetter> maxedOut = new ArrayList<>();
+		final List<CorrectionLetter> maxedOut = new ArrayList<>();
 		for (int i = 1; i <= NfeDocument.MAX_CORRECTION_LETTERS; i++) {
 			maxedOut.add(new CorrectionLetter(i, "Correção " + i, "PROT" + i, Instant.now()));
 		}
-		NfeDocument document = authorizedDocument(maxedOut);
+		final NfeDocument document = authorizedDocument(maxedOut);
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
 		assertThatThrownBy(() -> service.execute(new IssueCorrectionLetterCommand(documentId.value(), "Nova correção")))
@@ -101,8 +101,8 @@ class IssueCorrectionLetterServiceTest {
 	@ParameterizedTest
 	@EnumSource(value = NfeDocumentStatus.class, names = {"DRAFT", "CANCELLED", "VOIDED"})
 	@DisplayName("Requires the document to be authorized")
-	void requiresTheDocumentToBeAuthorized(NfeDocumentStatus status) {
-		NfeDocument document = documentWithStatus(status, List.of());
+	void requiresTheDocumentToBeAuthorized(final NfeDocumentStatus status) {
+		final NfeDocument document = documentWithStatus(status, List.of());
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 
 		assertThatThrownBy(
@@ -115,23 +115,23 @@ class IssueCorrectionLetterServiceTest {
 	@Test
 	@DisplayName("Assigns each event a sequence number and a SEFAZ protocol and persists both")
 	void eachEventIsAssignedASequenceNumberAndASefazProtocolAndBothArePersisted() {
-		NfeDocument document = authorizedDocument(List.of(new CorrectionLetter(1, "Primeira correção", "PROT1",
+		final NfeDocument document = authorizedDocument(List.of(new CorrectionLetter(1, "Primeira correção", "PROT1",
 				Instant.now())));
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document));
 		when(submitToSefazPort.correct(any())).thenReturn(new SefazSubmissionResult("PROT2"));
 
-		CorrectionLetter result = service
+		final CorrectionLetter result = service
 				.execute(new IssueCorrectionLetterCommand(documentId.value(), "Segunda correção"));
 
 		assertThat(result.sequenceNumber()).isEqualTo(2);
 		assertThat(result.protocol()).isEqualTo("PROT2");
 		assertThat(result.text()).isEqualTo("Segunda correção");
 
-		ArgumentCaptor<SefazCorrectionRequest> requestCaptor = ArgumentCaptor.forClass(SefazCorrectionRequest.class);
+		final ArgumentCaptor<SefazCorrectionRequest> requestCaptor = ArgumentCaptor.forClass(SefazCorrectionRequest.class);
 		verify(submitToSefazPort).correct(requestCaptor.capture());
 		assertThat(requestCaptor.getValue().sequenceNumber()).isEqualTo(2);
 
-		ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
+		final ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
 		verify(nfeRepositoryPort).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().getCorrectionLetters()).hasSize(2);
 		assertThat(savedCaptor.getValue().getCorrectionLetters().get(1).protocol()).isEqualTo("PROT2");
@@ -148,38 +148,78 @@ class IssueCorrectionLetterServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654", "6201500",
-				br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
-				"Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj(VALID_CNPJ))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private NfeItem item() {
-		UUID productId = UUID.randomUUID();
-		TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+		final UUID productId = UUID.randomUUID();
+		final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
 				new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-		ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
+		final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
 		return new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO,
 				breakdown);
 	}
 
-	private NfeDocument authorizedDocument(List<CorrectionLetter> correctionLetters) {
+	private NfeDocument authorizedDocument(final List<CorrectionLetter> correctionLetters) {
 		return documentWithStatus(NfeDocumentStatus.AUTHORIZED, correctionLetters);
 	}
 
-	private NfeDocument documentWithStatus(NfeDocumentStatus status, List<CorrectionLetter> correctionLetters) {
-		NfeItem item = item();
-		NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), VALID_CNPJ, PersonType.COMPANY,
+	private NfeDocument documentWithStatus(final NfeDocumentStatus status, final List<CorrectionLetter> correctionLetters) {
+		final NfeItem item = item();
+		final NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), VALID_CNPJ, PersonType.COMPANY,
 				"Cliente PJ Teste", "123456789", "RJ");
-		TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
+		final TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
 
-		String documentSeries = status == NfeDocumentStatus.DRAFT ? null : "001";
-		Long documentNumber = status == NfeDocumentStatus.DRAFT ? null : 42L;
-		String accessKey = status == NfeDocumentStatus.DRAFT ? null : "3".repeat(44);
-		String sefazProtocol = status == NfeDocumentStatus.DRAFT ? null : "PROTOCOL-ORIGINAL";
+		final String documentSeries = status == NfeDocumentStatus.DRAFT ? null : "001";
+		final Long documentNumber = status == NfeDocumentStatus.DRAFT ? null : 42L;
+		final String accessKey = status == NfeDocumentStatus.DRAFT ? null : "3".repeat(44);
+		final String sefazProtocol = status == NfeDocumentStatus.DRAFT ? null : "PROTOCOL-ORIGINAL";
 
-		return NfeDocument.of(documentId, companyId, null, NaturezaOperacao.VENDA, new Cfop("5102"), recipient,
-				List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, totals, status,
-				Instant.now(), documentSeries, documentNumber, accessKey, sefazProtocol, false, null, null, null,
-				correctionLetters, null, null, null);
+		return NfeDocument.builder()
+				.id(documentId)
+				.issuerCompanyId(companyId)
+				.originSalesOrderId(null)
+				.naturezaOperacao(NaturezaOperacao.VENDA)
+				.cfop(new Cfop("5102"))
+				.recipient(recipient)
+				.items(List.of(item))
+				.freight(BigDecimal.ZERO)
+				.insurance(BigDecimal.ZERO)
+				.otherExpenses(BigDecimal.ZERO)
+				.transport(null)
+				.referencedAccessKey(null)
+				.additionalInfo(null)
+				.taxTotals(totals)
+				.status(status)
+				.createdAt(Instant.now())
+				.documentSeries(documentSeries)
+				.documentNumber(documentNumber)
+				.accessKey(accessKey)
+				.sefazProtocol(sefazProtocol)
+				.contingencyMode(false)
+				.rejectionReason(null)
+				.xmlStorageRef(null)
+				.danfeStorageRef(null)
+				.correctionLetters(correctionLetters)
+				.authorizedAt(null)
+				.cancellationJustification(null)
+				.cancelledAt(null)
+				.build();
 	}
 }

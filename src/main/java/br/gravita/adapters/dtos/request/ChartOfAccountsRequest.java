@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public record ChartOfAccountsRequest(@NotBlank String code, @NotBlank String name, @NotNull AccountType accountType, UUID parentId) {
 
-	public ChartOfAccountsDomain toDomain(UUID id) {
+	public ChartOfAccountsDomain toDomain(final UUID id) {
 		return ChartOfAccountsDomain.builder()
 				.id(id)
 				.code(code)

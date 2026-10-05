@@ -21,7 +21,7 @@ public final class AgingReport {
 	private final LocalDate asOfDate;
 	private final List<AgingBucket> buckets;
 
-	private AgingReport(LocalDate asOfDate, List<AgingBucket> buckets) {
+	private AgingReport(final LocalDate asOfDate, final List<AgingBucket> buckets) {
 		this.asOfDate = asOfDate;
 		this.buckets = List.copyOf(buckets);
 	}
@@ -30,15 +30,15 @@ public final class AgingReport {
 	 * Buckets {@code entries} by days overdue as of {@code asOfDate}. An entry
 	 * that is not due yet, or has nothing left to pay, is left out.
 	 */
-	public static AgingReport of(LocalDate asOfDate, List<AgingEntry> entries) {
+	public static AgingReport of(final LocalDate asOfDate, final List<AgingEntry> entries) {
 		Objects.requireNonNull(asOfDate, "asOfDate is required");
-		Map<AgingRange, BigDecimal> totals = new EnumMap<>(AgingRange.class);
-		Map<AgingRange, Integer> counts = new EnumMap<>(AgingRange.class);
-		for (AgingRange range : AgingRange.values()) {
+		final Map<AgingRange, BigDecimal> totals = new EnumMap<>(AgingRange.class);
+		final Map<AgingRange, Integer> counts = new EnumMap<>(AgingRange.class);
+		for (final AgingRange range : AgingRange.values()) {
 			totals.put(range, BigDecimal.ZERO);
 			counts.put(range, 0);
 		}
-		for (AgingEntry entry : entries) {
+		for (final AgingEntry entry : entries) {
 			if (entry.outstanding().signum() <= 0) {
 				continue;
 			}
@@ -47,8 +47,8 @@ public final class AgingReport {
 				counts.merge(range, 1, Integer::sum);
 			});
 		}
-		List<AgingBucket> buckets = new ArrayList<>();
-		for (AgingRange range : AgingRange.values()) {
+		final List<AgingBucket> buckets = new ArrayList<>();
+		for (final AgingRange range : AgingRange.values()) {
 			buckets.add(new AgingBucket(range, counts.get(range), totals.get(range)));
 		}
 		return new AgingReport(asOfDate, buckets);

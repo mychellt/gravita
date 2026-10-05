@@ -55,24 +55,24 @@ class ReleaseStockReservationServiceTest {
 	@Test
 	@DisplayName("Releasing restores exactly the reserved quantity to available and leaves on-hand unchanged")
 	void releasingRestoresExactlyTheReservedQuantityToAvailableAndLeavesOnHandUnchanged() {
-		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
+		final StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.ACTIVE);
 		when(stockReservationRepositoryPort.findById(reservationId)).thenReturn(Optional.of(reservation));
 
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), new BigDecimal("40"), BigDecimal.ZERO, new BigDecimal("5.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));
 
 		service.execute(new ReleaseStockReservationCommand(reservationId.value()));
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("100");
 		assertThat(savedBalance.getValue().getReserved()).isEqualByComparingTo("10");
 		assertThat(savedBalance.getValue().available()).isEqualByComparingTo("90");
 
-		ArgumentCaptor<StockReservation> savedReservation = ArgumentCaptor.forClass(StockReservation.class);
+		final ArgumentCaptor<StockReservation> savedReservation = ArgumentCaptor.forClass(StockReservation.class);
 		verify(stockReservationRepositoryPort).save(savedReservation.capture());
 		assertThat(savedReservation.getValue().getStatus()).isEqualTo(StockReservationStatus.RELEASED);
 	}
@@ -80,7 +80,7 @@ class ReleaseStockReservationServiceTest {
 	@Test
 	@DisplayName("Releasing a reservation that was already released is rejected")
 	void releasingAnAlreadyReleasedReservationIsRejected() {
-		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
+		final StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.RELEASED);
 		when(stockReservationRepositoryPort.findById(reservationId)).thenReturn(Optional.of(reservation));
 
@@ -94,7 +94,7 @@ class ReleaseStockReservationServiceTest {
 	@Test
 	@DisplayName("Releasing a reservation that was already consumed is rejected")
 	void releasingAnAlreadyConsumedReservationIsRejected() {
-		StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
+		final StockReservation reservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.CONSUMED);
 		when(stockReservationRepositoryPort.findById(reservationId)).thenReturn(Optional.of(reservation));
 
@@ -120,17 +120,17 @@ class ReleaseStockReservationServiceTest {
 	@Test
 	@DisplayName("Releasing by order reference releases every active reservation of that order")
 	void releasingByOrderRefReleasesEveryActiveReservationForThatOrder() {
-		UUID otherProductId = UUID.randomUUID();
-		StockReservation firstReservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
+		final UUID otherProductId = UUID.randomUUID();
+		final StockReservation firstReservation = StockReservation.of(reservationId, orderRef, productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.ACTIVE);
-		StockReservation secondReservation = StockReservation.of(StockReservationId.of(UUID.randomUUID()), orderRef,
+		final StockReservation secondReservation = StockReservation.of(StockReservationId.of(UUID.randomUUID()), orderRef,
 				otherProductId, warehouseId, new BigDecimal("5"), StockReservationStatus.ACTIVE);
 		when(stockReservationRepositoryPort.findActiveByOrderRef(orderRef))
 				.thenReturn(List.of(firstReservation, secondReservation));
 
-		StockBalance firstBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance firstBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), new BigDecimal("40"), BigDecimal.ZERO, new BigDecimal("5.00"));
-		StockBalance secondBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), otherProductId,
+		final StockBalance secondBalance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), otherProductId,
 				warehouseId, new BigDecimal("20"), new BigDecimal("5"), BigDecimal.ZERO, new BigDecimal("2.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(firstBalance));
@@ -140,7 +140,7 @@ class ReleaseStockReservationServiceTest {
 		service.execute(ReleaseStockReservationCommand.byOrderRef(orderRef));
 
 		verify(stockBalanceRepositoryPort, times(2)).save(any());
-		ArgumentCaptor<StockReservation> savedReservations = ArgumentCaptor.forClass(StockReservation.class);
+		final ArgumentCaptor<StockReservation> savedReservations = ArgumentCaptor.forClass(StockReservation.class);
 		verify(stockReservationRepositoryPort, times(2)).save(savedReservations.capture());
 		assertThat(savedReservations.getAllValues())
 				.allMatch(reservation -> reservation.getStatus() == StockReservationStatus.RELEASED);

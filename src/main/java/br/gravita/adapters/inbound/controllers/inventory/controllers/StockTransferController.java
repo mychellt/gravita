@@ -24,15 +24,15 @@ public class StockTransferController {
 	private final TransferStockUseCase transferStockUseCase;
 
 	@PostMapping
-	public ResponseEntity<StockMovementResponse> initiate(@Valid @RequestBody InitiateTransferRequest request) {
-		StockMovementResponse response = StockMovementResponse.from(transferStockUseCase.initiate(request.toCommand()));
+	public ResponseEntity<StockMovementResponse> initiate(@Valid @RequestBody final InitiateTransferRequest request) {
+		final StockMovementResponse response = StockMovementResponse.from(transferStockUseCase.initiate(request.toCommand()));
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	@PostMapping("/{id}/confirm")
-	public ResponseEntity<StockMovementResponse> confirm(@PathVariable UUID id,
-			@Valid @RequestBody ConfirmTransferRequest request) {
-		StockMovementResponse response = StockMovementResponse
+	public ResponseEntity<StockMovementResponse> confirm(@PathVariable final UUID id,
+			@Valid @RequestBody final ConfirmTransferRequest request) {
+		final StockMovementResponse response = StockMovementResponse
 				.from(transferStockUseCase.confirm(request.toCommand(id)));
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}

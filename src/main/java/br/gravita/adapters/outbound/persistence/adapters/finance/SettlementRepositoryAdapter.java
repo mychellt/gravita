@@ -21,34 +21,34 @@ class SettlementRepositoryAdapter implements SettlementRepositoryPort {
 	private final CashFlowQueryRepository cashFlowQueryRepository;
 	private final SettlementPersistenceMapper mapper;
 
-	SettlementRepositoryAdapter(SettlementJpaRepository jpaRepository,
-			CashFlowQueryRepository cashFlowQueryRepository, SettlementPersistenceMapper mapper) {
+	SettlementRepositoryAdapter(final SettlementJpaRepository jpaRepository,
+			final CashFlowQueryRepository cashFlowQueryRepository, final SettlementPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.cashFlowQueryRepository = cashFlowQueryRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Settlement save(Settlement settlement) {
-		SettlementJpaEntity entity = mapper.map(settlement);
+	public Settlement save(final Settlement settlement) {
+		final SettlementJpaEntity entity = mapper.map(settlement);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
 	}
 
 	@Override
-	public List<Settlement> findByReceivableId(ReceivableId receivableId) {
+	public List<Settlement> findByReceivableId(final ReceivableId receivableId) {
 		return jpaRepository.findByReceivableIdOrderByTimestampAscCreatedAtAsc(receivableId.value()).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Settlement> findByPayableId(PayableId payableId) {
+	public List<Settlement> findByPayableId(final PayableId payableId) {
 		return jpaRepository.findByPayableIdOrderByTimestampAscCreatedAtAsc(payableId.value()).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Settlement> findByReceivableIds(Collection<ReceivableId> receivableIds) {
+	public List<Settlement> findByReceivableIds(final Collection<ReceivableId> receivableIds) {
 		if (receivableIds.isEmpty()) {
 			return List.of();
 		}
@@ -59,7 +59,7 @@ class SettlementRepositoryAdapter implements SettlementRepositoryPort {
 	}
 
 	@Override
-	public List<Settlement> findRealizedBetween(Instant from, Instant until, CashFlowFilter filter) {
+	public List<Settlement> findRealizedBetween(final Instant from, final Instant until, final CashFlowFilter filter) {
 		return cashFlowQueryRepository.findRealizedSettlements(from, until, filter).stream().map(mapper::map)
 				.toList();
 	}

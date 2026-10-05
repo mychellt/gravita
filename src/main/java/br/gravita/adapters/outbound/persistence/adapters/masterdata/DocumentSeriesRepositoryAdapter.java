@@ -17,21 +17,21 @@ class DocumentSeriesRepositoryAdapter implements DocumentSeriesRepositoryPort {
 	private final DocumentSeriesJpaRepository jpaRepository;
 	private final DocumentSeriesPersistenceMapper mapper;
 
-	DocumentSeriesRepositoryAdapter(DocumentSeriesJpaRepository jpaRepository, DocumentSeriesPersistenceMapper mapper) {
+	DocumentSeriesRepositoryAdapter(final DocumentSeriesJpaRepository jpaRepository, final DocumentSeriesPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public DocumentSeries save(DocumentSeries documentSeries) {
-		DocumentSeriesJpaEntity entity = mapper.map(documentSeries);
+	public DocumentSeries save(final DocumentSeries documentSeries) {
+		final DocumentSeriesJpaEntity entity = mapper.map(documentSeries);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		DocumentSeriesJpaEntity saved = jpaRepository.save(entity);
+		final DocumentSeriesJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<DocumentSeries> findByCompanyIdAndDocumentType(CompanyId companyId, FiscalDocumentType documentType) {
+	public Optional<DocumentSeries> findByCompanyIdAndDocumentType(final CompanyId companyId, final FiscalDocumentType documentType) {
 		return jpaRepository.findByCompanyIdAndDocumentType(companyId.value(), documentType).map(entity -> mapper.map(entity));
 	}
 }

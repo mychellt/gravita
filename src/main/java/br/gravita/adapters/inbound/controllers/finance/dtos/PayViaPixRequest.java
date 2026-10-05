@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record PayViaPixRequest(@NotBlank String pixKey) {
 
-	public PayViaPixCommand toCommand(UUID payableId) {
+	public PayViaPixCommand toCommand(final UUID payableId) {
 		return new PayViaPixCommand(payableId, pixKey);
 	}
 }

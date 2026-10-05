@@ -3,7 +3,6 @@ package br.gravita.system.application.service;
 import br.gravita.core.domain.system.AccessLog;
 import br.gravita.core.domain.system.ProfileReference;
 import br.gravita.core.domain.system.User;
-import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.system.UserStatus;
 import br.gravita.core.ports.outbound.persistence.system.AccessLogRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.system.UserRepositoryPort;
@@ -56,8 +55,8 @@ class AuthenticateServiceTest {
 
 	private static final ProfileReference SALESPERSON = new ProfileReference(UUID.randomUUID(), "Salesperson");
 
-	private User activeUser(boolean twoFactorEnabled) {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+	private User activeUser(final boolean twoFactorEnabled) {
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		if (twoFactorEnabled) {
 			user.update(null, null, new ProfileReference(SALESPERSON.id(), "Administrator"), null);
 		}
@@ -69,11 +68,11 @@ class AuthenticateServiceTest {
 	void shouldRejectWhenEmailIsUnknownWithoutRevealingIt() {
 		when(userRepositoryPort.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
 
-		AuthResult result = service().execute(new AuthenticateCommand("ghost@example.com", "whatever", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand("ghost@example.com", "whatever", null, "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);
 		assertThat(result.sessionToken()).isNull();
-		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
+		final ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getUserId()).isNull();
 		assertThat(captor.getValue().getEmail()).isEqualTo("ghost@example.com");
@@ -85,14 +84,14 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Rejects a wrong password with the same outcome as an unknown email")
 	void shouldRejectWrongPasswordWithTheSameOutcomeAsUnknownEmail() {
-		User user = activeUser(false);
+		final User user = activeUser(false);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 		when(passwordVerificationPort.matches("wrong", user.getRawPassword())).thenReturn(false);
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "wrong", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "wrong", null, "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);
-		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
+		final ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getUserId()).isEqualTo(user.getId());
 		assertThat(captor.getValue().isSuccessful()).isFalse();
@@ -101,11 +100,11 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Rejects an inactive user even with the correct password")
 	void shouldRejectInactiveUserEvenWithCorrectPassword() {
-		User user = activeUser(false);
+		final User user = activeUser(false);
 		user.update(null, null, null, UserStatus.INACTIVE);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);
 		verify(passwordVerificationPort, never()).matches(any(), any());
@@ -114,15 +113,15 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Authenticates directly when two-factor is not enabled")
 	void shouldAuthenticateDirectlyWhenTwoFactorIsNotEnabled() {
-		User user = activeUser(false);
+		final User user = activeUser(false);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 		when(passwordVerificationPort.matches("s3cret!", user.getRawPassword())).thenReturn(true);
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.AUTHENTICATED);
 		assertThat(result.sessionToken()).isNotBlank();
-		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
+		final ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().isSuccessful()).isTrue();
 		assertThat(captor.getValue().getUserId()).isEqualTo(user.getId());
@@ -132,11 +131,11 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Requires a TOTP code when two-factor is enabled and none is provided")
 	void shouldRequireTotpWhenTwoFactorIsEnabledAndNoCodeProvided() {
-		User user = activeUser(true);
+		final User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 		when(passwordVerificationPort.matches("s3cret!", user.getRawPassword())).thenReturn(true);
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.TOTP_REQUIRED);
 		assertThat(result.sessionToken()).isNull();
@@ -147,15 +146,15 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Refuses to issue a session when the TOTP code is invalid")
 	void shouldRejectSessionIssuanceWhenTotpCodeIsInvalid() {
-		User user = activeUser(true);
+		final User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 		when(passwordVerificationPort.matches("s3cret!", user.getRawPassword())).thenReturn(true);
 		when(totpVerificationPort.verify(eq(user.getId()), eq("000000"))).thenReturn(false);
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", "000000", "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", "000000", "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);
-		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
+		final ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().isSuccessful()).isFalse();
 	}
@@ -163,16 +162,16 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Authenticates after a valid TOTP code")
 	void shouldAuthenticateAfterAValidTotpCode() {
-		User user = activeUser(true);
+		final User user = activeUser(true);
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 		when(passwordVerificationPort.matches("s3cret!", user.getRawPassword())).thenReturn(true);
 		when(totpVerificationPort.verify(eq(user.getId()), eq("123456"))).thenReturn(true);
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", "123456", "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", "123456", "1.2.3.4", "Chrome"));
 
 		assertThat(result.status()).isEqualTo(AuthStatus.AUTHENTICATED);
 		assertThat(result.sessionToken()).isNotBlank();
-		ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
+		final ArgumentCaptor<AccessLog> captor = ArgumentCaptor.forClass(AccessLog.class);
 		verify(accessLogRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().isSuccessful()).isTrue();
 		verify(sessionStorePort).store(result.sessionToken(), user.getId());
@@ -181,10 +180,10 @@ class AuthenticateServiceTest {
 	@Test
 	@DisplayName("Rejects a user pending activation even with the correct password (no change to the service needed)")
 	void shouldRejectUserPendingActivationEvenWithCorrectPassword() {
-		User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON, UUID.randomUUID());
+		final User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON, UUID.randomUUID());
 		when(userRepositoryPort.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
-		AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
+		final AuthResult result = service().execute(new AuthenticateCommand(user.getEmail(), "s3cret!", null, "1.2.3.4", "Chrome"));
 
 		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
 		assertThat(result.status()).isEqualTo(AuthStatus.REJECTED);

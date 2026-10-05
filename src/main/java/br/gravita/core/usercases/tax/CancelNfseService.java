@@ -38,16 +38,16 @@ public class CancelNfseService implements CancelNfseUseCase {
 	private final Map<NfseStandard, IssueNfsePort> issuersByStandard;
 
 	@Autowired
-	public CancelNfseService(NfseRepositoryPort nfseRepositoryPort,
-			MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
-			ObjectProvider<IssueNfsePort> issuers) {
+	public CancelNfseService(final NfseRepositoryPort nfseRepositoryPort,
+			final MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
+			final ObjectProvider<IssueNfsePort> issuers) {
 		// ObjectProvider rather than List: no adapter at all is a valid deployment (every municipality manual).
 		this(nfseRepositoryPort, municipalityIntegrationRepositoryPort, issuers.orderedStream().toList());
 	}
 
-	public CancelNfseService(NfseRepositoryPort nfseRepositoryPort,
-			MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
-			List<IssueNfsePort> issuers) {
+	public CancelNfseService(final NfseRepositoryPort nfseRepositoryPort,
+			final MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
+			final List<IssueNfsePort> issuers) {
 		this.nfseRepositoryPort = nfseRepositoryPort;
 		this.municipalityIntegrationRepositoryPort = municipalityIntegrationRepositoryPort;
 		this.issuersByStandard = IssueNfsePortRegistry.byStandard(issuers);
@@ -55,33 +55,33 @@ public class CancelNfseService implements CancelNfseUseCase {
 
 	@Override
 	@Transactional
-	public void execute(CancelNfseCommand command) {
+	public void execute(final CancelNfseCommand command) {
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("justification is required");
 		}
 
-		NfseDocument document = nfseRepositoryPort.findByIdForUpdate(command.nfseId())
+		final NfseDocument document = nfseRepositoryPort.findByIdForUpdate(command.nfseId())
 				.orElseThrow(() -> new ResourceNotFoundException("NFSe not found: " + command.nfseId().value()));
 		if (document.getStatus() != NfseStatus.AUTHORIZED) {
 			throw new BusinessRuleException("NFSe " + document.getId().value()
 					+ " cannot be cancelled (current status: " + document.getStatus() + ")");
 		}
 
-		String ibgeCode = document.getProviderMunicipalityIbgeCode();
-		MunicipalityIntegration integration = municipalityIntegrationRepositoryPort.findByIbgeCode(ibgeCode)
+		final String ibgeCode = document.getProviderMunicipalityIbgeCode();
+		final MunicipalityIntegration integration = municipalityIntegrationRepositoryPort.findByIbgeCode(ibgeCode)
 				.orElseThrow(() -> new BusinessRuleException(
 						"No NFSe integration is registered for municipality " + ibgeCode));
 		if (!integration.isHomologated()) {
 			throw new BusinessRuleException("Municipality " + ibgeCode
 					+ " is not homologated for webservice transmission; the cancellation must be requested manually");
 		}
-		IssueNfsePort issuer = issuersByStandard.get(integration.getStandard());
+		final IssueNfsePort issuer = issuersByStandard.get(integration.getStandard());
 		if (issuer == null) {
 			throw new BusinessRuleException("No NFSe adapter is available for standard " + integration.getStandard()
 					+ " (municipality " + ibgeCode + ")");
 		}
 
-		NfseCancellationResult result = issuer
+		final NfseCancellationResult result = issuer
 				.cancel(new NfseCancellationRequest(document, integration, command.justification()));
 		if (!result.isConfirmed()) {
 			throw new BusinessRuleException("The municipality refused to cancel NFSe " + document.getId().value()

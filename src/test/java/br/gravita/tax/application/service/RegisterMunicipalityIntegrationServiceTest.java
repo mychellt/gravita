@@ -38,22 +38,22 @@ class RegisterMunicipalityIntegrationServiceTest {
 				.thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private static RegisterMunicipalityIntegrationCommand command(NfseStandard standard, boolean homologated) {
+	private static RegisterMunicipalityIntegrationCommand command(final NfseStandard standard, final boolean homologated) {
 		return new RegisterMunicipalityIntegrationCommand("3550308", standard, "2.04", "https://nfse.example/ws",
 				CertificateType.A1, List.of("inscricaoMunicipal"), homologated);
 	}
 
 	@Test
 	@DisplayName("Registers a new municipality for each supported standard")
-	void ac1_registersANewMunicipalityForEachStandard() {
-		for (NfseStandard standard : NfseStandard.values()) {
+	void ac1RegistersANewMunicipalityForEachStandard() {
+		for (final NfseStandard standard : NfseStandard.values()) {
 			when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
 
-			MunicipalityIntegrationId id = service.execute(command(standard, true));
+			final MunicipalityIntegrationId id = service.execute(command(standard, true));
 
 			assertThat(id).isNotNull();
 		}
-		ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
+		final ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
 		verify(repositoryPort, org.mockito.Mockito.times(NfseStandard.values().length)).save(saved.capture());
 		assertThat(saved.getAllValues()).extracting(MunicipalityIntegration::getStandard)
 				.containsExactly(NfseStandard.values());
@@ -61,28 +61,28 @@ class RegisterMunicipalityIntegrationServiceTest {
 
 	@Test
 	@DisplayName("Accepts a non-homologated registration")
-	void ac2_nonHomologatedRegistrationIsAccepted() {
+	void ac2NonHomologatedRegistrationIsAccepted() {
 		when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
 
 		service.execute(new RegisterMunicipalityIntegrationCommand("3550308", NfseStandard.BETHA, null, null,
 				CertificateType.A3, null, false));
 
-		ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
+		final ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
 		verify(repositoryPort).save(saved.capture());
 		assertThat(saved.getValue().isHomologated()).isFalse();
 	}
 
 	@Test
 	@DisplayName("Updates the existing configuration on re-registration instead of creating another")
-	void ac3_reRegisteringUpdatesTheExistingConfigurationInsteadOfCreatingAnother() {
-		MunicipalityIntegration existing = MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()),
+	void ac3ReRegisteringUpdatesTheExistingConfigurationInsteadOfCreatingAnother() {
+		final MunicipalityIntegration existing = MunicipalityIntegration.of(MunicipalityIntegrationId.of(UUID.randomUUID()),
 				"3550308", NfseStandard.ABRASF, "2.03", "https://old", CertificateType.A1, List.of(), false);
 		when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.of(existing));
 
-		MunicipalityIntegrationId id = service.execute(command(NfseStandard.ISSNET, true));
+		final MunicipalityIntegrationId id = service.execute(command(NfseStandard.ISSNET, true));
 
 		assertThat(id).isEqualTo(existing.getId());
-		ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
+		final ArgumentCaptor<MunicipalityIntegration> saved = ArgumentCaptor.forClass(MunicipalityIntegration.class);
 		verify(repositoryPort).save(saved.capture());
 		assertThat(saved.getValue()).isSameAs(existing);
 		assertThat(existing.getStandard()).isEqualTo(NfseStandard.ISSNET);
@@ -92,7 +92,7 @@ class RegisterMunicipalityIntegrationServiceTest {
 
 	@Test
 	@DisplayName("Registers a municipality without depending on any NFS-e adapter")
-	void ac4_registrationDoesNotDependOnAnyNfseAdapter() {
+	void ac4RegistrationDoesNotDependOnAnyNfseAdapter() {
 		// The service's only collaborator is the repository: there is nothing to fail when no adapter is deployed.
 		when(repositoryPort.findByIbgeCode("3550308")).thenReturn(Optional.empty());
 

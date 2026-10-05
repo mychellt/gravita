@@ -16,19 +16,19 @@ class ApprovalAlcadaRepositoryAdapter implements ApprovalAlcadaRepositoryPort {
 	private final ApprovalAlcadaJpaRepository jpaRepository;
 	private final ApprovalAlcadaPersistenceMapper mapper;
 
-	ApprovalAlcadaRepositoryAdapter(ApprovalAlcadaJpaRepository jpaRepository, ApprovalAlcadaPersistenceMapper mapper) {
+	ApprovalAlcadaRepositoryAdapter(final ApprovalAlcadaJpaRepository jpaRepository, final ApprovalAlcadaPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public ApprovalAlcada save(ApprovalAlcada alcada) {
-		ApprovalAlcadaJpaEntity saved = jpaRepository.save(mapper.map(alcada));
+	public ApprovalAlcada save(final ApprovalAlcada alcada) {
+		final ApprovalAlcadaJpaEntity saved = jpaRepository.save(mapper.map(alcada));
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<ApprovalAlcada> findByModule(ApprovalModule module) {
+	public Optional<ApprovalAlcada> findByModule(final ApprovalModule module) {
 		return jpaRepository.findByModule(module).map(mapper::map);
 	}
 }

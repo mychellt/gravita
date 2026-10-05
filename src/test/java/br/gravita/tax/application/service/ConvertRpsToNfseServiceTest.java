@@ -52,32 +52,45 @@ class ConvertRpsToNfseServiceTest {
 	}
 
 	private NfseDocument rps() {
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), companyId, SP,
-				NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null),
-				ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, SP, new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(), "Consultoria", "RPS", 1L,
-				Instant.now());
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(companyId)
+				.providerMunicipalityIbgeCode(SP)
+				.tomador(NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null, null))
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode(SP)
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("Consultoria")
+				.rpsSeries("RPS")
+				.rpsNumber(1L)
+				.createdAt(Instant.now())
+				.build();
 	}
 
-	private void stored(NfseDocument document) {
+	private void stored(final NfseDocument document) {
 		when(nfseRepositoryPort.findByIdForUpdate(document.getId())).thenReturn(Optional.of(document));
 	}
 
-	private static ConvertRpsToNfseCommand commandFor(NfseDocument... documents) {
+	private static ConvertRpsToNfseCommand commandFor(final NfseDocument... documents) {
 		return new ConvertRpsToNfseCommand(java.util.Arrays.stream(documents).map(NfseDocument::getRpsId).toList());
 	}
 
 	@Test
 	@DisplayName("Converts a single RPS into a draft with the next number of its company and municipality")
-	void ac1_convertsASingleRpsIntoADraftWithTheNextNumberOfItsCompanyAndMunicipality() {
-		NfseDocument rps = rps();
+	void ac1ConvertsASingleRpsIntoADraftWithTheNextNumberOfItsCompanyAndMunicipality() {
+		final NfseDocument rps = rps();
 		stored(rps);
 		when(nfseRepositoryPort.allocateNextNumber(companyId, SP)).thenReturn(new NfseNumber("1", 15L));
 
-		List<NfseId> ids = service.execute(commandFor(rps));
+		final List<NfseId> ids = service.execute(commandFor(rps));
 
 		assertThat(ids).containsExactly(rps.getId());
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(rps.getId());
 		assertThat(saved.getValue().getStatus()).isEqualTo(NfseStatus.DRAFT);
@@ -88,20 +101,20 @@ class ConvertRpsToNfseServiceTest {
 
 	@Test
 	@DisplayName("Converts every RPS of a batch, returning ids in the given order with consecutive numbers")
-	void ac1and2_aBatchConvertsEveryRpsReturningTheIdsInTheOrderGivenWithConsecutiveNumbers() {
-		NfseDocument first = rps();
-		NfseDocument second = rps();
-		NfseDocument third = rps();
+	void ac1and2ABatchConvertsEveryRpsReturningTheIdsInTheOrderGivenWithConsecutiveNumbers() {
+		final NfseDocument first = rps();
+		final NfseDocument second = rps();
+		final NfseDocument third = rps();
 		stored(first);
 		stored(second);
 		stored(third);
 		when(nfseRepositoryPort.allocateNextNumber(companyId, SP)).thenReturn(new NfseNumber("1", 1L),
 				new NfseNumber("1", 2L), new NfseNumber("1", 3L));
 
-		List<NfseId> ids = service.execute(commandFor(third, first, second));
+		final List<NfseId> ids = service.execute(commandFor(third, first, second));
 
 		assertThat(ids).containsExactly(third.getId(), first.getId(), second.getId());
-		ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> saved = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort, org.mockito.Mockito.times(3)).save(saved.capture());
 		assertThat(saved.getAllValues()).extracting(NfseDocument::getStatus).containsOnly(NfseStatus.DRAFT);
 		assertThat(saved.getAllValues()).extracting(NfseDocument::getNfseNumber).containsExactlyInAnyOrder(1L, 2L, 3L);
@@ -109,13 +122,27 @@ class ConvertRpsToNfseServiceTest {
 
 	@Test
 	@DisplayName("Numbers each document within the scope of its own company and provider municipality")
-	void ac2_eachDocumentIsNumberedInTheScopeOfItsOwnCompanyAndProviderMunicipality() {
-		CompanyId other = CompanyId.of(UUID.randomUUID());
-		NfseDocument mine = rps();
-		NfseDocument theirs = NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), other, "3304557",
-				mine.getTomador(), ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, "3304557",
-				new BigDecimal("100.00"), new BigDecimal("5.0000"), new BigDecimal("5.00"), null, List.of(), "x",
-				"RPS", 1L, Instant.now());
+	void ac2EachDocumentIsNumberedInTheScopeOfItsOwnCompanyAndProviderMunicipality() {
+		final CompanyId other = CompanyId.of(UUID.randomUUID());
+		final NfseDocument mine = rps();
+		final NfseDocument theirs = NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(other)
+				.providerMunicipalityIbgeCode("3304557")
+				.tomador(mine.getTomador())
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode("3304557")
+				.serviceAmount(new BigDecimal("100.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("5.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("x")
+				.rpsSeries("RPS")
+				.rpsNumber(1L)
+				.createdAt(Instant.now())
+				.build();
 		stored(mine);
 		stored(theirs);
 		when(nfseRepositoryPort.allocateNextNumber(companyId, SP)).thenReturn(new NfseNumber("1", 4L));
@@ -129,11 +156,11 @@ class ConvertRpsToNfseServiceTest {
 
 	@Test
 	@DisplayName("Returns the same id for an already converted RPS without a new number or second document")
-	void ac4_anAlreadyConvertedRpsYieldsTheSameIdWithoutANewNumberOrSecondDocument() {
-		NfseDocument converted = rps().convertToNfse("1", 3L, Instant.now());
+	void ac4AnAlreadyConvertedRpsYieldsTheSameIdWithoutANewNumberOrSecondDocument() {
+		final NfseDocument converted = rps().convertToNfse("1", 3L, Instant.now());
 		stored(converted);
 
-		List<NfseId> ids = service.execute(commandFor(converted));
+		final List<NfseId> ids = service.execute(commandFor(converted));
 
 		assertThat(ids).containsExactly(converted.getId());
 		verify(nfseRepositoryPort, never()).allocateNextNumber(any(), any());
@@ -142,12 +169,12 @@ class ConvertRpsToNfseServiceTest {
 
 	@Test
 	@DisplayName("Converts an id repeated within one batch only once")
-	void ac4_theSameIdRepeatedInOneBatchIsConvertedOnce() {
-		NfseDocument rps = rps();
+	void ac4TheSameIdRepeatedInOneBatchIsConvertedOnce() {
+		final NfseDocument rps = rps();
 		stored(rps);
 		when(nfseRepositoryPort.allocateNextNumber(companyId, SP)).thenReturn(new NfseNumber("1", 1L));
 
-		List<NfseId> ids = service.execute(commandFor(rps, rps));
+		final List<NfseId> ids = service.execute(commandFor(rps, rps));
 
 		assertThat(ids).containsExactly(rps.getId());
 		verify(nfseRepositoryPort).save(any());
@@ -156,7 +183,7 @@ class ConvertRpsToNfseServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown RPS")
 	void anUnknownRpsIsNotFound() {
-		RpsId missing = RpsId.of(UUID.randomUUID());
+		final RpsId missing = RpsId.of(UUID.randomUUID());
 		when(nfseRepositoryPort.findByIdForUpdate(missing.toNfseId())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ConvertRpsToNfseCommand(List.of(missing))))

@@ -77,7 +77,7 @@ public class SignupService implements SignupUseCase {
 
         final var subscription = Subscription.request(plan, company, billingCycle);
         subscription.activate();
-        Subscription saved = subscriptionRepositoryPort.save(subscription);
+        final Subscription saved = subscriptionRepositoryPort.save(subscription);
 
         notifyUserRegistrationProducerPort.execute(new Context(NotifyUserRegistrationMessage.builder()
                 .username(user.getName())
@@ -90,37 +90,37 @@ public class SignupService implements SignupUseCase {
                 saved.getActivationDate(), saved.getExpirationDate());
     }
 
-    private static PlanTier parsePlan(String slug) {
+    private static PlanTier parsePlan(final String slug) {
         if (slug == null || slug.isBlank()) {
             return DEFAULT_PLAN;
         }
         try {
             return PlanTier.valueOf(slug.strip().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new SignupRejectedException(SignupRejectedException.PLAN, "Plano desconhecido: " + slug);
         }
     }
 
-    private static BillingCycle parseBilling(String slug) {
+    private static BillingCycle parseBilling(final String slug) {
         if (slug == null || slug.isBlank()) {
             return DEFAULT_BILLING;
         }
         try {
             return BillingCycle.valueOf(slug.strip().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new SignupRejectedException(SignupRejectedException.BILLING, "Ciclo de cobrança desconhecido: " + slug);
         }
     }
 
-    private static Document parseCnpj(String value) {
+    private static Document parseCnpj(final String value) {
         try {
             return Document.cnpj(value);
-        } catch (BusinessRuleException e) {
+        } catch (final BusinessRuleException e) {
             throw new SignupRejectedException(SignupRejectedException.CNPJ, "CNPJ inválido. Verifique e tente novamente.");
         }
     }
 
-    private static String requireText(String value, String message) {
+    private static String requireText(final String value, final String message) {
         if (value == null || value.isBlank()) {
             throw new BusinessRuleException(message);
         }

@@ -15,23 +15,23 @@ class InteractionRepositoryAdapter implements InteractionRepositoryPort {
 	private final InteractionJpaRepository jpaRepository;
 	private final InteractionPersistenceMapper mapper;
 
-	InteractionRepositoryAdapter(InteractionJpaRepository jpaRepository, InteractionPersistenceMapper mapper) {
+	InteractionRepositoryAdapter(final InteractionJpaRepository jpaRepository, final InteractionPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Interaction save(Interaction interaction) {
+	public Interaction save(final Interaction interaction) {
 		return mapper.map(jpaRepository.save(mapper.map(interaction)));
 	}
 
 	@Override
-	public List<Interaction> findByOpportunityId(OpportunityId opportunityId) {
+	public List<Interaction> findByOpportunityId(final OpportunityId opportunityId) {
 		return jpaRepository.findByOpportunityId(opportunityId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<Interaction> findByCustomerId(UUID customerId) {
+	public List<Interaction> findByCustomerId(final UUID customerId) {
 		return jpaRepository.findByCustomerId(customerId).stream().map(mapper::map).toList();
 	}
 }

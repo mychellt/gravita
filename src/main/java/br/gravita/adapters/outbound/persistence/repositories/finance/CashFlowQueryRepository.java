@@ -27,55 +27,54 @@ public class CashFlowQueryRepository {
 	@PersistenceContext
 	private EntityManager entityManager;
 
-	public List<ReceivableJpaEntity> findOutstandingReceivables(LocalDate until, CashFlowFilter filter) {
-		Map<String, Object> parameters = new HashMap<>();
+	public List<ReceivableJpaEntity> findOutstandingReceivables(final LocalDate until, final CashFlowFilter filter) {
+		final Map<String, Object> parameters = new HashMap<>();
 		parameters.put("statuses", List.of(ReceivableStatus.OPEN, ReceivableStatus.PARTIALLY_SETTLED));
 		parameters.put("until", until);
-		String jpql = "select r from ReceivableJpaEntity r where r.status in :statuses and r.dueDate <= :until"
+		final String jpql = "select r from ReceivableJpaEntity r where r.status in :statuses and r.dueDate <= :until"
 				+ scopeClauses("r", filter, parameters) + " order by r.dueDate, r.id";
 		return typed(jpql, ReceivableJpaEntity.class, parameters).getResultList();
 	}
 
-	public List<PayableJpaEntity> findOutstandingPayables(LocalDate until, CashFlowFilter filter) {
-		Map<String, Object> parameters = new HashMap<>();
+	public List<PayableJpaEntity> findOutstandingPayables(final LocalDate until, final CashFlowFilter filter) {
+		final Map<String, Object> parameters = new HashMap<>();
 		parameters.put("statuses", List.of(PayableStatus.OPEN, PayableStatus.APPROVED));
 		parameters.put("until", until);
-		String jpql = "select p from PayableJpaEntity p where p.status in :statuses and p.dueDate <= :until"
+		final String jpql = "select p from PayableJpaEntity p where p.status in :statuses and p.dueDate <= :until"
 				+ scopeClauses("p", filter, parameters) + costCenterClause("p", filter, parameters)
 				+ " order by p.dueDate, p.id";
 		return typed(jpql, PayableJpaEntity.class, parameters).getResultList();
 	}
 
-	public List<PayableJpaEntity> findNotCancelledPayablesDueBetween(LocalDate from, LocalDate to,
-			CashFlowFilter filter) {
-		Map<String, Object> parameters = new HashMap<>();
+	public List<PayableJpaEntity> findNotCancelledPayablesDueBetween(final LocalDate from, final LocalDate to,
+			final CashFlowFilter filter) {
+		final Map<String, Object> parameters = new HashMap<>();
 		parameters.put("cancelled", PayableStatus.CANCELLED);
 		parameters.put("from", from);
 		parameters.put("to", to);
-		String jpql = "select p from PayableJpaEntity p where p.status <> :cancelled and p.dueDate >= :from"
+		final String jpql = "select p from PayableJpaEntity p where p.status <> :cancelled and p.dueDate >= :from"
 				+ " and p.dueDate <= :to" + scopeClauses("p", filter, parameters)
 				+ costCenterClause("p", filter, parameters) + " order by p.dueDate, p.id";
 		return typed(jpql, PayableJpaEntity.class, parameters).getResultList();
 	}
 
-	public List<SettlementJpaEntity> findRealizedSettlements(Instant from, Instant until, CashFlowFilter filter) {
-		Map<String, Object> parameters = new HashMap<>();
+	public List<SettlementJpaEntity> findRealizedSettlements(final Instant from, final Instant until, final CashFlowFilter filter) {
+		final Map<String, Object> parameters = new HashMap<>();
 		parameters.put("from", from);
 		parameters.put("until", until);
-		StringBuilder jpql = new StringBuilder(
+		final StringBuilder jpql = new StringBuilder(
 				"select s from SettlementJpaEntity s where s.timestamp >= :from and s.timestamp < :until");
 
-		String receivableScope = scopeClauses("r", filter, parameters);
-		String payableScope = scopeClauses("p", filter, parameters) + costCenterClause("p", filter, parameters);
-		boolean narrowed = !receivableScope.isEmpty() || !payableScope.isEmpty();
+		final String receivableScope = scopeClauses("r", filter, parameters);
+		final String payableScope = scopeClauses("p", filter, parameters) + costCenterClause("p", filter, parameters);
+		final boolean narrowed = !receivableScope.isEmpty() || !payableScope.isEmpty();
 		if (narrowed) {
 			// Receivables are never charged to a cost center, so that filter leaves only the payable side.
-			String payableSide = "exists (select p.id from PayableJpaEntity p where p.id = s.payableId" + payableScope
+			final String payableSide = "exists (select p.id from PayableJpaEntity p where p.id = s.payableId" + payableScope
 					+ ")";
 			if (filter.costCenterId() != null) {
 				jpql.append(" and ").append(payableSide);
-			}
-			else {
+			} else {
 				jpql.append(" and (exists (select r.id from ReceivableJpaEntity r where r.id = s.receivableId")
 						.append(receivableScope).append(") or ").append(payableSide).append(")");
 			}
@@ -84,8 +83,8 @@ public class CashFlowQueryRepository {
 		return typed(jpql.toString(), SettlementJpaEntity.class, parameters).getResultList();
 	}
 
-	private static String scopeClauses(String alias, CashFlowFilter filter, Map<String, Object> parameters) {
-		StringBuilder clauses = new StringBuilder();
+	private static String scopeClauses(final String alias, final CashFlowFilter filter, final Map<String, Object> parameters) {
+		final StringBuilder clauses = new StringBuilder();
 		if (filter.companyId() != null) {
 			clauses.append(" and ").append(alias).append(".companyId = :companyId");
 			parameters.put("companyId", filter.companyId());
@@ -101,7 +100,7 @@ public class CashFlowQueryRepository {
 		return clauses.toString();
 	}
 
-	private static String costCenterClause(String alias, CashFlowFilter filter, Map<String, Object> parameters) {
+	private static String costCenterClause(final String alias, final CashFlowFilter filter, final Map<String, Object> parameters) {
 		if (filter.costCenterId() == null) {
 			return "";
 		}
@@ -110,8 +109,8 @@ public class CashFlowQueryRepository {
 				+ ".costCenterSplit share where share.costCenterId = :costCenterId)";
 	}
 
-	private <T> TypedQuery<T> typed(String jpql, Class<T> type, Map<String, Object> parameters) {
-		TypedQuery<T> query = entityManager.createQuery(jpql, type);
+	private <T> TypedQuery<T> typed(final String jpql, final Class<T> type, final Map<String, Object> parameters) {
+		final TypedQuery<T> query = entityManager.createQuery(jpql, type);
 		parameters.forEach(query::setParameter);
 		return query;
 	}

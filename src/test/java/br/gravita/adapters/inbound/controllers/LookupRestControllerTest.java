@@ -28,7 +28,7 @@ class LookupRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 with the company name and address for a valid CNPJ")
 	void shouldReturn200WithNameAndAddressForValidCnpj() throws Exception {
-		AddressDomain address = AddressDomain.builder()
+		final AddressDomain address = AddressDomain.builder()
 				.street("Rua A").number("10").neighborhood("Centro").city("São Paulo").state("SP").zipCode("01000-000")
 				.build();
 		when(lookupPersonByDocumentPort.execute(any())).thenReturn(new PersonLookupResult("Acme LTDA", address));
@@ -49,7 +49,7 @@ class LookupRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 with the address only when looking up a CEP")
 	void shouldReturn200WithAddressOnlyForCep() throws Exception {
-		AddressDomain address = AddressDomain.builder()
+		final AddressDomain address = AddressDomain.builder()
 				.street("Rua B").neighborhood("Bairro").city("Rio de Janeiro").state("RJ").zipCode("20000-000")
 				.build();
 		when(lookupPersonByDocumentPort.execute(any())).thenReturn(new PersonLookupResult(null, address));

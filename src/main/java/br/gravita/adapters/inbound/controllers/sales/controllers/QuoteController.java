@@ -38,32 +38,32 @@ public class QuoteController {
 	private final ConvertQuoteToOrderUseCase convertQuoteToOrderUseCase;
 
 	@PostMapping
-	public ResponseEntity<QuoteResponse> create(@Valid @RequestBody CreateQuoteRequest request) {
-		QuoteView quote = createQuoteUseCase.execute(request.toCommand());
+	public ResponseEntity<QuoteResponse> create(@Valid @RequestBody final CreateQuoteRequest request) {
+		final QuoteView quote = createQuoteUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/sales/quotes/" + quote.id()))
 				.body(QuoteResponse.from(quote));
 	}
 
 	@PostMapping("/{id}/send")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void send(@PathVariable UUID id, @Valid @RequestBody SendQuoteRequest request) {
+	public void send(@PathVariable final UUID id, @Valid @RequestBody final SendQuoteRequest request) {
 		sendQuoteUseCase.execute(request.toCommand(id));
 	}
 
 	@PostMapping("/{id}/convert")
-	public ResponseEntity<SalesOrderResponse> convert(@PathVariable UUID id) {
-		SalesOrderView order = convertQuoteToOrderUseCase.execute(new ConvertQuoteToOrderCommand(id));
+	public ResponseEntity<SalesOrderResponse> convert(@PathVariable final UUID id) {
+		final SalesOrderView order = convertQuoteToOrderUseCase.execute(new ConvertQuoteToOrderCommand(id));
 		return ResponseEntity.created(URI.create("/api/sales/orders/" + order.id()))
 				.body(SalesOrderResponse.from(order));
 	}
 
 	@ExceptionHandler(QuoteNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleQuoteNotFoundException(QuoteNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleQuoteNotFoundException(final QuoteNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

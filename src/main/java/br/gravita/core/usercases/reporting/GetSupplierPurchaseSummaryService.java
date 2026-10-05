@@ -34,41 +34,41 @@ public class GetSupplierPurchaseSummaryService implements GetSupplierPurchaseSum
 	private final PurchasingReadModelPort purchasingReadModelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetSupplierPurchaseSummaryService(PurchasingReadModelPort purchasingReadModelPort,
-			PermissionCheckPort permissionCheckPort) {
+	public GetSupplierPurchaseSummaryService(final PurchasingReadModelPort purchasingReadModelPort,
+			final PermissionCheckPort permissionCheckPort) {
 		this.purchasingReadModelPort = purchasingReadModelPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public List<SupplierPurchaseSummary> execute(SupplierPurchaseSummaryQuery query) {
+	public List<SupplierPurchaseSummary> execute(final SupplierPurchaseSummaryQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the purchases by supplier report");
 		}
-		List<PurchasedOrder> orders = purchasingReadModelPort.purchasedOrders(query.period().atDay(1),
+		final List<PurchasedOrder> orders = purchasingReadModelPort.purchasedOrders(query.period().atDay(1),
 				query.period().atEndOfMonth(), query.companyId());
-		Map<UUID, List<PurchasedOrder>> bySupplier = new LinkedHashMap<>();
-		for (PurchasedOrder order : orders) {
+		final Map<UUID, List<PurchasedOrder>> bySupplier = new LinkedHashMap<>();
+		for (final PurchasedOrder order : orders) {
 			bySupplier.computeIfAbsent(order.supplierId(), id -> new ArrayList<>()).add(order);
 		}
-		Comparator<SupplierPurchaseSummary> ranking = Comparator.comparing(SupplierPurchaseSummary::value).reversed()
+		final Comparator<SupplierPurchaseSummary> ranking = Comparator.comparing(SupplierPurchaseSummary::value).reversed()
 				.thenComparing(SupplierPurchaseSummary::supplier);
 		return bySupplier.entrySet().stream().map(entry -> summary(entry.getKey(), entry.getValue())).sorted(ranking)
 				.toList();
 	}
 
-	private SupplierPurchaseSummary summary(UUID supplier, List<PurchasedOrder> orders) {
-		BigDecimal volume = orders.stream().map(PurchasedOrder::quantity).reduce(BigDecimal.ZERO, BigDecimal::add);
-		BigDecimal value = orders.stream().map(PurchasedOrder::value).reduce(BigDecimal.ZERO, BigDecimal::add)
+	private SupplierPurchaseSummary summary(final UUID supplier, final List<PurchasedOrder> orders) {
+		final BigDecimal volume = orders.stream().map(PurchasedOrder::quantity).reduce(BigDecimal.ZERO, BigDecimal::add);
+		final BigDecimal value = orders.stream().map(PurchasedOrder::value).reduce(BigDecimal.ZERO, BigDecimal::add)
 				.setScale(2, RoundingMode.HALF_UP);
 		return new SupplierPurchaseSummary(supplier, volume, value, averageLeadTimeDays(orders));
 	}
 
-	private BigDecimal averageLeadTimeDays(List<PurchasedOrder> orders) {
+	private BigDecimal averageLeadTimeDays(final List<PurchasedOrder> orders) {
 		long days = 0;
 		long deliveries = 0;
-		for (PurchasedOrder order : orders) {
-			for (LocalDate receivedOn : order.receivedOn()) {
+		for (final PurchasedOrder order : orders) {
+			for (final LocalDate receivedOn : order.receivedOn()) {
 				days += ChronoUnit.DAYS.between(order.orderedOn(), receivedOn);
 				deliveries++;
 			}

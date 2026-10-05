@@ -55,10 +55,10 @@ class CalculateCommissionServiceTest {
 	@Test
 	@DisplayName("Calculates and persists a commission per invoiced order item using the configured rate")
 	void calculatesAndPersistsACommissionPerInvoicedOrderItemUsingTheConfiguredRate() {
-		UUID salespersonId = UUID.randomUUID();
-		UUID productA = UUID.randomUUID();
-		UUID productB = UUID.randomUUID();
-		SalesOrder order = invoicedOrder(salespersonId,
+		final UUID salespersonId = UUID.randomUUID();
+		final UUID productA = UUID.randomUUID();
+		final UUID productB = UUID.randomUUID();
+		final SalesOrder order = invoicedOrder(salespersonId,
 				List.of(item(productA, new BigDecimal("2"), new BigDecimal("10.00"), BigDecimal.ZERO),
 						item(productB, BigDecimal.ONE, new BigDecimal("50.00"), BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findInvoicedByPeriod(PERIOD.atDay(1), PERIOD.atEndOfMonth()))
@@ -69,7 +69,7 @@ class CalculateCommissionServiceTest {
 				.thenReturn(Optional.of(new CommissionRate(salespersonId, productB, new BigDecimal("0.05"))));
 		when(commissionRepositoryPort.save(any(Commission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		List<CommissionView> views = service.execute(new CalculateCommissionQuery(null, PERIOD));
+		final List<CommissionView> views = service.execute(new CalculateCommissionQuery(null, PERIOD));
 
 		assertThat(views).hasSize(2);
 		assertThat(views.get(0).salespersonId()).isEqualTo(salespersonId);
@@ -79,7 +79,7 @@ class CalculateCommissionServiceTest {
 		assertThat(views.get(1).productId()).isEqualTo(productB);
 		assertThat(views.get(1).amount()).isEqualByComparingTo("2.5000");
 
-		ArgumentCaptor<Commission> saved = ArgumentCaptor.forClass(Commission.class);
+		final ArgumentCaptor<Commission> saved = ArgumentCaptor.forClass(Commission.class);
 		verify(commissionRepositoryPort, org.mockito.Mockito.times(2)).save(saved.capture());
 		assertThat(saved.getAllValues()).allSatisfy(c -> assertThat(c.orderId()).isEqualTo(order.getId()));
 
@@ -89,9 +89,9 @@ class CalculateCommissionServiceTest {
 	@Test
 	@DisplayName("Considers only the given salesperson's orders when a salesperson is provided")
 	void filtersByTheGivenSalespersonWhenProvided() {
-		UUID salespersonId = UUID.randomUUID();
-		UUID productId = UUID.randomUUID();
-		SalesOrder order = invoicedOrder(salespersonId,
+		final UUID salespersonId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		final SalesOrder order = invoicedOrder(salespersonId,
 				List.of(item(productId, BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(PERIOD.atDay(1), PERIOD.atEndOfMonth(),
 				salespersonId)).thenReturn(List.of(order));
@@ -99,7 +99,7 @@ class CalculateCommissionServiceTest {
 				.thenReturn(Optional.of(new CommissionRate(salespersonId, productId, new BigDecimal("0.20"))));
 		when(commissionRepositoryPort.save(any(Commission.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		List<CommissionView> views = service.execute(new CalculateCommissionQuery(salespersonId, PERIOD));
+		final List<CommissionView> views = service.execute(new CalculateCommissionQuery(salespersonId, PERIOD));
 
 		assertThat(views).hasSize(1);
 		assertThat(views.get(0).amount()).isEqualByComparingTo("20.0000");
@@ -109,9 +109,9 @@ class CalculateCommissionServiceTest {
 	@Test
 	@DisplayName("Rejects the calculation when no commission rate is configured for the salesperson and product pair")
 	void rejectsCalculatingWhenNoRateIsConfiguredForThePair() {
-		UUID salespersonId = UUID.randomUUID();
-		UUID productId = UUID.randomUUID();
-		SalesOrder order = invoicedOrder(salespersonId,
+		final UUID salespersonId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		final SalesOrder order = invoicedOrder(salespersonId,
 				List.of(item(productId, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findInvoicedByPeriod(PERIOD.atDay(1), PERIOD.atEndOfMonth()))
 				.thenReturn(List.of(order));
@@ -124,15 +124,15 @@ class CalculateCommissionServiceTest {
 		verify(commissionRepositoryPort, never()).save(any());
 	}
 
-	private static SalesOrder invoicedOrder(UUID salespersonId, List<SalesOrderItem> items) {
-		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+	private static SalesOrder invoicedOrder(final UUID salespersonId, final List<SalesOrderItem> items) {
+		final SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), salespersonId, items, SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
 		return SalesOrder.of(order.getId(), order.getOriginQuoteId(), order.getCustomerId(), salespersonId, items,
 				SalesOrderStatus.INVOICED, order.getApprovedBy(), order.getAlcadaId(), null, LocalDate.now());
 	}
 
-	private static SalesOrderItem item(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
-			BigDecimal discount) {
+	private static SalesOrderItem item(final UUID productOrServiceId, final BigDecimal quantity, final BigDecimal unitPrice,
+			final BigDecimal discount) {
 		return new SalesOrderItem(productOrServiceId, quantity, unitPrice, discount);
 	}
 }

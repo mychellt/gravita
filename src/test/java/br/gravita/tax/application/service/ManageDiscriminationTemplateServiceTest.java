@@ -42,17 +42,17 @@ class ManageDiscriminationTemplateServiceTest {
 				.thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private static DiscriminationTemplate template(String serviceCode, String text) {
+	private static DiscriminationTemplate template(final String serviceCode, final String text) {
 		return DiscriminationTemplate.of(DiscriminationTemplateId.of(UUID.randomUUID()), ServiceCode.of(serviceCode),
 				text);
 	}
 
 	@Test
 	@DisplayName("Creates a template with a canonical service code")
-	void ac1_createsATemplateWithACanonicalServiceCode() {
-		DiscriminationTemplateId id = service.create(new CreateDiscriminationTemplateCommand("1.05", "Licenciamento"));
+	void ac1CreatesATemplateWithACanonicalServiceCode() {
+		final DiscriminationTemplateId id = service.create(new CreateDiscriminationTemplateCommand("1.05", "Licenciamento"));
 
-		ArgumentCaptor<DiscriminationTemplate> saved = ArgumentCaptor.forClass(DiscriminationTemplate.class);
+		final ArgumentCaptor<DiscriminationTemplate> saved = ArgumentCaptor.forClass(DiscriminationTemplate.class);
 		verify(repositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(id);
 		assertThat(saved.getValue().getServiceCode().value()).isEqualTo("01.05");
@@ -71,8 +71,8 @@ class ManageDiscriminationTemplateServiceTest {
 
 	@Test
 	@DisplayName("Updates the existing template in place")
-	void ac1_updatesTheExistingTemplateInPlace() {
-		DiscriminationTemplate existing = template("01.05", "old");
+	void ac1UpdatesTheExistingTemplateInPlace() {
+		final DiscriminationTemplate existing = template("01.05", "old");
 		when(repositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
 
 		service.update(new UpdateDiscriminationTemplateCommand(existing.getId(), "08.01", "new"));
@@ -85,7 +85,7 @@ class ManageDiscriminationTemplateServiceTest {
 	@Test
 	@DisplayName("Reports not found when updating an unknown template")
 	void updateOfAnUnknownTemplateIsNotFound() {
-		DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
+		final DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
 		when(repositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.update(new UpdateDiscriminationTemplateCommand(id, "01.05", "x")))
@@ -95,8 +95,8 @@ class ManageDiscriminationTemplateServiceTest {
 
 	@Test
 	@DisplayName("Deletes an existing template")
-	void ac1_deletesAnExistingTemplate() {
-		DiscriminationTemplate existing = template("01.05", "x");
+	void ac1DeletesAnExistingTemplate() {
+		final DiscriminationTemplate existing = template("01.05", "x");
 		when(repositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
 
 		service.delete(existing.getId());
@@ -107,7 +107,7 @@ class ManageDiscriminationTemplateServiceTest {
 	@Test
 	@DisplayName("Reports not found when deleting an unknown template")
 	void deleteOfAnUnknownTemplateIsNotFound() {
-		DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
+		final DiscriminationTemplateId id = DiscriminationTemplateId.of(UUID.randomUUID());
 		when(repositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.delete(id)).isInstanceOf(ResourceNotFoundException.class);
@@ -116,9 +116,9 @@ class ManageDiscriminationTemplateServiceTest {
 
 	@Test
 	@DisplayName("Lists only the requested service type, or everything when none is given")
-	void ac2_listsOnlyTheRequestedServiceTypeOrEverythingWhenNoneIsGiven() {
-		List<DiscriminationTemplate> forType = List.of(template("01.05", "a"));
-		List<DiscriminationTemplate> all = List.of(template("01.05", "a"), template("08.01", "b"));
+	void ac2ListsOnlyTheRequestedServiceTypeOrEverythingWhenNoneIsGiven() {
+		final List<DiscriminationTemplate> forType = List.of(template("01.05", "a"));
+		final List<DiscriminationTemplate> all = List.of(template("01.05", "a"), template("08.01", "b"));
 		when(repositoryPort.findByServiceCode(ServiceCode.of("01.05"))).thenReturn(forType);
 		when(repositoryPort.findAll()).thenReturn(all);
 

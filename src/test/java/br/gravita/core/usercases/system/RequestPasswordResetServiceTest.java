@@ -53,7 +53,7 @@ class RequestPasswordResetServiceTest {
                 Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
     }
 
-    private void givenLatestTokenIssuedAt(LocalDateTime issuedAt) {
+    private void givenLatestTokenIssuedAt(final LocalDateTime issuedAt) {
         when(tokenRepository.findLatestByUserId(activeUser.getId().value()))
                 .thenReturn(Optional.of(PasswordResetToken.issue(activeUser.getId(), issuedAt).token()));
     }

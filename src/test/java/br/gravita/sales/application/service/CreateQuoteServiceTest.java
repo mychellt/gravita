@@ -41,17 +41,17 @@ class CreateQuoteServiceTest {
 	@DisplayName("Persists a DRAFT quote with the submitted items and validity date")
 	void persistsADraftQuoteWithTheSubmittedItemsAndValidity() {
 		when(quoteRepositoryPort.save(any(Quote.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		UUID customerId = UUID.randomUUID();
-		LocalDate validUntil = LocalDate.now().plusDays(10);
-		List<QuoteItem> items = List.of(
+		final UUID customerId = UUID.randomUUID();
+		final LocalDate validUntil = LocalDate.now().plusDays(10);
+		final List<QuoteItem> items = List.of(
 				new QuoteItem(UUID.randomUUID(), new BigDecimal("2"), new BigDecimal("19.90"), new BigDecimal("3.80")),
 				new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("150.00"), BigDecimal.ZERO));
 
-		UUID salespersonId = UUID.randomUUID();
+		final UUID salespersonId = UUID.randomUUID();
 
-		QuoteView view = service.execute(new CreateQuoteCommand(customerId, salespersonId, items, validUntil));
+		final QuoteView view = service.execute(new CreateQuoteCommand(customerId, salespersonId, items, validUntil));
 
-		ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
+		final ArgumentCaptor<Quote> saved = ArgumentCaptor.forClass(Quote.class);
 		verify(quoteRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isNotNull();
 		assertThat(saved.getValue().getCustomerId()).isEqualTo(customerId);
@@ -80,7 +80,7 @@ class CreateQuoteServiceTest {
 	@Test
 	@DisplayName("Rejects a quote whose validity date is not in the future and persists nothing")
 	void rejectsAValidityDateThatIsNotInTheFutureWithoutPersistingIt() {
-		List<QuoteItem> items = List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null));
+		final List<QuoteItem> items = List.of(new QuoteItem(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, null));
 
 		assertThatThrownBy(() -> service.execute(
 				new CreateQuoteCommand(UUID.randomUUID(), UUID.randomUUID(), items, LocalDate.now())))

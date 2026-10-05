@@ -29,23 +29,23 @@ public class ManifestInboundNfeService implements ManifestInboundNfeUseCase {
 	private final SubmitToSefazPort submitToSefazPort;
 	private final InboundManifestationRepositoryPort inboundManifestationRepositoryPort;
 
-	public ManifestInboundNfeService(InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			SubmitToSefazPort submitToSefazPort, InboundManifestationRepositoryPort inboundManifestationRepositoryPort) {
+	public ManifestInboundNfeService(final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final SubmitToSefazPort submitToSefazPort, final InboundManifestationRepositoryPort inboundManifestationRepositoryPort) {
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
 		this.submitToSefazPort = submitToSefazPort;
 		this.inboundManifestationRepositoryPort = inboundManifestationRepositoryPort;
 	}
 
 	@Override
-	public InboundManifestation execute(ManifestInboundNfeCommand command) {
-		Optional<InboundNfe> matchingInboundNfe = inboundNfeRepositoryPort.findByAccessKey(command.accessKey());
+	public InboundManifestation execute(final ManifestInboundNfeCommand command) {
+		final Optional<InboundNfe> matchingInboundNfe = inboundNfeRepositoryPort.findByAccessKey(command.accessKey());
 
 		// SEFAZ must accept the manifestation before the local record is created,
 		// same ordering as UC-M2-06's void-number-range submission.
-		SefazSubmissionResult result = submitToSefazPort
+		final SefazSubmissionResult result = submitToSefazPort
 				.manifest(new SefazManifestationRequest(command.accessKey(), command.type()));
 
-		InboundManifestation manifestation = InboundManifestation.of(InboundManifestationId.of(UUID.randomUUID()),
+		final InboundManifestation manifestation = InboundManifestation.of(InboundManifestationId.of(UUID.randomUUID()),
 				command.accessKey(), command.type(), matchingInboundNfe.map(InboundNfe::getId).orElse(null),
 				result.protocol(), Instant.now());
 

@@ -20,23 +20,23 @@ class PlanRepositoryAdapter implements PlanRepositoryPort {
 	private final SubscriptionJpaRepository subscriptionJpaRepository;
 	private final PlanPersistenceMapper mapper;
 
-	PlanRepositoryAdapter(PlanJpaRepository jpaRepository, SubscriptionJpaRepository subscriptionJpaRepository,
-			PlanPersistenceMapper mapper) {
+	PlanRepositoryAdapter(final PlanJpaRepository jpaRepository, final SubscriptionJpaRepository subscriptionJpaRepository,
+			final PlanPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.subscriptionJpaRepository = subscriptionJpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PlanDomain save(PlanDomain plan) {
-		PlanJpaEntity entity = mapper.map(plan);
+	public PlanDomain save(final PlanDomain plan) {
+		final PlanJpaEntity entity = mapper.map(plan);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PlanJpaEntity saved = jpaRepository.save(entity);
+		final PlanJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PlanDomain> findById(UUID id) {
+	public Optional<PlanDomain> findById(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
@@ -46,17 +46,17 @@ class PlanRepositoryAdapter implements PlanRepositoryPort {
 	}
 
 	@Override
-	public Optional<PlanDomain> findActiveByTier(PlanTier tier) {
+	public Optional<PlanDomain> findActiveByTier(final PlanTier tier) {
 		return jpaRepository.findFirstByTierAndActiveTrueOrderByCreatedAt(tier).map(mapper::map);
 	}
 
 	@Override
-	public boolean hasSubscriptions(UUID id) {
+	public boolean hasSubscriptions(final UUID id) {
 		return subscriptionJpaRepository.existsByPlanId(id);
 	}
 
 	@Override
-	public void deleteById(UUID id) {
+	public void deleteById(final UUID id) {
 		jpaRepository.findById(id).ifPresent(entity -> {
 			entity.setNew(false);
 			jpaRepository.delete(entity);

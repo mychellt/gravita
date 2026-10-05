@@ -12,16 +12,16 @@ public class UpdateSupplierService implements UpdateSupplierUseCase {
 
 	private final SupplierRepositoryPort supplierRepositoryPort;
 
-	public UpdateSupplierService(SupplierRepositoryPort supplierRepositoryPort) {
+	public UpdateSupplierService(final SupplierRepositoryPort supplierRepositoryPort) {
 		this.supplierRepositoryPort = supplierRepositoryPort;
 	}
 
 	@Override
-	public void execute(UpdateSupplierCommand command) {
-		Supplier existing = supplierRepositoryPort.findById(command.supplierId())
+	public void execute(final UpdateSupplierCommand command) {
+		final Supplier existing = supplierRepositoryPort.findById(command.supplierId())
 				.orElseThrow(() -> new SupplierNotFoundException(command.supplierId().value()));
 
-		Supplier updated = Supplier.of(
+		final Supplier updated = Supplier.of(
 				existing.getId(),
 				coalesce(command.document(), existing.getDocument()),
 				coalesce(command.name(), existing.getName()),
@@ -35,7 +35,7 @@ public class UpdateSupplierService implements UpdateSupplierUseCase {
 		supplierRepositoryPort.save(updated);
 	}
 
-	private static <T> T coalesce(T newValue, T currentValue) {
+	private static <T> T coalesce(final T newValue, final T currentValue) {
 		return newValue != null ? newValue : currentValue;
 	}
 }

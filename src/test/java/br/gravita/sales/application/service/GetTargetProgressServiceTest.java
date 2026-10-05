@@ -45,15 +45,15 @@ class GetTargetProgressServiceTest {
 	@Test
 	@DisplayName("Reports the achieved value and order count against the configured target")
 	void reportsAchievedValueAndOrderCountAgainstTheConfiguredTarget() {
-		UUID salespersonId = UUID.randomUUID();
-		SalesOrder orderA = invoicedOrder(salespersonId, new BigDecimal("300.00"));
-		SalesOrder orderB = invoicedOrder(salespersonId, new BigDecimal("200.00"));
+		final UUID salespersonId = UUID.randomUUID();
+		final SalesOrder orderA = invoicedOrder(salespersonId, new BigDecimal("300.00"));
+		final SalesOrder orderB = invoicedOrder(salespersonId, new BigDecimal("200.00"));
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(MONTH.atDay(1), MONTH.atEndOfMonth(),
 				salespersonId)).thenReturn(List.of(orderA, orderB));
 		when(salespersonTargetRepositoryPort.findBySalespersonAndMonth(salespersonId, MONTH))
 				.thenReturn(Optional.of(new SalespersonTarget(salespersonId, MONTH, new BigDecimal("1000.00"), 4)));
 
-		TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
+		final TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
 
 		assertThat(view.targetConfigured()).isTrue();
 		assertThat(view.valueAchieved()).isEqualByComparingTo("500.00");
@@ -67,13 +67,13 @@ class GetTargetProgressServiceTest {
 	@Test
 	@DisplayName("Returns a \"no target configured\" result instead of dividing by zero")
 	void returnsANoTargetConfiguredResultInsteadOfDividingByZero() {
-		UUID salespersonId = UUID.randomUUID();
+		final UUID salespersonId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(MONTH.atDay(1), MONTH.atEndOfMonth(),
 				salespersonId)).thenReturn(List.of(invoicedOrder(salespersonId, new BigDecimal("100.00"))));
 		when(salespersonTargetRepositoryPort.findBySalespersonAndMonth(salespersonId, MONTH))
 				.thenReturn(Optional.empty());
 
-		TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
+		final TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
 
 		assertThat(view.targetConfigured()).isFalse();
 		assertThat(view.valueAchieved()).isEqualByComparingTo("100.00");
@@ -84,18 +84,18 @@ class GetTargetProgressServiceTest {
 	@Test
 	@DisplayName("Only orders invoiced in the requested month count towards the progress")
 	void onlyOrdersInvoicedInTheRequestedMonthAreConsidered() {
-		UUID salespersonId = UUID.randomUUID();
+		final UUID salespersonId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(MONTH.atDay(1), MONTH.atEndOfMonth(),
 				salespersonId)).thenReturn(List.of());
 		when(salespersonTargetRepositoryPort.findBySalespersonAndMonth(any(), any())).thenReturn(Optional.empty());
 
-		TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
+		final TargetProgressView view = service.execute(new GetTargetProgressQuery(salespersonId, MONTH));
 
 		assertThat(view.valueAchieved()).isEqualByComparingTo(BigDecimal.ZERO);
 		assertThat(view.orderCountAchieved()).isZero();
 	}
 
-	private static SalesOrder invoicedOrder(UUID salespersonId, BigDecimal itemValue) {
+	private static SalesOrder invoicedOrder(final UUID salespersonId, final BigDecimal itemValue) {
 		return SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
 				salespersonId, List.of(new SalesOrderItem(UUID.randomUUID(), BigDecimal.ONE, itemValue, BigDecimal.ZERO)),
 				SalesOrderStatus.INVOICED, UUID.randomUUID(), null, null, LocalDate.now());

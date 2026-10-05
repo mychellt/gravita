@@ -18,13 +18,13 @@ class FiscalBookAdapter implements GenerateFiscalBookPort {
 
 	private final RenderPdfPort renderPdfPort;
 
-	FiscalBookAdapter(RenderPdfPort renderPdfPort) {
+	FiscalBookAdapter(final RenderPdfPort renderPdfPort) {
 		this.renderPdfPort = renderPdfPort;
 	}
 
 	@Override
-	public FiscalBookFiles generate(LivrosFiscaisBooks books) {
-		PdfReport report = FiscalBookLayout.layout(books);
+	public FiscalBookFiles generate(final LivrosFiscaisBooks books) {
+		final PdfReport report = FiscalBookLayout.layout(books);
 		return new FiscalBookFiles(renderPdfPort.render(report),
 				FiscalBookLayout.toText(report).getBytes(StandardCharsets.UTF_8));
 	}

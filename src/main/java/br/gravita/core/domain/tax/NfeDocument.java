@@ -1,5 +1,6 @@
 package br.gravita.core.domain.tax;
 
+import lombok.Builder;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import java.math.BigDecimal;
@@ -52,14 +53,16 @@ public final class NfeDocument {
 	private final String cancellationJustification;
 	private final Instant cancelledAt;
 
-	public NfeDocument(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
-			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
-			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
-			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
-			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
-			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef, List<CorrectionLetter> correctionLetters, Instant authorizedAt,
-			String cancellationJustification, Instant cancelledAt) {
+	/** Reconstructs a document from persistence, at any status in its lifecycle: {@code NfeDocument.builder()...build()}. */
+	@Builder
+	public NfeDocument(final NfeDocumentId id, final CompanyId issuerCompanyId, final UUID originSalesOrderId,
+			final NaturezaOperacao naturezaOperacao, final Cfop cfop, final NfeRecipient recipient, final List<NfeItem> items,
+			final BigDecimal freight, final BigDecimal insurance, final BigDecimal otherExpenses, final NfeTransportInfo transport,
+			final String referencedAccessKey, final String additionalInfo, final TaxCalculationTotals taxTotals,
+			final NfeDocumentStatus status, final Instant createdAt, final String documentSeries, final Long documentNumber, final String accessKey,
+			final String sefazProtocol, final boolean contingencyMode, final String rejectionReason, final String xmlStorageRef,
+			final String danfeStorageRef, final List<CorrectionLetter> correctionLetters, final Instant authorizedAt,
+			final String cancellationJustification, final Instant cancelledAt) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.issuerCompanyId = Objects.requireNonNull(issuerCompanyId, "issuerCompanyId is required");
 		this.originSalesOrderId = originSalesOrderId;
@@ -94,33 +97,15 @@ public final class NfeDocument {
 	 * Builds a new {@code DRAFT} document (UC-M2-01). AC6: a return or
 	 * complementary note must carry a {@code referencedAccessKey}.
 	 */
-	public static NfeDocument draft(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
-			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
-			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
-			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals, Instant createdAt) {
-		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
-				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null, List.of(), null,
-				null, null);
-	}
-
-	/**
-	 * Reconstructs a document from persistence, at any status in its
-	 * lifecycle.
-	 */
-	public static NfeDocument of(NfeDocumentId id, CompanyId issuerCompanyId, UUID originSalesOrderId,
-			NaturezaOperacao naturezaOperacao, Cfop cfop, NfeRecipient recipient, List<NfeItem> items,
-			BigDecimal freight, BigDecimal insurance, BigDecimal otherExpenses, NfeTransportInfo transport,
-			String referencedAccessKey, String additionalInfo, TaxCalculationTotals taxTotals,
-			NfeDocumentStatus status, Instant createdAt, String documentSeries, Long documentNumber, String accessKey,
-			String sefazProtocol, boolean contingencyMode, String rejectionReason, String xmlStorageRef,
-			String danfeStorageRef, List<CorrectionLetter> correctionLetters, Instant authorizedAt,
-			String cancellationJustification, Instant cancelledAt) {
-		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
-				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
-				xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt, cancellationJustification,
-				cancelledAt);
+	@Builder(builderMethodName = "draft", builderClassName = "DraftBuilder")
+	private NfeDocument(final NfeDocumentId id, final CompanyId issuerCompanyId, final UUID originSalesOrderId,
+			final NaturezaOperacao naturezaOperacao, final Cfop cfop, final NfeRecipient recipient, final List<NfeItem> items,
+			final BigDecimal freight, final BigDecimal insurance, final BigDecimal otherExpenses, final NfeTransportInfo transport,
+			final String referencedAccessKey, final String additionalInfo, final TaxCalculationTotals taxTotals, final Instant createdAt) {
+		this(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items, freight,
+				insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
+				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null,
+				List.of(), null, null, null);
 	}
 
 	/**
@@ -129,7 +114,7 @@ public final class NfeDocument {
 	 * an already-decided document would allocate a second document number for
 	 * the same commercial transaction.
 	 */
-	public NfeDocument queue(String documentSeries, Long documentNumber, String accessKey) {
+	public NfeDocument queue(final String documentSeries, final Long documentNumber, final String accessKey) {
 		requireDraft();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
@@ -179,7 +164,7 @@ public final class NfeDocument {
 	 * possibly much earlier) - since UC-M2-04's legal cancellation window is
 	 * counted from authorization.
 	 */
-	public NfeDocument authorize(String sefazProtocol) {
+	public NfeDocument authorize(final String sefazProtocol) {
 		requireSent();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
@@ -194,7 +179,7 @@ public final class NfeDocument {
 	 * from {@link #authorize}, since the XML/DANFE can only be rendered (and
 	 * therefore stored) once the protocol they embed is known.
 	 */
-	public NfeDocument withStorageRefs(String xmlStorageRef, String danfeStorageRef) {
+	public NfeDocument withStorageRefs(final String xmlStorageRef, final String danfeStorageRef) {
 		if (status != NfeDocumentStatus.AUTHORIZED) {
 			throw new BusinessRuleException(
 					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + status + ")");
@@ -211,7 +196,7 @@ public final class NfeDocument {
 	 * reason is surfaced so the issuer can correct and re-issue under a new
 	 * document number, per the use case description.
 	 */
-	public NfeDocument reject(String rejectionReason) {
+	public NfeDocument reject(final String rejectionReason) {
 		requireSent();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
@@ -228,14 +213,14 @@ public final class NfeDocument {
 	 * already exist, and its SEFAZ protocol is supplied by the caller (the
 	 * use case submits to SEFAZ before calling this method).
 	 */
-	public NfeDocument issueCorrectionLetter(String text, String protocol, Instant issuedAt) {
+	public NfeDocument issueCorrectionLetter(final String text, final String protocol, final Instant issuedAt) {
 		requireAuthorized();
 		if (correctionLetters.size() >= MAX_CORRECTION_LETTERS) {
 			throw new BusinessRuleException("NfeDocument " + id.value() + " already has the maximum of "
 					+ MAX_CORRECTION_LETTERS + " correction letters");
 		}
-		CorrectionLetter letter = new CorrectionLetter(correctionLetters.size() + 1, text, protocol, issuedAt);
-		List<CorrectionLetter> updated = new ArrayList<>(correctionLetters);
+		final CorrectionLetter letter = new CorrectionLetter(correctionLetters.size() + 1, text, protocol, issuedAt);
+		final List<CorrectionLetter> updated = new ArrayList<>(correctionLetters);
 		updated.add(letter);
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals, status,
@@ -251,7 +236,7 @@ public final class NfeDocument {
 	 * responsibility as {@code NfceSale#cancel}, which leaves its own
 	 * deadline check to {@code CancelNfceUseCase}.
 	 */
-	public NfeDocument cancel(String justification, Instant cancelledAt) {
+	public NfeDocument cancel(final String justification, final Instant cancelledAt) {
 		requireAuthorized();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
 				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, taxTotals,
@@ -293,30 +278,30 @@ public final class NfeDocument {
 		}
 	}
 
-	private static String requireText(String value, String field) {
+	private static String requireText(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required");
 		}
 		return value;
 	}
 
-	private static List<NfeItem> requireNonEmptyItems(List<NfeItem> items) {
+	private static List<NfeItem> requireNonEmptyItems(final List<NfeItem> items) {
 		if (items == null || items.isEmpty()) {
 			throw new BusinessRuleException("An NfeDocument must have at least one item");
 		}
 		return List.copyOf(items);
 	}
 
-	private static BigDecimal requireNonNegative(BigDecimal value, String fieldName) {
-		BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
+	private static BigDecimal requireNonNegative(final BigDecimal value, final String fieldName) {
+		final BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
 		if (resolved.compareTo(BigDecimal.ZERO) < 0) {
 			throw new BusinessRuleException(fieldName + " cannot be negative: " + resolved);
 		}
 		return resolved;
 	}
 
-	private static String requireReferencedAccessKeyIfNeeded(NaturezaOperacao naturezaOperacao,
-			String referencedAccessKey) {
+	private static String requireReferencedAccessKeyIfNeeded(final NaturezaOperacao naturezaOperacao,
+			final String referencedAccessKey) {
 		if (naturezaOperacao.requiresReferencedAccessKey() && (referencedAccessKey == null
 				|| referencedAccessKey.isBlank())) {
 			throw new BusinessRuleException(

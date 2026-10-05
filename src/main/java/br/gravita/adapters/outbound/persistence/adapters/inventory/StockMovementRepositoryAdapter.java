@@ -14,18 +14,18 @@ class StockMovementRepositoryAdapter implements StockMovementRepositoryPort {
 	private final StockMovementJpaRepository jpaRepository;
 	private final StockMovementPersistenceMapper mapper;
 
-	StockMovementRepositoryAdapter(StockMovementJpaRepository jpaRepository, StockMovementPersistenceMapper mapper) {
+	StockMovementRepositoryAdapter(final StockMovementJpaRepository jpaRepository, final StockMovementPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public StockMovement save(StockMovement movement) {
+	public StockMovement save(final StockMovement movement) {
 		return mapper.map(jpaRepository.save(mapper.map(movement)));
 	}
 
 	@Override
-	public List<StockMovement> findByTimestampGreaterThanEqual(Instant from) {
+	public List<StockMovement> findByTimestampGreaterThanEqual(final Instant from) {
 		return jpaRepository.findByTimestampGreaterThanEqual(from).stream().map(mapper::map).toList();
 	}
 }

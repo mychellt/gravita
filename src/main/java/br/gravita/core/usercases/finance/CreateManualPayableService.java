@@ -21,22 +21,22 @@ public class CreateManualPayableService implements CreateManualPayableUseCase {
 	private final SupplierRepositoryPort supplierRepositoryPort;
 	private final CostCenterRepositoryPort costCenterRepositoryPort;
 
-	public CreateManualPayableService(PayableRepositoryPort payableRepositoryPort,
-			SupplierRepositoryPort supplierRepositoryPort, CostCenterRepositoryPort costCenterRepositoryPort) {
+	public CreateManualPayableService(final PayableRepositoryPort payableRepositoryPort,
+			final SupplierRepositoryPort supplierRepositoryPort, final CostCenterRepositoryPort costCenterRepositoryPort) {
 		this.payableRepositoryPort = payableRepositoryPort;
 		this.supplierRepositoryPort = supplierRepositoryPort;
 		this.costCenterRepositoryPort = costCenterRepositoryPort;
 	}
 
 	@Override
-	public Payable execute(CreateManualPayableCommand command) {
+	public Payable execute(final CreateManualPayableCommand command) {
 		if (command.supplierId() != null) {
 			supplierRepositoryPort.findById(SupplierId.of(command.supplierId()))
 					.orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + command.supplierId()));
 		}
 
-		PayableId id = PayableId.of(UUID.randomUUID());
-		Payable payable = Payable.createManual(id, command.supplierId(), command.amount(), command.dueDate(),
+		final PayableId id = PayableId.of(UUID.randomUUID());
+		final Payable payable = Payable.createManual(id, command.supplierId(), command.amount(), command.dueDate(),
 				command.costCenterSplit());
 
 		requireCostCentersExist(payable.getCostCenterSplit());
@@ -44,8 +44,8 @@ public class CreateManualPayableService implements CreateManualPayableUseCase {
 		return payableRepositoryPort.save(payable);
 	}
 
-	private void requireCostCentersExist(List<CostCenterShare> split) {
-		for (CostCenterShare share : split) {
+	private void requireCostCentersExist(final List<CostCenterShare> split) {
+		for (final CostCenterShare share : split) {
 			costCenterRepositoryPort.get(share.costCenterId()).orElseThrow(
 					() -> new ResourceNotFoundException("Cost center not found: " + share.costCenterId()));
 		}

@@ -23,11 +23,11 @@ public class ActivationToken extends AbstractDomain {
     private String tokenHash;
     private LocalDateTime expiresAt;
 
-    public static IssuedActivationToken issue(UserId userId) {
+    public static IssuedActivationToken issue(final UserId userId) {
         return issue(userId, LocalDateTime.now());
     }
 
-    public static IssuedActivationToken issue(UserId userId, LocalDateTime now) {
+    public static IssuedActivationToken issue(final UserId userId, final LocalDateTime now) {
         final var rawToken = TokenSecret.generate();
         final var token = ActivationToken.builder()
                 .id(UUID.randomUUID())
@@ -39,7 +39,7 @@ public class ActivationToken extends AbstractDomain {
         return new IssuedActivationToken(rawToken, token);
     }
 
-    public static String hash(String rawToken) {
+    public static String hash(final String rawToken) {
         return TokenSecret.hash(rawToken);
     }
 
@@ -47,17 +47,17 @@ public class ActivationToken extends AbstractDomain {
         return getModifiedAt() != null;
     }
 
-    public boolean wasIssuedWithin(Duration window, LocalDateTime now) {
+    public boolean wasIssuedWithin(final Duration window, final LocalDateTime now) {
         return getCreatedAt() != null && now.isBefore(getCreatedAt().plus(window));
     }
 
-    public void expire(LocalDateTime now) {
+    public void expire(final LocalDateTime now) {
         if (!isUsed() && expiresAt.isAfter(now)) {
             this.expiresAt = now;
         }
     }
 
-    public void consume(LocalDateTime now) {
+    public void consume(final LocalDateTime now) {
         if (isUsed()) {
             throw new ActivationRejectedException(Reason.ALREADY_USED, "Este link de ativação já foi utilizado.");
         }

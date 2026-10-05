@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record ProfileSummaryResponse(UUID id, String name) {
 
-	public static ProfileSummaryResponse from(ProfileReference profile) {
+	public static ProfileSummaryResponse from(final ProfileReference profile) {
 		return new ProfileSummaryResponse(profile.id(), profile.name());
 	}
 }

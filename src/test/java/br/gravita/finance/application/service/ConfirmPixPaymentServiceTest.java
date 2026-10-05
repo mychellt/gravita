@@ -46,12 +46,12 @@ class ConfirmPixPaymentServiceTest {
 	@InjectMocks
 	private ConfirmPixPaymentService service;
 
-	private Receivable receivable(ReceivableStatus status) {
+	private Receivable receivable(final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
 				new BigDecimal("150.00"), LocalDate.now().plusDays(30), null, status, null, null);
 	}
 
-	private PixCharge charge(Receivable receivable, PixChargeStatus status) {
+	private PixCharge charge(final Receivable receivable, final PixChargeStatus status) {
 		return PixCharge.of(PixChargeId.of(UUID.randomUUID()), receivable.getId(), PixPayloads.valid(),
 				receivable.getAmount(), receivable.getDueDate(), Instant.now().plusSeconds(3600), status);
 	}
@@ -59,16 +59,16 @@ class ConfirmPixPaymentServiceTest {
 	@Test
 	@DisplayName("Marks the charge as paid and settles the linked receivable")
 	void marksTheChargePaidAndSettlesTheLinkedReceivable() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
-		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
 		when(pixChargeRepositoryPort.findById(charge.getId())).thenReturn(Optional.of(charge));
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(pixChargeRepositoryPort.save(any(PixCharge.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PixCharge paid = service.execute(new ConfirmPixPaymentCommand(charge.getId().value()));
+		final PixCharge paid = service.execute(new ConfirmPixPaymentCommand(charge.getId().value()));
 
 		assertThat(paid.getStatus()).isEqualTo(PixChargeStatus.PAID);
-		ArgumentCaptor<Receivable> settled = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> settled = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort).save(settled.capture());
 		assertThat(settled.getValue().getId()).isEqualTo(receivable.getId());
 		assertThat(settled.getValue().getStatus()).isEqualTo(ReceivableStatus.SETTLED);
@@ -77,8 +77,8 @@ class ConfirmPixPaymentServiceTest {
 	@Test
 	@DisplayName("Still marks an expired charge as paid when the bank reports it paid")
 	void anExpiredChargeThatTheBankReportsPaidIsStillPaid() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
-		PixCharge charge = charge(receivable, PixChargeStatus.EXPIRED);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final PixCharge charge = charge(receivable, PixChargeStatus.EXPIRED);
 		when(pixChargeRepositoryPort.findById(charge.getId())).thenReturn(Optional.of(charge));
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(pixChargeRepositoryPort.save(any(PixCharge.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -90,12 +90,12 @@ class ConfirmPixPaymentServiceTest {
 
 	@Test
 	@DisplayName("Changes nothing when the same payment is confirmed again")
-	void aRepeatedConfirmationChangesNothing() {
-		Receivable receivable = receivable(ReceivableStatus.SETTLED);
-		PixCharge charge = charge(receivable, PixChargeStatus.PAID);
+	void repeatedConfirmationChangesNothing() {
+		final Receivable receivable = receivable(ReceivableStatus.SETTLED);
+		final PixCharge charge = charge(receivable, PixChargeStatus.PAID);
 		when(pixChargeRepositoryPort.findById(charge.getId())).thenReturn(Optional.of(charge));
 
-		PixCharge result = service.execute(new ConfirmPixPaymentCommand(charge.getId().value()));
+		final PixCharge result = service.execute(new ConfirmPixPaymentCommand(charge.getId().value()));
 
 		assertThat(result).isSameAs(charge);
 		verify(pixChargeRepositoryPort, never()).save(any());
@@ -105,8 +105,8 @@ class ConfirmPixPaymentServiceTest {
 	@Test
 	@DisplayName("Leaves an already settled receivable as is but still marks the charge paid")
 	void leavesAnAlreadySettledReceivableAsIsButMarksTheChargePaid() {
-		Receivable receivable = receivable(ReceivableStatus.SETTLED);
-		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
+		final Receivable receivable = receivable(ReceivableStatus.SETTLED);
+		final PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
 		when(pixChargeRepositoryPort.findById(charge.getId())).thenReturn(Optional.of(charge));
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(pixChargeRepositoryPort.save(any(PixCharge.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -119,8 +119,8 @@ class ConfirmPixPaymentServiceTest {
 	@Test
 	@DisplayName("Fails without marking the charge paid when the receivable cannot be settled")
 	void failsWithoutMarkingPaidWhenTheReceivableCannotBeSettled() {
-		Receivable receivable = receivable(ReceivableStatus.CANCELLED);
-		PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
+		final Receivable receivable = receivable(ReceivableStatus.CANCELLED);
+		final PixCharge charge = charge(receivable, PixChargeStatus.PENDING);
 		when(pixChargeRepositoryPort.findById(charge.getId())).thenReturn(Optional.of(charge));
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 
@@ -133,7 +133,7 @@ class ConfirmPixPaymentServiceTest {
 	@Test
 	@DisplayName("Fails when the charge does not exist")
 	void failsWhenTheChargeDoesNotExist() {
-		UUID missing = UUID.randomUUID();
+		final UUID missing = UUID.randomUUID();
 		when(pixChargeRepositoryPort.findById(PixChargeId.of(missing))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ConfirmPixPaymentCommand(missing)))

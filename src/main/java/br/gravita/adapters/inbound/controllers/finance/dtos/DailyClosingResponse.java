@@ -9,7 +9,7 @@ import java.util.UUID;
 public record DailyClosingResponse(UUID account, LocalDate date, BigDecimal openingBalance, BigDecimal entries,
 		BigDecimal exits, BigDecimal closingBalance, List<CashMovementResponse> movements) {
 
-	public static DailyClosingResponse from(DailyClosing closing) {
+	public static DailyClosingResponse from(final DailyClosing closing) {
 		return new DailyClosingResponse(closing.getCashBoxId().value(), closing.getDate(),
 				closing.getOpeningBalance(), closing.getEntries(), closing.getExits(), closing.getClosingBalance(),
 				closing.getMovements().stream().map(CashMovementResponse::from).toList());

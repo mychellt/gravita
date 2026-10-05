@@ -20,7 +20,7 @@ public record CompanyResponse(
 		String phone,
 		String logoUrl) {
 
-	public static CompanyResponse from(Company company) {
+	public static CompanyResponse from(final Company company) {
 		return new CompanyResponse(company.getId().value(), company.getName(), company.getCnpj().number(),
 				company.getIe(), company.getIm(), company.getCnae(), company.getTaxRegime(),
 				company.isSimplesOptante(), company.getAddress(), company.getState(), company.getIssuingEmail(),

@@ -26,8 +26,8 @@ public class IbgeMunicipalityRestController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<List<IbgeMunicipalityResponse>> importMunicipalities(@Valid @RequestBody IbgeMunicipalityImportRequest request) {
-        List<IbgeMunicipalityResponse> imported = importIbgeMunicipalitiesPort.execute(new Context(request.toDomainList()))
+    public ResponseEntity<List<IbgeMunicipalityResponse>> importMunicipalities(@Valid @RequestBody final IbgeMunicipalityImportRequest request) {
+        final List<IbgeMunicipalityResponse> imported = importIbgeMunicipalitiesPort.execute(new Context(request.toDomainList()))
                 .stream().map(IbgeMunicipalityResponse::from).toList();
         return ResponseEntity.ok(imported);
     }

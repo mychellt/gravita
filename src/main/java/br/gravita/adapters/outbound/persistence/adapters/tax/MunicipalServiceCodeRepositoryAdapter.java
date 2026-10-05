@@ -9,17 +9,17 @@ class MunicipalServiceCodeRepositoryAdapter implements MunicipalServiceCodeRepos
 
 	private final MunicipalServiceCodeJpaRepository jpaRepository;
 
-	MunicipalServiceCodeRepositoryAdapter(MunicipalServiceCodeJpaRepository jpaRepository) {
+	MunicipalServiceCodeRepositoryAdapter(final MunicipalServiceCodeJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public boolean hasServiceCodeList(String municipalityIbgeCode) {
+	public boolean hasServiceCodeList(final String municipalityIbgeCode) {
 		return jpaRepository.existsByMunicipalityIbgeAndActiveTrue(municipalityIbgeCode);
 	}
 
 	@Override
-	public boolean existsByMunicipalityAndServiceCode(String municipalityIbgeCode, String serviceCode) {
+	public boolean existsByMunicipalityAndServiceCode(final String municipalityIbgeCode, final String serviceCode) {
 		return jpaRepository.existsByMunicipalityIbgeAndServiceCodeAndActiveTrue(municipalityIbgeCode, serviceCode);
 	}
 }

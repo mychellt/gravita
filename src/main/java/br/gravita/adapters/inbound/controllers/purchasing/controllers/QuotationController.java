@@ -21,19 +21,19 @@ public class QuotationController {
     private final RegisterQuotationResponseUseCase registerQuotationResponseUseCase;
 
     @PostMapping("/{id}/responses")
-    public ResponseEntity<Void> registerResponse(@PathVariable UUID id,
-                                                 @Valid @RequestBody RegisterQuotationResponseRequest request) {
+    public ResponseEntity<Void> registerResponse(@PathVariable final UUID id,
+                                                 @Valid @RequestBody final RegisterQuotationResponseRequest request) {
         registerQuotationResponseUseCase.execute(request.toCommand(id));
         return ResponseEntity.noContent().build();
     }
 
     @ExceptionHandler(QuotationNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleQuotationNotFoundException(QuotationNotFoundException exception) {
+    public ResponseEntity<Map<String, String>> handleQuotationNotFoundException(final QuotationNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 }

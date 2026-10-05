@@ -86,13 +86,13 @@ class CancelNfceServiceTest {
 		lenient().when(nfceRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private NfceSale authorizedSale(Instant createdAt) {
+	private NfceSale authorizedSale(final Instant createdAt) {
 		return authorizedSale(saleId, createdAt);
 	}
 
-	private NfceSale authorizedSale(UUID id, Instant createdAt) {
-		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-		NfceSale draft = NfceSale.register(NfceSaleId.of(id), sessionId, List.of(item), null,
+	private NfceSale authorizedSale(final UUID id, final Instant createdAt) {
+		final SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		final NfceSale draft = NfceSale.register(NfceSaleId.of(id), sessionId, List.of(item), null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, createdAt);
 		return draft.authorize("001", 10L, "3".repeat(44), "issue-protocol-1");
 	}
@@ -103,9 +103,23 @@ class CancelNfceServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfce@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfce@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private CancelNfceCommand command() {
@@ -114,7 +128,7 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Rejects the cancellation when the supervisor credential is invalid")
-	void ac1_invalidSupervisorCredentialIsRejected() {
+	void ac1InvalidSupervisorCredentialIsRejected() {
 		when(supervisorAuthorizationPort.authorize("wrong-password")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new CancelNfceCommand(saleId, "wrong-password", null)))
@@ -126,9 +140,9 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Rejects cancelling a sale that is neither the last sale nor from today")
-	void ac2_aSaleThatIsNeitherTheLastSaleNorFromTodayIsRejected() {
-		Instant threeDaysAgo = Instant.now().minus(java.time.Duration.ofDays(3));
-		NfceSale oldSale = authorizedSale(threeDaysAgo);
+	void ac2ASaleThatIsNeitherTheLastSaleNorFromTodayIsRejected() {
+		final Instant threeDaysAgo = Instant.now().minus(java.time.Duration.ofDays(3));
+		final NfceSale oldSale = authorizedSale(threeDaysAgo);
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(oldSale));
 		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(authorizedSale(UUID.randomUUID(), Instant.now())));
 
@@ -141,9 +155,9 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Allows cancelling the last sale even when it is not from today")
-	void ac2_theLastSaleIsEligibleEvenIfNotFromToday() {
-		Instant tenMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(10));
-		NfceSale sale = authorizedSale(tenMinutesAgo);
+	void ac2TheLastSaleIsEligibleEvenIfNotFromToday() {
+		final Instant tenMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(10));
+		final NfceSale sale = authorizedSale(tenMinutesAgo);
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
 		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
 
@@ -154,9 +168,9 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Rejects cancelling a sale past the thirty-minute window")
-	void ac3_aSaleThatIsPastTheThirtyMinuteWindowIsRejected() {
-		Instant fortyFiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(45));
-		NfceSale sale = authorizedSale(fortyFiveMinutesAgo);
+	void ac3ASaleThatIsPastTheThirtyMinuteWindowIsRejected() {
+		final Instant fortyFiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(45));
+		final NfceSale sale = authorizedSale(fortyFiveMinutesAgo);
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
 		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
 
@@ -169,30 +183,30 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Transmits a successful cancellation to SEFAZ and updates the sale status")
-	void ac4_successfulCancellationTransmitsToSefazAndUpdatesTheSaleStatus() {
-		Instant fiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(5));
-		NfceSale sale = authorizedSale(fiveMinutesAgo);
+	void ac4SuccessfulCancellationTransmitsToSefazAndUpdatesTheSaleStatus() {
+		final Instant fiveMinutesAgo = Instant.now().minus(java.time.Duration.ofMinutes(5));
+		final NfceSale sale = authorizedSale(fiveMinutesAgo);
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(sale));
 		when(nfceRepositoryPort.findMostRecent()).thenReturn(Optional.of(sale));
 
 		service.execute(command());
 
-		ArgumentCaptor<SefazCancellationRequest> requestCaptor = ArgumentCaptor.forClass(SefazCancellationRequest.class);
+		final ArgumentCaptor<SefazCancellationRequest> requestCaptor = ArgumentCaptor.forClass(SefazCancellationRequest.class);
 		verify(submitToSefazPort).cancel(requestCaptor.capture());
 		assertThat(requestCaptor.getValue().accessKey()).isEqualTo(sale.getAccessKey());
 		assertThat(requestCaptor.getValue().protocol()).isEqualTo(sale.getSefazProtocol());
 		assertThat(requestCaptor.getValue().reason()).isEqualTo("customer changed their mind");
 
-		ArgumentCaptor<NfceSale> saveCaptor = ArgumentCaptor.forClass(NfceSale.class);
+		final ArgumentCaptor<NfceSale> saveCaptor = ArgumentCaptor.forClass(NfceSale.class);
 		verify(nfceRepositoryPort).save(saveCaptor.capture());
 		assertThat(saveCaptor.getValue().getStatus()).isEqualTo(NfceSaleStatus.CANCELLED);
 	}
 
 	@Test
 	@DisplayName("Refuses to cancel a sale that is not authorized")
-	void aNonAuthorizedSaleCannotBeCancelled() {
-		SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
-		NfceSale draftSale = NfceSale.register(NfceSaleId.of(saleId), PosSessionId.of(UUID.randomUUID()),
+	void nonAuthorizedSaleCannotBeCancelled() {
+		final SaleItem item = new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), null);
+		final NfceSale draftSale = NfceSale.register(NfceSaleId.of(saleId), PosSessionId.of(UUID.randomUUID()),
 				List.of(item), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null,
 				Instant.now());
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.of(draftSale));
@@ -205,7 +219,7 @@ class CancelNfceServiceTest {
 
 	@Test
 	@DisplayName("Rejects cancelling a sale that does not exist")
-	void aNonExistentSaleIsRejected() {
+	void nonExistentSaleIsRejected() {
 		when(nfceRepositoryPort.findById(NfceSaleId.of(saleId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(command())).isInstanceOf(ResourceNotFoundException.class);

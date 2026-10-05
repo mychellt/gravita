@@ -28,9 +28,9 @@ public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUs
 	private final SubmitToSefazPort submitToSefazPort;
 	private final VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort;
 
-	public VoidDocumentNumberRangeService(CompanyRepositoryPort companyRepositoryPort,
-			DocumentSeriesRepositoryPort documentSeriesRepositoryPort, SubmitToSefazPort submitToSefazPort,
-			VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort) {
+	public VoidDocumentNumberRangeService(final CompanyRepositoryPort companyRepositoryPort,
+			final DocumentSeriesRepositoryPort documentSeriesRepositoryPort, final SubmitToSefazPort submitToSefazPort,
+			final VoidedNumberRangeRepositoryPort voidedNumberRangeRepositoryPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.documentSeriesRepositoryPort = documentSeriesRepositoryPort;
 		this.submitToSefazPort = submitToSefazPort;
@@ -38,15 +38,15 @@ public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUs
 	}
 
 	@Override
-	public VoidedNumberRange execute(VoidNumberRangeCommand command) {
+	public VoidedNumberRange execute(final VoidNumberRangeCommand command) {
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("justification is required to void a document number range");
 		}
 
-		Company company = companyRepositoryPort.findById(command.companyId())
+		final Company company = companyRepositoryPort.findById(command.companyId())
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + command.companyId().value()));
 
-		DocumentSeries series = documentSeriesRepositoryPort
+		final DocumentSeries series = documentSeriesRepositoryPort
 				.findByCompanyIdAndDocumentType(command.companyId(), FiscalDocumentType.NFE)
 				.orElseThrow(
 						() -> new DocumentSeriesNotFoundException(command.companyId().value(), FiscalDocumentType.NFE));
@@ -59,11 +59,11 @@ public class VoidDocumentNumberRangeService implements VoidDocumentNumberRangeUs
 			throw new BusinessRuleException("endNumber must not be less than startNumber");
 		}
 
-		SefazSubmissionResult result = submitToSefazPort.voidNumberRange(new SefazVoidNumberRangeRequest(
+		final SefazSubmissionResult result = submitToSefazPort.voidNumberRange(new SefazVoidNumberRangeRequest(
 				command.companyId(), company.getSefazEnvironment(), command.series(), command.startNumber(),
 				command.endNumber(), command.justification()));
 
-		VoidedNumberRange voidedNumberRange = VoidedNumberRange.of(VoidedNumberRangeId.of(UUID.randomUUID()),
+		final VoidedNumberRange voidedNumberRange = VoidedNumberRange.of(VoidedNumberRangeId.of(UUID.randomUUID()),
 				command.companyId(), FiscalDocumentType.NFE, command.series(), command.startNumber(),
 				command.endNumber(), command.justification(), result.protocol(), Instant.now());
 

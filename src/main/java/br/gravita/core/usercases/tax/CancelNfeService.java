@@ -33,21 +33,21 @@ public class CancelNfeService implements CancelNfeUseCase {
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final SubmitToSefazPort submitToSefazPort;
 
-	public CancelNfeService(NfeRepositoryPort nfeRepositoryPort, CompanyRepositoryPort companyRepositoryPort,
-			SubmitToSefazPort submitToSefazPort) {
+	public CancelNfeService(final NfeRepositoryPort nfeRepositoryPort, final CompanyRepositoryPort companyRepositoryPort,
+			final SubmitToSefazPort submitToSefazPort) {
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.submitToSefazPort = submitToSefazPort;
 	}
 
 	@Override
-	public NfeDocument execute(CancelNfeCommand command) {
+	public NfeDocument execute(final CancelNfeCommand command) {
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("justification is required");
 		}
 
-		NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
-		NfeDocument document = nfeRepositoryPort.findById(id)
+		final NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
+		final NfeDocument document = nfeRepositoryPort.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("NfeDocument not found: " + command.nfeDocumentId()));
 
 		if (document.getStatus() != NfeDocumentStatus.AUTHORIZED) {
@@ -55,12 +55,12 @@ public class CancelNfeService implements CancelNfeUseCase {
 					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + document.getStatus() + ")");
 		}
 
-		Company company = companyRepositoryPort.findById(document.getIssuerCompanyId())
+		final Company company = companyRepositoryPort.findById(document.getIssuerCompanyId())
 				.orElseThrow(
 						() -> new BusinessRuleException("Company not found: " + document.getIssuerCompanyId().value()));
 
-		Instant now = Instant.now();
-		Duration window = NfeCancellationDeadline.windowFor(company.getState());
+		final Instant now = Instant.now();
+		final Duration window = NfeCancellationDeadline.windowFor(company.getState());
 		if (now.isAfter(document.getAuthorizedAt().plus(window))) {
 			throw new BusinessRuleException("Cancellation window has expired for NfeDocument " + id.value());
 		}
@@ -68,7 +68,7 @@ public class CancelNfeService implements CancelNfeUseCase {
 		submitToSefazPort.cancel(new SefazCancellationRequest(company.getId(), company.getSefazEnvironment(),
 				document.getAccessKey(), document.getSefazProtocol(), command.justification()));
 
-		NfeDocument cancelled = document.cancel(command.justification(), now);
+		final NfeDocument cancelled = document.cancel(command.justification(), now);
 		return nfeRepositoryPort.save(cancelled);
 	}
 }

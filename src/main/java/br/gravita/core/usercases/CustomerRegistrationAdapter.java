@@ -17,15 +17,15 @@ public class CustomerRegistrationAdapter implements CustomerRegistrationPort {
 	private final CustomerRepositoryPort customerRepositoryPort;
 	private final CallerCompanyResolver callerCompanyResolver;
 
-	public CustomerRegistrationAdapter(CustomerRepositoryPort customerRepositoryPort,
-			CallerCompanyResolver callerCompanyResolver) {
+	public CustomerRegistrationAdapter(final CustomerRepositoryPort customerRepositoryPort,
+			final CallerCompanyResolver callerCompanyResolver) {
 		this.customerRepositoryPort = customerRepositoryPort;
 		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
-	public CustomerDomain execute(Context context) {
-		CustomerDomain customer = context.getData(CustomerDomain.class);
+	public CustomerDomain execute(final Context context) {
+		final CustomerDomain customer = context.getData(CustomerDomain.class);
 		customer.validateForRegistration();
 		customer.setCompanyId(callerCompanyResolver.resolve(context)
 				.orElseThrow(() -> new ForbiddenException("The caller does not belong to a company")));

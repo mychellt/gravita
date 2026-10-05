@@ -55,31 +55,43 @@ class AttachPayableDocumentServiceTest {
 				.thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private Payable found(PayableStatus status, List<String> attachments) {
-		Payable payable = Payable.of(PayableId.of(UUID.randomUUID()), UUID.randomUUID(), PayableOrigin.MANUAL,
-				new BigDecimal("250.00"), LocalDate.now().plusDays(5), null, status, null, null, null,
-				LedgerScope.NONE, null, attachments);
+	private Payable found(final PayableStatus status, final List<String> attachments) {
+		final Payable payable = Payable.builder()
+				.id(PayableId.of(UUID.randomUUID()))
+				.supplierId(UUID.randomUUID())
+				.origin(PayableOrigin.MANUAL)
+				.amount(new BigDecimal("250.00"))
+				.dueDate(LocalDate.now().plusDays(5))
+				.costCenterSplit(null)
+				.status(status)
+				.purchaseReceiptRef(null)
+				.installmentNumber(null)
+				.installments(null)
+				.scope(LedgerScope.NONE)
+				.approvedBy(null)
+				.attachments(attachments)
+				.build();
 		when(payableRepositoryPort.findById(payable.getId())).thenReturn(Optional.of(payable));
 		return payable;
 	}
 
-	private static AttachPayableDocumentCommand command(Payable payable) {
+	private static AttachPayableDocumentCommand command(final Payable payable) {
 		return new AttachPayableDocumentCommand(payable.getId().value(),
-				new AttachPayableDocumentCommand.File("nf-123.pdf", "application/pdf", new byte[] { 1, 2, 3 }));
+				new AttachPayableDocumentCommand.File("nf-123.pdf", "application/pdf", new byte[] {1, 2, 3 }));
 	}
 
 	@Test
 	@DisplayName("Stores the file and appends its reference to the payable")
 	void storesTheFileAndAppendsItsReferenceToThePayable() {
-		Payable payable = found(PayableStatus.OPEN, null);
+		final Payable payable = found(PayableStatus.OPEN, null);
 		when(documentAttachmentStoragePort.store(any())).thenReturn(URL);
 
-		Payable updated = service.execute(command(payable));
+		final Payable updated = service.execute(command(payable));
 
 		assertThat(updated.getAttachments()).containsExactly(URL);
 		verify(payableRepositoryPort).save(updated);
 
-		ArgumentCaptor<Document> document = ArgumentCaptor.forClass(Document.class);
+		final ArgumentCaptor<Document> document = ArgumentCaptor.forClass(Document.class);
 		verify(documentAttachmentStoragePort).store(document.capture());
 		assertThat(document.getValue().fileName()).isEqualTo("nf-123.pdf");
 		assertThat(document.getValue().contentType()).isEqualTo("application/pdf");
@@ -89,10 +101,10 @@ class AttachPayableDocumentServiceTest {
 	@Test
 	@DisplayName("Keeps the attachments already linked to the payable")
 	void keepsTheAttachmentsAlreadyLinked() {
-		Payable payable = found(PayableStatus.PAID, List.of("https://files.example.com/boleto.pdf"));
+		final Payable payable = found(PayableStatus.PAID, List.of("https://files.example.com/boleto.pdf"));
 		when(documentAttachmentStoragePort.store(any())).thenReturn(URL);
 
-		Payable updated = service.execute(command(payable));
+		final Payable updated = service.execute(command(payable));
 
 		assertThat(updated.getAttachments()).containsExactly("https://files.example.com/boleto.pdf", URL);
 		assertThat(updated.getStatus()).isEqualTo(PayableStatus.PAID);
@@ -101,11 +113,11 @@ class AttachPayableDocumentServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown payable without storing the file")
 	void anUnknownPayableIsRejectedWithoutStoringTheFile() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(payableRepositoryPort.findById(PayableId.of(id))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new AttachPayableDocumentCommand(id,
-				new AttachPayableDocumentCommand.File("a.pdf", "application/pdf", new byte[] { 1 }))))
+				new AttachPayableDocumentCommand.File("a.pdf", "application/pdf", new byte[] {1 }))))
 				.isInstanceOf(ResourceNotFoundException.class);
 
 		verifyNoInteractions(documentAttachmentStoragePort);
@@ -114,8 +126,8 @@ class AttachPayableDocumentServiceTest {
 
 	@Test
 	@DisplayName("Leaves the payable untouched when storing the file fails")
-	void aStorageFailureLeavesThePayableUntouched() {
-		Payable payable = found(PayableStatus.OPEN, null);
+	void storageFailureLeavesThePayableUntouched() {
+		final Payable payable = found(PayableStatus.OPEN, null);
 		when(documentAttachmentStoragePort.store(any()))
 				.thenThrow(new DocumentStorageUnavailableException("storage down"));
 
@@ -130,7 +142,7 @@ class AttachPayableDocumentServiceTest {
 	void theCommandRejectsAnEmptyFile() {
 		assertThatThrownBy(() -> new AttachPayableDocumentCommand.File("a.pdf", "application/pdf", new byte[0]))
 				.isInstanceOf(BusinessRuleException.class);
-		assertThatThrownBy(() -> new AttachPayableDocumentCommand.File(" ", "application/pdf", new byte[] { 1 }))
+		assertThatThrownBy(() -> new AttachPayableDocumentCommand.File(" ", "application/pdf", new byte[] {1 }))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 }

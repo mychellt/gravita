@@ -27,11 +27,11 @@ class CreateCostCenterAdapterTest {
 	@DisplayName("Creates a root cost center and assigns it an id")
 	@Test
 	void shouldCreateRootCostCenterAndAssignId() {
-		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
-		CostCenterDomain command = CostCenterDomain.builder().code("CC-01").name("Administrative").build();
+		final CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
+		final CostCenterDomain command = CostCenterDomain.builder().code("CC-01").name("Administrative").build();
 		when(costCenterRepositoryPort.save(command)).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CostCenterDomain result = adapter.execute(new Context(command));
+		final CostCenterDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getId()).isNotNull();
 		verify(costCenterRepositoryPort).save(command);
@@ -40,13 +40,13 @@ class CreateCostCenterAdapterTest {
 	@DisplayName("Creates a child cost center when its parent exists")
 	@Test
 	void shouldCreateChildCostCenterWhenParentExists() {
-		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
-		UUID parentId = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().code("CC-02").name("Sales").parentId(parentId).build();
+		final CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID parentId = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().code("CC-02").name("Sales").parentId(parentId).build();
 		when(costCenterRepositoryPort.get(parentId)).thenReturn(Optional.of(CostCenterDomain.builder().id(parentId).build()));
 		when(costCenterRepositoryPort.save(command)).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CostCenterDomain result = adapter.execute(new Context(command));
+		final CostCenterDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getParentId()).isEqualTo(parentId);
 	}
@@ -54,9 +54,9 @@ class CreateCostCenterAdapterTest {
 	@DisplayName("Rejects creating a cost center under a parent that does not exist")
 	@Test
 	void shouldRejectWhenParentCostCenterDoesNotExist() {
-		CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
-		UUID parentId = UUID.randomUUID();
-		CostCenterDomain command = CostCenterDomain.builder().code("CC-03").name("Marketing").parentId(parentId).build();
+		final CreateCostCenterAdapter adapter = new CreateCostCenterAdapter(costCenterRepositoryPort);
+		final UUID parentId = UUID.randomUUID();
+		final CostCenterDomain command = CostCenterDomain.builder().code("CC-03").name("Marketing").parentId(parentId).build();
 		when(costCenterRepositoryPort.get(parentId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(command)))

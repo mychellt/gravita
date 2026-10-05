@@ -28,22 +28,22 @@ public class GetCommissionReportService implements GetCommissionReportUseCase {
 	private final SalesReadModelPort salesReadModelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetCommissionReportService(SalesReadModelPort salesReadModelPort, PermissionCheckPort permissionCheckPort) {
+	public GetCommissionReportService(final SalesReadModelPort salesReadModelPort, final PermissionCheckPort permissionCheckPort) {
 		this.salesReadModelPort = salesReadModelPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public List<CommissionReportEntry> execute(CommissionReportQuery query) {
+	public List<CommissionReportEntry> execute(final CommissionReportQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the commission report");
 		}
-		List<CommissionRecord> records = salesReadModelPort.commissions(query.period().atDay(1),
+		final List<CommissionRecord> records = salesReadModelPort.commissions(query.period().atDay(1),
 				query.period().atEndOfMonth(), query.salesperson());
 		return records.stream().map(GetCommissionReportService::toEntry).sorted(PAYROLL_ORDER).toList();
 	}
 
-	private static CommissionReportEntry toEntry(CommissionRecord record) {
+	private static CommissionReportEntry toEntry(final CommissionRecord record) {
 		return new CommissionReportEntry(record.salespersonId(), record.productId(), record.orderId(), record.rate(),
 				record.amount());
 	}

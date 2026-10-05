@@ -37,75 +37,75 @@ class IssueFiscalDocumentAdapter implements IssueFiscalDocumentPort {
 	private final CustomerRepositoryPort customerRepositoryPort;
 	private final NfeRepositoryPort nfeRepositoryPort;
 
-	IssueFiscalDocumentAdapter(IssueNfeUseCase issueNfeUseCase, CustomerRepositoryPort customerRepositoryPort,
-			NfeRepositoryPort nfeRepositoryPort) {
+	IssueFiscalDocumentAdapter(final IssueNfeUseCase issueNfeUseCase, final CustomerRepositoryPort customerRepositoryPort,
+			final NfeRepositoryPort nfeRepositoryPort) {
 		this.issueNfeUseCase = issueNfeUseCase;
 		this.customerRepositoryPort = customerRepositoryPort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 	}
 
 	@Override
-	public FiscalDocumentRef issueForProducts(IssueFiscalDocumentCommand command) {
-		RecipientCommand recipient = buildRecipient(command.customerId());
-		List<ItemCommand> items = command.items().stream()
+	public FiscalDocumentRef issueForProducts(final IssueFiscalDocumentCommand command) {
+		final RecipientCommand recipient = buildRecipient(command.customerId());
+		final List<ItemCommand> items = command.items().stream()
 				.map(item -> new ItemCommand(item.productOrServiceId(), item.description(), item.quantity(),
 						item.unitPrice(), item.discount()))
 				.toList();
 
-		IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
+		final IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
 				NaturezaOperacao.VENDA, recipient, items, null, null, List.of(), BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, null, null, null);
 
-		NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
+		final NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
 		return new FiscalDocumentRef(FiscalDocumentType.NFE, issued.getId().value());
 	}
 
 	@Override
-	public FiscalDocumentRef issueForServices(IssueFiscalDocumentCommand command) {
+	public FiscalDocumentRef issueForServices(final IssueFiscalDocumentCommand command) {
 		throw new BusinessRuleException(
 				"NFSe issuance is not yet available: M4 (Fiscal NFSe) has not been implemented");
 	}
 
 	@Override
-	public FiscalDocumentRef issueForReturn(IssueReturnFiscalDocumentCommand command) {
+	public FiscalDocumentRef issueForReturn(final IssueReturnFiscalDocumentCommand command) {
 		if (command.originalDocument().type() != FiscalDocumentType.NFE) {
 			throw new BusinessRuleException("Return NFe issuance is only supported for orders invoiced through NFe");
 		}
-		NfeDocument original = nfeRepositoryPort.findById(NfeDocumentId.of(command.originalDocument().documentId()))
+		final NfeDocument original = nfeRepositoryPort.findById(NfeDocumentId.of(command.originalDocument().documentId()))
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Original fiscal document not found: " + command.originalDocument().documentId()));
 
-		RecipientCommand recipient = buildRecipient(command.customerId());
-		List<ItemCommand> items = command.items().stream()
+		final RecipientCommand recipient = buildRecipient(command.customerId());
+		final List<ItemCommand> items = command.items().stream()
 				.map(item -> new ItemCommand(item.productOrServiceId(), item.description(), item.quantity(),
 						item.unitPrice(), item.discount()))
 				.toList();
 
-		IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
+		final IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
 				NaturezaOperacao.DEVOLUCAO, recipient, items, null, null, List.of(), BigDecimal.ZERO, BigDecimal.ZERO,
 				BigDecimal.ZERO, null, original.getAccessKey(), null);
 
-		NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
+		final NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
 		return new FiscalDocumentRef(FiscalDocumentType.NFE, issued.getId().value());
 	}
 
-	private RecipientCommand buildRecipient(UUID customerId) {
-		CustomerDomain customer = customerRepositoryPort.get(customerId)
+	private RecipientCommand buildRecipient(final UUID customerId) {
+		final CustomerDomain customer = customerRepositoryPort.get(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
 		return new RecipientCommand(customerId, customer.getDocumentDomain().number(),
 				customer.getDocumentDomain().personType(), customer.getName(), stateRegistrationOf(customer),
 				stateOf(customer));
 	}
 
-	private String stateRegistrationOf(CustomerDomain customer) {
+	private String stateRegistrationOf(final CustomerDomain customer) {
 		if (customer.getDocumentDomain().personType() != PersonType.COMPANY) {
 			return null;
 		}
 		return customer.getIeIndicator() == IeIndicator.EXEMPT ? "ISENTO" : null;
 	}
 
-	private String stateOf(CustomerDomain customer) {
-		List<AddressDomain> addresses = customer.getAddresses() == null ? List.of() : customer.getAddresses();
+	private String stateOf(final CustomerDomain customer) {
+		final List<AddressDomain> addresses = customer.getAddresses() == null ? List.of() : customer.getAddresses();
 		return addresses.stream().filter(AddressDomain::isDefault).findFirst().or(() -> addresses.stream().findFirst())
 				.map(AddressDomain::getState)
 				.orElseThrow(() -> new BusinessRuleException("Customer has no address to resolve the recipient state"));

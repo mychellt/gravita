@@ -42,7 +42,7 @@ public record NfeItem(UUID productId, String description, BigDecimal quantity, B
 		return subtotal().subtract(discount);
 	}
 
-	private static BigDecimal subtotal(BigDecimal quantity, BigDecimal unitPrice) {
+	private static BigDecimal subtotal(final BigDecimal quantity, final BigDecimal unitPrice) {
 		return unitPrice.multiply(quantity);
 	}
 }

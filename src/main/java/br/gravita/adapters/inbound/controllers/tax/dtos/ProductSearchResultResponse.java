@@ -8,7 +8,7 @@ import java.util.UUID;
 public record ProductSearchResultResponse(UUID productId, String description, BigDecimal unitPrice,
 		boolean availableForSale) {
 
-	public static ProductSearchResultResponse from(ProductSearchResult result) {
+	public static ProductSearchResultResponse from(final ProductSearchResult result) {
 		return new ProductSearchResultResponse(result.productId(), result.description(), result.unitPrice(),
 				result.availableForSale());
 	}

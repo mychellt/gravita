@@ -14,18 +14,18 @@ class CashMovementRepositoryAdapter implements CashMovementRepositoryPort {
 	private final CashMovementJpaRepository jpaRepository;
 	private final CashMovementPersistenceMapper mapper;
 
-	CashMovementRepositoryAdapter(CashMovementJpaRepository jpaRepository, CashMovementPersistenceMapper mapper) {
+	CashMovementRepositoryAdapter(final CashMovementJpaRepository jpaRepository, final CashMovementPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public CashMovement save(CashMovement cashMovement) {
+	public CashMovement save(final CashMovement cashMovement) {
 		return mapper.map(jpaRepository.save(mapper.map(cashMovement)));
 	}
 
 	@Override
-	public List<CashMovement> findBySessionId(PosSessionId sessionId) {
+	public List<CashMovement> findBySessionId(final PosSessionId sessionId) {
 		return jpaRepository.findBySessionId(sessionId.value()).stream().map(mapper::map).toList();
 	}
 }

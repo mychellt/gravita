@@ -31,7 +31,7 @@ class NfseDocumentTest {
 		return new TomadorAddress("Rua A", "10", null, "Centro", "01001000", "SP");
 	}
 
-	private static NfseTomador tomador(String ibge, TomadorAddress address) {
+	private static NfseTomador tomador(final String ibge, final TomadorAddress address) {
 		return NfseTomador.of(null, CNPJ, PersonType.COMPANY, "Tomador SA", ibge, address);
 	}
 
@@ -40,18 +40,32 @@ class NfseDocumentTest {
 				new BigDecimal("6.50"));
 	}
 
-	private static NfseDocument issue(NfseTomador tomador, List<NfseWithholding> withholdings,
-			BigDecimal serviceAmount, String discrimination) {
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), "3550308",
-				tomador, ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, "3550308", serviceAmount,
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, withholdings, discrimination, "001", 7L,
-				Instant.now());
+	private static NfseDocument issue(final NfseTomador tomador, final List<NfseWithholding> withholdings,
+			final BigDecimal serviceAmount, final String discrimination) {
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(CompanyId.of(UUID.randomUUID()))
+				.providerMunicipalityIbgeCode("3550308")
+				.tomador(tomador)
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode("3550308")
+				.serviceAmount(serviceAmount)
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(withholdings)
+				.discrimination(discrimination)
+				.rpsSeries("001")
+				.rpsNumber(7L)
+				.createdAt(Instant.now())
+				.build();
 	}
 
 	@Test
 	@DisplayName("Issues an RPS in the RPS status, sharing its id with the document")
 	void issuesAnRpsInTheRpsStatusSharingItsIdWithTheDocument() {
-		NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
+		final NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria");
 
 		assertThat(rps.getStatus()).isEqualTo(NfseStatus.RPS);
@@ -64,7 +78,7 @@ class NfseDocumentTest {
 
 	@Test
 	@DisplayName("Requires the tomador's full address when tax is withheld")
-	void ac2_aWithheldTaxRequiresTheTomadorsFullAddress() {
+	void ac2AWithheldTaxRequiresTheTomadorsFullAddress() {
 		assertThatThrownBy(() -> issue(tomador("3550308", null), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria")).isInstanceOf(BusinessRuleException.class).hasMessageContaining("full address");
 		assertThatThrownBy(() -> issue(tomador(null, address()), List.of(withholding()), new BigDecimal("1000.00"),
@@ -73,8 +87,8 @@ class NfseDocumentTest {
 
 	@Test
 	@DisplayName("Does not require an address when nothing is withheld")
-	void ac2_withoutWithholdingsAnAddressIsNotRequired() {
-		NfseTomador pf = NfseTomador.of(null, CPF, PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
+	void ac2WithoutWithholdingsAnAddressIsNotRequired() {
+		final NfseTomador pf = NfseTomador.of(null, CPF, PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 
 		assertThat(issue(pf, List.of(), new BigDecimal("100.00"), "Aula").getWithholdings()).isEmpty();
 	}
@@ -89,7 +103,7 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Rejects a non-positive amount and a blank discrimination")
 	void rejectsNonPositiveAmountAndBlankDiscrimination() {
-		NfseTomador tomador = tomador("3550308", address());
+		final NfseTomador tomador = tomador("3550308", address());
 
 		assertThatThrownBy(() -> issue(tomador, List.of(), BigDecimal.ZERO, "x"))
 				.isInstanceOf(BusinessRuleException.class);
@@ -101,9 +115,24 @@ class NfseDocumentTest {
 	@DisplayName("Rejects malformed municipality codes")
 	void rejectsMalformedMunicipalityCodes() {
 		assertThatThrownBy(() -> tomador("123", address())).isInstanceOf(BusinessRuleException.class);
-		assertThatThrownBy(() -> NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()),
-				"12", tomador("3550308", address()), ServiceCode.of("1.05"), PlaceOfProvision.PROVIDER, "3550308",
-				new BigDecimal("10"), BigDecimal.ONE, BigDecimal.ONE, null, List.of(), "x", "001", 1L, Instant.now()))
+		assertThatThrownBy(() -> NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(CompanyId.of(UUID.randomUUID()))
+				.providerMunicipalityIbgeCode("12")
+				.tomador(tomador("3550308", address()))
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.PROVIDER)
+				.issMunicipalityIbgeCode("3550308")
+				.serviceAmount(new BigDecimal("10"))
+				.issRate(BigDecimal.ONE)
+				.issAmount(BigDecimal.ONE)
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("x")
+				.rpsSeries("001")
+				.rpsNumber(1L)
+				.createdAt(Instant.now())
+				.build())
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
@@ -117,11 +146,11 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Converts an RPS into a draft with its NFS-e series and number, keeping the RPS identity")
 	void convertsAnRpsIntoADraftWithItsNfseSeriesAndNumberKeepingTheRpsIdentity() {
-		NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
+		final NfseDocument rps = issue(tomador("3550308", address()), List.of(withholding()), new BigDecimal("1000.00"),
 				"Consultoria");
-		Instant at = Instant.parse("2026-10-01T12:00:00Z");
+		final Instant at = Instant.parse("2026-10-01T12:00:00Z");
 
-		NfseDocument draft = rps.convertToNfse("1", 15L, at);
+		final NfseDocument draft = rps.convertToNfse("1", 15L, at);
 
 		assertThat(rps.getStatus()).isEqualTo(NfseStatus.RPS);
 		assertThat(rps.getNfseNumber()).isNull();
@@ -137,8 +166,8 @@ class NfseDocumentTest {
 
 	@Test
 	@DisplayName("Rejects converting a document that is not an RPS again")
-	void aDocumentThatIsNotAnRpsCannotBeConvertedAgain() {
-		NfseDocument draft = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria")
+	void documentThatIsNotAnRpsCannotBeConvertedAgain() {
+		final NfseDocument draft = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria")
 				.convertToNfse("1", 1L, Instant.now());
 
 		assertThat(draft.isRps()).isFalse();
@@ -148,8 +177,8 @@ class NfseDocumentTest {
 
 	@Test
 	@DisplayName("Requires a converted document to have its number, series and timestamp")
-	void aConvertedDocumentRequiresItsNumberSeriesAndTimestamp() {
-		NfseDocument rps = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria");
+	void convertedDocumentRequiresItsNumberSeriesAndTimestamp() {
+		final NfseDocument rps = issue(tomador("3550308", address()), List.of(), new BigDecimal("1000.00"), "Consultoria");
 
 		assertThatThrownBy(() -> rps.convertToNfse(" ", 1L, Instant.now())).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> rps.convertToNfse("1", null, Instant.now()))
@@ -165,11 +194,11 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Moves a draft through sent to authorized, keeping only an XML reference")
 	void transmissionMovesADraftThroughSentToAuthorizedKeepingOnlyAnXmlReference() {
-		Instant sentAt = Instant.parse("2026-10-01T11:00:00Z");
-		Instant authorizedAt = Instant.parse("2026-10-01T11:00:02Z");
+		final Instant sentAt = Instant.parse("2026-10-01T11:00:00Z");
+		final Instant authorizedAt = Instant.parse("2026-10-01T11:00:02Z");
 
-		NfseDocument sent = draft().send(sentAt);
-		NfseDocument authorized = sent.authorize("PROT-1", authorizedAt, "xml/ref-1");
+		final NfseDocument sent = draft().send(sentAt);
+		final NfseDocument authorized = sent.authorize("PROT-1", authorizedAt, "xml/ref-1");
 
 		assertThat(sent.getStatus()).isEqualTo(NfseStatus.SENT);
 		assertThat(sent.getSentAt()).isEqualTo(sentAt);
@@ -183,14 +212,14 @@ class NfseDocumentTest {
 
 	@Test
 	@DisplayName("Returns a rejected attempt to draft with the reason so it can be sent again")
-	void aRejectedAttemptReturnsToDraftWithTheReasonAndCanBeSentAgain() {
-		NfseDocument rejected = draft().send(Instant.now()).reject("Item de servico invalido");
+	void rejectedAttemptReturnsToDraftWithTheReasonAndCanBeSentAgain() {
+		final NfseDocument rejected = draft().send(Instant.now()).reject("Item de servico invalido");
 
 		assertThat(rejected.getStatus()).isEqualTo(NfseStatus.DRAFT);
 		assertThat(rejected.getLastRejectionReason()).isEqualTo("Item de servico invalido");
 		assertThat(rejected.getProtocol()).isNull();
 
-		NfseDocument retried = rejected.send(Instant.now());
+		final NfseDocument retried = rejected.send(Instant.now());
 		assertThat(retried.getStatus()).isEqualTo(NfseStatus.SENT);
 		assertThat(retried.getLastRejectionReason()).isNull();
 	}
@@ -198,9 +227,9 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Only a draft can be sent and only a sent document can be decided")
 	void onlyADraftCanBeSentAndOnlyASentOneCanBeDecided() {
-		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
-		NfseDocument draft = draft();
-		NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
+		final NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
+		final NfseDocument draft = draft();
+		final NfseDocument authorized = draft.send(Instant.now()).authorize("P", Instant.now(), "ref");
 
 		assertThatThrownBy(() -> rps.send(Instant.now())).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> authorized.send(Instant.now())).isInstanceOf(BusinessRuleException.class);
@@ -212,7 +241,7 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Requires an authorized document to have its protocol, timestamp and XML reference")
 	void anAuthorizedDocumentRequiresItsProtocolTimestampAndXmlReference() {
-		NfseDocument sent = draft().send(Instant.now());
+		final NfseDocument sent = draft().send(Instant.now());
 
 		assertThatThrownBy(() -> sent.authorize(" ", Instant.now(), "ref")).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> sent.authorize("P", null, "ref")).isInstanceOf(NullPointerException.class);
@@ -222,10 +251,10 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Cancelling an authorized document keeps its fiscal data and records the justification")
 	void cancellingAnAuthorizedDocumentKeepsItsFiscalDataAndRecordsTheJustification() {
-		Instant cancelledAt = Instant.parse("2026-10-02T09:00:00Z");
-		NfseDocument authorized = draft().send(Instant.now()).authorize("PROT-1", Instant.now(), "xml/ref-1");
+		final Instant cancelledAt = Instant.parse("2026-10-02T09:00:00Z");
+		final NfseDocument authorized = draft().send(Instant.now()).authorize("PROT-1", Instant.now(), "xml/ref-1");
 
-		NfseDocument cancelled = authorized.cancel("Servico nao prestado", cancelledAt);
+		final NfseDocument cancelled = authorized.cancel("Servico nao prestado", cancelledAt);
 
 		assertThat(cancelled.getStatus()).isEqualTo(NfseStatus.CANCELLED);
 		assertThat(cancelled.getId()).isEqualTo(authorized.getId());
@@ -240,12 +269,12 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Only an authorized document can be cancelled, and only once")
 	void onlyAnAuthorizedDocumentCanBeCancelledAndOnlyOnce() {
-		NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
-		NfseDocument draft = draft();
-		NfseDocument sent = draft.send(Instant.now());
-		NfseDocument cancelled = sent.authorize("P", Instant.now(), "ref").cancel("motivo", Instant.now());
+		final NfseDocument rps = issue(tomador(null, null), List.of(), new BigDecimal("1000.00"), "Consultoria");
+		final NfseDocument draft = draft();
+		final NfseDocument sent = draft.send(Instant.now());
+		final NfseDocument cancelled = sent.authorize("P", Instant.now(), "ref").cancel("motivo", Instant.now());
 
-		for (NfseDocument document : List.of(rps, draft, sent, cancelled)) {
+		for (final NfseDocument document : List.of(rps, draft, sent, cancelled)) {
 			assertThatThrownBy(() -> document.cancel("motivo", Instant.now()))
 					.isInstanceOf(BusinessRuleException.class).hasMessageContaining(document.getStatus().name());
 		}
@@ -254,7 +283,7 @@ class NfseDocumentTest {
 	@Test
 	@DisplayName("Requires a justification and a timestamp to cancel")
 	void cancellationRequiresAJustificationAndATimestamp() {
-		NfseDocument authorized = draft().send(Instant.now()).authorize("P", Instant.now(), "ref");
+		final NfseDocument authorized = draft().send(Instant.now()).authorize("P", Instant.now(), "ref");
 
 		assertThatThrownBy(() -> authorized.cancel(null, Instant.now())).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> authorized.cancel("  ", Instant.now())).isInstanceOf(BusinessRuleException.class);

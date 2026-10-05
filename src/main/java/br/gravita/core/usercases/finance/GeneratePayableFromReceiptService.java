@@ -18,7 +18,7 @@ public class GeneratePayableFromReceiptService implements GeneratePayableFromRec
 
 	private final PayableRepositoryPort payableRepositoryPort;
 
-	public GeneratePayableFromReceiptService(PayableRepositoryPort payableRepositoryPort) {
+	public GeneratePayableFromReceiptService(final PayableRepositoryPort payableRepositoryPort) {
 		this.payableRepositoryPort = payableRepositoryPort;
 	}
 
@@ -29,21 +29,21 @@ public class GeneratePayableFromReceiptService implements GeneratePayableFromRec
 	 */
 	@Override
 	@Transactional
-	public List<Payable> execute(GeneratePayableFromReceiptCommand command) {
+	public List<Payable> execute(final GeneratePayableFromReceiptCommand command) {
 		if (command.installments().isEmpty()) {
 			throw new BusinessRuleException("At least one installment is required");
 		}
 
-		List<Payable> existing = payableRepositoryPort.findByPurchaseReceiptRef(command.purchaseReceiptRef());
+		final List<Payable> existing = payableRepositoryPort.findByPurchaseReceiptRef(command.purchaseReceiptRef());
 		if (!existing.isEmpty()) {
 			return existing;
 		}
 
-		int total = command.installments().size();
-		List<Payable> created = new ArrayList<>(total);
+		final int total = command.installments().size();
+		final List<Payable> created = new ArrayList<>(total);
 		for (int i = 0; i < total; i++) {
-			Installment installment = command.installments().get(i);
-			Payable payable = Payable.createFromPurchaseReceipt(PayableId.of(UUID.randomUUID()),
+			final Installment installment = command.installments().get(i);
+			final Payable payable = Payable.createFromPurchaseReceipt(PayableId.of(UUID.randomUUID()),
 					command.supplierId(), command.purchaseReceiptRef(), installment.amount(),
 					installment.dueDate(), i + 1, total);
 			created.add(payableRepositoryPort.save(payable));

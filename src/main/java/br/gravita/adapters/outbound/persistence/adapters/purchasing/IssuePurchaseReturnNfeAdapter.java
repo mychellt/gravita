@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 class IssuePurchaseReturnNfeAdapter implements IssuePurchaseReturnNfePort {
 
 	@Override
-	public String issueReturnNfe(IssuePurchaseReturnNfeCommand command) {
+	public String issueReturnNfe(final IssuePurchaseReturnNfeCommand command) {
 		return null;
 	}
 }

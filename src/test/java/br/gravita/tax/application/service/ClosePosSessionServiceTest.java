@@ -70,35 +70,47 @@ class ClosePosSessionServiceTest {
 				cashClosingReportRepositoryPort, printNonFiscalReceiptPort);
 	}
 
-	private PosSession openSession(UUID sessionId) {
+	private PosSession openSession(final UUID sessionId) {
 		return PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.OPEN, Instant.now(), null);
 	}
 
-	private NfceSale issuedSale(PosSessionId sessionId, PaymentMethodType method, BigDecimal amount) {
-		return NfceSale.of(NfceSaleId.of(UUID.randomUUID()), sessionId,
-				List.of(new SaleItem(UUID.randomUUID(), BigDecimal.ONE, amount, BigDecimal.ZERO)), BigDecimal.ZERO,
-				List.of(new Payment(method, amount)), BigDecimal.ZERO, null, NfceSaleStatus.AUTHORIZED, Instant.now(),
-				"1", 1L, "access-key", "protocol", false);
+	private NfceSale issuedSale(final PosSessionId sessionId, final PaymentMethodType method, final BigDecimal amount) {
+		return NfceSale.builder()
+				.id(NfceSaleId.of(UUID.randomUUID()))
+				.sessionId(sessionId)
+				.items(List.of(new SaleItem(UUID.randomUUID(), BigDecimal.ONE, amount, BigDecimal.ZERO)))
+				.totalDiscount(BigDecimal.ZERO)
+				.payments(List.of(new Payment(method, amount)))
+				.changeGiven(BigDecimal.ZERO)
+				.customerCpf(null)
+				.status(NfceSaleStatus.AUTHORIZED)
+				.createdAt(Instant.now())
+				.documentSeries("1")
+				.documentNumber(1L)
+				.accessKey("access-key")
+				.sefazProtocol("protocol")
+				.contingencyMode(false)
+				.build();
 	}
 
-	private NfceSale draftSale(PosSessionId sessionId) {
+	private NfceSale draftSale(final PosSessionId sessionId) {
 		return NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"), BigDecimal.ZERO)),
 				BigDecimal.ZERO, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null,
 				Instant.now());
 	}
 
-	private CashMovement movement(PosSessionId sessionId, CashMovementType type, BigDecimal amount) {
+	private CashMovement movement(final PosSessionId sessionId, final CashMovementType type, final BigDecimal amount) {
 		return CashMovement.of(CashMovementId.of(UUID.randomUUID()), sessionId, type, amount, "justification",
 				Instant.now());
 	}
 
 	@Test
 	@DisplayName("Breaks the reconciliation totals down by payment method")
-	void ac1_reconciliationTotalsAreBrokenDownByPaymentMethod() {
-		UUID sessionId = UUID.randomUUID();
-		PosSessionId posSessionId = PosSessionId.of(sessionId);
+	void ac1ReconciliationTotalsAreBrokenDownByPaymentMethod() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSessionId posSessionId = PosSessionId.of(sessionId);
 		when(posSessionRepositoryPort.findById(posSessionId)).thenReturn(Optional.of(openSession(sessionId)));
 		when(nfceRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of(
 				issuedSale(posSessionId, PaymentMethodType.CASH, new BigDecimal("40.00")),
@@ -106,7 +118,7 @@ class ClosePosSessionServiceTest {
 		when(cashMovementRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
 		when(cashClosingReportRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
+		final CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
 
 		assertThat(report.getExpectedAmountsByPaymentMethod())
 				.isEqualTo(Map.of(PaymentMethodType.CASH, new BigDecimal("40.00"), PaymentMethodType.PIX,
@@ -115,15 +127,15 @@ class ClosePosSessionServiceTest {
 
 	@Test
 	@DisplayName("Excludes draft sales from the reconciliation")
-	void ac1_draftSalesAreExcludedFromTheReconciliation() {
-		UUID sessionId = UUID.randomUUID();
-		PosSessionId posSessionId = PosSessionId.of(sessionId);
+	void ac1DraftSalesAreExcludedFromTheReconciliation() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSessionId posSessionId = PosSessionId.of(sessionId);
 		when(posSessionRepositoryPort.findById(posSessionId)).thenReturn(Optional.of(openSession(sessionId)));
 		when(nfceRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of(draftSale(posSessionId)));
 		when(cashMovementRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
 		when(cashClosingReportRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
+		final CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
 
 		assertThat(report.getSaleCount()).isZero();
 		assertThat(report.getExpectedAmountsByPaymentMethod()).isEmpty();
@@ -131,9 +143,9 @@ class ClosePosSessionServiceTest {
 
 	@Test
 	@DisplayName("Includes the opening amount, cash movements and sale count in the report")
-	void ac2_theReportIncludesOpeningAmountCashMovementsAndSaleCount() {
-		UUID sessionId = UUID.randomUUID();
-		PosSessionId posSessionId = PosSessionId.of(sessionId);
+	void ac2TheReportIncludesOpeningAmountCashMovementsAndSaleCount() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSessionId posSessionId = PosSessionId.of(sessionId);
 		when(posSessionRepositoryPort.findById(posSessionId)).thenReturn(Optional.of(openSession(sessionId)));
 		when(nfceRepositoryPort.findBySessionId(posSessionId)).thenReturn(
 				List.of(issuedSale(posSessionId, PaymentMethodType.CASH, new BigDecimal("40.00"))));
@@ -142,7 +154,7 @@ class ClosePosSessionServiceTest {
 				movement(posSessionId, CashMovementType.SUPRIMENTO, new BigDecimal("5.00"))));
 		when(cashClosingReportRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
+		final CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
 
 		assertThat(report.getOpeningAmount()).isEqualByComparingTo("100.00");
 		assertThat(report.getTotalSangriaAmount()).isEqualByComparingTo("15.00");
@@ -152,26 +164,26 @@ class ClosePosSessionServiceTest {
 
 	@Test
 	@DisplayName("Prints the report after the session is closed")
-	void ac3_theReportIsPrintedAfterClosing() {
-		UUID sessionId = UUID.randomUUID();
-		PosSessionId posSessionId = PosSessionId.of(sessionId);
+	void ac3TheReportIsPrintedAfterClosing() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSessionId posSessionId = PosSessionId.of(sessionId);
 		when(posSessionRepositoryPort.findById(posSessionId)).thenReturn(Optional.of(openSession(sessionId)));
 		when(nfceRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
 		when(cashMovementRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
 		when(cashClosingReportRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
+		final CashClosingReport report = service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
 
-		ArgumentCaptor<CashClosingReport> captor = ArgumentCaptor.forClass(CashClosingReport.class);
+		final ArgumentCaptor<CashClosingReport> captor = ArgumentCaptor.forClass(CashClosingReport.class);
 		verify(printNonFiscalReceiptPort).print(captor.capture());
 		assertThat(captor.getValue()).isEqualTo(report);
 	}
 
 	@Test
 	@DisplayName("Transitions the session to closed")
-	void ac4_theSessionTransitionsToClosed() {
-		UUID sessionId = UUID.randomUUID();
-		PosSessionId posSessionId = PosSessionId.of(sessionId);
+	void ac4TheSessionTransitionsToClosed() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSessionId posSessionId = PosSessionId.of(sessionId);
 		when(posSessionRepositoryPort.findById(posSessionId)).thenReturn(Optional.of(openSession(sessionId)));
 		when(nfceRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
 		when(cashMovementRepositoryPort.findBySessionId(posSessionId)).thenReturn(List.of());
@@ -179,16 +191,16 @@ class ClosePosSessionServiceTest {
 
 		service.execute(new ClosePosSessionCommand(sessionId, Map.of()));
 
-		ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
+		final ArgumentCaptor<PosSession> captor = ArgumentCaptor.forClass(PosSession.class);
 		verify(posSessionRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getStatus()).isEqualTo(PosSessionStatus.CLOSED);
 	}
 
 	@Test
 	@DisplayName("Rejects closing a session that is already closed")
-	void ac4_closingAnAlreadyClosedSessionIsRejected() {
-		UUID sessionId = UUID.randomUUID();
-		PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
+	void ac4ClosingAnAlreadyClosedSessionIsRejected() {
+		final UUID sessionId = UUID.randomUUID();
+		final PosSession closedSession = PosSession.of(PosSessionId.of(sessionId), UUID.randomUUID(), UUID.randomUUID(),
 				CompanyId.of(UUID.randomUUID()), new BigDecimal("100.00"), PosSessionStatus.CLOSED, Instant.now(),
 				Instant.now());
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.of(closedSession));
@@ -203,7 +215,7 @@ class ClosePosSessionServiceTest {
 	@Test
 	@DisplayName("Rejects closing an unknown session")
 	void closingAnUnknownSessionIsRejected() {
-		UUID sessionId = UUID.randomUUID();
+		final UUID sessionId = UUID.randomUUID();
 		when(posSessionRepositoryPort.findById(PosSessionId.of(sessionId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ClosePosSessionCommand(sessionId, Map.of())))

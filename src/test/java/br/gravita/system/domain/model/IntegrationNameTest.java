@@ -16,7 +16,7 @@ class IntegrationNameTest {
 	@DisplayName("Resolves each of the seven valid integrations")
 	@ValueSource(strings = {"sefaz", "receita-federal", "viacep-ibge", "bank", "whatsapp-business-api", "ecommerce",
 			"accounting", "SEFAZ", "Bank"})
-	void shouldResolveEachOfTheSevenValidIntegrations(String code) {
+	void shouldResolveEachOfTheSevenValidIntegrations(final String code) {
 		assertThat(IntegrationName.fromCode(code)).isNotNull();
 	}
 

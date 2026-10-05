@@ -16,18 +16,18 @@ public class AssignProfileAdapter implements AssignProfilePort {
 	private final ProfileRepositoryPort profileRepositoryPort;
 	private final SaveCustomProfilePort saveCustomProfilePort;
 
-	public AssignProfileAdapter(ProfileRepositoryPort profileRepositoryPort, SaveCustomProfilePort saveCustomProfilePort) {
+	public AssignProfileAdapter(final ProfileRepositoryPort profileRepositoryPort, final SaveCustomProfilePort saveCustomProfilePort) {
 		this.profileRepositoryPort = profileRepositoryPort;
 		this.saveCustomProfilePort = saveCustomProfilePort;
 	}
 
 	@Override
-	public ProfileDomain execute(Context context) {
-		ProfileDomain command = context.getData(ProfileDomain.class);
-		Optional<ProfileDomain> existing = profileRepositoryPort.findById(command.getId());
+	public ProfileDomain execute(final Context context) {
+		final ProfileDomain command = context.getData(ProfileDomain.class);
+		final Optional<ProfileDomain> existing = profileRepositoryPort.findById(command.getId());
 
 		if (existing.isPresent()) {
-			ProfileDomain profile = existing.get();
+			final ProfileDomain profile = existing.get();
 			profile.setPermissions(command.getPermissions());
 			return profileRepositoryPort.save(profile);
 		}

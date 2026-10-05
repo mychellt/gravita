@@ -22,9 +22,9 @@ class DigitalCertificateTest {
 	@Test
 	@DisplayName("Uploads an A1 certificate")
 	void shouldUploadA1Certificate() {
-		Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
+		final Instant expiresAt = Instant.now().plus(365, ChronoUnit.DAYS);
 
-		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
+		final DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
 				"secret", expiresAt);
 
 		assertThat(certificate.getId()).isNotNull();
@@ -73,7 +73,7 @@ class DigitalCertificateTest {
 	@Test
 	@DisplayName("Reports an expired certificate as expired")
 	void shouldReportExpiredCertificate() {
-		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
+		final DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
 				"secret", Instant.now().minus(1, ChronoUnit.DAYS));
 
 		assertThat(certificate.isExpired(Instant.now())).isTrue();
@@ -82,7 +82,7 @@ class DigitalCertificateTest {
 	@Test
 	@DisplayName("Reports an active certificate as not expired")
 	void shouldReportActiveCertificateAsNotExpired() {
-		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
+		final DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, PFX_PAYLOAD,
 				"secret", Instant.now().plus(1, ChronoUnit.DAYS));
 
 		assertThat(certificate.isExpired(Instant.now())).isFalse();
@@ -91,8 +91,8 @@ class DigitalCertificateTest {
 	@Test
 	@DisplayName("Defensively copies the PFX payload")
 	void shouldDefensivelyCopyPfxPayload() {
-		byte[] payload = {5, 6, 7};
-		DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, payload, "secret",
+		final byte[] payload = {5, 6, 7};
+		final DigitalCertificate certificate = DigitalCertificate.upload(COMPANY_ID, CertificateType.A1, payload, "secret",
 				Instant.now().plus(1, ChronoUnit.DAYS));
 
 		certificate.getPfxPayload()[0] = 9;

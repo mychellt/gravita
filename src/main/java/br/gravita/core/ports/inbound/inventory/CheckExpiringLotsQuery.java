@@ -10,7 +10,7 @@ public record CheckExpiringLotsQuery(int withinDays, UUID warehouseId) {
 		}
 	}
 
-	public static CheckExpiringLotsQuery of(int withinDays) {
+	public static CheckExpiringLotsQuery of(final int withinDays) {
 		return new CheckExpiringLotsQuery(withinDays, null);
 	}
 }

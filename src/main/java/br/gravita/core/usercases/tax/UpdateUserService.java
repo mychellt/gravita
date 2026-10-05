@@ -18,14 +18,14 @@ public class UpdateUserService implements UpdateUserUseCase {
 	private final UserRepositoryPort userRepositoryPort;
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public UpdateUserService(UserRepositoryPort userRepositoryPort, ProfileRepositoryPort profileRepositoryPort) {
+	public UpdateUserService(final UserRepositoryPort userRepositoryPort, final ProfileRepositoryPort profileRepositoryPort) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 
 	@Override
-	public void execute(UpdateUserCommand command) {
-		User user = userRepositoryPort.findById(UserId.of(command.userId()))
+	public void execute(final UpdateUserCommand command) {
+		final User user = userRepositoryPort.findById(UserId.of(command.userId()))
 				.orElseThrow(() -> new UserNotFoundException(command.userId()));
 
 		if (command.email() != null

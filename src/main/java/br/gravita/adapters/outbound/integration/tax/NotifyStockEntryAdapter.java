@@ -15,12 +15,12 @@ class NotifyStockEntryAdapter implements NotifyStockEntryPort {
 
 	private final RegisterStockEntryUseCase registerStockEntryUseCase;
 
-	NotifyStockEntryAdapter(RegisterStockEntryUseCase registerStockEntryUseCase) {
+	NotifyStockEntryAdapter(final RegisterStockEntryUseCase registerStockEntryUseCase) {
 		this.registerStockEntryUseCase = registerStockEntryUseCase;
 	}
 
 	@Override
-	public void notifyEntry(NotifyStockEntryCommand command) {
+	public void notifyEntry(final NotifyStockEntryCommand command) {
 		registerStockEntryUseCase.execute(new RegisterStockEntryCommand(command.productId(), DEFAULT_WAREHOUSE_ID,
 				command.quantity(), command.unitCost(), null, List.of(),
 				"INBOUND_NFE:" + command.sourceInboundNfeId(), SYSTEM_ACTOR_ID));

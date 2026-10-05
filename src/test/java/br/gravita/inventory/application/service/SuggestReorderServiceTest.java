@@ -51,14 +51,14 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("Suggests a reorder when available stock is below the reorder point")
 	void suggestsReorderWhenAvailableIsBelowTheReorderPoint() {
-		StockBalance balance = balanceOf("15");
+		final StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
 		assertThat(suggestions).hasSize(1);
-		ReorderSuggestion suggestion = suggestions.get(0);
+		final ReorderSuggestion suggestion = suggestions.get(0);
 		assertThat(suggestion.productId()).isEqualTo(productId);
 		assertThat(suggestion.warehouseId()).isEqualTo(warehouseId);
 		assertThat(suggestion.available()).isEqualByComparingTo("15");
@@ -68,11 +68,11 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("Suggests a reorder when available stock equals the reorder point exactly")
 	void suggestsReorderAtTheExactBoundaryWhereAvailableEqualsTheReorderPoint() {
-		StockBalance balance = balanceOf("20");
+		final StockBalance balance = balanceOf("20");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
 		assertThat(suggestions).hasSize(1);
 	}
@@ -80,11 +80,11 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("Produces no suggestion when available stock is above the reorder point")
 	void producesNoSuggestionWhenAvailableIsAboveTheReorderPoint() {
-		StockBalance balance = balanceOf("21");
+		final StockBalance balance = balanceOf("21");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
 		assertThat(suggestions).isEmpty();
 	}
@@ -92,11 +92,11 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("The suggested quantity brings the balance back up to the configured maximum, not just the reorder point")
 	void suggestedQuantityBringsTheBalanceBackToTheConfiguredMaximumNotJustToTheReorderPoint() {
-		StockBalance balance = balanceOf("15");
+		final StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
 		assertThat(suggestions.get(0).suggestedQuantity()).isEqualByComparingTo("85");
 	}
@@ -104,12 +104,12 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("Skips a product that has no reorder point configured")
 	void skipsAProductWithNoConfiguredReorderPoint() {
-		StockBalance balance = balanceOf("0");
+		final StockBalance balance = balanceOf("0");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId))
 				.thenReturn(Optional.of(productWithStock(null, null, null)));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
 		assertThat(suggestions).isEmpty();
 	}
@@ -117,11 +117,11 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("Considers only the given warehouse when a warehouse id is provided")
 	void filtersByWarehouseWhenAWarehouseIdIsProvided() {
-		StockBalance balance = balanceOf("15");
+		final StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findByWarehouseId(warehouseId)).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(new SuggestReorderQuery(warehouseId));
+		final List<ReorderSuggestion> suggestions = service.execute(new SuggestReorderQuery(warehouseId));
 
 		assertThat(suggestions).hasSize(1);
 	}
@@ -129,13 +129,13 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("AC4: Notifies the low-stock port with the produced suggestions")
 	void ac4NotifiesLowStockPortWithTheProducedSuggestions() {
-		StockBalance balance = balanceOf("15");
+		final StockBalance balance = balanceOf("15");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
-		List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
+		final List<ReorderSuggestion> suggestions = service.execute(SuggestReorderQuery.fullSweep());
 
-		ArgumentCaptor<List<ReorderSuggestion>> captor = ArgumentCaptor.forClass(List.class);
+		final ArgumentCaptor<List<ReorderSuggestion>> captor = ArgumentCaptor.forClass(List.class);
 		verify(notifyLowStockPort).notify(captor.capture());
 		assertThat(captor.getValue()).isEqualTo(suggestions);
 	}
@@ -143,7 +143,7 @@ class SuggestReorderServiceTest {
 	@Test
 	@DisplayName("AC4: Notifies the low-stock port with an empty list when no suggestion is produced")
 	void ac4NotifiesLowStockPortWithAnEmptyListWhenNoSuggestionIsProduced() {
-		StockBalance balance = balanceOf("21");
+		final StockBalance balance = balanceOf("21");
 		when(stockBalanceRepositoryPort.findAll()).thenReturn(List.of(balance));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(productWithStock("10", "100", "20")));
 
@@ -152,12 +152,12 @@ class SuggestReorderServiceTest {
 		verify(notifyLowStockPort).notify(List.of());
 	}
 
-	private StockBalance balanceOf(String onHand) {
+	private StockBalance balanceOf(final String onHand) {
 		return StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId, new BigDecimal(onHand),
 				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 	}
 
-	private ProductDomain productWithStock(String minimum, String maximum, String reorderPoint) {
+	private ProductDomain productWithStock(final String minimum, final String maximum, final String reorderPoint) {
 		return ProductDomain.builder()
 				.id(productId)
 				.stock(new StockParametersDomain(bigDecimalOrNull(minimum), bigDecimalOrNull(maximum),
@@ -165,7 +165,7 @@ class SuggestReorderServiceTest {
 				.build();
 	}
 
-	private BigDecimal bigDecimalOrNull(String value) {
+	private BigDecimal bigDecimalOrNull(final String value) {
 		return value == null ? null : new BigDecimal(value);
 	}
 }

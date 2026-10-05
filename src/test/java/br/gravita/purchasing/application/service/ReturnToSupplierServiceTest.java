@@ -84,38 +84,38 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Returning every received item in full reverses stock and payable and issues the return NF-e")
 	void returningEveryReceivedItemInFullReversesStockAndPayableAndIssuesTheReturnNfe() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReturnRepositoryPort.findByReceiptId(receipt.getId())).thenReturn(List.of());
 		when(purchaseReturnRepositoryPort.save(any(PurchaseReturn.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 		when(issuePurchaseReturnNfePort.issueReturnNfe(any())).thenReturn("35250000000000000000000000000000000000000000");
 
-		PurchaseReturnId returnId = service.execute(
+		final PurchaseReturnId returnId = service.execute(
 				new ReturnToSupplierCommand(receipt.getId(), List.of(new ReturnedItem(productId, BigDecimal.TEN))));
 
 		assertThat(returnId).isNotNull();
 
-		ArgumentCaptor<ReverseStockEntryCommand> stockReversal = ArgumentCaptor.forClass(ReverseStockEntryCommand.class);
+		final ArgumentCaptor<ReverseStockEntryCommand> stockReversal = ArgumentCaptor.forClass(ReverseStockEntryCommand.class);
 		verify(reverseStockEntryPort, times(1)).reverseEntry(stockReversal.capture());
 		assertThat(stockReversal.getValue().productId()).isEqualTo(productId);
 		assertThat(stockReversal.getValue().quantity()).isEqualByComparingTo(BigDecimal.TEN);
 		assertThat(stockReversal.getValue().unitCost()).isEqualByComparingTo("5.00");
 
-		ArgumentCaptor<ReversePayableFromReturnCommand> payableReversal =
+		final ArgumentCaptor<ReversePayableFromReturnCommand> payableReversal =
 				ArgumentCaptor.forClass(ReversePayableFromReturnCommand.class);
 		verify(reversePayableFromReturnPort).reversePayable(payableReversal.capture());
 		assertThat(payableReversal.getValue().supplierId()).isEqualTo(supplierId.value());
 		assertThat(payableReversal.getValue().amount()).isEqualByComparingTo("50.00");
 
-		ArgumentCaptor<IssuePurchaseReturnNfeCommand> nfeCommand =
+		final ArgumentCaptor<IssuePurchaseReturnNfeCommand> nfeCommand =
 				ArgumentCaptor.forClass(IssuePurchaseReturnNfeCommand.class);
 		verify(issuePurchaseReturnNfePort).issueReturnNfe(nfeCommand.capture());
 		assertThat(nfeCommand.getValue().supplierId()).isEqualTo(supplierId.value());
 		assertThat(nfeCommand.getValue().items()).hasSize(1);
 
-		ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
+		final ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
 		verify(purchaseReturnRepositoryPort).save(savedReturn.capture());
 		assertThat(savedReturn.getValue().isTotal()).isTrue();
 		assertThat(savedReturn.getValue().getReturnNfeRef()).isEqualTo("35250000000000000000000000000000000000000000");
@@ -124,8 +124,8 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Returning less than the received quantity is recorded as a partial return")
 	void returningFewerThanTheReceivedQuantityIsRecordedAsPartial() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReturnRepositoryPort.findByReceiptId(receipt.getId())).thenReturn(List.of());
 		when(purchaseReturnRepositoryPort.save(any(PurchaseReturn.class)))
@@ -134,11 +134,11 @@ class ReturnToSupplierServiceTest {
 		service.execute(new ReturnToSupplierCommand(receipt.getId(),
 				List.of(new ReturnedItem(productId, new BigDecimal("4")))));
 
-		ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
+		final ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
 		verify(purchaseReturnRepositoryPort).save(savedReturn.capture());
 		assertThat(savedReturn.getValue().isTotal()).isFalse();
 
-		ArgumentCaptor<ReversePayableFromReturnCommand> payableReversal =
+		final ArgumentCaptor<ReversePayableFromReturnCommand> payableReversal =
 				ArgumentCaptor.forClass(ReversePayableFromReturnCommand.class);
 		verify(reversePayableFromReturnPort).reversePayable(payableReversal.capture());
 		assertThat(payableReversal.getValue().amount()).isEqualByComparingTo("20.00");
@@ -146,10 +146,10 @@ class ReturnToSupplierServiceTest {
 
 	@Test
 	@DisplayName("A second partial return that completes the received quantity is recorded as total")
-	void aSecondPartialReturnThatCompletesTheReceivedQuantityIsRecordedAsTotal() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
-		PurchaseReturn firstReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
+	void secondPartialReturnThatCompletesTheReceivedQuantityIsRecordedAsTotal() {
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
+		final PurchaseReturn firstReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
 				List.of(new PurchaseReturnItem(productId, new BigDecimal("6"))), List.of());
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReturnRepositoryPort.findByReceiptId(receipt.getId())).thenReturn(List.of(firstReturn));
@@ -159,7 +159,7 @@ class ReturnToSupplierServiceTest {
 		service.execute(new ReturnToSupplierCommand(receipt.getId(),
 				List.of(new ReturnedItem(productId, new BigDecimal("4")))));
 
-		ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
+		final ArgumentCaptor<PurchaseReturn> savedReturn = ArgumentCaptor.forClass(PurchaseReturn.class);
 		verify(purchaseReturnRepositoryPort).save(savedReturn.capture());
 		assertThat(savedReturn.getValue().isTotal()).isTrue();
 	}
@@ -167,8 +167,8 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Rejects a return against a receipt that is not confirmed")
 	void rejectsAReturnAgainstAReceiptThatIsNotConfirmed() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
 				List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, BigDecimal.TEN)));
 		when(purchaseReceiptRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -187,8 +187,8 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Rejects a return exceeding the originally received quantity without any side effect")
 	void rejectsAReturnQuantityExceedingWhatWasOriginallyReceivedWithoutAnySideEffect() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReturnRepositoryPort.findByReceiptId(receipt.getId())).thenReturn(List.of());
 
@@ -205,9 +205,9 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Rejects returning more than what remains after a prior return")
 	void rejectsReturningMoreThanWhatRemainsAfterAPriorReturn() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
-		PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
-		PurchaseReturn firstReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
+		final PurchaseOrder order = openOrder(BigDecimal.TEN, "5.00");
+		final PurchaseReceipt receipt = confirmedReceipt(order.getId(), BigDecimal.TEN);
+		final PurchaseReturn firstReturn = PurchaseReturn.forReceipt(PurchaseReturnId.of(UUID.randomUUID()), receipt,
 				List.of(new PurchaseReturnItem(productId, new BigDecimal("6"))), List.of());
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReturnRepositoryPort.findByReceiptId(receipt.getId())).thenReturn(List.of(firstReturn));
@@ -223,7 +223,7 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Rejects a return for a receipt that does not exist")
 	void rejectsAReturnForAReceiptThatDoesNotExist() {
-		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
+		final PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
 		when(purchaseReceiptRepositoryPort.findById(receiptId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -234,8 +234,8 @@ class ReturnToSupplierServiceTest {
 	@Test
 	@DisplayName("Rejects a return whose order cannot be found")
 	void rejectsAReturnWhoseOrderCannotBeFound() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
-		PurchaseReceipt receipt = PurchaseReceipt
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseReceipt receipt = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
 						List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, BigDecimal.TEN)))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal("100.00"), LocalDate.now())))
@@ -248,14 +248,14 @@ class ReturnToSupplierServiceTest {
 				.isInstanceOf(PurchaseOrderNotFoundException.class);
 	}
 
-	private PurchaseOrder openOrder(BigDecimal orderedQty, String unitPrice) {
+	private PurchaseOrder openOrder(final BigDecimal orderedQty, final String unitPrice) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, supplierId, List.of(new PurchaseOrderItem(productId, orderedQty, new BigDecimal(unitPrice))),
 				false);
 	}
 
-	private PurchaseReceipt confirmedReceipt(PurchaseOrderId orderId, BigDecimal receivedQty) {
-		PurchaseReceipt confirmed = PurchaseReceipt
+	private PurchaseReceipt confirmedReceipt(final PurchaseOrderId orderId, final BigDecimal receivedQty) {
+		final PurchaseReceipt confirmed = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
 						List.of(new PurchaseReceiptItem(productId, receivedQty, receivedQty)))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal("50.00"), LocalDate.now().plusDays(30))))

@@ -37,7 +37,7 @@ class IntegrationCredentialControllerTest {
 	@Test
 	@DisplayName("Responds 204 when configuring an integration credential succeeds")
 	void shouldReturn204WhenConfiguringCredentialSucceeds() throws Exception {
-		ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
+		final ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
 				IntegrationEnvironment.PRODUCTION, "https://nfe.fazenda.example.com", "cert-payload");
 
 		mockMvc.perform(put("/api/system/integrations/sefaz/credentials")
@@ -45,7 +45,7 @@ class IntegrationCredentialControllerTest {
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isNoContent());
 
-		ArgumentCaptor<ConfigureIntegrationCredentialCommand> captor =
+		final ArgumentCaptor<ConfigureIntegrationCredentialCommand> captor =
 				ArgumentCaptor.forClass(ConfigureIntegrationCredentialCommand.class);
 		verify(configureIntegrationCredentialUseCase).execute(captor.capture());
 		assertThat(captor.getValue().integrationName()).isEqualTo("sefaz");
@@ -57,7 +57,7 @@ class IntegrationCredentialControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the integration name is unknown")
 	void shouldReturn400WhenIntegrationNameIsUnknown() throws Exception {
-		ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
+		final ConfigureIntegrationCredentialRequest request = new ConfigureIntegrationCredentialRequest(
 				null, "https://stripe.example.com", "secret");
 		doThrow(new UnknownIntegrationException("stripe"))
 				.when(configureIntegrationCredentialUseCase).execute(org.mockito.ArgumentMatchers.any());
@@ -72,7 +72,7 @@ class IntegrationCredentialControllerTest {
 	@Test
 	@DisplayName("Responds 400 when the endpoint is blank")
 	void shouldReturn400WhenEndpointIsBlank() throws Exception {
-		String body = objectMapper.writeValueAsString(new ConfigureIntegrationCredentialRequest(null, " ", "secret"));
+		final String body = objectMapper.writeValueAsString(new ConfigureIntegrationCredentialRequest(null, " ", "secret"));
 
 		mockMvc.perform(put("/api/system/integrations/bank/credentials")
 						.contentType("application/json")

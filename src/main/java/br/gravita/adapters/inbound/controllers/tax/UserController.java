@@ -32,38 +32,38 @@ public class UserController {
 	private final UpdateUserUseCase updateUserUseCase;
 	private final ListUsersUseCase listUsersUseCase;
 
-	public UserController(RegisterUserUseCase registerUserUseCase, UpdateUserUseCase updateUserUseCase,
-			ListUsersUseCase listUsersUseCase) {
+	public UserController(final RegisterUserUseCase registerUserUseCase, final UpdateUserUseCase updateUserUseCase,
+			final ListUsersUseCase listUsersUseCase) {
 		this.registerUserUseCase = registerUserUseCase;
 		this.updateUserUseCase = updateUserUseCase;
 		this.listUsersUseCase = listUsersUseCase;
 	}
 
 	@GetMapping
-	public ResponseEntity<List<UserSummaryResponse>> findAll(@AuthenticatedUser UserId callerId) {
+	public ResponseEntity<List<UserSummaryResponse>> findAll(@AuthenticatedUser final UserId callerId) {
 		return ResponseEntity.ok(listUsersUseCase.execute(callerId).stream().map(UserSummaryResponse::from).toList());
 	}
 
 	@PostMapping
-	public ResponseEntity<UserResponse> register(@AuthenticatedUser UserId callerId,
-			@Valid @RequestBody RegisterUserRequest request) {
-		UserId id = registerUserUseCase.execute(request.toCommand(callerId));
+	public ResponseEntity<UserResponse> register(@AuthenticatedUser final UserId callerId,
+			@Valid @RequestBody final RegisterUserRequest request) {
+		final UserId id = registerUserUseCase.execute(request.toCommand(callerId));
 		return ResponseEntity.created(URI.create("/api/users/" + id.value())).body(UserResponse.from(id));
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<Void> update(@PathVariable UUID id, @Valid @RequestBody UpdateUserRequest request) {
+	public ResponseEntity<Void> update(@PathVariable final UUID id, @Valid @RequestBody final UpdateUserRequest request) {
 		updateUserUseCase.execute(request.toCommand(id));
 		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(UserNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleUserNotFoundException(final UserNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 }

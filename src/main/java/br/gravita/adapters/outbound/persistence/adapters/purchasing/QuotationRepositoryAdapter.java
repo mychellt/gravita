@@ -15,21 +15,21 @@ class QuotationRepositoryAdapter implements QuotationRepositoryPort {
 	private final QuotationJpaRepository jpaRepository;
 	private final QuotationPersistenceMapper mapper;
 
-	QuotationRepositoryAdapter(QuotationJpaRepository jpaRepository, QuotationPersistenceMapper mapper) {
+	QuotationRepositoryAdapter(final QuotationJpaRepository jpaRepository, final QuotationPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Quotation save(Quotation quotation) {
-		QuotationJpaEntity entity = mapper.map(quotation);
+	public Quotation save(final Quotation quotation) {
+		final QuotationJpaEntity entity = mapper.map(quotation);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		QuotationJpaEntity saved = jpaRepository.save(entity);
+		final QuotationJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<Quotation> findById(QuotationId id) {
+	public Optional<Quotation> findById(final QuotationId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

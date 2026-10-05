@@ -50,7 +50,7 @@ class ResendActivationServiceTest {
         return new ResendActivationService(userRepository, tokenRepository, publisher);
     }
 
-    private void givenLatestTokenIssuedAt(LocalDateTime issuedAt) {
+    private void givenLatestTokenIssuedAt(final LocalDateTime issuedAt) {
         when(tokenRepository.findLatestByUserId(pendingUser.getId().value()))
                 .thenReturn(Optional.of(ActivationToken.issue(pendingUser.getId(), issuedAt).token()));
     }

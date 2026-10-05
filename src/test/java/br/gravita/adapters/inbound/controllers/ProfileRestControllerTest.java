@@ -66,8 +66,8 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK with the id and name of every available profile")
 	void shouldListProfilesForTheDropdown() throws Exception {
-		UUID adminId = UUID.randomUUID();
-		UUID salesId = UUID.randomUUID();
+		final UUID adminId = UUID.randomUUID();
+		final UUID salesId = UUID.randomUUID();
 		when(listProfilesUseCase.execute()).thenReturn(List.of(
 				new ProfileReference(adminId, "Administrator"), new ProfileReference(salesId, "Salesperson")));
 
@@ -92,8 +92,8 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when permissions are assigned to a profile")
 	void shouldReturn200WhenAssigningPermissions() throws Exception {
-		UUID id = UUID.randomUUID();
-		ProfileDomain updated = ProfileDomain.builder().id(id).name("Financial")
+		final UUID id = UUID.randomUUID();
+		final ProfileDomain updated = ProfileDomain.builder().id(id).name("Financial")
 				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")
 						.action(PermissionAction.VIEW).build()))
 				.build();
@@ -110,7 +110,7 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 404 Not Found when assigning permissions to an unknown profile")
 	void shouldReturn404WhenProfileUnknown() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(assignProfilePort.execute(any())).thenThrow(new ResourceNotFoundException("Profile not found: " + id));
 
 		mockMvc.perform(put("/api/profiles/" + id + "/permissions")
@@ -122,8 +122,8 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 400 Bad Request when the permission action is invalid")
 	void shouldReturn400WhenActionIsInvalid() throws Exception {
-		UUID id = UUID.randomUUID();
-		String invalidBody = """
+		final UUID id = UUID.randomUUID();
+		final String invalidBody = """
 				{"permissions":[{"module":"finance","screen":"invoices","action":"FLY"}]}""";
 
 		mockMvc.perform(put("/api/profiles/" + id + "/permissions")
@@ -135,7 +135,7 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 400 Bad Request when the permissions list is missing")
 	void shouldReturn400WhenPermissionsMissing() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 
 		mockMvc.perform(put("/api/profiles/" + id + "/permissions")
 						.contentType("application/json")
@@ -146,8 +146,8 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when a new custom profile is saved")
 	void shouldReturn200WhenSavingNewCustomProfile() throws Exception {
-		UUID id = UUID.randomUUID();
-		ProfileDomain created = ProfileDomain.builder().id(id).name("Sales Read-Only")
+		final UUID id = UUID.randomUUID();
+		final ProfileDomain created = ProfileDomain.builder().id(id).name("Sales Read-Only")
 				.permissions(List.of(PermissionDomain.builder().module("sales").screen("orders")
 						.action(PermissionAction.VIEW).build()))
 				.build();
@@ -164,7 +164,7 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 409 Conflict when the custom profile name is already in use")
 	void shouldReturn409WhenCustomProfileNameAlreadyInUse() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(assignProfilePort.execute(any()))
 				.thenThrow(new DuplicateResourceException("Profile name already in use: Financial"));
 
@@ -178,8 +178,8 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when an existing profile is found")
 	void shouldReturn200WhenFindingExistingProfile() throws Exception {
-		UUID id = UUID.randomUUID();
-		ProfileDomain profile = ProfileDomain.builder().id(id).name("Financial")
+		final UUID id = UUID.randomUUID();
+		final ProfileDomain profile = ProfileDomain.builder().id(id).name("Financial")
 				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")
 						.action(PermissionAction.VIEW).build()))
 				.build();
@@ -193,7 +193,7 @@ class ProfileRestControllerTest {
 	@Test
 	@DisplayName("Returns 404 Not Found when finding an unknown profile")
 	void shouldReturn404WhenFindingUnknownProfile() throws Exception {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(findProfilePort.execute(any())).thenThrow(new ResourceNotFoundException("Profile not found: " + id));
 
 		mockMvc.perform(get("/api/profiles/" + id))

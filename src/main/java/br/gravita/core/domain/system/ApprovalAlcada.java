@@ -23,10 +23,10 @@ public class ApprovalAlcada {
     private UUID approverProfileId;
     private Instant configuredAt;
 
-    public static ApprovalAlcada configure(ApprovalModule module,
-                                           BigDecimal thresholdValue,
-                                           BigDecimal thresholdDiscountPercent,
-                                           ProfileReference approverProfile) {
+    public static ApprovalAlcada configure(final ApprovalModule module,
+                                           final BigDecimal thresholdValue,
+                                           final BigDecimal thresholdDiscountPercent,
+                                           final ProfileReference approverProfile) {
 
         validate(thresholdValue, thresholdDiscountPercent, approverProfile);
 
@@ -40,8 +40,8 @@ public class ApprovalAlcada {
                 .build();
     }
 
-    public void reconfigure(BigDecimal thresholdValue, BigDecimal thresholdDiscountPercent,
-                            ProfileReference approverProfile) {
+    public void reconfigure(final BigDecimal thresholdValue, final BigDecimal thresholdDiscountPercent,
+                            final ProfileReference approverProfile) {
         validate(thresholdValue, thresholdDiscountPercent, approverProfile);
         this.thresholdValue = thresholdValue;
         this.thresholdDiscountPercent = thresholdDiscountPercent;
@@ -49,8 +49,8 @@ public class ApprovalAlcada {
         this.configuredAt = Instant.now();
     }
 
-    private static void validate(BigDecimal thresholdValue, BigDecimal thresholdDiscountPercent,
-                                 ProfileReference approverProfile) {
+    private static void validate(final BigDecimal thresholdValue, final BigDecimal thresholdDiscountPercent,
+                                 final ProfileReference approverProfile) {
         if (thresholdValue == null && thresholdDiscountPercent == null) {
             throw new BusinessRuleException(
                     "At least one of thresholdValue or thresholdDiscountPercent must be set");

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class OpportunityNotFoundException extends RuntimeException {
 
-	public OpportunityNotFoundException(UUID opportunityId) {
+	public OpportunityNotFoundException(final UUID opportunityId) {
 		super("Opportunity not found: " + opportunityId);
 	}
 }

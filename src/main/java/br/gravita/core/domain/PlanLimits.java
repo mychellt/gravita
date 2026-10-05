@@ -14,7 +14,7 @@ public record PlanLimits(Integer cnpjs, Integer filiais, Integer caixasPdv, Inte
 		requireUnlimitedOrPositive("usuarios", usuarios);
 	}
 
-	private static void requireUnlimitedOrPositive(String limit, Integer value) {
+	private static void requireUnlimitedOrPositive(final String limit, final Integer value) {
 		if (value != null && value < MINIMUM_LIMIT) {
 			throw new BusinessRuleException("Plan limit '" + limit + "' must be unlimited (null) or at least " + MINIMUM_LIMIT);
 		}

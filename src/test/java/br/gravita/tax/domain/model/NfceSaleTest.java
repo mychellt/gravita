@@ -22,14 +22,14 @@ class NfceSaleTest {
 
 	private final PosSessionId sessionId = PosSessionId.of(UUID.randomUUID());
 
-	private SaleItem oneUnitAt(String unitPrice) {
+	private SaleItem oneUnitAt(final String unitPrice) {
 		return new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal(unitPrice), BigDecimal.ZERO);
 	}
 
 	@Test
 	@DisplayName("Adds an item with a positive quantity without further confirmation")
-	void ac1_anItemWithAPositiveQuantityIsAddedWithNoFurtherConfirmation() {
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
+	void ac1AnItemWithAPositiveQuantityIsAddedWithNoFurtherConfirmation() {
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
 
 		assertThat(sale.getItems()).hasSize(1);
@@ -38,22 +38,22 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Rejects a zero or negative quantity")
-	void ac1_zeroOrNegativeQuantityIsRejected() {
+	void ac1ZeroOrNegativeQuantityIsRejected() {
 		assertThatThrownBy(() -> new SaleItem(UUID.randomUUID(), BigDecimal.ZERO, new BigDecimal("10.00"), null))
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
 	@DisplayName("Rejects an item discount that would make the line negative")
-	void ac2_anItemDiscountThatWouldMakeTheLineNegativeIsRejected() {
+	void ac2AnItemDiscountThatWouldMakeTheLineNegativeIsRejected() {
 		assertThatThrownBy(() -> new SaleItem(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("10.00"),
 				new BigDecimal("10.01"))).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@Test
 	@DisplayName("Combines multiple payment methods in the same sale")
-	void ac3_multiplePaymentMethodsCanBeCombinedInTheSameSale() {
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("80.00")),
+	void ac3MultiplePaymentMethodsCanBeCombinedInTheSameSale() {
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("80.00")),
 				null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("50.00")),
 						new Payment(PaymentMethodType.CREDIT_CARD, new BigDecimal("30.00"))),
@@ -64,8 +64,8 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Derives the change given from the payments minus the sale total, never entered directly")
-	void ac4_changeGivenIsDerivedFromPaymentsMinusSaleTotalNeverEnteredDirectly() {
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("18.00")),
+	void ac4ChangeGivenIsDerivedFromPaymentsMinusSaleTotalNeverEnteredDirectly() {
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("18.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("20.00"))), null, Instant.now());
 
 		assertThat(sale.getSaleTotal()).isEqualByComparingTo("18.00");
@@ -74,7 +74,7 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Rejects payments that do not cover the sale total")
-	void ac5_paymentsThatDoNotCoverTheSaleTotalAreRejected() {
+	void ac5PaymentsThatDoNotCoverTheSaleTotalAreRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("50.00")), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("40.00"))),
 				null, Instant.now())).isInstanceOf(BusinessRuleException.class);
@@ -82,7 +82,7 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Rejects a total discount above the subtotal")
-	void ac5_totalDiscountAboveTheSubtotalIsRejected() {
+	void ac5TotalDiscountAboveTheSubtotalIsRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("50.00")), new BigDecimal("50.01"),
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("50.00"))), null, Instant.now()))
@@ -91,8 +91,8 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Treats the customer CPF as optional")
-	void ac6_customerCpfIsOptional() {
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
+	void ac6CustomerCpfIsOptional() {
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now());
 
 		assertThat(sale.getCustomerCpf()).isNull();
@@ -100,8 +100,8 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Normalizes a valid CPF to digits only")
-	void ac6_aValidCpfIsNormalizedToDigitsOnly() {
-		NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
+	void ac6AValidCpfIsNormalizedToDigitsOnly() {
+		final NfceSale sale = NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(oneUnitAt("10.00")),
 				null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), "529.982.247-25",
 				Instant.now());
 
@@ -110,7 +110,7 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Rejects an invalid CPF")
-	void ac6_anInvalidCpfIsRejected() {
+	void ac6AnInvalidCpfIsRejected() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("10.00")), null, List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))),
 				"111.111.111-11", Instant.now()))
@@ -119,7 +119,7 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Requires a sale to have at least one item")
-	void aSaleMustHaveAtLeastOneItem() {
+	void saleMustHaveAtLeastOneItem() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId, List.of(), null,
 				List.of(new Payment(PaymentMethodType.CASH, new BigDecimal("10.00"))), null, Instant.now()))
 				.isInstanceOf(BusinessRuleException.class);
@@ -127,7 +127,7 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Requires a sale to have at least one payment")
-	void aSaleMustHaveAtLeastOnePayment() {
+	void saleMustHaveAtLeastOnePayment() {
 		assertThatThrownBy(() -> NfceSale.register(NfceSaleId.of(UUID.randomUUID()), sessionId,
 				List.of(oneUnitAt("10.00")), null, List.of(), null, Instant.now()))
 				.isInstanceOf(BusinessRuleException.class);
@@ -140,10 +140,10 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Authorizing a draft sale moves it to authorized with the SEFAZ protocol")
-	void ac1_authorizingADraftSaleMovesItToAuthorizedWithTheSefazProtocol() {
-		NfceSale sale = draftSale();
+	void ac1AuthorizingADraftSaleMovesItToAuthorizedWithTheSefazProtocol() {
+		final NfceSale sale = draftSale();
 
-		NfceSale authorized = sale.authorize("001", 42L, "35" + "0".repeat(42), "protocol-123");
+		final NfceSale authorized = sale.authorize("001", 42L, "35" + "0".repeat(42), "protocol-123");
 
 		assertThat(authorized.getStatus()).isEqualTo(NfceSaleStatus.AUTHORIZED);
 		assertThat(authorized.getDocumentSeries()).isEqualTo("001");
@@ -154,10 +154,10 @@ class NfceSaleTest {
 
 	@Test
 	@DisplayName("Queuing a draft sale for contingency moves it to pending sync with no protocol")
-	void ac2_queuingADraftSaleForContingencyMovesItToPendingSyncWithNoProtocol() {
-		NfceSale sale = draftSale();
+	void ac2QueuingADraftSaleForContingencyMovesItToPendingSyncWithNoProtocol() {
+		final NfceSale sale = draftSale();
 
-		NfceSale queued = sale.queueForContingency("001", 43L, "35" + "0".repeat(42));
+		final NfceSale queued = sale.queueForContingency("001", 43L, "35" + "0".repeat(42));
 
 		assertThat(queued.getStatus()).isEqualTo(NfceSaleStatus.PENDING_SYNC);
 		assertThat(queued.isContingencyMode()).isTrue();
@@ -167,7 +167,7 @@ class NfceSaleTest {
 	@Test
 	@DisplayName("Rejects issuing an already authorized sale again")
 	void anAlreadyAuthorizedSaleCannotBeIssuedAgain() {
-		NfceSale authorized = draftSale().authorize("001", 1L, "35" + "0".repeat(42), "protocol-1");
+		final NfceSale authorized = draftSale().authorize("001", 1L, "35" + "0".repeat(42), "protocol-1");
 
 		assertThatThrownBy(() -> authorized.authorize("001", 2L, "35" + "0".repeat(42), "protocol-2"))
 				.isInstanceOf(BusinessRuleException.class);

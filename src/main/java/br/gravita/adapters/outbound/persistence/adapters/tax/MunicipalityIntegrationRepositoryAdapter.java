@@ -15,18 +15,18 @@ class MunicipalityIntegrationRepositoryAdapter implements MunicipalityIntegratio
 	private final MunicipalityIntegrationJpaRepository jpaRepository;
 	private final MunicipalityIntegrationPersistenceMapper mapper;
 
-	MunicipalityIntegrationRepositoryAdapter(MunicipalityIntegrationJpaRepository jpaRepository,
-			MunicipalityIntegrationPersistenceMapper mapper) {
+	MunicipalityIntegrationRepositoryAdapter(final MunicipalityIntegrationJpaRepository jpaRepository,
+			final MunicipalityIntegrationPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public MunicipalityIntegration save(MunicipalityIntegration integration) {
-		MunicipalityIntegrationJpaEntity entity = jpaRepository.findById(integration.getId().value())
+	public MunicipalityIntegration save(final MunicipalityIntegration integration) {
+		final MunicipalityIntegrationJpaEntity entity = jpaRepository.findById(integration.getId().value())
 				.map(existing -> {
 					// Update the managed row so audit columns (created_at) are preserved.
-					MunicipalityIntegrationJpaEntity fresh = mapper.map(integration);
+					final MunicipalityIntegrationJpaEntity fresh = mapper.map(integration);
 					existing.setStandard(fresh.getStandard());
 					existing.setVersion(fresh.getVersion());
 					existing.setWebserviceUrl(fresh.getWebserviceUrl());
@@ -40,7 +40,7 @@ class MunicipalityIntegrationRepositoryAdapter implements MunicipalityIntegratio
 	}
 
 	@Override
-	public Optional<MunicipalityIntegration> findByIbgeCode(String ibgeCode) {
+	public Optional<MunicipalityIntegration> findByIbgeCode(final String ibgeCode) {
 		return jpaRepository.findByIbgeCode(ibgeCode).map(mapper::map);
 	}
 }

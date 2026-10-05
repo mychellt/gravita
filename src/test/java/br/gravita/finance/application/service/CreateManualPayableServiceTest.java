@@ -61,7 +61,7 @@ class CreateManualPayableServiceTest {
 	void createsAnOpenManualPayableWithoutASupplier() {
 		savingEchoesTheArgument();
 
-		Payable created = service.execute(new CreateManualPayableCommand(null, new BigDecimal("2500.00"), DUE, null));
+		final Payable created = service.execute(new CreateManualPayableCommand(null, new BigDecimal("2500.00"), DUE, null));
 
 		assertThat(created.getOrigin()).isEqualTo(PayableOrigin.MANUAL);
 		assertThat(created.getStatus()).isEqualTo(PayableStatus.OPEN);
@@ -74,11 +74,11 @@ class CreateManualPayableServiceTest {
 	@Test
 	@DisplayName("Creates a payable for a registered supplier")
 	void createsAPayableForARegisteredSupplier() {
-		UUID supplierId = UUID.randomUUID();
+		final UUID supplierId = UUID.randomUUID();
 		when(supplierRepositoryPort.findById(SupplierId.of(supplierId))).thenReturn(Optional.of(mock(Supplier.class)));
 		savingEchoesTheArgument();
 
-		Payable created = service.execute(new CreateManualPayableCommand(supplierId, BigDecimal.TEN, DUE, null));
+		final Payable created = service.execute(new CreateManualPayableCommand(supplierId, BigDecimal.TEN, DUE, null));
 
 		assertThat(created.getSupplierId()).isEqualTo(supplierId);
 	}
@@ -86,8 +86,8 @@ class CreateManualPayableServiceTest {
 	@Test
 	@DisplayName("Saves the payable together with its cost center split")
 	void savesThePayableWithItsCostCenterSplit() {
-		UUID a = UUID.randomUUID();
-		UUID b = UUID.randomUUID();
+		final UUID a = UUID.randomUUID();
+		final UUID b = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(a)).thenReturn(Optional.of(CostCenterDomain.builder().build()));
 		when(costCenterRepositoryPort.get(b)).thenReturn(Optional.of(CostCenterDomain.builder().build()));
 		savingEchoesTheArgument();
@@ -95,7 +95,7 @@ class CreateManualPayableServiceTest {
 		service.execute(new CreateManualPayableCommand(null, BigDecimal.TEN, DUE, List.of(
 				new CostCenterShare(a, new BigDecimal("70")), new CostCenterShare(b, new BigDecimal("30")))));
 
-		ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
+		final ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
 		verify(payableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getCostCenterSplit()).extracting(CostCenterShare::costCenterId)
 				.containsExactly(a, b);
@@ -104,7 +104,7 @@ class CreateManualPayableServiceTest {
 	@Test
 	@DisplayName("Rejects an unregistered supplier without saving anything")
 	void rejectsAnUnregisteredSupplierWithoutSavingAnything() {
-		UUID supplierId = UUID.randomUUID();
+		final UUID supplierId = UUID.randomUUID();
 		when(supplierRepositoryPort.findById(SupplierId.of(supplierId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(
@@ -117,7 +117,7 @@ class CreateManualPayableServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown cost center without saving anything")
 	void rejectsAnUnknownCostCenterWithoutSavingAnything() {
-		UUID costCenterId = UUID.randomUUID();
+		final UUID costCenterId = UUID.randomUUID();
 		when(costCenterRepositoryPort.get(costCenterId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new CreateManualPayableCommand(null, BigDecimal.TEN, DUE,

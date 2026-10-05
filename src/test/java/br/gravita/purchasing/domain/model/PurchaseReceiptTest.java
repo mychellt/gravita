@@ -21,8 +21,8 @@ class PurchaseReceiptTest {
 
 	@Test
 	@DisplayName("A newly recorded receipt starts pending conference")
-	void aNewlyRecordedReceiptStartsPendingConference() {
-		PurchaseReceipt receipt = pending();
+	void newlyRecordedReceiptStartsPendingConference() {
+		final PurchaseReceipt receipt = pending();
 
 		assertThat(receipt.getStatus()).isEqualTo(PurchaseReceiptStatus.PENDING_CONFERENCE);
 	}
@@ -30,9 +30,9 @@ class PurchaseReceiptTest {
 	@Test
 	@DisplayName("Completing the conference attaches the installment terms and moves the receipt to CONFERENCE_COMPLETED")
 	void completingConferenceAttachesTheInstallmentTermsAndMovesToConferenceCompleted() {
-		PurchaseReceipt receipt = pending();
+		final PurchaseReceipt receipt = pending();
 
-		PurchaseReceipt conferenced = receipt.completeConference(List.of(installment("100.00")));
+		final PurchaseReceipt conferenced = receipt.completeConference(List.of(installment("100.00")));
 
 		assertThat(conferenced.getStatus()).isEqualTo(PurchaseReceiptStatus.CONFERENCE_COMPLETED);
 		assertThat(conferenced.getInstallmentTerms()).hasSize(1);
@@ -41,7 +41,7 @@ class PurchaseReceiptTest {
 	@Test
 	@DisplayName("Rejects completing the conference without any installment term")
 	void completingConferenceWithoutAnyInstallmentTermIsRejected() {
-		PurchaseReceipt receipt = pending();
+		final PurchaseReceipt receipt = pending();
 
 		assertThatThrownBy(() -> receipt.completeConference(List.of()))
 				.isInstanceOf(BusinessRuleException.class)
@@ -51,7 +51,7 @@ class PurchaseReceiptTest {
 	@Test
 	@DisplayName("Rejects confirming a receipt still pending conference")
 	void confirmingAReceiptStillPendingConferenceIsRejected() {
-		PurchaseReceipt receipt = pending();
+		final PurchaseReceipt receipt = pending();
 
 		assertThatThrownBy(receipt::confirm)
 				.isInstanceOf(BusinessRuleException.class)
@@ -61,9 +61,9 @@ class PurchaseReceiptTest {
 	@Test
 	@DisplayName("Confirming a conferenced receipt moves it to CONFIRMED")
 	void confirmingAConferencedReceiptMovesToConfirmed() {
-		PurchaseReceipt receipt = pending().completeConference(List.of(installment("100.00")));
+		final PurchaseReceipt receipt = pending().completeConference(List.of(installment("100.00")));
 
-		PurchaseReceipt confirmed = receipt.confirm();
+		final PurchaseReceipt confirmed = receipt.confirm();
 
 		assertThat(confirmed.getStatus()).isEqualTo(PurchaseReceiptStatus.CONFIRMED);
 	}
@@ -71,7 +71,7 @@ class PurchaseReceiptTest {
 	@Test
 	@DisplayName("Rejects confirming an already confirmed receipt instead of silently ignoring it")
 	void confirmingAnAlreadyConfirmedReceiptIsRejectedRatherThanNoOp() {
-		PurchaseReceipt confirmed = pending().completeConference(List.of(installment("100.00"))).confirm();
+		final PurchaseReceipt confirmed = pending().completeConference(List.of(installment("100.00"))).confirm();
 
 		assertThatThrownBy(confirmed::confirm)
 				.isInstanceOf(BusinessRuleException.class)
@@ -80,8 +80,8 @@ class PurchaseReceiptTest {
 
 	@Test
 	@DisplayName("A receipt with every item fully received is TOTAL")
-	void aReceiptWithEveryItemFullyReceivedIsTotal() {
-		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+	void receiptWithEveryItemFullyReceivedIsTotal() {
+		final PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
 				PurchaseOrderId.of(UUID.randomUUID()),
 				List.of(new PurchaseReceiptItem(UUID.randomUUID(), BigDecimal.TEN, BigDecimal.TEN)));
 
@@ -90,8 +90,8 @@ class PurchaseReceiptTest {
 
 	@Test
 	@DisplayName("A receipt with an under-received item is PARTIAL")
-	void aReceiptWithAnUnderReceivedItemIsPartial() {
-		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+	void receiptWithAnUnderReceivedItemIsPartial() {
+		final PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
 				PurchaseOrderId.of(UUID.randomUUID()),
 				List.of(new PurchaseReceiptItem(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("4"))));
 
@@ -100,10 +100,10 @@ class PurchaseReceiptTest {
 
 	@Test
 	@DisplayName("A receipt is TOTAL only when every one of its items is fully received")
-	void aReceiptIsOnlyTotalWhenEveryOneOfItsItemsIsFullyReceived() {
-		UUID fullyReceivedProduct = UUID.randomUUID();
-		UUID underReceivedProduct = UUID.randomUUID();
-		PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
+	void receiptIsOnlyTotalWhenEveryOneOfItsItemsIsFullyReceived() {
+		final UUID fullyReceivedProduct = UUID.randomUUID();
+		final UUID underReceivedProduct = UUID.randomUUID();
+		final PurchaseReceipt receipt = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()),
 				PurchaseOrderId.of(UUID.randomUUID()),
 				List.of(new PurchaseReceiptItem(fullyReceivedProduct, BigDecimal.TEN, BigDecimal.TEN),
 						new PurchaseReceiptItem(underReceivedProduct, BigDecimal.TEN, new BigDecimal("9"))));
@@ -125,7 +125,7 @@ class PurchaseReceiptTest {
 				List.of(new PurchaseReceiptItem(UUID.randomUUID(), BigDecimal.TEN, BigDecimal.TEN)));
 	}
 
-	private InstallmentTerm installment(String amount) {
+	private InstallmentTerm installment(final String amount) {
 		return new InstallmentTerm(new BigDecimal(amount), LocalDate.now().plusDays(30));
 	}
 }

@@ -22,38 +22,38 @@ public class CredentialCipher {
 	private final SecretKeySpec key;
 	private final SecureRandom secureRandom = new SecureRandom();
 
-	public CredentialCipher(@Value("${gravita.system.integration-credential-encryption-key}") String base64Key) {
+	public CredentialCipher(@Value("${gravita.system.integration-credential-encryption-key}") final String base64Key) {
 		this.key = new SecretKeySpec(Base64.getDecoder().decode(base64Key), "AES");
 	}
 
-	public String encrypt(String plaintext) {
+	public String encrypt(final String plaintext) {
 		try {
-			byte[] iv = new byte[IV_LENGTH_BYTES];
+			final byte[] iv = new byte[IV_LENGTH_BYTES];
 			secureRandom.nextBytes(iv);
 
-			Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+			final Cipher cipher = Cipher.getInstance(TRANSFORMATION);
 			cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
-			byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+			final byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
 
 			return Base64.getEncoder().encodeToString(
 					ByteBuffer.allocate(iv.length + ciphertext.length).put(iv).put(ciphertext).array());
-		} catch (GeneralSecurityException e) {
+		} catch (final GeneralSecurityException e) {
 			throw new IllegalStateException("Failed to encrypt integration credential payload", e);
 		}
 	}
 
-	public String decrypt(String encoded) {
+	public String decrypt(final String encoded) {
 		try {
-			ByteBuffer buffer = ByteBuffer.wrap(Base64.getDecoder().decode(encoded));
-			byte[] iv = new byte[IV_LENGTH_BYTES];
+			final ByteBuffer buffer = ByteBuffer.wrap(Base64.getDecoder().decode(encoded));
+			final byte[] iv = new byte[IV_LENGTH_BYTES];
 			buffer.get(iv);
-			byte[] ciphertext = new byte[buffer.remaining()];
+			final byte[] ciphertext = new byte[buffer.remaining()];
 			buffer.get(ciphertext);
 
-			Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+			final Cipher cipher = Cipher.getInstance(TRANSFORMATION);
 			cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
 			return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
-		} catch (GeneralSecurityException e) {
+		} catch (final GeneralSecurityException e) {
 			throw new IllegalStateException("Failed to decrypt integration credential payload", e);
 		}
 	}

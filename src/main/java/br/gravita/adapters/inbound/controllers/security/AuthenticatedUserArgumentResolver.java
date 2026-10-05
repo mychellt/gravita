@@ -16,23 +16,23 @@ public class AuthenticatedUserArgumentResolver implements HandlerMethodArgumentR
 
 	private final ObjectProvider<SessionStorePort> sessionStorePortProvider;
 
-	public AuthenticatedUserArgumentResolver(ObjectProvider<SessionStorePort> sessionStorePortProvider) {
+	public AuthenticatedUserArgumentResolver(final ObjectProvider<SessionStorePort> sessionStorePortProvider) {
 		this.sessionStorePortProvider = sessionStorePortProvider;
 	}
 
 	@Override
-	public boolean supportsParameter(MethodParameter parameter) {
+	public boolean supportsParameter(final MethodParameter parameter) {
 		return parameter.hasParameterAnnotation(AuthenticatedUser.class) && parameter.getParameterType() == UserId.class;
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
-			NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-		String header = webRequest.getHeader("Authorization");
+	public Object resolveArgument(final MethodParameter parameter, final ModelAndViewContainer mavContainer,
+			final NativeWebRequest webRequest, final WebDataBinderFactory binderFactory) {
+		final String header = webRequest.getHeader("Authorization");
 		if (header == null || !header.startsWith(BEARER_PREFIX)) {
 			throw new UnauthorizedException("Missing or malformed Authorization header");
 		}
-		String sessionToken = header.substring(BEARER_PREFIX.length()).trim();
+		final String sessionToken = header.substring(BEARER_PREFIX.length()).trim();
 		return sessionStorePortProvider.getObject().resolve(sessionToken)
 				.orElseThrow(() -> new UnauthorizedException("Invalid or expired session token"));
 	}

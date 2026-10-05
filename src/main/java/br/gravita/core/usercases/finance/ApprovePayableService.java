@@ -28,11 +28,11 @@ public class ApprovePayableService implements ApprovePayableUseCase {
 
 	@Override
 	@Transactional
-	public Payable execute(ApprovePayableCommand command) {
-		Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
+	public Payable execute(final ApprovePayableCommand command) {
+		final Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Payable not found: " + command.payableId()));
 
-		Payable approved = payable.approve(command.approvedBy());
+		final Payable approved = payable.approve(command.approvedBy());
 
 		approvalAlcadaRepositoryPort.findByModule(ApprovalModule.FINANCE)
 				.filter(alcada -> exceedsAlcada(payable, alcada))
@@ -41,12 +41,12 @@ public class ApprovePayableService implements ApprovePayableUseCase {
 		return payableRepositoryPort.save(approved);
 	}
 
-	private boolean exceedsAlcada(Payable payable, ApprovalAlcada alcada) {
+	private boolean exceedsAlcada(final Payable payable, final ApprovalAlcada alcada) {
 		return alcada.getThresholdValue() != null && payable.getAmount().compareTo(alcada.getThresholdValue()) >= 0;
 	}
 
-	private void requireElevatedApprover(Payable payable, ApprovePayableCommand command, ApprovalAlcada alcada) {
-		User approver = userRepositoryPort.findById(UserId.of(command.approvedBy()))
+	private void requireElevatedApprover(final Payable payable, final ApprovePayableCommand command, final ApprovalAlcada alcada) {
+		final User approver = userRepositoryPort.findById(UserId.of(command.approvedBy()))
 				.orElseThrow(() -> new UserNotFoundException(command.approvedBy()));
 		if (!approver.getProfileId().equals(alcada.getApproverProfileId())) {
 			throw new BusinessRuleException("Payable " + payable.getId().value() + " of " + payable.getAmount()

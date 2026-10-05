@@ -26,9 +26,9 @@ public class SettleTitleManuallyService implements SettleTitleManuallyUseCase {
 	private final SettlementRepositoryPort settlementRepositoryPort;
 	private final UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort;
 
-	public SettleTitleManuallyService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort,
-			UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort) {
+	public SettleTitleManuallyService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort,
+			final UpdateCustomerCreditStatusPort updateCustomerCreditStatusPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.settlementRepositoryPort = settlementRepositoryPort;
 		this.updateCustomerCreditStatusPort = updateCustomerCreditStatusPort;
@@ -43,8 +43,8 @@ public class SettleTitleManuallyService implements SettleTitleManuallyUseCase {
 	 */
 	@Override
 	@Transactional
-	public Settlement execute(SettleTitleCommand command) {
-		Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
+	public Settlement execute(final SettleTitleCommand command) {
+		final Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + command.receivableId()));
 		if (receivable.getStatus() != ReceivableStatus.OPEN
 				&& receivable.getStatus() != ReceivableStatus.PARTIALLY_SETTLED) {
@@ -52,12 +52,12 @@ public class SettleTitleManuallyService implements SettleTitleManuallyUseCase {
 					"Receivable " + command.receivableId() + " cannot be settled: " + receivable.getStatus());
 		}
 
-		Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
+		final Settlement settlement = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
 				command.amount(), command.interest(), command.fine(), command.discount(), command.surcharge(),
 				Instant.now());
-		List<Settlement> previous = settlementRepositoryPort.findByReceivableId(receivable.getId());
-		BigDecimal remaining = receivable.remainingBalance(previous);
-		int comparison = settlement.creditedAmount().compareTo(remaining);
+		final List<Settlement> previous = settlementRepositoryPort.findByReceivableId(receivable.getId());
+		final BigDecimal remaining = receivable.remainingBalance(previous);
+		final int comparison = settlement.creditedAmount().compareTo(remaining);
 		if (comparison > 0) {
 			throw new BusinessRuleException("Settlement of " + settlement.creditedAmount()
 					+ " exceeds the remaining balance of " + remaining);
@@ -71,9 +71,9 @@ public class SettleTitleManuallyService implements SettleTitleManuallyUseCase {
 					+ ", got " + settlement.creditedAmount());
 		}
 
-		Receivable updated = receivable
+		final Receivable updated = receivable
 				.applyCreditedTotal(receivable.getAmount().subtract(remaining).add(settlement.creditedAmount()));
-		Settlement saved = settlementRepositoryPort.save(settlement);
+		final Settlement saved = settlementRepositoryPort.save(settlement);
 		receivableRepositoryPort.save(updated);
 		updateCustomerCreditStatusPort.update(receivable.getCustomerId());
 		return saved;

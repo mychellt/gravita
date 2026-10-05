@@ -49,19 +49,19 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 	private final Map<NfseStandard, IssueNfsePort> issuersByStandard;
 
 	@Autowired
-	public TransmitNfseService(NfseRepositoryPort nfseRepositoryPort,
-			MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
-			GenerateGuidedManualUploadPort generateGuidedManualUploadPort, XmlObjectStoragePort xmlObjectStoragePort,
-			ObjectProvider<IssueNfsePort> issuers) {
+	public TransmitNfseService(final NfseRepositoryPort nfseRepositoryPort,
+			final MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
+			final GenerateGuidedManualUploadPort generateGuidedManualUploadPort, final XmlObjectStoragePort xmlObjectStoragePort,
+			final ObjectProvider<IssueNfsePort> issuers) {
 		// ObjectProvider rather than List: no adapter at all is a valid deployment (every municipality manual).
 		this(nfseRepositoryPort, municipalityIntegrationRepositoryPort, generateGuidedManualUploadPort,
 				xmlObjectStoragePort, issuers.orderedStream().toList());
 	}
 
-	public TransmitNfseService(NfseRepositoryPort nfseRepositoryPort,
-			MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
-			GenerateGuidedManualUploadPort generateGuidedManualUploadPort, XmlObjectStoragePort xmlObjectStoragePort,
-			List<IssueNfsePort> issuers) {
+	public TransmitNfseService(final NfseRepositoryPort nfseRepositoryPort,
+			final MunicipalityIntegrationRepositoryPort municipalityIntegrationRepositoryPort,
+			final GenerateGuidedManualUploadPort generateGuidedManualUploadPort, final XmlObjectStoragePort xmlObjectStoragePort,
+			final List<IssueNfsePort> issuers) {
 		this.nfseRepositoryPort = nfseRepositoryPort;
 		this.municipalityIntegrationRepositoryPort = municipalityIntegrationRepositoryPort;
 		this.generateGuidedManualUploadPort = generateGuidedManualUploadPort;
@@ -71,8 +71,8 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 
 	@Override
 	@Transactional
-	public NfseTransmissionResult execute(TransmitNfseCommand command) {
-		NfseDocument document = nfseRepositoryPort.findByIdForUpdate(command.nfseId())
+	public NfseTransmissionResult execute(final TransmitNfseCommand command) {
+		final NfseDocument document = nfseRepositoryPort.findByIdForUpdate(command.nfseId())
 				.orElseThrow(() -> new ResourceNotFoundException("NFSe not found: " + command.nfseId().value()));
 		if (document.getStatus() != NfseStatus.DRAFT) {
 			// Also keeps an AUTHORIZED NFSe from being issued twice, and sends an RPS back to conversion.
@@ -80,8 +80,8 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 					+ " is not eligible for transmission (current status: " + document.getStatus() + ")");
 		}
 
-		String ibgeCode = document.getProviderMunicipalityIbgeCode();
-		MunicipalityIntegration integration = municipalityIntegrationRepositoryPort.findByIbgeCode(ibgeCode)
+		final String ibgeCode = document.getProviderMunicipalityIbgeCode();
+		final MunicipalityIntegration integration = municipalityIntegrationRepositoryPort.findByIbgeCode(ibgeCode)
 				.orElseThrow(() -> new BusinessRuleException(
 						"No NFSe integration is registered for municipality " + ibgeCode));
 
@@ -91,16 +91,16 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 		}
 
 		// AC1/AC4: resolved before SENT so a missing adapter leaves the document exactly as it was.
-		IssueNfsePort issuer = issuersByStandard.get(integration.getStandard());
+		final IssueNfsePort issuer = issuersByStandard.get(integration.getStandard());
 		if (issuer == null) {
 			throw new BusinessRuleException("No NFSe adapter is available for standard " + integration.getStandard()
 					+ " (municipality " + ibgeCode + ")");
 		}
 
-		NfseDocument sent = document.send(Instant.now());
+		final NfseDocument sent = document.send(Instant.now());
 		nfseRepositoryPort.save(sent);
 
-		NfseIssueResult result = issuer.issue(new NfseIssueRequest(sent, integration));
+		final NfseIssueResult result = issuer.issue(new NfseIssueRequest(sent, integration));
 		if (!result.isAuthorized()) {
 			// AC3: back to DRAFT, transmittable again.
 			nfseRepositoryPort.save(sent.reject(result.rejectionReason()));
@@ -108,7 +108,7 @@ public class TransmitNfseService implements TransmitNfseUseCase {
 		}
 
 		// AC5: the XML goes to object storage; the document keeps only the reference.
-		String xmlReference = xmlObjectStoragePort.store(document.getProviderCompanyId(), result.xml());
+		final String xmlReference = xmlObjectStoragePort.store(document.getProviderCompanyId(), result.xml());
 		nfseRepositoryPort.save(sent.authorize(result.protocol(), result.authorizedAt(), xmlReference));
 		return new NfseTransmissionResult.Authorized(result.protocol(), result.authorizedAt());
 	}

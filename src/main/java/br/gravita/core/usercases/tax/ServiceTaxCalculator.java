@@ -32,7 +32,7 @@ final class ServiceTaxCalculator {
 
 	private final TaxEngine taxEngine;
 
-	ServiceTaxCalculator(TaxEngine taxEngine) {
+	ServiceTaxCalculator(final TaxEngine taxEngine) {
 		this.taxEngine = taxEngine;
 	}
 
@@ -43,13 +43,13 @@ final class ServiceTaxCalculator {
 	 * @param issRateOverride a manual ISS rate that replaces the configured one (its justification is validated by the
 	 *                        caller), or {@code null} to use the configured rate
 	 */
-	Result calculate(List<ServiceTaxRule> candidates, String serviceCode, String issMunicipalityIbgeCode,
-			TaxRegime regime, String providerState, NfseTomador tomador, BigDecimal serviceAmount,
-			BigDecimal issRateOverride) {
-		Map<TaxType, ServiceTaxRule> selected = selectMostSpecific(candidates, issMunicipalityIbgeCode, regime);
+	Result calculate(final List<ServiceTaxRule> candidates, final String serviceCode, final String issMunicipalityIbgeCode,
+			final TaxRegime regime, final String providerState, final NfseTomador tomador, final BigDecimal serviceAmount,
+			final BigDecimal issRateOverride) {
+		final Map<TaxType, ServiceTaxRule> selected = selectMostSpecific(candidates, issMunicipalityIbgeCode, regime);
 
 		if (issRateOverride != null) {
-			ServiceTaxRule configured = selected.get(TaxType.ISS);
+			final ServiceTaxRule configured = selected.get(TaxType.ISS);
 			selected.put(TaxType.ISS, new ServiceTaxRule(serviceCode, issMunicipalityIbgeCode, regime, TaxType.ISS,
 					issRateOverride, configured == null ? null : configured.withholding()));
 		} else if (!selected.containsKey(TaxType.ISS)) {
@@ -57,20 +57,20 @@ final class ServiceTaxCalculator {
 					+ issMunicipalityIbgeCode + "; inform a rate override with its justification");
 		}
 
-		List<TaxRateRule> rates = new ArrayList<>();
-		for (ServiceTaxRule rule : selected.values()) {
+		final List<TaxRateRule> rates = new ArrayList<>();
+		for (final ServiceTaxRule rule : selected.values()) {
 			// The engine's rate-rule shape is goods-oriented (NCM/UF); the service code stands in for the
 			// classification and the provider's UF for both states, none of which affects the arithmetic.
 			rates.add(new TaxRateRule(serviceCode, providerState, providerState,
 					regime, OPERATION_TYPE, rule.taxType(), rule.ratePercentage(), BigDecimal.ZERO, BigDecimal.ZERO));
 		}
-		ItemTaxBreakdown breakdown = taxEngine.calculate(
+		final ItemTaxBreakdown breakdown = taxEngine.calculate(
 				new ItemTaxInput(0, serviceCode, BigDecimal.ONE, serviceAmount, rates), List.of());
 
 		BigDecimal issRate = null;
 		BigDecimal issAmount = null;
-		List<NfseWithholding> withholdings = new ArrayList<>();
-		for (TaxLineBreakdown line : breakdown.taxLines()) {
+		final List<NfseWithholding> withholdings = new ArrayList<>();
+		for (final TaxLineBreakdown line : breakdown.taxLines()) {
 			if (line.taxType() == TaxType.ISS) {
 				issRate = line.ratePercentage();
 				issAmount = line.finalAmount();
@@ -83,14 +83,14 @@ final class ServiceTaxCalculator {
 		return new Result(issRate, issAmount, withholdings);
 	}
 
-	private Map<TaxType, ServiceTaxRule> selectMostSpecific(List<ServiceTaxRule> candidates, String ibgeCode,
-			TaxRegime regime) {
-		Map<TaxType, ServiceTaxRule> selected = new EnumMap<>(TaxType.class);
-		for (ServiceTaxRule rule : candidates) {
+	private Map<TaxType, ServiceTaxRule> selectMostSpecific(final List<ServiceTaxRule> candidates, final String ibgeCode,
+			final TaxRegime regime) {
+		final Map<TaxType, ServiceTaxRule> selected = new EnumMap<>(TaxType.class);
+		for (final ServiceTaxRule rule : candidates) {
 			if (!SERVICE_TAXES.contains(rule.taxType()) || !rule.appliesTo(ibgeCode, regime)) {
 				continue;
 			}
-			ServiceTaxRule current = selected.get(rule.taxType());
+			final ServiceTaxRule current = selected.get(rule.taxType());
 			if (current == null || rule.specificity() > current.specificity()) {
 				selected.put(rule.taxType(), rule);
 			}

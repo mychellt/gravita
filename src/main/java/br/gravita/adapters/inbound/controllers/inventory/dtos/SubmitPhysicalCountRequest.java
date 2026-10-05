@@ -18,8 +18,8 @@ public record SubmitPhysicalCountRequest(@NotEmpty List<@Valid CountedLine> coun
 	public record CountedLine(@NotNull UUID productId, @NotNull @PositiveOrZero BigDecimal countedQuantity) {
 	}
 
-	public SubmitPhysicalCountCommand toCommand(UUID physicalCountId) {
-		Map<UUID, BigDecimal> countedQuantities = countedLines.stream()
+	public SubmitPhysicalCountCommand toCommand(final UUID physicalCountId) {
+		final Map<UUID, BigDecimal> countedQuantities = countedLines.stream()
 				.collect(Collectors.toMap(CountedLine::productId, CountedLine::countedQuantity));
 		return new SubmitPhysicalCountCommand(PhysicalCountId.of(physicalCountId), countedQuantities, submittedBy);
 	}

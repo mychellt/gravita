@@ -9,7 +9,7 @@ public record FollowUpRuleId(UUID value) {
 		Objects.requireNonNull(value, "FollowUpRuleId value is required");
 	}
 
-	public static FollowUpRuleId of(UUID value) {
+	public static FollowUpRuleId of(final UUID value) {
 		return new FollowUpRuleId(value);
 	}
 }

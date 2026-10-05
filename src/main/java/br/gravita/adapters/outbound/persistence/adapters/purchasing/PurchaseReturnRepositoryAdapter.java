@@ -17,26 +17,26 @@ class PurchaseReturnRepositoryAdapter implements PurchaseReturnRepositoryPort {
 	private final PurchaseReturnJpaRepository jpaRepository;
 	private final PurchaseReturnPersistenceMapper mapper;
 
-	PurchaseReturnRepositoryAdapter(PurchaseReturnJpaRepository jpaRepository, PurchaseReturnPersistenceMapper mapper) {
+	PurchaseReturnRepositoryAdapter(final PurchaseReturnJpaRepository jpaRepository, final PurchaseReturnPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PurchaseReturn save(PurchaseReturn purchaseReturn) {
-		PurchaseReturnJpaEntity entity = mapper.map(purchaseReturn);
+	public PurchaseReturn save(final PurchaseReturn purchaseReturn) {
+		final PurchaseReturnJpaEntity entity = mapper.map(purchaseReturn);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PurchaseReturnJpaEntity saved = jpaRepository.save(entity);
+		final PurchaseReturnJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PurchaseReturn> findById(PurchaseReturnId id) {
+	public Optional<PurchaseReturn> findById(final PurchaseReturnId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<PurchaseReturn> findByReceiptId(PurchaseReceiptId receiptId) {
+	public List<PurchaseReturn> findByReceiptId(final PurchaseReceiptId receiptId) {
 		return jpaRepository.findByReceiptId(receiptId.value()).stream().map(mapper::map).toList();
 	}
 }

@@ -60,8 +60,8 @@ class ApprovePhysicalCountServiceTest {
 
 	@Test
 	@DisplayName("AC1: Rejects approving a count that is still in progress")
-	void ac1_rejectsApprovingACountThatIsStillInProgress() {
-		PhysicalCount inProgress = physicalCount(PhysicalCountStatus.IN_PROGRESS, List.of());
+	void ac1RejectsApprovingACountThatIsStillInProgress() {
+		final PhysicalCount inProgress = physicalCount(PhysicalCountStatus.IN_PROGRESS, List.of());
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(inProgress));
 
 		assertThatThrownBy(() -> service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy)))
@@ -73,8 +73,8 @@ class ApprovePhysicalCountServiceTest {
 
 	@Test
 	@DisplayName("AC1: Rejects approving a count that is already approved")
-	void ac1_rejectsApprovingACountThatIsAlreadyApproved() {
-		PhysicalCount approved = physicalCount(PhysicalCountStatus.APPROVED, List.of());
+	void ac1RejectsApprovingACountThatIsAlreadyApproved() {
+		final PhysicalCount approved = physicalCount(PhysicalCountStatus.APPROVED, List.of());
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(approved));
 
 		assertThatThrownBy(() -> service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy)))
@@ -95,10 +95,10 @@ class ApprovePhysicalCountServiceTest {
 
 	@Test
 	@DisplayName("AC2: Generates one adjustment per divergent product and none for products whose count matches")
-	void ac2_generatesExactlyOneAdjustmentPerDivergentProductAndNoneForMatchingOnes() {
-		UUID divergentProduct = UUID.randomUUID();
-		UUID matchingProduct = UUID.randomUUID();
-		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
+	void ac2GeneratesExactlyOneAdjustmentPerDivergentProductAndNoneForMatchingOnes() {
+		final UUID divergentProduct = UUID.randomUUID();
+		final UUID matchingProduct = UUID.randomUUID();
+		final PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
 				List.of(new PhysicalCountLine(divergentProduct, new BigDecimal("10"), new BigDecimal("7")),
 						new PhysicalCountLine(matchingProduct, new BigDecimal("20"), new BigDecimal("20"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(pending));
@@ -107,7 +107,7 @@ class ApprovePhysicalCountServiceTest {
 
 		service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy));
 
-		ArgumentCaptor<AdjustInventoryCommand> captor = ArgumentCaptor.forClass(AdjustInventoryCommand.class);
+		final ArgumentCaptor<AdjustInventoryCommand> captor = ArgumentCaptor.forClass(AdjustInventoryCommand.class);
 		verify(adjustInventoryUseCase, times(1)).execute(captor.capture());
 		assertThat(captor.getValue().productId()).isEqualTo(divergentProduct);
 		assertThat(captor.getValue().quantityDelta()).isEqualByComparingTo("-3");
@@ -117,9 +117,9 @@ class ApprovePhysicalCountServiceTest {
 
 	@Test
 	@DisplayName("AC3: Each adjustment justification references the physical count that originated it")
-	void ac3_theAdjustmentJustificationReferencesThePhysicalCount() {
-		UUID divergentProduct = UUID.randomUUID();
-		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
+	void ac3TheAdjustmentJustificationReferencesThePhysicalCount() {
+		final UUID divergentProduct = UUID.randomUUID();
+		final PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
 				List.of(new PhysicalCountLine(divergentProduct, new BigDecimal("10"), new BigDecimal("15"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(pending));
 		when(physicalCountRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -127,7 +127,7 @@ class ApprovePhysicalCountServiceTest {
 
 		service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy));
 
-		ArgumentCaptor<AdjustInventoryCommand> captor = ArgumentCaptor.forClass(AdjustInventoryCommand.class);
+		final ArgumentCaptor<AdjustInventoryCommand> captor = ArgumentCaptor.forClass(AdjustInventoryCommand.class);
 		verify(adjustInventoryUseCase).execute(captor.capture());
 		assertThat(captor.getValue().justification()).contains(physicalCountId.value().toString());
 	}
@@ -135,13 +135,13 @@ class ApprovePhysicalCountServiceTest {
 	@Test
 	@DisplayName("A count with no divergences is still moved to APPROVED without generating adjustments")
 	void approvingWithNoDivergencesStillMovesTheCountToApproved() {
-		UUID matchingProduct = UUID.randomUUID();
-		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
+		final UUID matchingProduct = UUID.randomUUID();
+		final PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
 				List.of(new PhysicalCountLine(matchingProduct, new BigDecimal("20"), new BigDecimal("20"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(pending));
 		when(physicalCountRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PhysicalCount result = service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy));
+		final PhysicalCount result = service.execute(new ApprovePhysicalCountCommand(physicalCountId, approvedBy));
 
 		assertThat(result.getStatus()).isEqualTo(PhysicalCountStatus.APPROVED);
 		verifyNoInteractions(adjustInventoryUseCase);
@@ -149,10 +149,10 @@ class ApprovePhysicalCountServiceTest {
 
 	@Test
 	@DisplayName("AC4: If an adjustment fails mid-approval the count is never saved as approved")
-	void ac4_ifAnAdjustmentFailsMidApprovalTheCountIsNeverSavedAsApproved() {
-		UUID firstProduct = UUID.randomUUID();
-		UUID secondProduct = UUID.randomUUID();
-		PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
+	void ac4IfAnAdjustmentFailsMidApprovalTheCountIsNeverSavedAsApproved() {
+		final UUID firstProduct = UUID.randomUUID();
+		final UUID secondProduct = UUID.randomUUID();
+		final PhysicalCount pending = physicalCount(PhysicalCountStatus.PENDING_APPROVAL,
 				List.of(new PhysicalCountLine(firstProduct, new BigDecimal("10"), new BigDecimal("12")),
 						new PhysicalCountLine(secondProduct, new BigDecimal("5"), new BigDecimal("1"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(pending));
@@ -165,14 +165,25 @@ class ApprovePhysicalCountServiceTest {
 		verify(physicalCountRepositoryPort, never()).save(any());
 	}
 
-	private PhysicalCount physicalCount(PhysicalCountStatus status, List<PhysicalCountLine> lines) {
+	private PhysicalCount physicalCount(final PhysicalCountStatus status, final List<PhysicalCountLine> lines) {
 		return PhysicalCount.of(physicalCountId, PhysicalCountScope.TOTAL, null, warehouseId, status, startedBy,
 				Instant.now(), lines);
 	}
 
 	private StockMovement mockMovement() {
-		return StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.ADJUSTMENT,
-				UUID.randomUUID(), warehouseId, BigDecimal.ONE, BigDecimal.ZERO, null, null, "PHYSICAL_COUNT",
-				"justification", approvedBy, Instant.now());
+		return StockMovement.builder()
+				.id(StockMovementId.of(UUID.randomUUID()))
+				.type(StockMovementType.ADJUSTMENT)
+				.productId(UUID.randomUUID())
+				.warehouseId(warehouseId)
+				.quantity(BigDecimal.ONE)
+				.unitCost(BigDecimal.ZERO)
+				.lotCode(null)
+				.serialNumbers(null)
+				.originReference("PHYSICAL_COUNT")
+				.justification("justification")
+				.user(approvedBy)
+				.timestamp(Instant.now())
+				.build();
 	}
 }

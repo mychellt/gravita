@@ -19,8 +19,8 @@ public class ConfirmPixPaymentService implements ConfirmPixPaymentUseCase {
 	private final PixChargeRepositoryPort pixChargeRepositoryPort;
 	private final ReceivableRepositoryPort receivableRepositoryPort;
 
-	public ConfirmPixPaymentService(PixChargeRepositoryPort pixChargeRepositoryPort,
-			ReceivableRepositoryPort receivableRepositoryPort) {
+	public ConfirmPixPaymentService(final PixChargeRepositoryPort pixChargeRepositoryPort,
+			final ReceivableRepositoryPort receivableRepositoryPort) {
 		this.pixChargeRepositoryPort = pixChargeRepositoryPort;
 		this.receivableRepositoryPort = receivableRepositoryPort;
 	}
@@ -34,14 +34,14 @@ public class ConfirmPixPaymentService implements ConfirmPixPaymentUseCase {
 	 */
 	@Override
 	@Transactional
-	public PixCharge execute(ConfirmPixPaymentCommand command) {
-		PixCharge charge = pixChargeRepositoryPort.findById(PixChargeId.of(command.pixChargeId()))
+	public PixCharge execute(final ConfirmPixPaymentCommand command) {
+		final PixCharge charge = pixChargeRepositoryPort.findById(PixChargeId.of(command.pixChargeId()))
 				.orElseThrow(() -> new ResourceNotFoundException("PixCharge not found: " + command.pixChargeId()));
 		if (charge.getStatus() == PixChargeStatus.PAID) {
 			return charge;
 		}
 
-		Receivable receivable = receivableRepositoryPort.findById(charge.getReceivableId()).orElseThrow(
+		final Receivable receivable = receivableRepositoryPort.findById(charge.getReceivableId()).orElseThrow(
 				() -> new ResourceNotFoundException("Receivable not found: " + charge.getReceivableId().value()));
 		if (receivable.getStatus() != ReceivableStatus.SETTLED) {
 			receivableRepositoryPort.save(receivable.settle());

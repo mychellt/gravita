@@ -158,9 +158,22 @@ class NfeRepositoryAdapterTest {
 				PersonType.COMPANY, "Cliente PJ Teste", "123456789", "RJ");
 		final NfeTransportInfo transport = new NfeTransportInfo(TransportModality.CIF, "Transportadora Teste", 1,
 				new BigDecimal("10.500"), new BigDecimal("10.000"), "12345678901");
-		return NfeDocument.draft(NfeDocumentId.of(UUID.randomUUID()), companyId, null, NaturezaOperacao.VENDA,
-				new Cfop("5102"), recipient, List.of(item), new BigDecimal("15.00"), BigDecimal.ZERO, BigDecimal.ZERO,
-				transport, null, "Informação adicional de teste", TaxCalculationTotals.from(List.of(breakdown)),
-				Instant.now());
+		return NfeDocument.draft()
+				.id(NfeDocumentId.of(UUID.randomUUID()))
+				.issuerCompanyId(companyId)
+				.originSalesOrderId(null)
+				.naturezaOperacao(NaturezaOperacao.VENDA)
+				.cfop(new Cfop("5102"))
+				.recipient(recipient)
+				.items(List.of(item))
+				.freight(new BigDecimal("15.00"))
+				.insurance(BigDecimal.ZERO)
+				.otherExpenses(BigDecimal.ZERO)
+				.transport(transport)
+				.referencedAccessKey(null)
+				.additionalInfo("Informação adicional de teste")
+				.taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
+				.createdAt(Instant.now())
+				.build();
 	}
 }

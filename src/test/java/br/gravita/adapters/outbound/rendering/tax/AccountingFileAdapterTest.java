@@ -19,7 +19,7 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Writes the CSV with a header and one semicolon-separated row per entry")
 	void writesTheCsvWithAHeaderAndOneSemicolonSeparatedRowPerEntry() {
-		String csv = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.CSV));
+		final String csv = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.CSV));
 
 		assertThat(csv.split("\r\n")).containsExactly(
 				"Data;Natureza;Série;Número;Chave de acesso;Participante;CNPJ/CPF;CFOP;Valor total;ICMS;IPI;PIS;COFINS",
@@ -31,7 +31,7 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Writes only the header for an empty period")
 	void writesOnlyTheHeaderForAnEmptyPeriod() {
-		String csv = text(adapter.export(List.of(), AccountingExportFormat.CSV));
+		final String csv = text(adapter.export(List.of(), AccountingExportFormat.CSV));
 
 		assertThat(csv.split("\r\n")).hasSize(1);
 		assertThat(csv).startsWith("Data;Natureza");
@@ -40,9 +40,9 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Quotes a CSV cell that holds a separator, a quote or a line break")
 	void quotesACsvCellThatHoldsASeparatorAQuoteOrALineBreak() {
-		AccountingEntry tricky = withName("Alfa; \"Beta\"\nLtda");
+		final AccountingEntry tricky = withName("Alfa; \"Beta\"\nLtda");
 
-		String csv = text(adapter.export(List.of(tricky), AccountingExportFormat.CSV));
+		final String csv = text(adapter.export(List.of(tricky), AccountingExportFormat.CSV));
 
 		assertThat(csv).contains(";\"Alfa; \"\"Beta\"\"\nLtda\";");
 	}
@@ -50,8 +50,8 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Keeps a CSV cell that looks like a formula from being evaluated as one")
 	void keepsACsvCellThatLooksLikeAFormulaFromBeingOne() {
-		for (String name : List.of("=HYPERLINK(\"http://x\")", "+1", "-1", "@SUM(A1)")) {
-			String csv = text(adapter.export(List.of(withName(name)), AccountingExportFormat.CSV));
+		for (final String name : List.of("=HYPERLINK(\"http://x\")", "+1", "-1", "@SUM(A1)")) {
+			final String csv = text(adapter.export(List.of(withName(name)), AccountingExportFormat.CSV));
 
 			assertThat(csv).as(name).doesNotContain(";" + name.charAt(0) + name.substring(1, 2))
 					.contains("'" + name.charAt(0));
@@ -61,9 +61,9 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Writes the TXT as fixed-width lines without a header")
 	void writesTheTxtAsFixedWidthLinesWithoutAHeader() {
-		String txt = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.TXT));
+		final String txt = text(adapter.export(List.of(received(), issued()), AccountingExportFormat.TXT));
 
-		String[] lines = txt.split("\r\n");
+		final String[] lines = txt.split("\r\n");
 		assertThat(lines).hasSize(2);
 		assertThat(lines[0]).isEqualTo("05/02/2028 ENTRADA 2   9         " + KEY + " " + "Fornecedor Alfa".repeat(1)
 				+ " ".repeat(40 - "Fornecedor Alfa".length()) + " 11222333000181 1102/1403      "
@@ -75,11 +75,11 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Cuts a long name to its field width in the TXT but not in the CSV")
 	void cutsALongNameToItsFieldInTheTxtButNotInTheCsv() {
-		String name = "Distribuidora de Materiais de ConstruçãoXYZ Ltda";
-		AccountingEntry longName = withName(name);
+		final String name = "Distribuidora de Materiais de ConstruçãoXYZ Ltda";
+		final AccountingEntry longName = withName(name);
 
-		String txt = text(adapter.export(List.of(longName), AccountingExportFormat.TXT));
-		String csv = text(adapter.export(List.of(longName), AccountingExportFormat.CSV));
+		final String txt = text(adapter.export(List.of(longName), AccountingExportFormat.TXT));
+		final String csv = text(adapter.export(List.of(longName), AccountingExportFormat.CSV));
 
 		assertThat(txt).contains(" " + name.substring(0, 40) + " ").doesNotContain(name.substring(0, 41));
 		assertThat(name.charAt(40)).isEqualTo('X');
@@ -89,7 +89,7 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Prints absent values as empty and keeps an absent CFOP from shifting the TXT columns")
 	void printsAbsentValuesAsEmptyAndKeepsAnAbsentCfopFromShiftingTheTxt() {
-		AccountingEntry bare = new AccountingEntry(Flow.ENTRY, LocalDate.of(2028, 2, 5), null, null, null, null, null,
+		final AccountingEntry bare = new AccountingEntry(Flow.ENTRY, LocalDate.of(2028, 2, 5), null, null, null, null, null,
 				null, new BigDecimal("1"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 
 		assertThat(text(adapter.export(List.of(bare), AccountingExportFormat.CSV)).split("\r\n")[1])
@@ -102,14 +102,14 @@ class AccountingFileAdapterTest {
 	@Test
 	@DisplayName("Keeps the accents of names encoded as UTF-8")
 	void keepsTheAccentsOfTheNamesAsUtf8() {
-		byte[] csv = adapter.export(List.of(withName("Indústria Açúcar")), AccountingExportFormat.CSV);
+		final byte[] csv = adapter.export(List.of(withName("Indústria Açúcar")), AccountingExportFormat.CSV);
 
 		assertThat(new String(csv, StandardCharsets.UTF_8)).contains("Indústria Açúcar").contains("Série");
 	}
 
 	private static final String KEY = "35000000000000000000000000000000000000000001";
 
-	private static String text(byte[] bytes) {
+	private static String text(final byte[] bytes) {
 		return new String(bytes, StandardCharsets.UTF_8);
 	}
 
@@ -125,7 +125,7 @@ class AccountingFileAdapterTest {
 				new BigDecimal("1.65"), new BigDecimal("7.60"));
 	}
 
-	private static AccountingEntry withName(String name) {
+	private static AccountingEntry withName(final String name) {
 		return new AccountingEntry(Flow.ENTRY, LocalDate.of(2028, 2, 5), "1", "1", KEY, name, "11222333000181",
 				"1102", BigDecimal.TEN, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
 	}

@@ -8,7 +8,7 @@ import java.util.UUID;
 public record FollowUpTaskView(UUID id, UUID opportunityId, UUID customerId, LocalDate dueDate, UUID owner,
 		AlertChannel alertChannel) {
 
-	public static FollowUpTaskView from(FollowUpTask task) {
+	public static FollowUpTaskView from(final FollowUpTask task) {
 		return new FollowUpTaskView(
 				task.getId().value(),
 				task.getOpportunityId(),

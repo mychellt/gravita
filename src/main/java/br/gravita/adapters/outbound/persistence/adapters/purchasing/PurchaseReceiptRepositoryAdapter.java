@@ -17,27 +17,27 @@ class PurchaseReceiptRepositoryAdapter implements PurchaseReceiptRepositoryPort 
 	private final PurchaseReceiptJpaRepository jpaRepository;
 	private final PurchaseReceiptPersistenceMapper mapper;
 
-	PurchaseReceiptRepositoryAdapter(PurchaseReceiptJpaRepository jpaRepository,
-			PurchaseReceiptPersistenceMapper mapper) {
+	PurchaseReceiptRepositoryAdapter(final PurchaseReceiptJpaRepository jpaRepository,
+			final PurchaseReceiptPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PurchaseReceipt save(PurchaseReceipt purchaseReceipt) {
-		PurchaseReceiptJpaEntity entity = mapper.map(purchaseReceipt);
+	public PurchaseReceipt save(final PurchaseReceipt purchaseReceipt) {
+		final PurchaseReceiptJpaEntity entity = mapper.map(purchaseReceipt);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PurchaseReceiptJpaEntity saved = jpaRepository.save(entity);
+		final PurchaseReceiptJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PurchaseReceipt> findById(PurchaseReceiptId id) {
+	public Optional<PurchaseReceipt> findById(final PurchaseReceiptId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<PurchaseReceipt> findByOrderId(PurchaseOrderId orderId) {
+	public List<PurchaseReceipt> findByOrderId(final PurchaseOrderId orderId) {
 		return jpaRepository.findByOrderId(orderId.value()).stream().map(mapper::map).toList();
 	}
 }

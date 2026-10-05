@@ -45,16 +45,16 @@ class BankStatementParserAdapterTest {
 	@Test
 	@DisplayName("Parses an SGML-style OFX bank statement into statement lines")
 	void parsesAnSgmlOfxStatement() {
-		List<BankStatementLine> lines = parser.parse(OFX_SGML);
+		final List<BankStatementLine> lines = parser.parse(OFX_SGML);
 
 		assertThat(lines).hasSize(2);
-		BankStatementLine credit = lines.get(0);
+		final BankStatementLine credit = lines.get(0);
 		assertThat(credit.getLineNumber()).isEqualTo(1);
 		assertThat(credit.getPostedOn()).isEqualTo(LocalDate.of(2026, 9, 25));
 		assertThat(credit.getAmount()).isEqualByComparingTo("1234.56");
 		assertThat(credit.getDescription()).isEqualTo("PIX RECEBIDO");
 		assertThat(credit.getReference()).isEqualTo("A1");
-		BankStatementLine debit = lines.get(1);
+		final BankStatementLine debit = lines.get(1);
 		assertThat(debit.getLineNumber()).isEqualTo(2);
 		assertThat(debit.getPostedOn()).isEqualTo(LocalDate.of(2026, 9, 26));
 		assertThat(debit.getAmount()).isEqualByComparingTo("-80.00");
@@ -65,14 +65,14 @@ class BankStatementParserAdapterTest {
 	@Test
 	@DisplayName("Parses an XML-style OFX bank statement into statement lines")
 	void parsesAnXmlOfxStatement() {
-		String xml = """
+		final String xml = """
 				<?xml version="1.0"?>
 				<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><BANKTRANLIST>
 				<STMTTRN><TRNTYPE>CREDIT</TRNTYPE><DTPOSTED>20260925</DTPOSTED><TRNAMT>10,50</TRNAMT><FITID>X</FITID><MEMO>Deposito</MEMO></STMTTRN>
 				</BANKTRANLIST></STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>
 				""";
 
-		List<BankStatementLine> lines = parser.parse(xml);
+		final List<BankStatementLine> lines = parser.parse(xml);
 
 		assertThat(lines).singleElement().satisfies(line -> {
 			assertThat(line.getPostedOn()).isEqualTo(LocalDate.of(2026, 9, 25));
@@ -111,13 +111,13 @@ class BankStatementParserAdapterTest {
 	@Test
 	@DisplayName("Parses a comma-separated CSV bank statement")
 	void parsesACommaSeparatedCsv() {
-		String csv = """
+		final String csv = """
 				date,amount,description,reference
 				2026-09-25,100.00,PIX RECEBIDO,R1
 				2026-09-26,-80.5,"Pagamento, fornecedor \"\"ACME\"\"",R2
 				""";
 
-		List<BankStatementLine> lines = parser.parse(csv);
+		final List<BankStatementLine> lines = parser.parse(csv);
 
 		assertThat(lines).hasSize(2);
 		assertThat(lines.get(0).getLineNumber()).isEqualTo(2);
@@ -132,12 +132,12 @@ class BankStatementParserAdapterTest {
 	@Test
 	@DisplayName("Parses a Brazilian semicolon-separated CSV bank statement")
 	void parsesABrazilianSemicolonCsv() {
-		String csv = "﻿Data;Valor;Histórico;Documento\r\n"
+		final String csv = "﻿Data;Valor;Histórico;Documento\r\n"
 				+ "25/09/2026;\"1.234,56\";TED RECEBIDA;123\r\n"
 				+ "\r\n"
 				+ "26/09/2026;R$ -80,00;TARIFA;\r\n";
 
-		List<BankStatementLine> lines = parser.parse(csv);
+		final List<BankStatementLine> lines = parser.parse(csv);
 
 		assertThat(lines).hasSize(2);
 		assertThat(lines.get(0).getPostedOn()).isEqualTo(LocalDate.of(2026, 9, 25));
@@ -153,7 +153,7 @@ class BankStatementParserAdapterTest {
 	@Test
 	@DisplayName("Accepts a CSV statement where the optional columns are absent")
 	void theOptionalCsvColumnsMayBeAbsent() {
-		List<BankStatementLine> lines = parser.parse("date;amount\n2026-09-25;10");
+		final List<BankStatementLine> lines = parser.parse("date;amount\n2026-09-25;10");
 
 		assertThat(lines).singleElement().satisfies(line -> {
 			assertThat(line.getDescription()).isEmpty();
@@ -163,7 +163,7 @@ class BankStatementParserAdapterTest {
 
 	@Test
 	@DisplayName("Rejects a CSV statement that lacks a date or an amount column")
-	void aCsvNeedsADateAndAnAmountColumn() {
+	void csvNeedsADateAndAnAmountColumn() {
 		assertThatThrownBy(() -> parser.parse("date,description\n2026-09-25,x"))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("date and an amount");
 		assertThatThrownBy(() -> parser.parse("amount,description\n1.00,x"))
@@ -172,7 +172,7 @@ class BankStatementParserAdapterTest {
 
 	@Test
 	@DisplayName("Rejects a CSV row with a missing or invalid value, reporting its file line")
-	void aCsvRowWithAMissingOrInvalidValueIsRejectedWithItsFileLine() {
+	void csvRowWithAMissingOrInvalidValueIsRejectedWithItsFileLine() {
 		assertThatThrownBy(() -> parser.parse("date,amount\n2026-09-25,1.00\n2026-09-26,"))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("Line 3");
 		assertThatThrownBy(() -> parser.parse("date,amount\n25-09-2026,1.00"))
@@ -183,13 +183,13 @@ class BankStatementParserAdapterTest {
 
 	@Test
 	@DisplayName("Returns no lines for a CSV statement that has only a header")
-	void aCsvWithOnlyAHeaderHasNoLines() {
+	void csvWithOnlyAHeaderHasNoLines() {
 		assertThat(parser.parse("date,amount\n")).isEmpty();
 	}
 
 	@Test
 	@DisplayName("Rejects a blank bank statement")
-	void aBlankStatementIsRejected() {
+	void blankStatementIsRejected() {
 		assertThatThrownBy(() -> parser.parse("  ")).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> parser.parse(null)).isInstanceOf(BusinessRuleException.class);
 	}

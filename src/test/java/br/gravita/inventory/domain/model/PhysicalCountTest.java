@@ -23,7 +23,7 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Starting a TOTAL count does not require a product group")
 	void startingATotalCountRequiresNoProductGroup() {
-		PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(UUID.randomUUID(), new BigDecimal("10"))));
 
@@ -48,8 +48,8 @@ class PhysicalCountTest {
 
 	@Test
 	@DisplayName("A count starts IN_PROGRESS regardless of its scope")
-	void aCountAlwaysStartsInProgressRegardlessOfScope() {
-		PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()),
+	void countAlwaysStartsInProgressRegardlessOfScope() {
+		final PhysicalCount count = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.PARTIAL_BY_GROUP, "Beverages", UUID.randomUUID(), UUID.randomUUID(), Instant.now(),
 				List.of());
 
@@ -61,14 +61,14 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Submitting counts for every line moves the count to PENDING_APPROVAL")
 	void submittingCountsForEveryLineMovesTheCountToPendingApproval() {
-		UUID productA = UUID.randomUUID();
-		UUID productB = UUID.randomUUID();
-		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final UUID productA = UUID.randomUUID();
+		final UUID productB = UUID.randomUUID();
+		final PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(productA, new BigDecimal("10")),
 						new PhysicalCountLine(productB, new BigDecimal("5"))));
 
-		PhysicalCount submitted = inProgress
+		final PhysicalCount submitted = inProgress
 				.submitCounts(Map.of(productA, new BigDecimal("8"), productB, new BigDecimal("5")));
 
 		assertThat(submitted.getStatus()).isEqualTo(PhysicalCountStatus.PENDING_APPROVAL);
@@ -79,17 +79,17 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Submitting counts for only some lines keeps the count IN_PROGRESS and preserves earlier counts")
 	void submittingCountsForOnlySomeLinesStaysInProgressAndKeepsWhatWasAlreadyCounted() {
-		UUID productA = UUID.randomUUID();
-		UUID productB = UUID.randomUUID();
-		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final UUID productA = UUID.randomUUID();
+		final UUID productB = UUID.randomUUID();
+		final PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(productA, new BigDecimal("10")),
 						new PhysicalCountLine(productB, new BigDecimal("5"))));
 
-		PhysicalCount firstSubmission = inProgress.submitCounts(Map.of(productA, new BigDecimal("8")));
+		final PhysicalCount firstSubmission = inProgress.submitCounts(Map.of(productA, new BigDecimal("8")));
 		assertThat(firstSubmission.getStatus()).isEqualTo(PhysicalCountStatus.IN_PROGRESS);
 
-		PhysicalCount secondSubmission = firstSubmission.submitCounts(Map.of(productB, new BigDecimal("5")));
+		final PhysicalCount secondSubmission = firstSubmission.submitCounts(Map.of(productB, new BigDecimal("5")));
 		assertThat(secondSubmission.getStatus()).isEqualTo(PhysicalCountStatus.PENDING_APPROVAL);
 		assertThat(secondSubmission.getLines()).extracting(PhysicalCountLine::productId, PhysicalCountLine::countedQuantity)
 				.containsExactlyInAnyOrder(tuple(productA, new BigDecimal("8")), tuple(productB, new BigDecimal("5")));
@@ -98,8 +98,8 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Submitting counts for a count that is not IN_PROGRESS is rejected")
 	void submittingCountsForACountThatIsNotInProgressIsRejected() {
-		UUID product = UUID.randomUUID();
-		PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
+		final UUID product = UUID.randomUUID();
+		final PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
 				UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL, UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
 
@@ -110,9 +110,9 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Submitting a count for a product that is not part of the count is rejected")
 	void submittingACountForAProductNotInTheCountIsRejected() {
-		UUID knownProduct = UUID.randomUUID();
-		UUID unknownProduct = UUID.randomUUID();
-		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final UUID knownProduct = UUID.randomUUID();
+		final UUID unknownProduct = UUID.randomUUID();
+		final PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(knownProduct, new BigDecimal("10"))));
 
@@ -123,8 +123,8 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Submitting a negative counted quantity is rejected")
 	void submittingANegativeCountedQuantityIsRejected() {
-		UUID product = UUID.randomUUID();
-		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final UUID product = UUID.randomUUID();
+		final PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(),
 				List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
 
@@ -135,10 +135,10 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Approving a PENDING_APPROVAL count moves it to APPROVED")
 	void approvingAPendingApprovalCountMovesItToApproved() {
-		PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
+		final PhysicalCount pending = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL, null,
 				UUID.randomUUID(), PhysicalCountStatus.PENDING_APPROVAL, UUID.randomUUID(), Instant.now(), List.of());
 
-		PhysicalCount approved = pending.approve();
+		final PhysicalCount approved = pending.approve();
 
 		assertThat(approved.getStatus()).isEqualTo(PhysicalCountStatus.APPROVED);
 	}
@@ -146,9 +146,9 @@ class PhysicalCountTest {
 	@Test
 	@DisplayName("Approving a count that is not PENDING_APPROVAL is rejected")
 	void approvingACountThatIsNotPendingApprovalIsRejected() {
-		PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
+		final PhysicalCount inProgress = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()), PhysicalCountScope.TOTAL,
 				null, UUID.randomUUID(), PhysicalCountStatus.IN_PROGRESS, UUID.randomUUID(), Instant.now(), List.of());
-		PhysicalCount alreadyApproved = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()),
+		final PhysicalCount alreadyApproved = PhysicalCount.of(PhysicalCountId.of(UUID.randomUUID()),
 				PhysicalCountScope.TOTAL, null, UUID.randomUUID(), PhysicalCountStatus.APPROVED, UUID.randomUUID(),
 				Instant.now(), List.of());
 

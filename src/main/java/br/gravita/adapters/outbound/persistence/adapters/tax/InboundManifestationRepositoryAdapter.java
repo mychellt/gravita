@@ -13,19 +13,19 @@ class InboundManifestationRepositoryAdapter implements InboundManifestationRepos
 	private final InboundManifestationJpaRepository jpaRepository;
 	private final InboundManifestationPersistenceMapper mapper;
 
-	InboundManifestationRepositoryAdapter(InboundManifestationJpaRepository jpaRepository,
-			InboundManifestationPersistenceMapper mapper) {
+	InboundManifestationRepositoryAdapter(final InboundManifestationJpaRepository jpaRepository,
+			final InboundManifestationPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public InboundManifestation save(InboundManifestation manifestation) {
+	public InboundManifestation save(final InboundManifestation manifestation) {
 		return mapper.map(jpaRepository.save(mapper.map(manifestation)));
 	}
 
 	@Override
-	public List<InboundManifestation> findByAccessKey(String accessKey) {
+	public List<InboundManifestation> findByAccessKey(final String accessKey) {
 		return jpaRepository.findByAccessKey(accessKey).stream().map(mapper::map).toList();
 	}
 }

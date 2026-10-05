@@ -11,13 +11,13 @@ class PlanCatalog {
 
 	private final PlanRepositoryPort planRepositoryPort;
 
-	PlanCatalog(PlanRepositoryPort planRepositoryPort) {
+	PlanCatalog(final PlanRepositoryPort planRepositoryPort) {
 		this.planRepositoryPort = planRepositoryPort;
 	}
 
-	PlanDomain save(PlanDomain plan) {
+	PlanDomain save(final PlanDomain plan) {
 		plan.validate();
-		List<PlanDomain> otherPlans = planRepositoryPort.findAll().stream()
+		final List<PlanDomain> otherPlans = planRepositoryPort.findAll().stream()
 				.filter(other -> !other.getId().equals(plan.getId()))
 				.toList();
 		requireUniqueName(plan, otherPlans);
@@ -28,21 +28,21 @@ class PlanCatalog {
 		return planRepositoryPort.save(plan);
 	}
 
-	private void requireUniqueName(PlanDomain plan, List<PlanDomain> otherPlans) {
-		boolean nameTaken = otherPlans.stream()
+	private void requireUniqueName(final PlanDomain plan, final List<PlanDomain> otherPlans) {
+		final boolean nameTaken = otherPlans.stream()
 				.anyMatch(other -> other.getName().strip().equalsIgnoreCase(plan.getName().strip()));
 		if (nameTaken) {
 			throw new BusinessRuleException("A plan named '" + plan.getName() + "' already exists");
 		}
 	}
 
-	private void requireAtLeastOneActivePlan(PlanDomain plan, List<PlanDomain> otherPlans) {
+	private void requireAtLeastOneActivePlan(final PlanDomain plan, final List<PlanDomain> otherPlans) {
 		if (!plan.isActivePlan() && otherPlans.stream().noneMatch(PlanDomain::isActivePlan)) {
 			throw new BusinessRuleException("At least one plan must remain active");
 		}
 	}
 
-	private void unfeature(List<PlanDomain> otherPlans) {
+	private void unfeature(final List<PlanDomain> otherPlans) {
 		otherPlans.stream().filter(PlanDomain::isFeatured).forEach(other -> {
 			other.setFeatured(false);
 			planRepositoryPort.save(other);

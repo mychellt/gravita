@@ -9,7 +9,7 @@ public record RenegotiationId(UUID value) {
 		Objects.requireNonNull(value, "RenegotiationId value is required");
 	}
 
-	public static RenegotiationId of(UUID value) {
+	public static RenegotiationId of(final UUID value) {
 		return new RenegotiationId(value);
 	}
 }

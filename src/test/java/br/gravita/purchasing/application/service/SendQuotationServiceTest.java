@@ -43,28 +43,28 @@ class SendQuotationServiceTest {
 	@Test
 	@DisplayName("Sending a quotation for an open request creates it and moves the request to QUOTED")
 	void sendingAQuotationForAnOpenRequestCreatesItAndTransitionsTheRequestToQuoted() {
-		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
-		List<PurchaseRequestItem> items = List.of(
+		final PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
+		final List<PurchaseRequestItem> items = List.of(
 				new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.TEN),
 				new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE));
-		PurchaseRequest openRequest = PurchaseRequest.open(requestId, PurchaseRequestOrigin.USER, items,
+		final PurchaseRequest openRequest = PurchaseRequest.open(requestId, PurchaseRequestOrigin.USER, items,
 				UUID.randomUUID());
-		List<SupplierId> suppliers = List.of(SupplierId.of(UUID.randomUUID()), SupplierId.of(UUID.randomUUID()));
+		final List<SupplierId> suppliers = List.of(SupplierId.of(UUID.randomUUID()), SupplierId.of(UUID.randomUUID()));
 		when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.of(openRequest));
 		when(quotationRepositoryPort.save(any(Quotation.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
+		final SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
 
-		var id = service.execute(new SendQuotationCommand(requestId, suppliers));
+		final var id = service.execute(new SendQuotationCommand(requestId, suppliers));
 
 		assertThat(id).isNotNull();
-		ArgumentCaptor<Quotation> savedQuotation = ArgumentCaptor.forClass(Quotation.class);
+		final ArgumentCaptor<Quotation> savedQuotation = ArgumentCaptor.forClass(Quotation.class);
 		verify(quotationRepositoryPort).save(savedQuotation.capture());
 		assertThat(savedQuotation.getValue().getRequestId()).isEqualTo(requestId);
 		assertThat(savedQuotation.getValue().getSuppliers()).isEqualTo(suppliers);
 		assertThat(savedQuotation.getValue().getItems()).hasSize(2);
 		assertThat(savedQuotation.getValue().getResponses()).isEmpty();
 
-		ArgumentCaptor<PurchaseRequest> savedRequest = ArgumentCaptor.forClass(PurchaseRequest.class);
+		final ArgumentCaptor<PurchaseRequest> savedRequest = ArgumentCaptor.forClass(PurchaseRequest.class);
 		verify(purchaseRequestRepositoryPort).save(savedRequest.capture());
 		assertThat(savedRequest.getValue().getStatus()).isEqualTo(PurchaseRequestStatus.QUOTED);
 	}
@@ -72,9 +72,9 @@ class SendQuotationServiceTest {
 	@Test
 	@DisplayName("Rejects sending a quotation for a missing request")
 	void sendingAQuotationForAMissingRequestIsRejected() {
-		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
+		final PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
 		when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.empty());
-		SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
+		final SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(
 				new SendQuotationCommand(requestId, List.of(SupplierId.of(UUID.randomUUID())))))
@@ -84,12 +84,12 @@ class SendQuotationServiceTest {
 	@Test
 	@DisplayName("Rejects sending a quotation for a request that is not open")
 	void sendingAQuotationForARequestThatIsNotOpenIsRejected() {
-		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
-		PurchaseRequest quotedRequest = PurchaseRequest.of(requestId, PurchaseRequestOrigin.USER,
+		final PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
+		final PurchaseRequest quotedRequest = PurchaseRequest.of(requestId, PurchaseRequestOrigin.USER,
 				List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)), UUID.randomUUID(),
 				PurchaseRequestStatus.QUOTED);
 		when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.of(quotedRequest));
-		SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
+		final SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(
 				new SendQuotationCommand(requestId, List.of(SupplierId.of(UUID.randomUUID())))))
@@ -101,11 +101,11 @@ class SendQuotationServiceTest {
 	@Test
 	@DisplayName("Rejects sending a quotation without any supplier")
 	void sendingAQuotationWithoutAnySupplierIsRejected() {
-		PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
-		PurchaseRequest openRequest = PurchaseRequest.open(requestId, PurchaseRequestOrigin.USER,
+		final PurchaseRequestId requestId = PurchaseRequestId.of(UUID.randomUUID());
+		final PurchaseRequest openRequest = PurchaseRequest.open(requestId, PurchaseRequestOrigin.USER,
 				List.of(new PurchaseRequestItem(UUID.randomUUID(), BigDecimal.ONE)), UUID.randomUUID());
 		when(purchaseRequestRepositoryPort.findById(requestId)).thenReturn(Optional.of(openRequest));
-		SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
+		final SendQuotationService service = new SendQuotationService(purchaseRequestRepositoryPort, quotationRepositoryPort);
 
 		assertThatThrownBy(() -> service.execute(new SendQuotationCommand(requestId, List.of())))
 				.isInstanceOf(BusinessRuleException.class)

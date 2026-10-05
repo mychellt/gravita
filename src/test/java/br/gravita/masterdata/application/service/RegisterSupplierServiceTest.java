@@ -33,16 +33,16 @@ class RegisterSupplierServiceTest {
 	@Test
 	@DisplayName("Registers a new supplier without the optional purchasing fields")
 	void shouldRegisterNewSupplierWithoutOptionalPurchasingFields() {
-		RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
+		final RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterSupplierCommand command = new RegisterSupplierCommand(VALID_CNPJ, "Acme Supplies",
+		final RegisterSupplierCommand command = new RegisterSupplierCommand(VALID_CNPJ, "Acme Supplies",
 				List.of(VALID_ADDRESS), List.of(), null, null, null, null);
 
-		SupplierId id = service.execute(command);
+		final SupplierId id = service.execute(command);
 
 		assertThat(id).isNotNull();
-		ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
+		final ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
 		verify(supplierRepositoryPort).save(savedSupplier.capture());
 		assertThat(savedSupplier.getValue().getId()).isEqualTo(id);
 		assertThat(savedSupplier.getValue().getDocument()).isEqualTo(VALID_CNPJ);
@@ -51,15 +51,15 @@ class RegisterSupplierServiceTest {
 	@Test
 	@DisplayName("Registers a new supplier with the purchasing fields when provided")
 	void shouldRegisterNewSupplierWithPurchasingFieldsWhenProvided() {
-		RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
+		final RegisterSupplierService service = new RegisterSupplierService(supplierRepositoryPort);
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterSupplierCommand command = new RegisterSupplierCommand(VALID_CNPJ, "Acme Supplies",
+		final RegisterSupplierCommand command = new RegisterSupplierCommand(VALID_CNPJ, "Acme Supplies",
 				List.of(VALID_ADDRESS), List.of(), null, null, 5, "1102");
 
 		service.execute(command);
 
-		ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
+		final ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
 		verify(supplierRepositoryPort).save(savedSupplier.capture());
 		assertThat(savedSupplier.getValue().getAverageLeadTimeDays()).isEqualTo(5);
 		assertThat(savedSupplier.getValue().getDefaultPurchaseCfop()).isEqualTo("1102");

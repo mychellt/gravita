@@ -19,9 +19,9 @@ class ReceivableFromInvoicingTest {
 	@Test
 	@DisplayName("Starts an invoicing receivable as open, referencing its fiscal document")
 	void anInvoicingReceivableStartsOpenAndReferencesItsFiscalDocument() {
-		UUID documentId = UUID.randomUUID();
+		final UUID documentId = UUID.randomUUID();
 
-		Receivable receivable = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()),
+		final Receivable receivable = Receivable.createFromInvoicing(ReceivableId.of(UUID.randomUUID()),
 				UUID.randomUUID(), documentId, BigDecimal.TEN, LocalDate.now().plusDays(30), 2, 3);
 
 		assertThat(receivable.getOrigin()).isEqualTo(ReceivableOrigin.INVOICING);

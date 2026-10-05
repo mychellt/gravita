@@ -102,17 +102,17 @@ public interface NfePersistenceMapper {
 		if (entity.getItems() == null) {
 			return List.of();
 		}
-		List<NfeItemTaxLineEmbeddable> taxLines = entity.getTaxLines();
+		final List<NfeItemTaxLineEmbeddable> taxLines = entity.getTaxLines();
 		return entity.getItems().stream()
 				.sorted(Comparator.comparing(NfeItemEmbeddable::getItemIndex))
 				.map(item -> {
-					List<TaxLineBreakdown> lines = taxLines == null ? List.of()
+					final List<TaxLineBreakdown> lines = taxLines == null ? List.of()
 							: taxLines.stream().filter(line -> line.getItemIndex().equals(item.getItemIndex()))
 									.map(line -> new TaxLineBreakdown(line.getTaxType(), line.getBase(),
 											line.getRatePercentage(), line.getComputedAmount(), line.getFinalAmount(),
 											line.isOverridden(), line.getOverrideJustification()))
 									.toList();
-					ItemTaxBreakdown breakdown = new ItemTaxBreakdown(item.getItemIndex(),
+					final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(item.getItemIndex(),
 							item.getProductId().toString(), lines);
 					return new NfeItem(item.getProductId(), item.getDescription(), item.getQuantity(),
 							item.getUnitPrice(), item.getDiscount(), breakdown);
@@ -142,9 +142,9 @@ public interface NfePersistenceMapper {
 	// embeddable lists below must stay mutable rather than an immutable Stream.toList().
 	@Named("toItemEmbeddables")
 	static List<NfeItemEmbeddable> toItemEmbeddables(final List<NfeItem> items) {
-		List<NfeItemEmbeddable> result = new ArrayList<>();
+		final List<NfeItemEmbeddable> result = new ArrayList<>();
 		for (int index = 0; index < items.size(); index++) {
-			NfeItem item = items.get(index);
+			final NfeItem item = items.get(index);
 			result.add(NfeItemEmbeddable.builder()
 					.itemIndex(index)
 					.productId(item.productId())
@@ -159,9 +159,9 @@ public interface NfePersistenceMapper {
 
 	@Named("toTaxLineEmbeddables")
 	static List<NfeItemTaxLineEmbeddable> toTaxLineEmbeddables(final List<NfeItem> items) {
-		List<NfeItemTaxLineEmbeddable> result = new ArrayList<>();
+		final List<NfeItemTaxLineEmbeddable> result = new ArrayList<>();
 		for (int index = 0; index < items.size(); index++) {
-			for (TaxLineBreakdown line : items.get(index).taxBreakdown().taxLines()) {
+			for (final TaxLineBreakdown line : items.get(index).taxBreakdown().taxLines()) {
 				result.add(NfeItemTaxLineEmbeddable.builder()
 						.itemIndex(index)
 						.taxType(line.taxType())

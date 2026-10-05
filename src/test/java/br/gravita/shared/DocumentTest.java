@@ -14,7 +14,7 @@ class DocumentTest {
 	@DisplayName("Accepts a valid CPF")
 	@Test
 	void shouldAcceptValidCpf() {
-		Document document = Document.cpf("111.444.777-35");
+		final Document document = Document.cpf("111.444.777-35");
 
 		assertThat(document.number()).isEqualTo("11144477735");
 		assertThat(document.personType()).isEqualTo(PersonType.INDIVIDUAL);
@@ -38,7 +38,7 @@ class DocumentTest {
 	@DisplayName("Accepts a valid CNPJ")
 	@Test
 	void shouldAcceptValidCnpj() {
-		Document document = Document.cnpj("11.222.333/0001-81");
+		final Document document = Document.cnpj("11.222.333/0001-81");
 
 		assertThat(document.number()).isEqualTo("11222333000181");
 		assertThat(document.personType()).isEqualTo(PersonType.COMPANY);

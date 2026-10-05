@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public record ReturnToSupplierRequest(@NotEmpty List<@Valid ItemRequest> items) {
 
-	public ReturnToSupplierCommand toCommand(UUID receiptId) {
+	public ReturnToSupplierCommand toCommand(final UUID receiptId) {
 		return new ReturnToSupplierCommand(PurchaseReceiptId.of(receiptId),
 				items.stream().map(ItemRequest::toDomain).toList());
 	}

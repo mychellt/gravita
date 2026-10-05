@@ -23,8 +23,8 @@ enum SpedTax {
 	private final String totalRegister;
 	private final String detailRegister;
 
-	SpedTax(TaxType taxType, String nonCumulativeRate, String cumulativeRate, String creditRegister,
-			String creditBaseRegister, String totalRegister, String detailRegister) {
+	SpedTax(final TaxType taxType, final String nonCumulativeRate, final String cumulativeRate, final String creditRegister,
+			final String creditBaseRegister, final String totalRegister, final String detailRegister) {
 		this.taxType = taxType;
 		this.nonCumulativeRate = new BigDecimal(nonCumulativeRate);
 		this.cumulativeRate = new BigDecimal(cumulativeRate);
@@ -39,7 +39,7 @@ enum SpedTax {
 	}
 
 	/** The statutory general rate, in percent: what a document is levied at unless a rule sets another. */
-	BigDecimal basicRate(Incidence incidence) {
+	BigDecimal basicRate(final Incidence incidence) {
 		return incidence == Incidence.NON_CUMULATIVE ? nonCumulativeRate : cumulativeRate;
 	}
 

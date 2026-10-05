@@ -15,32 +15,32 @@ class VoidedNumberRangeRepositoryAdapter implements VoidedNumberRangeRepositoryP
 	private final VoidedNumberRangeJpaRepository jpaRepository;
 	private final VoidedNumberRangePersistenceMapper mapper;
 
-	VoidedNumberRangeRepositoryAdapter(VoidedNumberRangeJpaRepository jpaRepository,
-			VoidedNumberRangePersistenceMapper mapper) {
+	VoidedNumberRangeRepositoryAdapter(final VoidedNumberRangeJpaRepository jpaRepository,
+			final VoidedNumberRangePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public VoidedNumberRange save(VoidedNumberRange voidedNumberRange) {
+	public VoidedNumberRange save(final VoidedNumberRange voidedNumberRange) {
 		return mapper.map(jpaRepository.save(mapper.map(voidedNumberRange)));
 	}
 
 	@Override
-	public List<VoidedNumberRange> findByCompanyId(CompanyId companyId) {
+	public List<VoidedNumberRange> findByCompanyId(final CompanyId companyId) {
 		return jpaRepository.findByCompanyId(companyId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<VoidedNumberRange> findByCompanyIdAndSeriesAndVoidedAtBetween(CompanyId companyId, String series,
-			Instant voidedFrom, Instant voidedTo) {
+	public List<VoidedNumberRange> findByCompanyIdAndSeriesAndVoidedAtBetween(final CompanyId companyId, final String series,
+			final Instant voidedFrom, final Instant voidedTo) {
 		return jpaRepository.findByCompanyIdAndSeriesAndVoidedAtBetween(companyId.value(), series, voidedFrom, voidedTo)
 				.stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<VoidedNumberRange> findByCompanyIdAndVoidedAtBetween(CompanyId companyId, Instant voidedFrom,
-			Instant voidedTo) {
+	public List<VoidedNumberRange> findByCompanyIdAndVoidedAtBetween(final CompanyId companyId, final Instant voidedFrom,
+			final Instant voidedTo) {
 		return jpaRepository
 				.findByCompanyIdAndVoidedAtGreaterThanEqualAndVoidedAtLessThanOrderByVoidedAtAscSeriesAscStartNumberAsc(
 						companyId.value(), voidedFrom, voidedTo)

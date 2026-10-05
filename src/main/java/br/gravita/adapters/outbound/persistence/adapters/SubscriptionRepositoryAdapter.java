@@ -17,16 +17,16 @@ class SubscriptionRepositoryAdapter implements SubscriptionRepositoryPort {
 	private final PlanJpaRepository planJpaRepository;
 	private final CompanyJpaRepository companyJpaRepository;
 
-	SubscriptionRepositoryAdapter(SubscriptionJpaRepository jpaRepository, PlanJpaRepository planJpaRepository,
-			CompanyJpaRepository companyJpaRepository) {
+	SubscriptionRepositoryAdapter(final SubscriptionJpaRepository jpaRepository, final PlanJpaRepository planJpaRepository,
+			final CompanyJpaRepository companyJpaRepository) {
 		this.jpaRepository = jpaRepository;
 		this.planJpaRepository = planJpaRepository;
 		this.companyJpaRepository = companyJpaRepository;
 	}
 
 	@Override
-	public Subscription save(Subscription subscription) {
-		SubscriptionJpaEntity entity = SubscriptionJpaEntity.builder()
+	public Subscription save(final Subscription subscription) {
+		final SubscriptionJpaEntity entity = SubscriptionJpaEntity.builder()
 				.plan(planJpaRepository.getReferenceById(subscription.getPlan().getId()))
 				.company(companyJpaRepository.getReferenceById(subscription.getCompany().getId().value()))
 				.billingCycle(subscription.getBillingCycle())

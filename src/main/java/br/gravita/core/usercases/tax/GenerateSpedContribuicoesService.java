@@ -61,16 +61,16 @@ public class GenerateSpedContribuicoesService implements GenerateSpedContribuico
 	private final Clock clock;
 
 	@Autowired
-	public GenerateSpedContribuicoesService(CompanyRepositoryPort companyRepositoryPort,
-			NfeRepositoryPort nfeRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			GenerateSpedFilePort generateSpedFilePort) {
+	public GenerateSpedContribuicoesService(final CompanyRepositoryPort companyRepositoryPort,
+			final NfeRepositoryPort nfeRepositoryPort, final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final GenerateSpedFilePort generateSpedFilePort) {
 		this(companyRepositoryPort, nfeRepositoryPort, inboundNfeRepositoryPort, generateSpedFilePort,
 				Clock.systemDefaultZone());
 	}
 
-	public GenerateSpedContribuicoesService(CompanyRepositoryPort companyRepositoryPort,
-			NfeRepositoryPort nfeRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			GenerateSpedFilePort generateSpedFilePort, Clock clock) {
+	public GenerateSpedContribuicoesService(final CompanyRepositoryPort companyRepositoryPort,
+			final NfeRepositoryPort nfeRepositoryPort, final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final GenerateSpedFilePort generateSpedFilePort, final Clock clock) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
@@ -79,19 +79,19 @@ public class GenerateSpedContribuicoesService implements GenerateSpedContribuico
 	}
 
 	@Override
-	public SpedContribuicoesFile execute(GenerateSpedContribuicoesCommand command) {
-		CompanyId companyId = command.companyId();
-		Company company = companyRepositoryPort.findById(companyId)
+	public SpedContribuicoesFile execute(final GenerateSpedContribuicoesCommand command) {
+		final CompanyId companyId = command.companyId();
+		final Company company = companyRepositoryPort.findById(companyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + companyId.value()));
-		Incidence incidence = incidenceOf(company);
+		final Incidence incidence = incidenceOf(company);
 
-		YearMonth period = command.period();
-		ZoneId zone = clock.getZone();
-		Instant from = period.atDay(1).atStartOfDay(zone).toInstant();
-		Instant to = period.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant();
+		final YearMonth period = command.period();
+		final ZoneId zone = clock.getZone();
+		final Instant from = period.atDay(1).atStartOfDay(zone).toInstant();
+		final Instant to = period.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant();
 
-		SpedContribuicoesDocuments mapper = new SpedContribuicoesDocuments(incidence, zone);
-		List<SpedContribuicoesDocument> documents = new ArrayList<>();
+		final SpedContribuicoesDocuments mapper = new SpedContribuicoesDocuments(incidence, zone);
+		final List<SpedContribuicoesDocument> documents = new ArrayList<>();
 		nfeRepositoryPort.findAuthorizedByCompanyBetween(companyId, from, to)
 				.forEach(nfe -> documents.add(mapper.fromIssued(nfe)));
 		inboundNfeRepositoryPort.findIssuedByCompanyBetween(companyId, from, to).stream()
@@ -99,21 +99,21 @@ public class GenerateSpedContribuicoesService implements GenerateSpedContribuico
 				.forEach(nfe -> documents.add(mapper.fromReceived(nfe)));
 		documents.sort(DOCUMENT_ORDER);
 
-		Result pis = SpedContribuicoesAssessor.assess(SpedTax.PIS, incidence, documents);
-		Result cofins = SpedContribuicoesAssessor.assess(SpedTax.COFINS, incidence, documents);
-		byte[] txt = generateSpedFilePort
+		final Result pis = SpedContribuicoesAssessor.assess(SpedTax.PIS, incidence, documents);
+		final Result cofins = SpedContribuicoesAssessor.assess(SpedTax.COFINS, incidence, documents);
+		final byte[] txt = generateSpedFilePort
 				.generate(SpedContribuicoesLayout.build(company, period, incidence, documents, pis, cofins));
 
-		long exits = documents.stream().filter(document -> document.operation() == Operation.EXIT).count();
-		Assessment assessment = new Assessment(company.getTaxRegime(), incidence, (int) exits,
+		final long exits = documents.stream().filter(document -> document.operation() == Operation.EXIT).count();
+		final Assessment assessment = new Assessment(company.getTaxRegime(), incidence, (int) exits,
 				documents.size() - (int) exits, contribution(pis), contribution(cofins));
 		return new SpedContribuicoesFile(companyId, period,
 				"EFD-Contribuicoes-" + company.getCnpj().number() + "-" + period.format(FILE_PERIOD) + ".txt", txt,
 				assessment);
 	}
 
-	private static Incidence incidenceOf(Company company) {
-		TaxRegime regime = company.getTaxRegime();
+	private static Incidence incidenceOf(final Company company) {
+		final TaxRegime regime = company.getTaxRegime();
 		return switch (regime) {
 			case LUCRO_REAL -> Incidence.NON_CUMULATIVE;
 			case LUCRO_PRESUMIDO -> Incidence.CUMULATIVE;
@@ -123,18 +123,18 @@ public class GenerateSpedContribuicoesService implements GenerateSpedContribuico
 		};
 	}
 
-	private static Contribution contribution(Result result) {
+	private static Contribution contribution(final Result result) {
 		return new Contribution(result.revenue(), result.base(), result.contribution(), result.credit(),
 				result.creditUsed(), result.creditBalance(), result.payable());
 	}
 
 	/** Numbers compare as numbers where they are ({@code 9} before {@code 10}), as text otherwise; none comes first. */
-	private static int compareNumbers(String a, String b) {
+	private static int compareNumbers(final String a, final String b) {
 		if (a == null || b == null) {
 			return a == b ? 0 : a == null ? -1 : 1;
 		}
 		if (a.chars().allMatch(Character::isDigit) && b.chars().allMatch(Character::isDigit)) {
-			int byLength = Integer.compare(a.length(), b.length());
+			final int byLength = Integer.compare(a.length(), b.length());
 			if (byLength != 0) {
 				return byLength;
 			}

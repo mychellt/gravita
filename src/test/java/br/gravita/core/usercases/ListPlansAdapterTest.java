@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -25,11 +25,11 @@ class ListPlansAdapterTest {
 	@DisplayName("Lists plans by delegating to the repository's find-all")
 	@Test
 	void shouldDelegateToRepositoryFindAll() {
-		ListPlansAdapter adapter = new ListPlansAdapter(planRepositoryPort);
-		PlanDomain plan = aPlan().build();
+		final ListPlansAdapter adapter = new ListPlansAdapter(planRepositoryPort);
+		final PlanDomain plan = plan().build();
 		when(planRepositoryPort.findAll()).thenReturn(List.of(plan));
 
-		List<PlanDomain> plans = adapter.execute(new Context());
+		final List<PlanDomain> plans = adapter.execute(new Context());
 
 		assertThat(plans).containsExactly(plan);
 	}
@@ -37,7 +37,7 @@ class ListPlansAdapterTest {
 	@DisplayName("Reads inside a transaction so the plan's lazy features can be mapped (open-in-view is off)")
 	@Test
 	void shouldReadInsideATransaction() throws NoSuchMethodException {
-		Transactional transactional = ListPlansAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
+		final Transactional transactional = ListPlansAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
 
 		assertThat(transactional).isNotNull();
 		assertThat(transactional.readOnly()).isTrue();

@@ -15,7 +15,8 @@ public final class DocumentSeries {
 	private final Long nextNumber;
 	private final Long version;
 
-	public DocumentSeries(UUID id, CompanyId companyId, FiscalDocumentType documentType, String series, Long nextNumber, Long version) {
+	public DocumentSeries(final UUID id, final CompanyId companyId, final FiscalDocumentType documentType, final String series,
+			final Long nextNumber, final Long version) {
 		this.id = id;
 		this.companyId = companyId;
 		this.documentType = documentType;
@@ -24,15 +25,16 @@ public final class DocumentSeries {
 		this.version = version;
 	}
 
-	public static DocumentSeries of(UUID id, CompanyId companyId, FiscalDocumentType documentType, String series, Long nextNumber, Long version) {
+	public static DocumentSeries of(final UUID id, final CompanyId companyId, final FiscalDocumentType documentType,
+			final String series, final Long nextNumber, final Long version) {
 		return new DocumentSeries(id, companyId, documentType, series, nextNumber, version);
 	}
 
-	public static DocumentSeries placeholder(CompanyId companyId, FiscalDocumentType documentType) {
+	public static DocumentSeries placeholder(final CompanyId companyId, final FiscalDocumentType documentType) {
 		return new DocumentSeries(UUID.randomUUID(), companyId, documentType, null, 1L, null);
 	}
 
-	public DocumentSeries reconfigure(String newSeries, Long newNextNumber) {
+	public DocumentSeries reconfigure(final String newSeries, final Long newNextNumber) {
 		if (this.series != null && newNextNumber < this.nextNumber) {
 			throw new BusinessRuleException("nextNumber cannot be decreased once the series is already configured "
 					+ "(current=" + this.nextNumber + ", requested=" + newNextNumber + ")");

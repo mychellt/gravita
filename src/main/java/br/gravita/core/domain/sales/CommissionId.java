@@ -9,7 +9,7 @@ public record CommissionId(UUID value) {
 		Objects.requireNonNull(value, "CommissionId value is required");
 	}
 
-	public static CommissionId of(UUID value) {
+	public static CommissionId of(final UUID value) {
 		return new CommissionId(value);
 	}
 }

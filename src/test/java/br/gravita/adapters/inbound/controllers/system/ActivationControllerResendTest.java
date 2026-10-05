@@ -28,7 +28,7 @@ class ActivationControllerResendTest {
 	@MockitoBean
 	private ResendActivationUseCase resendActivationUseCase;
 
-	private String resend(String email) throws Exception {
+	private String resend(final String email) throws Exception {
 		return mockMvc.perform(post("/api/activate/resend").contentType(MediaType.APPLICATION_JSON)
 						.content("{\"email\":\"" + email + "\"}"))
 				.andExpect(status().isAccepted())
@@ -48,9 +48,9 @@ class ActivationControllerResendTest {
 	void shouldAnswerIdenticallyForEveryOutcome() throws Exception {
 		// The use case returns nothing and never throws for unknown/active/cooldown, so these three calls model
 		// "pending user", "no such user" and "already active"; the body must not depend on any of them.
-		String pending = resend("pending@acme.com");
-		String unknown = resend("ghost@acme.com");
-		String active = resend("active@acme.com");
+		final String pending = resend("pending@acme.com");
+		final String unknown = resend("ghost@acme.com");
+		final String active = resend("active@acme.com");
 
 		assertThat(unknown).isEqualTo(pending).isEqualTo(active);
 		assertThat(pending).contains("Se este e-mail estiver aguardando ativação");

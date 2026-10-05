@@ -20,7 +20,7 @@ public record BankReturnImportResult(int settledCount, int skippedCount, List<Un
 		rejectedLines = List.copyOf(rejectedLines);
 	}
 
-	public BankReturnImportResult(int settledCount, int skippedCount, List<UnmatchedLine> unmatchedLines) {
+	public BankReturnImportResult(final int settledCount, final int skippedCount, final List<UnmatchedLine> unmatchedLines) {
 		this(settledCount, skippedCount, unmatchedLines, List.of());
 	}
 

@@ -6,7 +6,7 @@ package br.gravita.core.domain.tax;
  */
 public class NfseMunicipalityUnavailableException extends RuntimeException {
 
-	public NfseMunicipalityUnavailableException(String message, Throwable cause) {
+	public NfseMunicipalityUnavailableException(final String message, final Throwable cause) {
 		super(message, cause);
 	}
 }

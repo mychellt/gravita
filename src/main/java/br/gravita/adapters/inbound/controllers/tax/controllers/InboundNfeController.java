@@ -39,10 +39,10 @@ public class InboundNfeController {
 	private final ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase;
 	private final ManifestInboundNfeUseCase manifestInboundNfeUseCase;
 
-	public InboundNfeController(ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
-			EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase,
-			ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase,
-			ManifestInboundNfeUseCase manifestInboundNfeUseCase) {
+	public InboundNfeController(final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
+			final EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase,
+			final ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase,
+			final ManifestInboundNfeUseCase manifestInboundNfeUseCase) {
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
 		this.enterInboundNfeManuallyUseCase = enterInboundNfeManuallyUseCase;
 		this.confirmInboundNfeReceiptUseCase = confirmInboundNfeReceiptUseCase;
@@ -50,49 +50,49 @@ public class InboundNfeController {
 	}
 
 	@PostMapping(value = "/import-xml", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ImportSupplierNfeXmlResponse> importXml(@RequestParam UUID companyId,
-			@RequestPart("xmlFile") MultipartFile xmlFile) {
-		var inboundNfe = importSupplierNfeXmlUseCase
+	public ResponseEntity<ImportSupplierNfeXmlResponse> importXml(@RequestParam final UUID companyId,
+			@RequestPart("xmlFile") final MultipartFile xmlFile) {
+		final var inboundNfe = importSupplierNfeXmlUseCase
 				.execute(new ImportSupplierNfeXmlCommand(CompanyId.of(companyId), readBytes(xmlFile)));
 		return ResponseEntity.status(HttpStatus.CREATED).body(ImportSupplierNfeXmlResponse.from(inboundNfe));
 	}
 
 	@PostMapping
 	public ResponseEntity<ImportSupplierNfeXmlResponse> enterManually(
-			@RequestBody EnterInboundNfeManuallyRequest request) {
-		var inboundNfe = enterInboundNfeManuallyUseCase.execute(request.toCommand());
+			@RequestBody final EnterInboundNfeManuallyRequest request) {
+		final var inboundNfe = enterInboundNfeManuallyUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(ImportSupplierNfeXmlResponse.from(inboundNfe));
 	}
 
 	@PostMapping("/{id}/confirm-receipt")
-	public ResponseEntity<ImportSupplierNfeXmlResponse> confirmReceipt(@PathVariable UUID id,
-			@RequestBody ConfirmInboundNfeReceiptRequest request) {
-		var inboundNfe = confirmInboundNfeReceiptUseCase.execute(request.toCommand(id));
+	public ResponseEntity<ImportSupplierNfeXmlResponse> confirmReceipt(@PathVariable final UUID id,
+			@RequestBody final ConfirmInboundNfeReceiptRequest request) {
+		final var inboundNfe = confirmInboundNfeReceiptUseCase.execute(request.toCommand(id));
 		return ResponseEntity.ok(ImportSupplierNfeXmlResponse.from(inboundNfe));
 	}
 
 	@PostMapping("/manifestation")
-	public ResponseEntity<InboundManifestationResponse> manifest(@RequestBody ManifestInboundNfeRequest request) {
-		var manifestation = manifestInboundNfeUseCase.execute(request.toCommand());
+	public ResponseEntity<InboundManifestationResponse> manifest(@RequestBody final ManifestInboundNfeRequest request) {
+		final var manifestation = manifestInboundNfeUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(InboundManifestationResponse.from(manifestation));
 	}
 
-	private byte[] readBytes(MultipartFile file) {
+	private byte[] readBytes(final MultipartFile file) {
 		try {
 			return file.getBytes();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new UncheckedIOException("Unable to read uploaded NFe XML file", e);
 		}
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(InboundNfeNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleInboundNfeNotFoundException(
-			InboundNfeNotFoundException exception) {
+			final InboundNfeNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 }

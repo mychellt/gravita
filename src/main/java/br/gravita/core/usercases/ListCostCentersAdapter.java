@@ -13,12 +13,12 @@ public class ListCostCentersAdapter implements ListCostCentersPort {
 
 	private final CostCenterRepositoryPort costCenterRepositoryPort;
 
-	public ListCostCentersAdapter(CostCenterRepositoryPort costCenterRepositoryPort) {
+	public ListCostCentersAdapter(final CostCenterRepositoryPort costCenterRepositoryPort) {
 		this.costCenterRepositoryPort = costCenterRepositoryPort;
 	}
 
 	@Override
-	public List<CostCenterDomain> execute(Context context) {
+	public List<CostCenterDomain> execute(final Context context) {
 		return costCenterRepositoryPort.findAll();
 	}
 }

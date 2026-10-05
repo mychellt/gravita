@@ -13,12 +13,12 @@ class ReserveStockAdapter implements ReserveStockPort {
 
 	private final ReserveStockUseCase reserveStockUseCase;
 
-	ReserveStockAdapter(ReserveStockUseCase reserveStockUseCase) {
+	ReserveStockAdapter(final ReserveStockUseCase reserveStockUseCase) {
 		this.reserveStockUseCase = reserveStockUseCase;
 	}
 
 	@Override
-	public void reserve(ReserveStockForOrderCommand command) {
+	public void reserve(final ReserveStockForOrderCommand command) {
 		reserveStockUseCase.execute(new ReserveStockCommand(command.orderId(), command.productOrServiceId(),
 				DEFAULT_WAREHOUSE_ID, command.quantity()));
 	}

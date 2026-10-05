@@ -46,7 +46,7 @@ public class ProductDomain extends AbstractDomain {
 	private List<KitComponentDomain> kitComponents;
 	private List<ProductVariantDomain> variants;
 
-	public void applyPartialUpdate(ProductDomain patch) {
+	public void applyPartialUpdate(final ProductDomain patch) {
 		if (patch.internalCode != null) {
 			this.internalCode = patch.internalCode;
 		}
@@ -133,7 +133,7 @@ public class ProductDomain extends AbstractDomain {
 		if (barcodes == null) {
 			return;
 		}
-		for (String barcode : barcodes) {
+		for (final String barcode : barcodes) {
 			if (barcode == null || !BARCODE_PATTERN.matcher(barcode).matches()) {
 				throw new BusinessRuleException("Barcode must be a valid EAN-13 or DUN-14 code: " + barcode);
 			}

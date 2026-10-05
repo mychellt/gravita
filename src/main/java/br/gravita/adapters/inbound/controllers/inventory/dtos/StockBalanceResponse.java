@@ -8,7 +8,7 @@ import java.util.UUID;
 public record StockBalanceResponse(UUID productId, UUID warehouseId, BigDecimal onHand, BigDecimal reserved,
 		BigDecimal inTransit, BigDecimal available, BigDecimal averageCost) {
 
-	public static StockBalanceResponse from(StockBalanceView view) {
+	public static StockBalanceResponse from(final StockBalanceView view) {
 		return new StockBalanceResponse(view.productId(), view.warehouseId(), view.onHand(), view.reserved(),
 				view.inTransit(), view.available(), view.averageCost());
 	}

@@ -16,7 +16,7 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Available quantity is on-hand minus reserved")
 	void availableIsOnHandMinusReserved() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
@@ -26,11 +26,11 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Reserving increases the reserved quantity and leaves on-hand untouched")
 	void reserveIncreasesReservedAndLeavesOnHandUntouched() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
-		StockBalance reserved = balance.reserve(new BigDecimal("20"));
+		final StockBalance reserved = balance.reserve(new BigDecimal("20"));
 
 		assertThat(reserved.getOnHand()).isEqualByComparingTo("100");
 		assertThat(reserved.getReserved()).isEqualByComparingTo("50");
@@ -40,7 +40,7 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Reserving more than the available quantity is rejected")
 	void reserveRejectsAQuantityGreaterThanAvailable() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("90"), BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
@@ -52,7 +52,7 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Reserving a zero or negative quantity is rejected")
 	void reserveRejectsAZeroOrNegativeQuantity() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
@@ -63,10 +63,10 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Receiving an entry recalculates the average cost as a weighted average")
 	void receiveEntryRecalculatesAverageCostAsAWeightedAverage() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));
 
-		StockBalance afterEntry = balance.receiveEntry(new BigDecimal("50"), new BigDecimal("14.00"));
+		final StockBalance afterEntry = balance.receiveEntry(new BigDecimal("50"), new BigDecimal("14.00"));
 
 		assertThat(afterEntry.getOnHand()).isEqualByComparingTo("150");
 		assertThat(afterEntry.getAverageCost()).isEqualByComparingTo("13.00");
@@ -75,11 +75,11 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Receiving an entry leaves the reserved and in-transit quantities untouched")
 	void receiveEntryLeavesReservedAndInTransitUntouched() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), new BigDecimal("5"),
 				new BigDecimal("12.50"));
 
-		StockBalance afterEntry = balance.receiveEntry(new BigDecimal("10"), new BigDecimal("12.50"));
+		final StockBalance afterEntry = balance.receiveEntry(new BigDecimal("10"), new BigDecimal("12.50"));
 
 		assertThat(afterEntry.getReserved()).isEqualByComparingTo("30");
 		assertThat(afterEntry.getInTransit()).isEqualByComparingTo("5");
@@ -88,11 +88,11 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("An exit decreases only on-hand and rejects a zero or negative quantity")
 	void exitDecreasesOnHandOnlyAndRejectsAZeroOrNegativeQuantity() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("10"), BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
-		StockBalance afterExit = balance.exit(new BigDecimal("40"));
+		final StockBalance afterExit = balance.exit(new BigDecimal("40"));
 
 		assertThat(afterExit.getOnHand()).isEqualByComparingTo("60");
 		assertThat(afterExit.getReserved()).isEqualByComparingTo("10");
@@ -103,11 +103,11 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("Consuming a reservation decreases on-hand and reserved together, leaving available unchanged")
 	void consumeReservedDecreasesOnHandAndReservedTogetherLeavingAvailableUnchanged() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), new BigDecimal("30"), BigDecimal.ZERO,
 				new BigDecimal("12.50"));
 
-		StockBalance afterExit = balance.consumeReserved(new BigDecimal("20"));
+		final StockBalance afterExit = balance.consumeReserved(new BigDecimal("20"));
 
 		assertThat(afterExit.getOnHand()).isEqualByComparingTo("80");
 		assertThat(afterExit.getReserved()).isEqualByComparingTo("10");
@@ -117,7 +117,7 @@ class StockBalanceTest {
 	@Test
 	@DisplayName("An adjustment changes on-hand by exactly its delta, whether positive or negative")
 	void applyAdjustmentReflectsTheDeltaExactlyWhetherPositiveOrNegative() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("12.50"));
 
 		assertThat(balance.applyAdjustment(new BigDecimal("5")).getOnHand()).isEqualByComparingTo("105");

@@ -17,8 +17,8 @@ public final class CashMovement {
 	private final String justification;
 	private final Instant timestamp;
 
-	public CashMovement(CashMovementId id, PosSessionId sessionId, CashMovementType type, BigDecimal amount,
-			String justification, Instant timestamp) {
+	public CashMovement(final CashMovementId id, final PosSessionId sessionId, final CashMovementType type, final BigDecimal amount,
+			final String justification, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.sessionId = Objects.requireNonNull(sessionId, "sessionId is required");
 		this.type = Objects.requireNonNull(type, "type is required");
@@ -27,19 +27,19 @@ public final class CashMovement {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	public static CashMovement of(CashMovementId id, PosSessionId sessionId, CashMovementType type,
-			BigDecimal amount, String justification, Instant timestamp) {
+	public static CashMovement of(final CashMovementId id, final PosSessionId sessionId, final CashMovementType type,
+			final BigDecimal amount, final String justification, final Instant timestamp) {
 		return new CashMovement(id, sessionId, type, amount, justification, timestamp);
 	}
 
-	private static BigDecimal requirePositive(BigDecimal amount) {
+	private static BigDecimal requirePositive(final BigDecimal amount) {
 		if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new BusinessRuleException("amount must be positive");
 		}
 		return amount;
 	}
 
-	private static String requireNonBlank(String justification) {
+	private static String requireNonBlank(final String justification) {
 		if (justification == null || justification.isBlank()) {
 			throw new BusinessRuleException("justification is required");
 		}

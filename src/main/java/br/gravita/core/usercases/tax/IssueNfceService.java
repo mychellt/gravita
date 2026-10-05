@@ -44,10 +44,10 @@ public class IssueNfceService implements IssueNfceUseCase {
 	private final SubmitToSefazPort submitToSefazPort;
 	private final TransmissionQueuePort transmissionQueuePort;
 
-	public IssueNfceService(NfceRepositoryPort nfceRepositoryPort, PosSessionRepositoryPort posSessionRepositoryPort,
-			CompanyRepositoryPort companyRepositoryPort, CalculateTaxUseCase calculateTaxUseCase,
-			AllocateDocumentNumberUseCase allocateDocumentNumberUseCase, SubmitToSefazPort submitToSefazPort,
-			TransmissionQueuePort transmissionQueuePort) {
+	public IssueNfceService(final NfceRepositoryPort nfceRepositoryPort, final PosSessionRepositoryPort posSessionRepositoryPort,
+			final CompanyRepositoryPort companyRepositoryPort, final CalculateTaxUseCase calculateTaxUseCase,
+			final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase, final SubmitToSefazPort submitToSefazPort,
+			final TransmissionQueuePort transmissionQueuePort) {
 		this.nfceRepositoryPort = nfceRepositoryPort;
 		this.posSessionRepositoryPort = posSessionRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
@@ -58,61 +58,61 @@ public class IssueNfceService implements IssueNfceUseCase {
 	}
 
 	@Override
-	public NfceIssuanceResult execute(IssueNfceCommand command) {
-		NfceSaleId saleId = NfceSaleId.of(command.nfceSaleId());
-		NfceSale sale = nfceRepositoryPort.findById(saleId)
+	public NfceIssuanceResult execute(final IssueNfceCommand command) {
+		final NfceSaleId saleId = NfceSaleId.of(command.nfceSaleId());
+		final NfceSale sale = nfceRepositoryPort.findById(saleId)
 				.orElseThrow(() -> new ResourceNotFoundException("NfceSale not found: " + command.nfceSaleId()));
 		if (sale.getStatus() != NfceSaleStatus.DRAFT) {
 			throw new BusinessRuleException(
 					"NfceSale " + saleId.value() + " is not DRAFT (current status: " + sale.getStatus() + ")");
 		}
 
-		Company company = resolveIssuingCompany(sale);
+		final Company company = resolveIssuingCompany(sale);
 
-		TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(sale, company));
+		final TaxCalculationResult taxResult = calculateTaxUseCase.execute(buildTaxCommand(sale, company));
 
-		DocumentNumber documentNumber = allocateDocumentNumberUseCase
+		final DocumentNumber documentNumber = allocateDocumentNumberUseCase
 				.execute(new AllocateDocumentNumberCommand(company.getId(), FiscalDocumentType.NFCE));
 
-		NfceSale issued = attemptIssuance(sale, company, documentNumber, taxResult);
+		final NfceSale issued = attemptIssuance(sale, company, documentNumber, taxResult);
 		nfceRepositoryPort.save(issued);
 
 		return new NfceIssuanceResult(issued.getStatus(), issued.getAccessKey(), issued.getSefazProtocol());
 	}
 
-	private NfceSale attemptIssuance(NfceSale sale, Company company, DocumentNumber documentNumber,
-			TaxCalculationResult taxResult) {
-		String onlineAccessKey = accessKey(company, documentNumber, EmissionType.NORMAL);
+	private NfceSale attemptIssuance(final NfceSale sale, final Company company, final DocumentNumber documentNumber,
+			final TaxCalculationResult taxResult) {
+		final String onlineAccessKey = accessKey(company, documentNumber, EmissionType.NORMAL);
 		try {
-			SefazSubmissionResult result = submitToSefazPort.submit(new SefazSubmissionRequest(company.getId(),
+			final SefazSubmissionResult result = submitToSefazPort.submit(new SefazSubmissionRequest(company.getId(),
 					company.getSefazEnvironment(), onlineAccessKey, sale.getSaleTotal(), taxResult));
 			return sale.authorize(documentNumber.series(), documentNumber.number(), onlineAccessKey, result.protocol());
-		} catch (SefazUnavailableException unavailable) {
-			String contingencyAccessKey = accessKey(company, documentNumber, EmissionType.CONTINGENCY);
-			NfceSale queued = sale.queueForContingency(documentNumber.series(), documentNumber.number(),
+		} catch (final SefazUnavailableException unavailable) {
+			final String contingencyAccessKey = accessKey(company, documentNumber, EmissionType.CONTINGENCY);
+			final NfceSale queued = sale.queueForContingency(documentNumber.series(), documentNumber.number(),
 					contingencyAccessKey);
 			transmissionQueuePort.enqueue(sale.getId());
 			return queued;
 		}
 	}
 
-	private String accessKey(Company company, DocumentNumber documentNumber, EmissionType emissionType) {
+	private String accessKey(final Company company, final DocumentNumber documentNumber, final EmissionType emissionType) {
 		return NfceAccessKeyGenerator.generate(company.getState(), company.getCnpj().number(), documentNumber.series(),
 				documentNumber.number(), emissionType);
 	}
 
-	private CalculateTaxCommand buildTaxCommand(NfceSale sale, Company company) {
-		List<TaxItemCommand> items = sale.getItems().stream()
+	private CalculateTaxCommand buildTaxCommand(final NfceSale sale, final Company company) {
+		final List<TaxItemCommand> items = sale.getItems().stream()
 				.map(item -> new TaxItemCommand(item.productId().toString(), item.quantity(), item.unitPrice()))
 				.toList();
-		br.gravita.core.domain.tax.TaxRegime taxRegime = br.gravita.core.domain.tax.TaxRegime
+		final br.gravita.core.domain.tax.TaxRegime taxRegime = br.gravita.core.domain.tax.TaxRegime
 				.valueOf(company.getTaxRegime().name());
 		return new CalculateTaxCommand(items, company.getState(), company.getState(), taxRegime, OPERATION_TYPE,
 				List.of());
 	}
 
-	private Company resolveIssuingCompany(NfceSale sale) {
-		PosSession session = posSessionRepositoryPort.findById(sale.getSessionId())
+	private Company resolveIssuingCompany(final NfceSale sale) {
+		final PosSession session = posSessionRepositoryPort.findById(sale.getSessionId())
 				.orElseThrow(() -> new BusinessRuleException("PosSession not found: " + sale.getSessionId().value()));
 		return companyRepositoryPort.findById(session.getCompanyId())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + session.getCompanyId().value()));

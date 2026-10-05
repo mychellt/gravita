@@ -57,18 +57,18 @@ class TransferStockServiceTest {
 				stockTransferRepositoryPort);
 	}
 
-	private StockBalance sourceBalance(BigDecimal onHand) {
+	private StockBalance sourceBalance(final BigDecimal onHand) {
 		return StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, sourceWarehouseId, onHand,
 				BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("10.00"));
 	}
 
 	@Test
 	@DisplayName("AC1: Initiating a transfer never exceeds the quantity available at the source")
-	void ac1_initiatingNeverExceedsTheSourceAvailableQuantity() {
+	void ac1InitiatingNeverExceedsTheSourceAvailableQuantity() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, sourceWarehouseId))
 				.thenReturn(Optional.of(sourceBalance(new BigDecimal("10"))));
 
-		InitiateTransferCommand command = new InitiateTransferCommand(productId, sourceWarehouseId,
+		final InitiateTransferCommand command = new InitiateTransferCommand(productId, sourceWarehouseId,
 				destinationWarehouseId, new BigDecimal("20"), null, List.of(), userId);
 
 		assertThatThrownBy(() -> service.initiate(command)).isInstanceOf(BusinessRuleException.class);
@@ -77,17 +77,17 @@ class TransferStockServiceTest {
 
 	@Test
 	@DisplayName("AC2: Initiating a transfer moves on-hand stock into in-transit at the source")
-	void ac2_initiatingMovesOnHandIntoInTransitOnTheSource() {
+	void ac2InitiatingMovesOnHandIntoInTransitOnTheSource() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, sourceWarehouseId))
 				.thenReturn(Optional.of(sourceBalance(new BigDecimal("100"))));
 		when(stockTransferRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		InitiateTransferCommand command = new InitiateTransferCommand(productId, sourceWarehouseId,
+		final InitiateTransferCommand command = new InitiateTransferCommand(productId, sourceWarehouseId,
 				destinationWarehouseId, new BigDecimal("30"), null, List.of(), userId);
-		StockMovement movement = service.initiate(command);
+		final StockMovement movement = service.initiate(command);
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("70");
 		assertThat(savedBalance.getValue().getInTransit()).isEqualByComparingTo("30");
@@ -96,8 +96,8 @@ class TransferStockServiceTest {
 
 	@Test
 	@DisplayName("AC3: Confirming a transfer that was never initiated is rejected")
-	void ac3_confirmingATransferThatWasNeverInitiatedIsRejected() {
-		UUID unknownId = UUID.randomUUID();
+	void ac3ConfirmingATransferThatWasNeverInitiatedIsRejected() {
+		final UUID unknownId = UUID.randomUUID();
 		when(stockTransferRepositoryPort.findById(StockTransferId.of(unknownId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.confirm(new ConfirmTransferCommand(unknownId, userId)))
@@ -106,9 +106,9 @@ class TransferStockServiceTest {
 
 	@Test
 	@DisplayName("AC3: Confirming an already confirmed transfer is rejected")
-	void ac3_confirmingTwiceIsRejected() {
-		UUID transferId = UUID.randomUUID();
-		StockTransfer alreadyConfirmed = StockTransfer.initiate(StockTransferId.of(transferId), productId,
+	void ac3ConfirmingTwiceIsRejected() {
+		final UUID transferId = UUID.randomUUID();
+		final StockTransfer alreadyConfirmed = StockTransfer.initiate(StockTransferId.of(transferId), productId,
 				sourceWarehouseId, destinationWarehouseId, new BigDecimal("30")).confirm();
 		when(stockTransferRepositoryPort.findById(StockTransferId.of(transferId)))
 				.thenReturn(Optional.of(alreadyConfirmed));
@@ -119,13 +119,13 @@ class TransferStockServiceTest {
 
 	@Test
 	@DisplayName("AC2/AC4: Confirming releases the in-transit quantity and increases the destination on-hand")
-	void ac2AndAc4_confirmingReleasesInTransitAndIncreasesDestinationOnHand() {
-		UUID transferId = UUID.randomUUID();
-		StockTransfer pending = StockTransfer.initiate(StockTransferId.of(transferId), productId, sourceWarehouseId,
+	void ac2AndAc4ConfirmingReleasesInTransitAndIncreasesDestinationOnHand() {
+		final UUID transferId = UUID.randomUUID();
+		final StockTransfer pending = StockTransfer.initiate(StockTransferId.of(transferId), productId, sourceWarehouseId,
 				destinationWarehouseId, new BigDecimal("30"));
 		when(stockTransferRepositoryPort.findById(StockTransferId.of(transferId))).thenReturn(Optional.of(pending));
 
-		StockBalance source = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, sourceWarehouseId,
+		final StockBalance source = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, sourceWarehouseId,
 				new BigDecimal("70"), BigDecimal.ZERO, new BigDecimal("30"), new BigDecimal("10.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, sourceWarehouseId))
 				.thenReturn(Optional.of(source));
@@ -134,11 +134,11 @@ class TransferStockServiceTest {
 		when(stockTransferRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		StockMovement movement = service.confirm(new ConfirmTransferCommand(transferId, userId));
+		final StockMovement movement = service.confirm(new ConfirmTransferCommand(transferId, userId));
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort, org.mockito.Mockito.times(2)).save(savedBalance.capture());
-		List<StockBalance> saved = savedBalance.getAllValues();
+		final List<StockBalance> saved = savedBalance.getAllValues();
 		assertThat(saved.get(0).getInTransit()).isEqualByComparingTo("0");
 		assertThat(saved.get(1).getOnHand()).isEqualByComparingTo("30");
 		assertThat(movement.getWarehouseId()).isEqualTo(destinationWarehouseId);

@@ -15,8 +15,8 @@ public final class Boleto {
 	private final String barcodeLine;
 	private final BoletoStatus status;
 
-	public Boleto(BoletoId id, ReceivableId receivableId, BankIntegration bankIntegration, String barcodeLine,
-			BoletoStatus status) {
+	public Boleto(final BoletoId id, final ReceivableId receivableId, final BankIntegration bankIntegration, final String barcodeLine,
+			final BoletoStatus status) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.receivableId = Objects.requireNonNull(receivableId, "receivableId is required");
 		this.bankIntegration = Objects.requireNonNull(bankIntegration, "bankIntegration is required");
@@ -24,13 +24,13 @@ public final class Boleto {
 		this.status = Objects.requireNonNull(status, "status is required");
 	}
 
-	public static Boleto issue(BoletoId id, ReceivableId receivableId, BankIntegration bankIntegration,
-			String barcodeLine) {
+	public static Boleto issue(final BoletoId id, final ReceivableId receivableId, final BankIntegration bankIntegration,
+			final String barcodeLine) {
 		return new Boleto(id, receivableId, bankIntegration, barcodeLine, BoletoStatus.ISSUED);
 	}
 
-	public static Boleto of(BoletoId id, ReceivableId receivableId, BankIntegration bankIntegration,
-			String barcodeLine, BoletoStatus status) {
+	public static Boleto of(final BoletoId id, final ReceivableId receivableId, final BankIntegration bankIntegration,
+			final String barcodeLine, final BoletoStatus status) {
 		return new Boleto(id, receivableId, bankIntegration, barcodeLine, status);
 	}
 
@@ -38,11 +38,11 @@ public final class Boleto {
 	 * A bank-title "linha digitável": 47 digits (punctuation is ignored and
 	 * stripped), whose first three fields each end in a mod-10 check digit.
 	 */
-	private static String requireValidBarcodeLine(String barcodeLine) {
+	private static String requireValidBarcodeLine(final String barcodeLine) {
 		if (barcodeLine == null || barcodeLine.isBlank()) {
 			throw new BusinessRuleException("barcodeLine is required");
 		}
-		String digits = barcodeLine.replaceAll("[\\s.]", "");
+		final String digits = barcodeLine.replaceAll("[\\s.]", "");
 		if (!digits.matches("\\d{" + BARCODE_LINE_LENGTH + "}")) {
 			throw new BusinessRuleException("barcodeLine must have " + BARCODE_LINE_LENGTH + " digits: " + barcodeLine);
 		}
@@ -54,11 +54,11 @@ public final class Boleto {
 	}
 
 	/** Checks the mod-10 digit at {@code digits[to]} against the field {@code digits[from, to)}. */
-	private static boolean hasValidFieldCheckDigit(String digits, int from, int to) {
+	private static boolean hasValidFieldCheckDigit(final String digits, final int from, final int to) {
 		int sum = 0;
 		int weight = 2;
 		for (int i = to - 1; i >= from; i--) {
-			int product = (digits.charAt(i) - '0') * weight;
+			final int product = (digits.charAt(i) - '0') * weight;
 			sum += product / 10 + product % 10;
 			weight = weight == 2 ? 1 : 2;
 		}

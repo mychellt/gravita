@@ -23,7 +23,7 @@ class ListProfilesServiceTest {
 	@Test
 	@DisplayName("Lists the available profiles")
 	void shouldListTheAvailableProfiles() {
-		List<ProfileReference> profiles = List.of(new ProfileReference(UUID.randomUUID(), "Administrator"),
+		final List<ProfileReference> profiles = List.of(new ProfileReference(UUID.randomUUID(), "Administrator"),
 				new ProfileReference(UUID.randomUUID(), "Salesperson"));
 		when(profileRepositoryPort.findAll()).thenReturn(profiles);
 

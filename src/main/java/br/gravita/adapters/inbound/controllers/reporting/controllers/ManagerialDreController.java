@@ -24,9 +24,9 @@ public class ManagerialDreController {
 
 	/** {@code period} is a month as {@code yyyy-MM}; {@code costCenter} optionally narrows the expenses. */
 	@GetMapping
-	public ResponseEntity<ManagerialDre> get(@AuthenticatedUser UserId callerId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period,
-			@RequestParam(required = false) UUID costCenter, @RequestParam(required = false) UUID companyId) {
+	public ResponseEntity<ManagerialDre> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period,
+			@RequestParam(required = false) final UUID costCenter, @RequestParam(required = false) final UUID companyId) {
 		return ResponseEntity.ok(getManagerialDreUseCase.execute(new DreQuery(callerId, period, costCenter, companyId)));
 	}
 }

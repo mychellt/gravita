@@ -25,9 +25,9 @@ public class CommissionReportController {
 
 	/** {@code period} is a month as {@code yyyy-MM}; {@code salesperson} is optional and lists everybody without it. */
 	@GetMapping
-	public ResponseEntity<List<CommissionReportEntry>> get(@AuthenticatedUser UserId callerId,
-			@RequestParam(required = false) UUID salesperson,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
+	public ResponseEntity<List<CommissionReportEntry>> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam(required = false) final UUID salesperson,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
 		return ResponseEntity.ok(getCommissionReportUseCase.execute(new CommissionReportQuery(callerId, salesperson, period)));
 	}
 }

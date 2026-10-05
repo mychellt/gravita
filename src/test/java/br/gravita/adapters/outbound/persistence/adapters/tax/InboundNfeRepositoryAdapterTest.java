@@ -179,10 +179,19 @@ class InboundNfeRepositoryAdapterTest {
 		final BigDecimal total = new BigDecimal("10.00");
 		final InboundNfeItem item = new InboundNfeItem("SKU", "Item", "73181500", "1102", "UN", BigDecimal.ONE, total,
 				total, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
-		return InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), companyId, ACCESS_KEY, "1", "1",
-				Document.cnpj("11222333000181"), "Fornecedor", Instant.parse("2028-02-05T12:00:00Z"), List.of(item),
-				new InboundNfeTotals(total, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, total),
-				"xml-ref");
+		return InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(companyId)
+				.accessKey(ACCESS_KEY)
+				.series("1")
+				.number("1")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor")
+				.issuedAt(Instant.parse("2028-02-05T12:00:00Z"))
+				.items(List.of(item))
+				.totals(new InboundNfeTotals(total, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, total))
+				.xmlStorageRef("xml-ref")
+				.build();
 	}
 }

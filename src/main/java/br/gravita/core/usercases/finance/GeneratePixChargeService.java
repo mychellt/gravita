@@ -23,22 +23,22 @@ public class GeneratePixChargeService implements GeneratePixChargeUseCase {
 	private final PixChargeRepositoryPort pixChargeRepositoryPort;
 	private final BankIntegrationPort bankIntegrationPort;
 
-	public GeneratePixChargeService(ReceivableRepositoryPort receivableRepositoryPort,
-			PixChargeRepositoryPort pixChargeRepositoryPort, BankIntegrationPort bankIntegrationPort) {
+	public GeneratePixChargeService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final PixChargeRepositoryPort pixChargeRepositoryPort, final BankIntegrationPort bankIntegrationPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.pixChargeRepositoryPort = pixChargeRepositoryPort;
 		this.bankIntegrationPort = bankIntegrationPort;
 	}
 
 	@Override
-	public PixCharge execute(GeneratePixChargeCommand command) {
-		Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
+	public PixCharge execute(final GeneratePixChargeCommand command) {
+		final Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + command.receivableId()));
 		// Checked before the bank is contacted so a rejected request never creates a charge there.
 		receivable.requireOpen();
 
-		PixChargeId id = PixChargeId.of(UUID.randomUUID());
-		IssuedPixCharge issued = bankIntegrationPort.issuePixCharge(new PixChargeIssueRequest(id.value(),
+		final PixChargeId id = PixChargeId.of(UUID.randomUUID());
+		final IssuedPixCharge issued = bankIntegrationPort.issuePixCharge(new PixChargeIssueRequest(id.value(),
 				receivable.getId().value(), receivable.getCustomerId(), receivable.getAmount(),
 				receivable.getDueDate()));
 

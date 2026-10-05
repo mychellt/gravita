@@ -15,21 +15,21 @@ class PurchaseOrderRepositoryAdapter implements PurchaseOrderRepositoryPort {
 	private final PurchaseOrderJpaRepository jpaRepository;
 	private final PurchaseOrderPersistenceMapper mapper;
 
-	PurchaseOrderRepositoryAdapter(PurchaseOrderJpaRepository jpaRepository, PurchaseOrderPersistenceMapper mapper) {
+	PurchaseOrderRepositoryAdapter(final PurchaseOrderJpaRepository jpaRepository, final PurchaseOrderPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PurchaseOrder save(PurchaseOrder purchaseOrder) {
-		PurchaseOrderJpaEntity entity = mapper.map(purchaseOrder);
+	public PurchaseOrder save(final PurchaseOrder purchaseOrder) {
+		final PurchaseOrderJpaEntity entity = mapper.map(purchaseOrder);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PurchaseOrderJpaEntity saved = jpaRepository.save(entity);
+		final PurchaseOrderJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PurchaseOrder> findById(PurchaseOrderId id) {
+	public Optional<PurchaseOrder> findById(final PurchaseOrderId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 }

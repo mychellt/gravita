@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 import java.util.UUID;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
@@ -28,12 +28,12 @@ class FindPlanAdapterTest {
 	@DisplayName("Returns the plan when it exists")
 	@Test
 	void shouldReturnPlanWhenFound() {
-		FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);
-		UUID id = UUID.randomUUID();
-		PlanDomain plan = aPlan().id(id).build();
+		final FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final PlanDomain plan = plan().id(id).build();
 		when(planRepositoryPort.findById(id)).thenReturn(Optional.of(plan));
 
-		PlanDomain found = adapter.execute(new Context(id));
+		final PlanDomain found = adapter.execute(new Context(id));
 
 		assertThat(found).isEqualTo(plan);
 	}
@@ -41,8 +41,8 @@ class FindPlanAdapterTest {
 	@DisplayName("Fails with not found when the plan does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
-		FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final FindPlanAdapter adapter = new FindPlanAdapter(planRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(planRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id))).isInstanceOf(BusinessRuleException.class);
@@ -51,7 +51,7 @@ class FindPlanAdapterTest {
 	@DisplayName("Reads inside a transaction so the plan's lazy features can be mapped (open-in-view is off)")
 	@Test
 	void shouldReadInsideATransaction() throws NoSuchMethodException {
-		Transactional transactional = FindPlanAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
+		final Transactional transactional = FindPlanAdapter.class.getMethod("execute", Context.class).getAnnotation(Transactional.class);
 
 		assertThat(transactional).isNotNull();
 		assertThat(transactional.readOnly()).isTrue();

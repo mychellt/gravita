@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record ChartOfAccountsResponse(UUID id, String code, String name, AccountType accountType, UUID parentId) {
 
-	public static ChartOfAccountsResponse from(ChartOfAccountsDomain domain) {
+	public static ChartOfAccountsResponse from(final ChartOfAccountsDomain domain) {
 		return new ChartOfAccountsResponse(domain.getId(), domain.getCode(), domain.getName(), domain.getAccountType(), domain.getParentId());
 	}
 }

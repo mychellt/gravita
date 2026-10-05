@@ -26,8 +26,8 @@ public class InterstateIcmsRateRestController {
     }
 
     @PostMapping("/import")
-    public ResponseEntity<List<InterstateIcmsRateResponse>> importRates(@Valid @RequestBody InterstateIcmsRateImportRequest request) {
-        List<InterstateIcmsRateResponse> imported = importInterstateIcmsRatesPort.execute(new Context(request.toDomainList()))
+    public ResponseEntity<List<InterstateIcmsRateResponse>> importRates(@Valid @RequestBody final InterstateIcmsRateImportRequest request) {
+        final List<InterstateIcmsRateResponse> imported = importInterstateIcmsRatesPort.execute(new Context(request.toDomainList()))
                 .stream().map(InterstateIcmsRateResponse::from).toList();
         return ResponseEntity.ok(imported);
     }

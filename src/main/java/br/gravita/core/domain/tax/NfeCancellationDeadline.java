@@ -20,7 +20,7 @@ public final class NfeCancellationDeadline {
 	private NfeCancellationDeadline() {
 	}
 
-	public static Duration windowFor(String state) {
+	public static Duration windowFor(final String state) {
 		return STATE_WINDOWS.getOrDefault(state, DEFAULT_WINDOW);
 	}
 }

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record CurrentUserResponse(String name, String email, String profile, UUID companyId) {
 
-	public static CurrentUserResponse from(CurrentUser user) {
+	public static CurrentUserResponse from(final CurrentUser user) {
 		return new CurrentUserResponse(user.name(), user.email(), user.profile(), user.companyId());
 	}
 }

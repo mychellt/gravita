@@ -46,7 +46,7 @@ public class CustomerDomain extends AbstractDomain {
 		this.status = CustomerStatus.REGULAR;
 	}
 
-	public void applyCreditStatus(BigDecimal currentBalance, CustomerStatus status) {
+	public void applyCreditStatus(final BigDecimal currentBalance, final CustomerStatus status) {
 		if (currentBalance == null) {
 			throw new BusinessRuleException("Current balance is required");
 		}
@@ -80,12 +80,12 @@ public class CustomerDomain extends AbstractDomain {
 		if (addresses == null || addresses.isEmpty()) {
 			throw new BusinessRuleException("At least one address is required");
 		}
-		for (AddressType type : AddressType.values()) {
-			List<AddressDomain> ofType = addresses.stream().filter(address -> address.getType() == type).toList();
+		for (final AddressType type : AddressType.values()) {
+			final List<AddressDomain> ofType = addresses.stream().filter(address -> address.getType() == type).toList();
 			if (ofType.isEmpty()) {
 				continue;
 			}
-			long defaults = ofType.stream().filter(AddressDomain::isDefault).count();
+			final long defaults = ofType.stream().filter(AddressDomain::isDefault).count();
 			if (defaults != 1) {
 				throw new BusinessRuleException("Each address type must have exactly one default address: " + type);
 			}
@@ -96,8 +96,8 @@ public class CustomerDomain extends AbstractDomain {
 		if (priceTables == null || priceTables.isEmpty()) {
 			return;
 		}
-		Set<Integer> priorities = new HashSet<>();
-		for (CustomerPriceTableLink link : priceTables) {
+		final Set<Integer> priorities = new HashSet<>();
+		for (final CustomerPriceTableLink link : priceTables) {
 			if (link.getPriority() == null) {
 				throw new BusinessRuleException("Price table priority is required");
 			}

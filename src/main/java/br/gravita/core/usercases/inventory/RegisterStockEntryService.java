@@ -35,9 +35,9 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 	private final SerialUnitRepositoryPort serialUnitRepositoryPort;
 	private final ProductRepositoryPort productRepositoryPort;
 
-	public RegisterStockEntryService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockMovementRepositoryPort stockMovementRepositoryPort, LotRepositoryPort lotRepositoryPort,
-			SerialUnitRepositoryPort serialUnitRepositoryPort, ProductRepositoryPort productRepositoryPort) {
+	public RegisterStockEntryService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockMovementRepositoryPort stockMovementRepositoryPort, final LotRepositoryPort lotRepositoryPort,
+			final SerialUnitRepositoryPort serialUnitRepositoryPort, final ProductRepositoryPort productRepositoryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.lotRepositoryPort = lotRepositoryPort;
@@ -46,19 +46,19 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 	}
 
 	@Override
-	public StockMovement execute(RegisterStockEntryCommand command) {
+	public StockMovement execute(final RegisterStockEntryCommand command) {
 		if (command.quantity().compareTo(BigDecimal.ZERO) <= 0) {
 			throw new BusinessRuleException("Entry quantity must be greater than zero");
 		}
 
-		ProductDomain product = productRepositoryPort.get(command.productId())
+		final ProductDomain product = productRepositoryPort.get(command.productId())
 				.orElseThrow(() -> new ResourceNotFoundException("Product not found: " + command.productId()));
 
-		boolean lotControl = Boolean.TRUE.equals(product.getLotControl());
-		boolean serialControl = Boolean.TRUE.equals(product.getSerialControl());
+		final boolean lotControl = Boolean.TRUE.equals(product.getLotControl());
+		final boolean serialControl = Boolean.TRUE.equals(product.getSerialControl());
 		validateTraceability(command, lotControl, serialControl);
 
-		StockBalance current = stockBalanceRepositoryPort
+		final StockBalance current = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(command.productId(), command.warehouseId())
 				.orElseGet(() -> StockBalance.of(StockBalanceId.of(UUID.randomUUID()), command.productId(),
 						command.warehouseId(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
@@ -71,14 +71,24 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 			registerSerials(command);
 		}
 
-		StockMovement movement = StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.ENTRY,
-				command.productId(), command.warehouseId(), command.quantity(), command.unitCost(),
-				lotControl ? command.lot().code() : null, serialControl ? command.serials() : List.of(),
-				command.originReference(), null, command.user(), Instant.now());
+		final StockMovement movement = StockMovement.builder()
+				.id(StockMovementId.of(UUID.randomUUID()))
+				.type(StockMovementType.ENTRY)
+				.productId(command.productId())
+				.warehouseId(command.warehouseId())
+				.quantity(command.quantity())
+				.unitCost(command.unitCost())
+				.lotCode(lotControl ? command.lot().code() : null)
+				.serialNumbers(serialControl ? command.serials() : List.of())
+				.originReference(command.originReference())
+				.justification(null)
+				.user(command.user())
+				.timestamp(Instant.now())
+				.build();
 		return stockMovementRepositoryPort.save(movement);
 	}
 
-	private void validateTraceability(RegisterStockEntryCommand command, boolean lotControl, boolean serialControl) {
+	private void validateTraceability(final RegisterStockEntryCommand command, final boolean lotControl, final boolean serialControl) {
 		if (lotControl && (command.lot() == null || command.lot().expiryDate() == null)) {
 			throw new BusinessRuleException(
 					"Product " + command.productId() + " has lot control active; lot code and expiryDate are required");
@@ -90,8 +100,8 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 		}
 	}
 
-	private void registerLot(RegisterStockEntryCommand command) {
-		Lot lot = lotRepositoryPort
+	private void registerLot(final RegisterStockEntryCommand command) {
+		final Lot lot = lotRepositoryPort
 				.findByProductIdAndWarehouseIdAndCode(command.productId(), command.warehouseId(), command.lot().code())
 				.map(existing -> existing.receive(command.quantity()))
 				.orElseGet(() -> Lot.of(LotId.of(UUID.randomUUID()), command.productId(), command.warehouseId(),
@@ -99,8 +109,8 @@ public class RegisterStockEntryService implements RegisterStockEntryUseCase {
 		lotRepositoryPort.save(lot);
 	}
 
-	private void registerSerials(RegisterStockEntryCommand command) {
-		List<SerialUnit> serialUnits = command.serials().stream()
+	private void registerSerials(final RegisterStockEntryCommand command) {
+		final List<SerialUnit> serialUnits = command.serials().stream()
 				.map(serialNumber -> SerialUnit.received(SerialUnitId.of(UUID.randomUUID()), command.productId(),
 						command.warehouseId(), serialNumber))
 				.toList();

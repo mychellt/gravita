@@ -49,29 +49,39 @@ class BatchPayServiceTest {
 	@InjectMocks
 	private BatchPayService service;
 
-	private Payable payable(PayableStatus status, String amount) {
-		return Payable.of(PayableId.of(UUID.randomUUID()), UUID.randomUUID(), PayableOrigin.MANUAL,
-				new BigDecimal(amount), LocalDate.now().plusDays(5), null, status, null, null, null);
+	private Payable payable(final PayableStatus status, final String amount) {
+		return Payable.builder()
+				.id(PayableId.of(UUID.randomUUID()))
+				.supplierId(UUID.randomUUID())
+				.origin(PayableOrigin.MANUAL)
+				.amount(new BigDecimal(amount))
+				.dueDate(LocalDate.now().plusDays(5))
+				.costCenterSplit(null)
+				.status(status)
+				.purchaseReceiptRef(null)
+				.installmentNumber(null)
+				.installments(null)
+				.build();
 	}
 
-	private BatchPayCommand command(Payable... payables) {
+	private BatchPayCommand command(final Payable... payables) {
 		return new BatchPayCommand(List.of(payables).stream().map(payable -> payable.getId().value()).toList(),
 				BankIntegration.ITAU);
 	}
 
-	private void found(Payable... payables) {
+	private void found(final Payable... payables) {
 		when(payableRepositoryPort.findByIds(any())).thenReturn(List.of(payables));
 	}
 
 	@Test
 	@DisplayName("Generates a single remittance covering every selected payable")
 	void generatesASingleRemittanceCoveringEverySelectedPayable() {
-		Payable first = payable(PayableStatus.APPROVED, "100.00");
-		Payable second = payable(PayableStatus.APPROVED, "250.50");
+		final Payable first = payable(PayableStatus.APPROVED, "100.00");
+		final Payable second = payable(PayableStatus.APPROVED, "250.50");
 		found(second, first);
 		when(bankIntegrationPort.sendRemittance(any())).thenReturn(ISSUED);
 
-		CnabRemittance remittance = service.execute(command(first, second));
+		final CnabRemittance remittance = service.execute(command(first, second));
 
 		assertThat(remittance.reference()).isEqualTo("REM-0001");
 		assertThat(remittance.fileContent()).isEqualTo("cnab-payload");
@@ -79,7 +89,7 @@ class BatchPayServiceTest {
 		assertThat(remittance.payableIds()).containsExactly(first.getId(), second.getId());
 		assertThat(remittance.totalAmount()).isEqualByComparingTo("350.50");
 
-		ArgumentCaptor<RemittanceRequest> request = ArgumentCaptor.forClass(RemittanceRequest.class);
+		final ArgumentCaptor<RemittanceRequest> request = ArgumentCaptor.forClass(RemittanceRequest.class);
 		verify(bankIntegrationPort).sendRemittance(request.capture());
 		assertThat(request.getValue().bankIntegration()).isEqualTo(BankIntegration.ITAU);
 		assertThat(request.getValue().items()).hasSize(2);
@@ -92,7 +102,7 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Neither saves nor changes the payables when generating the remittance")
 	void doesNotSaveOrChangeThePayables() {
-		Payable approved = payable(PayableStatus.APPROVED, "100.00");
+		final Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		found(approved);
 		when(bankIntegrationPort.sendRemittance(any())).thenReturn(ISSUED);
 
@@ -106,9 +116,9 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Rejects a batch containing a payable that is not approved and names it in the error")
 	void rejectsABatchContainingAPayableThatIsNotApprovedAndNamesIt() {
-		Payable approved = payable(PayableStatus.APPROVED, "100.00");
-		Payable open = payable(PayableStatus.OPEN, "50.00");
-		Payable paid = payable(PayableStatus.PAID, "70.00");
+		final Payable approved = payable(PayableStatus.APPROVED, "100.00");
+		final Payable open = payable(PayableStatus.OPEN, "50.00");
+		final Payable paid = payable(PayableStatus.PAID, "70.00");
 		found(approved, open, paid);
 
 		assertThatThrownBy(() -> service.execute(command(approved, open, paid)))
@@ -123,7 +133,7 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Rejects a cancelled payable in the batch")
 	void rejectsACancelledPayable() {
-		Payable cancelled = payable(PayableStatus.CANCELLED, "100.00");
+		final Payable cancelled = payable(PayableStatus.CANCELLED, "100.00");
 		found(cancelled);
 
 		assertThatThrownBy(() -> service.execute(command(cancelled))).isInstanceOf(BusinessRuleException.class);
@@ -134,8 +144,8 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown payable in the batch")
 	void rejectsAnUnknownPayable() {
-		Payable approved = payable(PayableStatus.APPROVED, "100.00");
-		UUID unknown = UUID.randomUUID();
+		final Payable approved = payable(PayableStatus.APPROVED, "100.00");
+		final UUID unknown = UUID.randomUUID();
 		found(approved);
 
 		assertThatThrownBy(() -> service.execute(
@@ -157,7 +167,7 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Rejects a batch that selects the same payable twice")
 	void rejectsAPayableSelectedTwice() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 
 		assertThatThrownBy(() -> service.execute(new BatchPayCommand(List.of(id, id), BankIntegration.ITAU)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining(id.toString());
@@ -168,7 +178,7 @@ class BatchPayServiceTest {
 	@Test
 	@DisplayName("Propagates the failure when the bank cannot accept the remittance")
 	void propagatesABankThatCannotTakeTheRemittance() {
-		Payable approved = payable(PayableStatus.APPROVED, "100.00");
+		final Payable approved = payable(PayableStatus.APPROVED, "100.00");
 		found(approved);
 		when(bankIntegrationPort.sendRemittance(any()))
 				.thenThrow(new BankIntegrationUnavailableException("Bank integration not configured: ITAU"));

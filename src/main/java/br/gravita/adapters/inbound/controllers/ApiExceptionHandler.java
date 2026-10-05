@@ -20,57 +20,57 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ApiExceptionHandler {
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<String> handleNotFound(ResourceNotFoundException ex) {
+	public ResponseEntity<String> handleNotFound(final ResourceNotFoundException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(UnauthorizedException.class)
-	public ResponseEntity<String> handleUnauthorized(UnauthorizedException ex) {
+	public ResponseEntity<String> handleUnauthorized(final UnauthorizedException ex) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(ForbiddenException.class)
-	public ResponseEntity<String> handleForbidden(ForbiddenException ex) {
+	public ResponseEntity<String> handleForbidden(final ForbiddenException ex) {
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-	public ResponseEntity<String> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex) {
+	public ResponseEntity<String> handleOptimisticLockingFailure(final ObjectOptimisticLockingFailureException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body("The record was updated by another request in the meantime; reload and retry.");
 	}
 
 	@ExceptionHandler(DuplicateResourceException.class)
-	public ResponseEntity<String> handleDuplicate(DuplicateResourceException ex) {
+	public ResponseEntity<String> handleDuplicate(final DuplicateResourceException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
 	/** UC-M2-11: the EFD's mandatory records could not be populated; the body lists each one missing or invalid. */
 	@ExceptionHandler(SpedValidationException.class)
-	public ResponseEntity<Map<String, Object>> handleSpedValidation(SpedValidationException ex) {
-		SpedValidationReport report = ex.report();
+	public ResponseEntity<Map<String, Object>> handleSpedValidation(final SpedValidationException ex) {
+		final SpedValidationReport report = ex.report();
 		return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
 				.body(Map.of("message", ex.getMessage(), "errors", report.errors(), "warnings", report.warnings()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<String> handleBusinessRuleViolation(BusinessRuleException ex) {
+	public ResponseEntity<String> handleBusinessRuleViolation(final BusinessRuleException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(br.gravita.core.domain.shared.BusinessRuleException.class)
-	public ResponseEntity<String> handleSharedBusinessRuleViolation(br.gravita.core.domain.shared.BusinessRuleException ex) {
+	public ResponseEntity<String> handleSharedBusinessRuleViolation(final br.gravita.core.domain.shared.BusinessRuleException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
 	@ExceptionHandler(TaxDomainException.class)
-	public ResponseEntity<String> handleTaxDomainViolation(TaxDomainException ex) {
+	public ResponseEntity<String> handleTaxDomainViolation(final TaxDomainException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
 	}
 
 	/** The municipality did not answer: nothing was changed, so the same request can simply be repeated. */
 	@ExceptionHandler(NfseMunicipalityUnavailableException.class)
-	public ResponseEntity<String> handleNfseMunicipalityUnavailable(NfseMunicipalityUnavailableException ex) {
+	public ResponseEntity<String> handleNfseMunicipalityUnavailable(final NfseMunicipalityUnavailableException ex) {
 		return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ex.getMessage());
 	}
 }

@@ -11,7 +11,7 @@ import java.util.UUID;
 public record SalesOrderView(UUID id, UUID originQuoteId, UUID customerId, UUID salespersonId,
 		SalesOrderStatus status, List<SalesOrderItem> items, BigDecimal totalValue, UUID approvedBy, UUID alcadaId) {
 
-	public static SalesOrderView from(SalesOrder order) {
+	public static SalesOrderView from(final SalesOrder order) {
 		return new SalesOrderView(order.getId().value(), order.getOriginQuoteId().value(), order.getCustomerId(),
 				order.getSalespersonId(), order.getStatus(), order.getItems(), order.totalValue(),
 				order.getApprovedBy(), order.getAlcadaId());

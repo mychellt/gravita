@@ -26,9 +26,19 @@ class InboundNfeTest {
 	@Test
 	@DisplayName("Importing from XML starts in pending conference")
 	void importingFromXmlStartsPendingConference() {
-		InboundNfe inboundNfe = InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
-				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", Instant.now(),
-				List.of(item()), totals(), "xml-ref-1");
+		final InboundNfe inboundNfe = InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(COMPANY_ID)
+				.accessKey(ACCESS_KEY)
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor Exemplo LTDA")
+				.issuedAt(Instant.now())
+				.items(List.of(item()))
+				.totals(totals())
+				.xmlStorageRef("xml-ref-1")
+				.build();
 
 		assertThat(inboundNfe.getStatus()).isEqualTo(InboundNfeStatus.PENDING_CONFERENCE);
 		assertThat(inboundNfe.getItems()).hasSize(1);
@@ -38,7 +48,7 @@ class InboundNfeTest {
 	@Test
 	@DisplayName("Manual entry produces the same pending-conference shape as an XML import")
 	void enteringManuallyProducesTheSamePendingConferenceShapeAsXmlImport() {
-		InboundNfe inboundNfe = InboundNfe.enteredManually(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, ACCESS_KEY,
+		final InboundNfe inboundNfe = InboundNfe.enteredManually(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, ACCESS_KEY,
 				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", Instant.now(),
 				List.of(item()), totals());
 
@@ -50,9 +60,19 @@ class InboundNfeTest {
 	@Test
 	@DisplayName("Rejects an access key that is not 44 digits")
 	void rejectsAnAccessKeyThatIsNot44Digits() {
-		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID, "12345",
-				"1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(), List.of(item()),
-				totals(), "xml-ref-1"))
+		assertThatThrownBy(() -> InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(COMPANY_ID)
+				.accessKey("12345")
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor")
+				.issuedAt(Instant.now())
+				.items(List.of(item()))
+				.totals(totals())
+				.xmlStorageRef("xml-ref-1")
+				.build())
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("44 digits");
 	}
@@ -60,9 +80,19 @@ class InboundNfeTest {
 	@Test
 	@DisplayName("Rejects an empty item list")
 	void rejectsAnEmptyItemList() {
-		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
-				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(), List.of(),
-				totals(), "xml-ref-1"))
+		assertThatThrownBy(() -> InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(COMPANY_ID)
+				.accessKey(ACCESS_KEY)
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor")
+				.issuedAt(Instant.now())
+				.items(List.of())
+				.totals(totals())
+				.xmlStorageRef("xml-ref-1")
+				.build())
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("at least one item");
 	}
@@ -70,9 +100,19 @@ class InboundNfeTest {
 	@Test
 	@DisplayName("Rejects a missing XML storage reference")
 	void rejectsAMissingXmlStorageRef() {
-		assertThatThrownBy(() -> InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), COMPANY_ID,
-				ACCESS_KEY, "1", "12345", Document.cnpj("11222333000181"), "Fornecedor", Instant.now(),
-				List.of(item()), totals(), " "))
+		assertThatThrownBy(() -> InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(COMPANY_ID)
+				.accessKey(ACCESS_KEY)
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor")
+				.issuedAt(Instant.now())
+				.items(List.of(item()))
+				.totals(totals())
+				.xmlStorageRef(" ")
+				.build())
 				.isInstanceOf(BusinessRuleException.class);
 	}
 

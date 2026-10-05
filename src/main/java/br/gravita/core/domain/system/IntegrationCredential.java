@@ -22,8 +22,8 @@ public class IntegrationCredential {
 	private String credentialPayload;
 	private Instant rotatedAt;
 
-	public static IntegrationCredential register(IntegrationName integrationName, IntegrationEnvironment environment,
-			String endpoint, String credentialPayload) {
+	public static IntegrationCredential register(final IntegrationName integrationName, final IntegrationEnvironment environment,
+			final String endpoint, final String credentialPayload) {
 		validate(integrationName, environment, endpoint, credentialPayload);
 		return IntegrationCredential.builder()
 				.id(UUID.randomUUID())
@@ -35,15 +35,15 @@ public class IntegrationCredential {
 				.build();
 	}
 
-	public void rotate(String endpoint, String credentialPayload) {
+	public void rotate(final String endpoint, final String credentialPayload) {
 		validate(this.integrationName, this.environment, endpoint, credentialPayload);
 		this.endpoint = endpoint;
 		this.credentialPayload = credentialPayload;
 		this.rotatedAt = Instant.now();
 	}
 
-	private static void validate(IntegrationName integrationName, IntegrationEnvironment environment, String endpoint,
-			String credentialPayload) {
+	private static void validate(final IntegrationName integrationName, final IntegrationEnvironment environment, final String endpoint,
+			final String credentialPayload) {
 		if (integrationName == IntegrationName.SEFAZ && environment == null) {
 			throw new BusinessRuleException(
 					"SEFAZ credentials must specify an environment (PRODUCTION or HOMOLOGATION)");

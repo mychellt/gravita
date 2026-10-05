@@ -19,7 +19,7 @@ public record SefazSubmissionResult(String protocol, String rejectionReason) {
 	 * The success-only shape every existing caller (NFC-e's issuance/
 	 * cancellation/void/manifestation flows) already uses.
 	 */
-	public SefazSubmissionResult(String protocol) {
+	public SefazSubmissionResult(final String protocol) {
 		this(protocol, null);
 	}
 }

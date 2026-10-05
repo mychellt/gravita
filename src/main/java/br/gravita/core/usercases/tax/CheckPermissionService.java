@@ -19,24 +19,24 @@ public class CheckPermissionService implements CheckPermissionUseCase {
 	private final UserRepositoryPort userRepositoryPort;
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public CheckPermissionService(UserRepositoryPort userRepositoryPort, ProfileRepositoryPort profileRepositoryPort) {
+	public CheckPermissionService(final UserRepositoryPort userRepositoryPort, final ProfileRepositoryPort profileRepositoryPort) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 
 	@Override
-	public boolean execute(CheckPermissionQuery query) {
-		Optional<User> maybeUser = userRepositoryPort.findById(query.userId());
+	public boolean execute(final CheckPermissionQuery query) {
+		final Optional<User> maybeUser = userRepositoryPort.findById(query.userId());
 		if (maybeUser.isEmpty() || maybeUser.get().getStatus() != UserStatus.ACTIVE) {
 			return false;
 		}
 
-		Optional<ProfileDomain> maybeProfile = profileRepositoryPort.findById(maybeUser.get().getProfileId());
+		final Optional<ProfileDomain> maybeProfile = profileRepositoryPort.findById(maybeUser.get().getProfileId());
 		if (maybeProfile.isEmpty()) {
 			return false;
 		}
 
-		List<PermissionDomain> permissions = maybeProfile.get().getPermissions();
+		final List<PermissionDomain> permissions = maybeProfile.get().getPermissions();
 		if (permissions == null) {
 			return false;
 		}

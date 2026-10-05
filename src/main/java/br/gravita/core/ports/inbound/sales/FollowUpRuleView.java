@@ -7,7 +7,7 @@ import java.util.UUID;
 public record FollowUpRuleView(UUID id, int daysWithoutContact, FollowUpTarget target, boolean notifyOwner,
 		boolean active) {
 
-	public static FollowUpRuleView from(FollowUpRule rule) {
+	public static FollowUpRuleView from(final FollowUpRule rule) {
 		return new FollowUpRuleView(rule.getId().value(), rule.getDaysWithoutContact(), rule.getTarget(),
 				rule.isNotifyOwner(), rule.isActive());
 	}

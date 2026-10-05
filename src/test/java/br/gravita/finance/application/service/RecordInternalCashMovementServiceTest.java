@@ -35,7 +35,7 @@ class RecordInternalCashMovementServiceTest {
 	@InjectMocks
 	private RecordInternalCashMovementService service;
 
-	private void boxWithBalance(String balance) {
+	private void boxWithBalance(final String balance) {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN))
 				.thenReturn(Optional.of(InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal(balance))));
 		when(internalCashBoxRepositoryPort.save(any(InternalCashBox.class)))
@@ -49,7 +49,7 @@ class RecordInternalCashMovementServiceTest {
 	void recordsTheMovementWithDirectionAmountAndJustification() {
 		boxWithBalance("500.00");
 
-		CashMovement recorded = service.execute(new RecordInternalCashMovementCommand(
+		final CashMovement recorded = service.execute(new RecordInternalCashMovementCommand(
 				CashMovementDirection.TO_BANK, new BigDecimal("200.00"), "Deposit of the day's cash"));
 
 		assertThat(recorded.getDirection()).isEqualTo(CashMovementDirection.TO_BANK);
@@ -68,7 +68,7 @@ class RecordInternalCashMovementServiceTest {
 		service.execute(new RecordInternalCashMovementCommand(CashMovementDirection.TO_BANK,
 				new BigDecimal("200.00"), "Deposit"));
 
-		ArgumentCaptor<InternalCashBox> saved = ArgumentCaptor.forClass(InternalCashBox.class);
+		final ArgumentCaptor<InternalCashBox> saved = ArgumentCaptor.forClass(InternalCashBox.class);
 		verify(internalCashBoxRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getBalance()).isEqualByComparingTo("300.00");
 	}
@@ -81,7 +81,7 @@ class RecordInternalCashMovementServiceTest {
 		service.execute(new RecordInternalCashMovementCommand(CashMovementDirection.FROM_BANK,
 				new BigDecimal("75.50"), "Change float"));
 
-		ArgumentCaptor<InternalCashBox> saved = ArgumentCaptor.forClass(InternalCashBox.class);
+		final ArgumentCaptor<InternalCashBox> saved = ArgumentCaptor.forClass(InternalCashBox.class);
 		verify(internalCashBoxRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getBalance()).isEqualByComparingTo("575.50");
 	}

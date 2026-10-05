@@ -29,11 +29,11 @@ public class CloseDailyCashService implements CloseDailyCashUseCase {
 	private final Clock clock;
 
 	@Autowired
-	public CloseDailyCashService(InternalCashBoxRepositoryPort internalCashBoxRepositoryPort) {
+	public CloseDailyCashService(final InternalCashBoxRepositoryPort internalCashBoxRepositoryPort) {
 		this(internalCashBoxRepositoryPort, Clock.systemDefaultZone());
 	}
 
-	public CloseDailyCashService(InternalCashBoxRepositoryPort internalCashBoxRepositoryPort, Clock clock) {
+	public CloseDailyCashService(final InternalCashBoxRepositoryPort internalCashBoxRepositoryPort, final Clock clock) {
 		this.internalCashBoxRepositoryPort = internalCashBoxRepositoryPort;
 		this.clock = clock;
 	}
@@ -41,23 +41,23 @@ public class CloseDailyCashService implements CloseDailyCashUseCase {
 	/** Locks the box so the balance and the movements read here are one consistent snapshot. */
 	@Override
 	@Transactional
-	public DailyClosing execute(CloseDailyCashCommand command) {
-		LocalDate date = command.date();
+	public DailyClosing execute(final CloseDailyCashCommand command) {
+		final LocalDate date = command.date();
 		if (date.isAfter(LocalDate.now(clock))) {
 			throw new BusinessRuleException("Cannot close a day that has not started yet: " + date);
 		}
 
-		InternalCashBox cashBox = internalCashBoxRepositoryPort.findByIdForUpdate(command.account())
+		final InternalCashBox cashBox = internalCashBoxRepositoryPort.findByIdForUpdate(command.account())
 				.orElseThrow(() -> new ResourceNotFoundException("Internal cash box not found"));
 
-		Instant dayStart = date.atStartOfDay(clock.getZone()).toInstant();
-		Instant nextDayStart = date.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
-		List<CashMovement> fromDayStart = internalCashBoxRepositoryPort.findMovementsFrom(cashBox.getId(), dayStart);
+		final Instant dayStart = date.atStartOfDay(clock.getZone()).toInstant();
+		final Instant nextDayStart = date.plusDays(1).atStartOfDay(clock.getZone()).toInstant();
+		final List<CashMovement> fromDayStart = internalCashBoxRepositoryPort.findMovementsFrom(cashBox.getId(), dayStart);
 
-		BigDecimal openingBalance = fromDayStart.stream()
+		final BigDecimal openingBalance = fromDayStart.stream()
 				.map(CashMovement::signedAmount)
 				.reduce(cashBox.getBalance(), BigDecimal::subtract);
-		List<CashMovement> ofTheDay = fromDayStart.stream()
+		final List<CashMovement> ofTheDay = fromDayStart.stream()
 				.filter(movement -> movement.getTimestamp().isBefore(nextDayStart))
 				.toList();
 

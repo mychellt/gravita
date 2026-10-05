@@ -30,9 +30,9 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 	private final SalespersonTargetRepositoryPort salespersonTargetRepositoryPort;
 	private final CommissionRepositoryPort commissionRepositoryPort;
 
-	SalesReadModelAdapter(SalesOrderRepositoryPort salesOrderRepositoryPort,
-			SalespersonTargetRepositoryPort salespersonTargetRepositoryPort,
-			CommissionRepositoryPort commissionRepositoryPort) {
+	SalesReadModelAdapter(final SalesOrderRepositoryPort salesOrderRepositoryPort,
+			final SalespersonTargetRepositoryPort salespersonTargetRepositoryPort,
+			final CommissionRepositoryPort commissionRepositoryPort) {
 		this.salesOrderRepositoryPort = salesOrderRepositoryPort;
 		this.salespersonTargetRepositoryPort = salespersonTargetRepositoryPort;
 		this.commissionRepositoryPort = commissionRepositoryPort;
@@ -40,9 +40,9 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public Map<LocalDate, BigDecimal> dailyRevenue(LocalDate from, LocalDate to, UUID companyId) {
-		Map<LocalDate, BigDecimal> revenue = new HashMap<>();
-		for (SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
+	public Map<LocalDate, BigDecimal> dailyRevenue(final LocalDate from, final LocalDate to, final UUID companyId) {
+		final Map<LocalDate, BigDecimal> revenue = new HashMap<>();
+		for (final SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
 			revenue.merge(order.getInvoicedAt(), order.totalValue(), BigDecimal::add);
 		}
 		return revenue;
@@ -50,11 +50,11 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<ProductSales> productSales(LocalDate from, LocalDate to, UUID companyId) {
-		Map<UUID, BigDecimal> quantities = new HashMap<>();
-		Map<UUID, BigDecimal> values = new HashMap<>();
-		for (SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
-			for (SalesOrderItem item : order.getItems()) {
+	public List<ProductSales> productSales(final LocalDate from, final LocalDate to, final UUID companyId) {
+		final Map<UUID, BigDecimal> quantities = new HashMap<>();
+		final Map<UUID, BigDecimal> values = new HashMap<>();
+		for (final SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
+			for (final SalesOrderItem item : order.getItems()) {
 				quantities.merge(item.productOrServiceId(), item.quantity(), BigDecimal::add);
 				values.merge(item.productOrServiceId(), item.lineTotal(), BigDecimal::add);
 			}
@@ -65,9 +65,9 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<CustomerSales> customerSales(LocalDate from, LocalDate to, UUID companyId) {
-		Map<UUID, BigDecimal> values = new HashMap<>();
-		for (SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
+	public List<CustomerSales> customerSales(final LocalDate from, final LocalDate to, final UUID companyId) {
+		final Map<UUID, BigDecimal> values = new HashMap<>();
+		for (final SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(from, to)) {
 			values.merge(order.getCustomerId(), order.totalValue(), BigDecimal::add);
 		}
 		return values.entrySet().stream().map(entry -> new CustomerSales(entry.getKey(), entry.getValue())).toList();
@@ -75,16 +75,16 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<SalespersonAchievement> targetAchievement(YearMonth month, UUID companyId) {
-		Map<UUID, BigDecimal> targets = new HashMap<>();
-		for (SalespersonTarget target : salespersonTargetRepositoryPort.findByMonth(month)) {
+	public List<SalespersonAchievement> targetAchievement(final YearMonth month, final UUID companyId) {
+		final Map<UUID, BigDecimal> targets = new HashMap<>();
+		for (final SalespersonTarget target : salespersonTargetRepositoryPort.findByMonth(month)) {
 			targets.put(target.salespersonId(), target.valueTarget());
 		}
-		Map<UUID, BigDecimal> achieved = new HashMap<>();
-		for (SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(month.atDay(1), month.atEndOfMonth())) {
+		final Map<UUID, BigDecimal> achieved = new HashMap<>();
+		for (final SalesOrder order : salesOrderRepositoryPort.findInvoicedByPeriod(month.atDay(1), month.atEndOfMonth())) {
 			achieved.merge(order.getSalespersonId(), order.totalValue(), BigDecimal::add);
 		}
-		Map<UUID, SalespersonAchievement> bySalesperson = new HashMap<>();
+		final Map<UUID, SalespersonAchievement> bySalesperson = new HashMap<>();
 		targets.forEach((salesperson, target) -> bySalesperson.put(salesperson,
 				new SalespersonAchievement(salesperson, target, achieved.getOrDefault(salesperson, BigDecimal.ZERO))));
 		achieved.forEach((salesperson, value) -> bySalesperson.computeIfAbsent(salesperson,
@@ -94,15 +94,15 @@ class SalesReadModelAdapter implements SalesReadModelPort {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<CommissionRecord> commissions(LocalDate from, LocalDate to, UUID salespersonId) {
-		List<SalesOrder> orders = salespersonId == null ? salesOrderRepositoryPort.findInvoicedByPeriod(from, to)
+	public List<CommissionRecord> commissions(final LocalDate from, final LocalDate to, final UUID salespersonId) {
+		final List<SalesOrder> orders = salespersonId == null ? salesOrderRepositoryPort.findInvoicedByPeriod(from, to)
 				: salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(from, to, salespersonId);
-		List<SalesOrderId> orderIds = orders.stream().map(SalesOrder::getId).toList();
+		final List<SalesOrderId> orderIds = orders.stream().map(SalesOrder::getId).toList();
 		return commissionRepositoryPort.findByOrderIds(orderIds).stream().map(SalesReadModelAdapter::toRecord)
 				.toList();
 	}
 
-	private static CommissionRecord toRecord(Commission commission) {
+	private static CommissionRecord toRecord(final Commission commission) {
 		return new CommissionRecord(commission.salespersonId(), commission.productId(), commission.orderId().value(),
 				commission.rate(), commission.amount());
 	}

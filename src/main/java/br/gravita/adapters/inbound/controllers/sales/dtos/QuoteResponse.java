@@ -11,7 +11,7 @@ import java.util.UUID;
 public record QuoteResponse(UUID id, UUID customerId, UUID salespersonId, QuoteStatus status,
 		List<ItemResponse> items, LocalDate validUntil, BigDecimal totalValue) {
 
-	public static QuoteResponse from(QuoteView view) {
+	public static QuoteResponse from(final QuoteView view) {
 		return new QuoteResponse(view.id(), view.customerId(), view.salespersonId(), view.status(),
 				view.items().stream().map(ItemResponse::from).toList(), view.validUntil(), view.totalValue());
 	}
@@ -19,7 +19,7 @@ public record QuoteResponse(UUID id, UUID customerId, UUID salespersonId, QuoteS
 	public record ItemResponse(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
 			BigDecimal discount, BigDecimal lineTotal) {
 
-		static ItemResponse from(QuoteItem item) {
+		static ItemResponse from(final QuoteItem item) {
 			return new ItemResponse(item.productOrServiceId(), item.quantity(), item.unitPrice(), item.discount(),
 					item.lineTotal());
 		}

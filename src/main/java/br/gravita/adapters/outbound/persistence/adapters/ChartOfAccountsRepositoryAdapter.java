@@ -20,15 +20,15 @@ public class ChartOfAccountsRepositoryAdapter implements ChartOfAccountsReposito
     private final ChartOfAccountsPersistenceMapper mapper;
 
     @Override
-    public ChartOfAccountsDomain save(ChartOfAccountsDomain model) {
-        ChartOfAccountsJpaEntity entity = mapper.map(model);
+    public ChartOfAccountsDomain save(final ChartOfAccountsDomain model) {
+        final ChartOfAccountsJpaEntity entity = mapper.map(model);
         entity.setNew(!jpaRepository.existsById(entity.getId()));
-        ChartOfAccountsJpaEntity saved = jpaRepository.save(entity);
+        final ChartOfAccountsJpaEntity saved = jpaRepository.save(entity);
         return mapper.map(saved);
     }
 
     @Override
-    public Optional<ChartOfAccountsDomain> get(UUID id) {
+    public Optional<ChartOfAccountsDomain> get(final UUID id) {
         return jpaRepository.findById(id).map(mapper::map);
     }
 
@@ -38,7 +38,7 @@ public class ChartOfAccountsRepositoryAdapter implements ChartOfAccountsReposito
     }
 
     @Override
-    public void deleteById(UUID id) {
+    public void deleteById(final UUID id) {
         jpaRepository.findById(id).ifPresent(entity -> {
             entity.setNew(false);
             jpaRepository.delete(entity);
@@ -46,7 +46,7 @@ public class ChartOfAccountsRepositoryAdapter implements ChartOfAccountsReposito
     }
 
     @Override
-    public boolean existsByParentId(UUID parentId) {
+    public boolean existsByParentId(final UUID parentId) {
         return jpaRepository.existsByParentId(parentId);
     }
 }

@@ -31,15 +31,15 @@ class SaveCustomProfileAdapterTest {
 	@DisplayName("Creates a custom profile when its name is unique")
 	@Test
 	void shouldCreateCustomProfileWithUniqueName() {
-		SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);
-		UUID id = UUID.randomUUID();
-		List<PermissionDomain> permissions = List.of(
+		final SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final List<PermissionDomain> permissions = List.of(
 				PermissionDomain.builder().module("sales").screen("orders").action(PermissionAction.VIEW).build());
-		ProfileDomain command = ProfileDomain.builder().id(id).name("Sales Read-Only").permissions(permissions).build();
+		final ProfileDomain command = ProfileDomain.builder().id(id).name("Sales Read-Only").permissions(permissions).build();
 		when(profileRepositoryPort.findByName("Sales Read-Only")).thenReturn(Optional.empty());
 		when(profileRepositoryPort.save(command)).thenReturn(command);
 
-		ProfileDomain result = adapter.execute(new Context(command));
+		final ProfileDomain result = adapter.execute(new Context(command));
 
 		assertThat(result.getId()).isEqualTo(id);
 		assertThat(result.getName()).isEqualTo("Sales Read-Only");
@@ -49,10 +49,10 @@ class SaveCustomProfileAdapterTest {
 	@DisplayName("Fails when the custom profile name is already in use")
 	@Test
 	void shouldFailWhenNameAlreadyInUse() {
-		SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);
-		UUID id = UUID.randomUUID();
-		UUID otherId = UUID.randomUUID();
-		ProfileDomain command = ProfileDomain.builder().id(id).name("Financial").permissions(List.of()).build();
+		final SaveCustomProfileAdapter adapter = new SaveCustomProfileAdapter(profileRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final UUID otherId = UUID.randomUUID();
+		final ProfileDomain command = ProfileDomain.builder().id(id).name("Financial").permissions(List.of()).build();
 		when(profileRepositoryPort.findByName("Financial"))
 				.thenReturn(Optional.of(ProfileDomain.builder().id(otherId).name("Financial").build()));
 

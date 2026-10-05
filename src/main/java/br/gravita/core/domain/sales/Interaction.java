@@ -20,8 +20,8 @@ public final class Interaction {
 	private final String summary;
 	private final Instant timestamp;
 
-	public Interaction(InteractionId id, OpportunityId opportunityId, UUID customerId, InteractionChannel channel,
-			String summary, Instant timestamp) {
+	public Interaction(final InteractionId id, final OpportunityId opportunityId, final UUID customerId, final InteractionChannel channel,
+			final String summary, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		if (opportunityId == null && customerId == null) {
 			throw new BusinessRuleException("An interaction must link to an opportunity, a customer, or both");
@@ -33,18 +33,18 @@ public final class Interaction {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	public static Interaction log(OpportunityId opportunityId, UUID customerId, InteractionChannel channel,
-			String summary, Instant timestamp) {
+	public static Interaction log(final OpportunityId opportunityId, final UUID customerId, final InteractionChannel channel,
+			final String summary, final Instant timestamp) {
 		return new Interaction(InteractionId.of(UUID.randomUUID()), opportunityId, customerId, channel, summary,
 				timestamp);
 	}
 
-	public static Interaction of(InteractionId id, OpportunityId opportunityId, UUID customerId,
-			InteractionChannel channel, String summary, Instant timestamp) {
+	public static Interaction of(final InteractionId id, final OpportunityId opportunityId, final UUID customerId,
+			final InteractionChannel channel, final String summary, final Instant timestamp) {
 		return new Interaction(id, opportunityId, customerId, channel, summary, timestamp);
 	}
 
-	private static String requireNonBlank(String summary) {
+	private static String requireNonBlank(final String summary) {
 		if (summary == null || summary.isBlank()) {
 			throw new BusinessRuleException("summary is required");
 		}

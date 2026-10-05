@@ -16,19 +16,19 @@ public class ConfigureApprovalAlcadaService implements ConfigureApprovalAlcadaUs
 	private final ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort;
 	private final ProfileRepositoryPort profileRepositoryPort;
 
-	public ConfigureApprovalAlcadaService(ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort,
-			ProfileRepositoryPort profileRepositoryPort) {
+	public ConfigureApprovalAlcadaService(final ApprovalAlcadaRepositoryPort approvalAlcadaRepositoryPort,
+			final ProfileRepositoryPort profileRepositoryPort) {
 		this.approvalAlcadaRepositoryPort = approvalAlcadaRepositoryPort;
 		this.profileRepositoryPort = profileRepositoryPort;
 	}
 
 	@Override
-	public void execute(ConfigureApprovalAlcadaCommand command) {
-		ApprovalModule module = ApprovalModule.fromCode(command.module());
-		ProfileReference approverProfile = profileRepositoryPort.findById(command.approverProfileId())
+	public void execute(final ConfigureApprovalAlcadaCommand command) {
+		final ApprovalModule module = ApprovalModule.fromCode(command.module());
+		final ProfileReference approverProfile = profileRepositoryPort.findById(command.approverProfileId())
 				.orElseThrow(() -> new UnknownProfileException(command.approverProfileId()));
 
-		ApprovalAlcada alcada = approvalAlcadaRepositoryPort.findByModule(module)
+		final ApprovalAlcada alcada = approvalAlcadaRepositoryPort.findByModule(module)
 				.map(existing -> {
 					existing.reconfigure(command.thresholdValue(), command.thresholdDiscountPercent(), approverProfile);
 					return existing;

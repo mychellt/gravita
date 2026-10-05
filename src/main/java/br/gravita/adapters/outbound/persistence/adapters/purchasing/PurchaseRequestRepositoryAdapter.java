@@ -18,26 +18,26 @@ class PurchaseRequestRepositoryAdapter implements PurchaseRequestRepositoryPort 
 	private final PurchaseRequestJpaRepository jpaRepository;
 	private final PurchaseRequestPersistenceMapper mapper;
 
-	PurchaseRequestRepositoryAdapter(PurchaseRequestJpaRepository jpaRepository, PurchaseRequestPersistenceMapper mapper) {
+	PurchaseRequestRepositoryAdapter(final PurchaseRequestJpaRepository jpaRepository, final PurchaseRequestPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public PurchaseRequest save(PurchaseRequest purchaseRequest) {
-		PurchaseRequestJpaEntity entity = mapper.map(purchaseRequest);
+	public PurchaseRequest save(final PurchaseRequest purchaseRequest) {
+		final PurchaseRequestJpaEntity entity = mapper.map(purchaseRequest);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		PurchaseRequestJpaEntity saved = jpaRepository.save(entity);
+		final PurchaseRequestJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<PurchaseRequest> findById(PurchaseRequestId id) {
+	public Optional<PurchaseRequest> findById(final PurchaseRequestId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public boolean existsOpenByOriginAndProductId(PurchaseRequestOrigin origin, UUID productId) {
-		return jpaRepository.existsByOriginAndStatusAndItems_ProductId(origin, PurchaseRequestStatus.OPEN, productId);
+	public boolean existsOpenByOriginAndProductId(final PurchaseRequestOrigin origin, final UUID productId) {
+		return jpaRepository.existsByOriginAndStatusAndItemsProductId(origin, PurchaseRequestStatus.OPEN, productId);
 	}
 }

@@ -27,9 +27,9 @@ public class GenerateBoletoService implements GenerateBoletoUseCase {
 	private final CustomerRepositoryPort customerRepositoryPort;
 	private final EmailNotificationPort emailNotificationPort;
 
-	public GenerateBoletoService(ReceivableRepositoryPort receivableRepositoryPort,
-			BoletoRepositoryPort boletoRepositoryPort, BankIntegrationPort bankIntegrationPort,
-			CustomerRepositoryPort customerRepositoryPort, EmailNotificationPort emailNotificationPort) {
+	public GenerateBoletoService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final BoletoRepositoryPort boletoRepositoryPort, final BankIntegrationPort bankIntegrationPort,
+			final CustomerRepositoryPort customerRepositoryPort, final EmailNotificationPort emailNotificationPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.boletoRepositoryPort = boletoRepositoryPort;
 		this.bankIntegrationPort = bankIntegrationPort;
@@ -38,17 +38,17 @@ public class GenerateBoletoService implements GenerateBoletoUseCase {
 	}
 
 	@Override
-	public Boleto execute(GenerateBoletoCommand command) {
-		Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
+	public Boleto execute(final GenerateBoletoCommand command) {
+		final Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + command.receivableId()));
 		// Checked before the bank is contacted so a rejected request never issues a boleto there.
 		receivable.requireOpen();
 
-		IssuedBoleto issued = bankIntegrationPort.issueBoleto(new BoletoIssueRequest(command.bankIntegration(),
+		final IssuedBoleto issued = bankIntegrationPort.issueBoleto(new BoletoIssueRequest(command.bankIntegration(),
 				receivable.getId().value(), receivable.getCustomerId(), receivable.getAmount(),
 				receivable.getDueDate()));
 
-		Boleto boleto = boletoRepositoryPort.save(Boleto.issue(BoletoId.of(UUID.randomUUID()), receivable.getId(),
+		final Boleto boleto = boletoRepositoryPort.save(Boleto.issue(BoletoId.of(UUID.randomUUID()), receivable.getId(),
 				command.bankIntegration(), issued.barcodeLine()));
 
 		sendByEmail(receivable, boleto);
@@ -60,13 +60,13 @@ public class GenerateBoletoService implements GenerateBoletoUseCase {
 	 * leaves the boleto generated (it is already issued at the bank); the
 	 * receivable's boleto can be delivered once an address is available.
 	 */
-	private void sendByEmail(Receivable receivable, Boleto boleto) {
+	private void sendByEmail(final Receivable receivable, final Boleto boleto) {
 		customerRepositoryPort.get(receivable.getCustomerId()).map(CustomerDomain::getEmail)
 				.filter(email -> !email.isBlank()).ifPresent(email -> emailNotificationPort.send(email,
 						"Boleto - vencimento " + receivable.getDueDate(), buildBody(receivable, boleto)));
 	}
 
-	private static String buildBody(Receivable receivable, Boleto boleto) {
+	private static String buildBody(final Receivable receivable, final Boleto boleto) {
 		return "Seu boleto no valor de R$ " + receivable.getAmount().toPlainString() + " com vencimento em "
 				+ receivable.getDueDate() + " foi gerado.\n\nLinha digitável: " + boleto.getBarcodeLine();
 	}

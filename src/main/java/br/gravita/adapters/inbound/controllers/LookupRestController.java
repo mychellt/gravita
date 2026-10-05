@@ -23,21 +23,21 @@ public class LookupRestController {
     private final LookupPersonByDocumentPort lookupPersonByDocumentPort;
 
     @GetMapping("/cnpj/{cnpj}")
-    public ResponseEntity<PersonLookupResponse> lookupByCnpj(@PathVariable String cnpj) {
-        Document document;
+    public ResponseEntity<PersonLookupResponse> lookupByCnpj(@PathVariable final String cnpj) {
+        final Document document;
         try {
             document = Document.cnpj(cnpj);
-        } catch (BusinessRuleException e) {
+        } catch (final BusinessRuleException e) {
             return ResponseEntity.badRequest().build();
         }
-        PersonLookupResult result = lookupPersonByDocumentPort.execute(
+        final PersonLookupResult result = lookupPersonByDocumentPort.execute(
                 new Context(LookupPersonByDocumentQuery.byDocument(document)));
         return ResponseEntity.ok(PersonLookupResponse.from(result));
     }
 
     @GetMapping("/cep/{cep}")
-    public ResponseEntity<PersonLookupResponse> lookupByCep(@PathVariable String cep) {
-        PersonLookupResult result = lookupPersonByDocumentPort.execute(
+    public ResponseEntity<PersonLookupResponse> lookupByCep(@PathVariable final String cep) {
+        final PersonLookupResult result = lookupPersonByDocumentPort.execute(
                 new Context(LookupPersonByDocumentQuery.byCep(cep)));
         return ResponseEntity.ok(PersonLookupResponse.from(result));
     }

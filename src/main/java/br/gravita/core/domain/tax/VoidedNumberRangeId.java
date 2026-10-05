@@ -9,7 +9,7 @@ public record VoidedNumberRangeId(UUID value) {
 		Objects.requireNonNull(value, "VoidedNumberRangeId value is required");
 	}
 
-	public static VoidedNumberRangeId of(UUID value) {
+	public static VoidedNumberRangeId of(final UUID value) {
 		return new VoidedNumberRangeId(value);
 	}
 }

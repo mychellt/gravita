@@ -23,24 +23,24 @@ public class PurchasingReadModelAdapter implements PurchasingReadModelPort {
     private final PurchaseReceiptJpaRepository purchaseReceiptJpaRepository;
     private final ZoneId zone = ZoneId.systemDefault();
 
-    PurchasingReadModelAdapter(PurchaseOrderJpaRepository purchaseOrderJpaRepository,
-                               PurchaseReceiptJpaRepository purchaseReceiptJpaRepository) {
+    PurchasingReadModelAdapter(final PurchaseOrderJpaRepository purchaseOrderJpaRepository,
+                               final PurchaseReceiptJpaRepository purchaseReceiptJpaRepository) {
         this.purchaseOrderJpaRepository = purchaseOrderJpaRepository;
         this.purchaseReceiptJpaRepository = purchaseReceiptJpaRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PurchasedOrder> purchasedOrders(LocalDate from, LocalDate to, UUID companyId) {
-        Date start = Date.from(from.atStartOfDay(zone).toInstant());
-        Date end = Date.from(to.plusDays(1).atStartOfDay(zone).toInstant());
-        List<PurchaseOrderJpaEntity> orders = purchaseOrderJpaRepository.findApprovedCreatedBetween(start, end,
+    public List<PurchasedOrder> purchasedOrders(final LocalDate from, final LocalDate to, final UUID companyId) {
+        final Date start = Date.from(from.atStartOfDay(zone).toInstant());
+        final Date end = Date.from(to.plusDays(1).atStartOfDay(zone).toInstant());
+        final List<PurchaseOrderJpaEntity> orders = purchaseOrderJpaRepository.findApprovedCreatedBetween(start, end,
                 PurchaseOrderStatus.CANCELLED);
         if (orders.isEmpty()) {
             return List.of();
         }
-        Map<UUID, List<LocalDate>> receivedOn = new HashMap<>();
-        for (PurchaseReceiptJpaEntity receipt : purchaseReceiptJpaRepository.findByOrderIdInAndStatus(
+        final Map<UUID, List<LocalDate>> receivedOn = new HashMap<>();
+        for (final PurchaseReceiptJpaEntity receipt : purchaseReceiptJpaRepository.findByOrderIdInAndStatus(
                 orders.stream().map(PurchaseOrderJpaEntity::getId).toList(), PurchaseReceiptStatus.CONFIRMED)) {
             receivedOn.computeIfAbsent(receipt.getOrderId(), id -> new ArrayList<>()).add(receipt.getModifiedAt().toLocalDate());
         }
@@ -48,10 +48,10 @@ public class PurchasingReadModelAdapter implements PurchasingReadModelPort {
                 .toList();
     }
 
-    private PurchasedOrder toPurchasedOrder(PurchaseOrderJpaEntity order, List<LocalDate> receivedOn) {
+    private PurchasedOrder toPurchasedOrder(final PurchaseOrderJpaEntity order, final List<LocalDate> receivedOn) {
         BigDecimal quantity = BigDecimal.ZERO;
         BigDecimal value = BigDecimal.ZERO;
-        for (PurchaseOrderItemEmbeddable item : order.getItems()) {
+        for (final PurchaseOrderItemEmbeddable item : order.getItems()) {
             quantity = quantity.add(item.getQuantity());
             value = value.add(item.getQuantity().multiply(item.getUnitPrice()));
         }

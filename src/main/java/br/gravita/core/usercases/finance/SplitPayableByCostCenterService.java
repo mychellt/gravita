@@ -17,21 +17,21 @@ public class SplitPayableByCostCenterService implements SplitPayableByCostCenter
 	private final PayableRepositoryPort payableRepositoryPort;
 	private final CostCenterRepositoryPort costCenterRepositoryPort;
 
-	public SplitPayableByCostCenterService(PayableRepositoryPort payableRepositoryPort,
-			CostCenterRepositoryPort costCenterRepositoryPort) {
+	public SplitPayableByCostCenterService(final PayableRepositoryPort payableRepositoryPort,
+			final CostCenterRepositoryPort costCenterRepositoryPort) {
 		this.payableRepositoryPort = payableRepositoryPort;
 		this.costCenterRepositoryPort = costCenterRepositoryPort;
 	}
 
 	@Override
 	@Transactional
-	public Payable execute(SplitPayableByCostCenterCommand command) {
-		Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
+	public Payable execute(final SplitPayableByCostCenterCommand command) {
+		final Payable payable = payableRepositoryPort.findById(PayableId.of(command.payableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Payable not found: " + command.payableId()));
 
-		Payable split = payable.withCostCenterSplit(command.split());
+		final Payable split = payable.withCostCenterSplit(command.split());
 
-		for (CostCenterShare share : split.getCostCenterSplit()) {
+		for (final CostCenterShare share : split.getCostCenterSplit()) {
 			costCenterRepositoryPort.get(share.costCenterId()).orElseThrow(
 					() -> new ResourceNotFoundException("Cost center not found: " + share.costCenterId()));
 		}

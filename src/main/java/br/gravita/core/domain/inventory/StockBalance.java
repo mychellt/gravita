@@ -19,8 +19,8 @@ public final class StockBalance {
 	private final BigDecimal inTransit;
 	private final BigDecimal averageCost;
 
-	public StockBalance(StockBalanceId id, UUID productId, UUID warehouseId, BigDecimal onHand,
-			BigDecimal reserved, BigDecimal inTransit, BigDecimal averageCost) {
+	public StockBalance(final StockBalanceId id, final UUID productId, final UUID warehouseId, final BigDecimal onHand,
+			final BigDecimal reserved, final BigDecimal inTransit, final BigDecimal averageCost) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
 		this.warehouseId = Objects.requireNonNull(warehouseId, "warehouseId is required");
@@ -30,8 +30,8 @@ public final class StockBalance {
 		this.averageCost = Objects.requireNonNull(averageCost, "averageCost is required");
 	}
 
-	public static StockBalance of(StockBalanceId id, UUID productId, UUID warehouseId, BigDecimal onHand,
-			BigDecimal reserved, BigDecimal inTransit, BigDecimal averageCost) {
+	public static StockBalance of(final StockBalanceId id, final UUID productId, final UUID warehouseId, final BigDecimal onHand,
+			final BigDecimal reserved, final BigDecimal inTransit, final BigDecimal averageCost) {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved, inTransit, averageCost);
 	}
 
@@ -39,7 +39,7 @@ public final class StockBalance {
 		return onHand.subtract(reserved);
 	}
 
-	public StockBalance reserve(BigDecimal quantity) {
+	public StockBalance reserve(final BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Reservation quantity must be positive");
 		}
@@ -50,7 +50,7 @@ public final class StockBalance {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved.add(quantity), inTransit, averageCost);
 	}
 
-	public StockBalance release(BigDecimal quantity) {
+	public StockBalance release(final BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Release quantity must be positive");
 		}
@@ -58,14 +58,14 @@ public final class StockBalance {
 				averageCost);
 	}
 
-	public StockBalance receiveEntry(BigDecimal quantity, BigDecimal unitCost) {
-		BigDecimal newOnHand = onHand.add(quantity);
-		BigDecimal totalCost = onHand.multiply(averageCost).add(quantity.multiply(unitCost));
-		BigDecimal newAverageCost = totalCost.divide(newOnHand, 4, RoundingMode.HALF_UP);
+	public StockBalance receiveEntry(final BigDecimal quantity, final BigDecimal unitCost) {
+		final BigDecimal newOnHand = onHand.add(quantity);
+		final BigDecimal totalCost = onHand.multiply(averageCost).add(quantity.multiply(unitCost));
+		final BigDecimal newAverageCost = totalCost.divide(newOnHand, 4, RoundingMode.HALF_UP);
 		return new StockBalance(id, productId, warehouseId, newOnHand, reserved, inTransit, newAverageCost);
 	}
 
-	public StockBalance exit(BigDecimal quantity) {
+	public StockBalance exit(final BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Exit quantity must be positive");
 		}
@@ -73,7 +73,7 @@ public final class StockBalance {
 				averageCost);
 	}
 
-	public StockBalance consumeReserved(BigDecimal quantity) {
+	public StockBalance consumeReserved(final BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Exit quantity must be positive");
 		}
@@ -81,14 +81,14 @@ public final class StockBalance {
 				inTransit, averageCost);
 	}
 
-	public StockBalance applyAdjustment(BigDecimal delta) {
+	public StockBalance applyAdjustment(final BigDecimal delta) {
 		if (delta == null || delta.signum() == 0) {
 			throw new BusinessRuleException("Adjustment quantityDelta must not be zero");
 		}
 		return new StockBalance(id, productId, warehouseId, onHand.add(delta), reserved, inTransit, averageCost);
 	}
 
-	public StockBalance decreaseOnHandAndIncreaseInTransit(BigDecimal quantity) {
+	public StockBalance decreaseOnHandAndIncreaseInTransit(final BigDecimal quantity) {
 		if (quantity == null || quantity.signum() <= 0) {
 			throw new BusinessRuleException("Transfer quantity must be positive");
 		}
@@ -100,12 +100,12 @@ public final class StockBalance {
 				inTransit.add(quantity), averageCost);
 	}
 
-	public StockBalance releaseInTransit(BigDecimal quantity) {
+	public StockBalance releaseInTransit(final BigDecimal quantity) {
 		return new StockBalance(id, productId, warehouseId, onHand, reserved, inTransit.subtract(quantity),
 				averageCost);
 	}
 
-	public StockBalance increaseOnHand(BigDecimal quantity) {
+	public StockBalance increaseOnHand(final BigDecimal quantity) {
 		return new StockBalance(id, productId, warehouseId, onHand.add(quantity), reserved, inTransit, averageCost);
 	}
 }

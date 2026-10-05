@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record ApprovePayableRequest(@NotNull UUID approvedBy) {
 
-	public ApprovePayableCommand toCommand(UUID payableId) {
+	public ApprovePayableCommand toCommand(final UUID payableId) {
 		return new ApprovePayableCommand(payableId, approvedBy);
 	}
 }

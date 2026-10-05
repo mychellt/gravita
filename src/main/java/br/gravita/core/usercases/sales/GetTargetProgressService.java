@@ -22,32 +22,32 @@ public class GetTargetProgressService implements GetTargetProgressUseCase {
 	private final SalesOrderRepositoryPort salesOrderRepositoryPort;
 
 	@Override
-	public TargetProgressView execute(GetTargetProgressQuery query) {
-		List<SalesOrder> invoicedOrders = salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(
+	public TargetProgressView execute(final GetTargetProgressQuery query) {
+		final List<SalesOrder> invoicedOrders = salesOrderRepositoryPort.findInvoicedByPeriodAndSalesperson(
 				query.month().atDay(1), query.month().atEndOfMonth(), query.salesperson());
 
-		BigDecimal valueAchieved = invoicedOrders.stream().map(SalesOrder::totalValue)
+		final BigDecimal valueAchieved = invoicedOrders.stream().map(SalesOrder::totalValue)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		long orderCountAchieved = invoicedOrders.size();
+		final long orderCountAchieved = invoicedOrders.size();
 
 		return salespersonTargetRepositoryPort.findBySalespersonAndMonth(query.salesperson(), query.month())
 				.map(target -> withTarget(valueAchieved, orderCountAchieved, target))
 				.orElseGet(() -> noTargetConfigured(valueAchieved, orderCountAchieved));
 	}
 
-	private TargetProgressView withTarget(BigDecimal valueAchieved, long orderCountAchieved,
-			SalespersonTarget target) {
-		PercentComplete percentComplete = new PercentComplete(percentOf(valueAchieved, target.valueTarget()),
+	private TargetProgressView withTarget(final BigDecimal valueAchieved, final long orderCountAchieved,
+			final SalespersonTarget target) {
+		final PercentComplete percentComplete = new PercentComplete(percentOf(valueAchieved, target.valueTarget()),
 				percentOf(BigDecimal.valueOf(orderCountAchieved), BigDecimal.valueOf(target.orderCountTarget())));
 		return new TargetProgressView(valueAchieved, orderCountAchieved, target.valueTarget(),
 				target.orderCountTarget(), percentComplete, true);
 	}
 
-	private TargetProgressView noTargetConfigured(BigDecimal valueAchieved, long orderCountAchieved) {
+	private TargetProgressView noTargetConfigured(final BigDecimal valueAchieved, final long orderCountAchieved) {
 		return new TargetProgressView(valueAchieved, orderCountAchieved, BigDecimal.ZERO, 0L, null, false);
 	}
 
-	private BigDecimal percentOf(BigDecimal achieved, BigDecimal target) {
+	private BigDecimal percentOf(final BigDecimal achieved, final BigDecimal target) {
 		if (target.signum() == 0) {
 			return BigDecimal.ZERO;
 		}

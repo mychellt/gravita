@@ -19,26 +19,26 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 	private final NfeJpaRepository jpaRepository;
 	private final NfePersistenceMapper mapper;
 
-	NfeRepositoryAdapter(NfeJpaRepository jpaRepository, NfePersistenceMapper mapper) {
+	NfeRepositoryAdapter(final NfeJpaRepository jpaRepository, final NfePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public NfeDocument save(NfeDocument document) {
-		NfeJpaEntity entity = mapper.map(document);
+	public NfeDocument save(final NfeDocument document) {
+		final NfeJpaEntity entity = mapper.map(document);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		NfeJpaEntity saved = jpaRepository.save(entity);
+		final NfeJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<NfeDocument> findById(NfeDocumentId id) {
+	public Optional<NfeDocument> findById(final NfeDocumentId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
-	public List<NfeDocument> findAuthorizedBetween(Instant from, Instant to) {
+	public List<NfeDocument> findAuthorizedBetween(final Instant from, final Instant to) {
 		return jpaRepository
 				.findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						NfeDocumentStatus.AUTHORIZED, from, to)
@@ -46,7 +46,7 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 	}
 
 	@Override
-	public List<NfeDocument> findAuthorizedByCompanyBetween(CompanyId companyId, Instant from, Instant to) {
+	public List<NfeDocument> findAuthorizedByCompanyBetween(final CompanyId companyId, final Instant from, final Instant to) {
 		return jpaRepository
 				.findByIssuerCompanyIdAndStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						companyId.value(), NfeDocumentStatus.AUTHORIZED, from, to)
@@ -54,8 +54,8 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 	}
 
 	@Override
-	public List<NfeDocument> findAuthorizedOrCancelledByCompanyBetween(CompanyId companyId, Instant from,
-			Instant to) {
+	public List<NfeDocument> findAuthorizedOrCancelledByCompanyBetween(final CompanyId companyId, final Instant from,
+			final Instant to) {
 		return jpaRepository
 				.findByIssuerCompanyIdAndStatusInAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 						companyId.value(), List.of(NfeDocumentStatus.AUTHORIZED, NfeDocumentStatus.CANCELLED), from,

@@ -9,7 +9,7 @@ import java.util.UUID;
 public record CashMovementResponse(UUID id, UUID cashBoxId, CashMovementDirection direction, BigDecimal amount,
 		String justification, Instant timestamp) {
 
-	public static CashMovementResponse from(CashMovement movement) {
+	public static CashMovementResponse from(final CashMovement movement) {
 		return new CashMovementResponse(movement.getId().value(), movement.getCashBoxId().value(),
 				movement.getDirection(), movement.getAmount(), movement.getJustification(),
 				movement.getTimestamp());

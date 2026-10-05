@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 class DocumentAttachmentStorageAdapter implements DocumentAttachmentStoragePort {
 
 	@Override
-	public String store(Document document) {
+	public String store(final Document document) {
 		throw new DocumentStorageUnavailableException("Document storage not configured");
 	}
 }

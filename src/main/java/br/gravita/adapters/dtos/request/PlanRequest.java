@@ -32,7 +32,7 @@ public record PlanRequest(
 	public record FeatureRequest(@NotBlank String label, boolean included) {
 	}
 
-	public PlanDomain toDomain(UUID id) {
+	public PlanDomain toDomain(final UUID id) {
 		return PlanDomain.builder()
 				.id(id)
 				.name(name)

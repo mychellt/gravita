@@ -16,7 +16,7 @@ public record UpdateOpportunityRequest(
 		LocalDate expectedCloseDate,
 		UUID owner) {
 
-	public UpdateOpportunityCommand toCommand(UUID opportunityId) {
+	public UpdateOpportunityCommand toCommand(final UUID opportunityId) {
 		return new UpdateOpportunityCommand(OpportunityId.of(opportunityId), customerId, estimatedValue, probability,
 				expectedCloseDate, owner);
 	}

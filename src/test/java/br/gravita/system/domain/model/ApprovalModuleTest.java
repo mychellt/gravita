@@ -15,7 +15,7 @@ class ApprovalModuleTest {
 	@ParameterizedTest
 	@DisplayName("Resolves each of the three valid modules")
 	@ValueSource(strings = {"purchasing", "sales", "finance", "PURCHASING", "Sales"})
-	void shouldResolveEachOfTheThreeValidModules(String code) {
+	void shouldResolveEachOfTheThreeValidModules(final String code) {
 		assertThat(ApprovalModule.fromCode(code)).isNotNull();
 	}
 

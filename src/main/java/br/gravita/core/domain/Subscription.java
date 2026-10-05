@@ -33,7 +33,7 @@ public class Subscription extends AbstractDomain {
 	private LocalDate activationDate;
 	private LocalDate expirationDate;
 
-	public static Subscription request(PlanDomain plan, Company company, BillingCycle billingCycle) {
+	public static Subscription request(final PlanDomain plan, final Company company, final BillingCycle billingCycle) {
 		return Subscription.builder()
 				.plan(plan)
 				.company(company)
@@ -46,13 +46,13 @@ public class Subscription extends AbstractDomain {
 		if (status != SubscriptionStatus.PENDING) {
 			throw new BusinessRuleException("Only a pending subscription can be activated");
 		}
-		LocalDate today = LocalDate.now();
+		final LocalDate today = LocalDate.now();
 		this.activationDate = today;
 		this.expirationDate = nextExpirationDate(today, billingCycle);
 		this.status = SubscriptionStatus.ACTIVE;
 	}
 
-	public void registerPayment(Payment payment) {
+	public void registerPayment(final Payment payment) {
 		payments.add(payment);
 		status = SubscriptionStatus.ACTIVE;
 		if (billingCycle == BillingCycle.MONTHLY) {
@@ -64,7 +64,7 @@ public class Subscription extends AbstractDomain {
 		status = SubscriptionStatus.PAYMENT_FAILURE;
 	}
 
-	private static LocalDate nextExpirationDate(LocalDate from, BillingCycle billingCycle) {
+	private static LocalDate nextExpirationDate(final LocalDate from, final BillingCycle billingCycle) {
 		return billingCycle == BillingCycle.ANNUAL ? from.plusDays(ANNUAL_DAYS) : from.plusMonths(1);
 	}
 }

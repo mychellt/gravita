@@ -13,7 +13,7 @@ public class PixChargeExpirationScheduler {
 
 	private final ExpirePixChargesUseCase expirePixChargesUseCase;
 
-	public PixChargeExpirationScheduler(ExpirePixChargesUseCase expirePixChargesUseCase) {
+	public PixChargeExpirationScheduler(final ExpirePixChargesUseCase expirePixChargesUseCase) {
 		this.expirePixChargesUseCase = expirePixChargesUseCase;
 	}
 

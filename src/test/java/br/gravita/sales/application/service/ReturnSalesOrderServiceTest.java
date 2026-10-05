@@ -83,38 +83,38 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Returning every invoiced item in full reverts stock, adjusts the receivable and issues the return NF-e")
 	void returningEveryInvoicedItemInFullRevertsStockAdjustsTheReceivableAndIssuesTheReturnNfe() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 		when(salesInvoiceRepositoryPort.findByOrderId(order.getId()))
 				.thenReturn(Optional.of(invoiceFor(order, originalNfeRef)));
 		when(productRepositoryPort.get(productId))
 				.thenReturn(Optional.of(ProductDomain.builder().internalCode("SKU-1").averageCost(new BigDecimal("3.00")).build()));
-		FiscalDocumentRef returnNfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
+		final FiscalDocumentRef returnNfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
 		when(issueFiscalDocumentPort.issueForReturn(any())).thenReturn(returnNfeRef);
 		when(salesReturnRepositoryPort.save(any(SalesReturn.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesReturnView view = service
+		final SalesReturnView view = service
 				.execute(new ReturnSalesOrderCommand(order.getId().value(), List.of(new Item(productId, BigDecimal.TEN))));
 
 		assertThat(view.orderId()).isEqualTo(order.getId().value());
 		assertThat(view.returnNfeRef()).isEqualTo(returnNfeRef);
 		assertThat(view.total()).isTrue();
 
-		ArgumentCaptor<RegisterStockEntryCommand> stockEntry = ArgumentCaptor.forClass(RegisterStockEntryCommand.class);
+		final ArgumentCaptor<RegisterStockEntryCommand> stockEntry = ArgumentCaptor.forClass(RegisterStockEntryCommand.class);
 		verify(registerStockEntryPort, times(1)).registerEntry(stockEntry.capture());
 		assertThat(stockEntry.getValue().productOrServiceId()).isEqualTo(productId);
 		assertThat(stockEntry.getValue().quantity()).isEqualByComparingTo(BigDecimal.TEN);
 		assertThat(stockEntry.getValue().unitCost()).isEqualByComparingTo("3.00");
 
-		ArgumentCaptor<AdjustReceivableForReturnCommand> receivable = ArgumentCaptor
+		final ArgumentCaptor<AdjustReceivableForReturnCommand> receivable = ArgumentCaptor
 				.forClass(AdjustReceivableForReturnCommand.class);
 		verify(adjustReceivableForReturnPort).adjust(receivable.capture());
 		assertThat(receivable.getValue().customerId()).isEqualTo(order.getCustomerId());
 		assertThat(receivable.getValue().amount()).isEqualByComparingTo("50.00");
 
-		ArgumentCaptor<IssueReturnFiscalDocumentCommand> nfeCommand = ArgumentCaptor
+		final ArgumentCaptor<IssueReturnFiscalDocumentCommand> nfeCommand = ArgumentCaptor
 				.forClass(IssueReturnFiscalDocumentCommand.class);
 		verify(issueFiscalDocumentPort).issueForReturn(nfeCommand.capture());
 		assertThat(nfeCommand.getValue().originalDocument()).isEqualTo(originalNfeRef);
@@ -124,7 +124,7 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Returning fewer units than were invoiced is recorded as a partial return")
 	void returningFewerThanTheInvoicedQuantityIsRecordedAsPartial() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 		when(salesInvoiceRepositoryPort.findByOrderId(order.getId()))
@@ -134,12 +134,12 @@ class ReturnSalesOrderServiceTest {
 		when(salesReturnRepositoryPort.save(any(SalesReturn.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesReturnView view = service.execute(new ReturnSalesOrderCommand(order.getId().value(),
+		final SalesReturnView view = service.execute(new ReturnSalesOrderCommand(order.getId().value(),
 				List.of(new Item(productId, new BigDecimal("4")))));
 
 		assertThat(view.total()).isFalse();
 
-		ArgumentCaptor<AdjustReceivableForReturnCommand> receivable = ArgumentCaptor
+		final ArgumentCaptor<AdjustReceivableForReturnCommand> receivable = ArgumentCaptor
 				.forClass(AdjustReceivableForReturnCommand.class);
 		verify(adjustReceivableForReturnPort).adjust(receivable.capture());
 		assertThat(receivable.getValue().amount()).isEqualByComparingTo("20.00");
@@ -147,9 +147,9 @@ class ReturnSalesOrderServiceTest {
 
 	@Test
 	@DisplayName("A second partial return that completes the invoiced quantity is recorded as a total return")
-	void aSecondPartialReturnThatCompletesTheInvoicedQuantityIsRecordedAsTotal() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
-		SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
+	void secondPartialReturnThatCompletesTheInvoicedQuantityIsRecordedAsTotal() {
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
 				List.of(new SalesReturnItem(productId, new BigDecimal("6"))), List.of());
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of(firstReturn));
@@ -160,7 +160,7 @@ class ReturnSalesOrderServiceTest {
 		when(salesReturnRepositoryPort.save(any(SalesReturn.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesReturnView view = service.execute(new ReturnSalesOrderCommand(order.getId().value(),
+		final SalesReturnView view = service.execute(new ReturnSalesOrderCommand(order.getId().value(),
 				List.of(new Item(productId, new BigDecimal("4")))));
 
 		assertThat(view.total()).isTrue();
@@ -169,7 +169,7 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects a return against an order that is not invoiced")
 	void rejectsAReturnAgainstAnOrderThatIsNotInvoiced() {
-		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED, BigDecimal.TEN, "5.00");
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED, BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 
 		assertThatThrownBy(() -> service.execute(
@@ -185,7 +185,7 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects a return quantity above what was invoiced, with no side effects")
 	void rejectsAReturnQuantityExceedingWhatWasOriginallyInvoicedWithoutAnySideEffect() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 
@@ -201,8 +201,8 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects returning more than what remains after a prior return")
 	void rejectsReturningMoreThanWhatRemainsAfterAPriorReturn() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
-		SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesReturn firstReturn = SalesReturn.forOrder(SalesReturnId.of(UUID.randomUUID()), order,
 				List.of(new SalesReturnItem(productId, new BigDecimal("6"))), List.of());
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of(firstReturn));
@@ -217,7 +217,7 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects a return for an order that does not exist")
 	void rejectsAReturnForAnOrderThatDoesNotExist() {
-		UUID orderId = UUID.randomUUID();
+		final UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service
@@ -230,7 +230,7 @@ class ReturnSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects a return when the product or service of an item cannot be found")
 	void rejectsAReturnWhenAnItemsProductOrServiceCannotBeFound() {
-		SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
+		final SalesOrder order = invoicedOrder(BigDecimal.TEN, "5.00");
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesReturnRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 		when(salesInvoiceRepositoryPort.findByOrderId(order.getId()))
@@ -244,18 +244,18 @@ class ReturnSalesOrderServiceTest {
 		verify(salesReturnRepositoryPort, never()).save(any());
 	}
 
-	private SalesOrder invoicedOrder(BigDecimal quantity, String unitPrice) {
+	private SalesOrder invoicedOrder(final BigDecimal quantity, final String unitPrice) {
 		return orderWithStatus(SalesOrderStatus.INVOICED, quantity, unitPrice);
 	}
 
-	private SalesOrder orderWithStatus(SalesOrderStatus status, BigDecimal quantity, String unitPrice) {
+	private SalesOrder orderWithStatus(final SalesOrderStatus status, final BigDecimal quantity, final String unitPrice) {
 		return SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(),
 				List.of(new SalesOrderItem(productId, quantity, new BigDecimal(unitPrice), BigDecimal.ZERO)), status,
 				UUID.randomUUID(), null);
 	}
 
-	private SalesInvoice invoiceFor(SalesOrder order, FiscalDocumentRef fiscalDocumentRef) {
+	private SalesInvoice invoiceFor(final SalesOrder order, final FiscalDocumentRef fiscalDocumentRef) {
 		return SalesInvoice.issue(SalesInvoiceId.of(UUID.randomUUID()), order.getId(), List.of(fiscalDocumentRef));
 	}
 }

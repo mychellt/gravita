@@ -74,31 +74,41 @@ class GetCashFlowServiceTest {
 				notifyPort, Clock.fixed(NOW, ZoneOffset.UTC));
 	}
 
-	private static GetCashFlowQuery daily(LocalDate from, LocalDate to) {
+	private static GetCashFlowQuery daily(final LocalDate from, final LocalDate to) {
 		return new GetCashFlowQuery(CashFlowGranularity.DAILY, null, null, null, null, from, to, null);
 	}
 
-	private static Receivable receivable(String amount, LocalDate dueDate, ReceivableStatus status) {
+	private static Receivable receivable(final String amount, final LocalDate dueDate, final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
 				new BigDecimal(amount), dueDate, null, status, null, null);
 	}
 
-	private static Payable payable(String amount, LocalDate dueDate, List<CostCenterShare> split) {
-		return Payable.of(PayableId.of(UUID.randomUUID()), null, PayableOrigin.MANUAL, new BigDecimal(amount),
-				dueDate, split, PayableStatus.OPEN, null, null, null);
+	private static Payable payable(final String amount, final LocalDate dueDate, final List<CostCenterShare> split) {
+		return Payable.builder()
+				.id(PayableId.of(UUID.randomUUID()))
+				.supplierId(null)
+				.origin(PayableOrigin.MANUAL)
+				.amount(new BigDecimal(amount))
+				.dueDate(dueDate)
+				.costCenterSplit(split)
+				.status(PayableStatus.OPEN)
+				.purchaseReceiptRef(null)
+				.installmentNumber(null)
+				.installments(null)
+				.build();
 	}
 
-	private static Settlement receiptOf(Receivable receivable, String amount, String interest, Instant at) {
+	private static Settlement receiptOf(final Receivable receivable, final String amount, final String interest, final Instant at) {
 		return Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(), new BigDecimal(amount),
 				new BigDecimal(interest), null, null, null, at);
 	}
 
-	private static Settlement paymentOf(Payable payable, String amount, Instant at) {
+	private static Settlement paymentOf(final Payable payable, final String amount, final Instant at) {
 		return Settlement.ofPayable(SettlementId.of(UUID.randomUUID()), payable.getId(), new BigDecimal(amount), null,
 				null, null, null, SettlementMethod.MANUAL, at);
 	}
 
-	private static CashFlowBucket bucketOn(CashFlowProjection projection, LocalDate date) {
+	private static CashFlowBucket bucketOn(final CashFlowProjection projection, final LocalDate date) {
 		return projection.getBuckets().stream().filter(bucket -> bucket.periodStart().equals(date)).findFirst()
 				.orElseThrow();
 	}
@@ -106,22 +116,22 @@ class GetCashFlowServiceTest {
 	@Test
 	@DisplayName("Combines the realized settlements of both sides with the open titles by due date")
 	void combinesTheRealizedSettlementsOfBothSidesWithTheOpenTitlesByDueDate() {
-		LocalDate from = TODAY.minusDays(1);
-		LocalDate to = TODAY.plusDays(5);
-		Receivable paidReceivable = receivable("100.00", from, ReceivableStatus.SETTLED);
-		Payable paidPayable = payable("40.00", from, List.of());
+		final LocalDate from = TODAY.minusDays(1);
+		final LocalDate to = TODAY.plusDays(5);
+		final Receivable paidReceivable = receivable("100.00", from, ReceivableStatus.SETTLED);
+		final Payable paidPayable = payable("40.00", from, List.of());
 		when(settlementRepositoryPort.findRealizedBetween(any(), any(), eq(CashFlowFilter.NONE)))
 				.thenReturn(List.of(receiptOf(paidReceivable, "100.00", "2.00", NOW.minusSeconds(86_400)),
 						paymentOf(paidPayable, "40.00", NOW.minusSeconds(86_400))));
-		Receivable openReceivable = receivable("200.00", TODAY.plusDays(2), ReceivableStatus.OPEN);
+		final Receivable openReceivable = receivable("200.00", TODAY.plusDays(2), ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findOutstandingDueUntil(to, CashFlowFilter.NONE))
 				.thenReturn(List.of(openReceivable));
 		when(payableRepositoryPort.findOutstandingDueUntil(to, CashFlowFilter.NONE))
 				.thenReturn(List.of(payable("30.00", TODAY.plusDays(4), List.of())));
 
-		CashFlowProjection projection = service.execute(daily(from, to));
+		final CashFlowProjection projection = service.execute(daily(from, to));
 
-		CashFlowBucket yesterday = bucketOn(projection, from);
+		final CashFlowBucket yesterday = bucketOn(projection, from);
 		assertThat(yesterday.realizedInflow()).isEqualByComparingTo("102.00");
 		assertThat(yesterday.realizedOutflow()).isEqualByComparingTo("40.00");
 		assertThat(yesterday.balance()).isEqualByComparingTo("62.00");
@@ -134,12 +144,12 @@ class GetCashFlowServiceTest {
 	@Test
 	@DisplayName("Projects an open receivable for what is still owed on it")
 	void anOpenReceivableIsProjectedForWhatIsStillOwedOnIt() {
-		Receivable partlyPaid = receivable("100.00", TODAY.plusDays(1), ReceivableStatus.PARTIALLY_SETTLED);
+		final Receivable partlyPaid = receivable("100.00", TODAY.plusDays(1), ReceivableStatus.PARTIALLY_SETTLED);
 		when(receivableRepositoryPort.findOutstandingDueUntil(any(), any())).thenReturn(List.of(partlyPaid));
 		when(settlementRepositoryPort.findByReceivableIds(List.of(partlyPaid.getId())))
 				.thenReturn(List.of(receiptOf(partlyPaid, "50.00", "3.00", NOW.minusSeconds(3_600))));
 
-		CashFlowProjection projection = service.execute(daily(TODAY, TODAY.plusDays(2)));
+		final CashFlowProjection projection = service.execute(daily(TODAY, TODAY.plusDays(2)));
 
 		assertThat(bucketOn(projection, TODAY.plusDays(1)).projectedInflow()).isEqualByComparingTo("50.00");
 	}
@@ -152,9 +162,9 @@ class GetCashFlowServiceTest {
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(payable("20.00", TODAY.minusDays(3), List.of())));
 
-		CashFlowProjection projection = service.execute(daily(TODAY.minusDays(30), TODAY.plusDays(5)));
+		final CashFlowProjection projection = service.execute(daily(TODAY.minusDays(30), TODAY.plusDays(5)));
 
-		CashFlowBucket today = bucketOn(projection, TODAY);
+		final CashFlowBucket today = bucketOn(projection, TODAY);
 		assertThat(today.projectedInflow()).isEqualByComparingTo("70.00");
 		assertThat(today.projectedOutflow()).isEqualByComparingTo("20.00");
 		assertThat(bucketOn(projection, TODAY.minusDays(10)).projectedInflow()).isEqualByComparingTo("0");
@@ -163,13 +173,13 @@ class GetCashFlowServiceTest {
 	@Test
 	@DisplayName("Passes all four filters to the ports and to the alert")
 	void passesAllFourFiltersToThePortsAndTheAlert() {
-		UUID company = UUID.randomUUID();
-		UUID branch = UUID.randomUUID();
-		UUID bankAccount = UUID.randomUUID();
-		UUID costCenter = UUID.randomUUID();
-		CashFlowFilter filter = new CashFlowFilter(company, branch, bankAccount, costCenter);
-		LocalDate to = TODAY.plusDays(3);
-		Payable inCostCenter = payable("10.00", TODAY.plusDays(1), List.of(new CostCenterShare(costCenter,
+		final UUID company = UUID.randomUUID();
+		final UUID branch = UUID.randomUUID();
+		final UUID bankAccount = UUID.randomUUID();
+		final UUID costCenter = UUID.randomUUID();
+		final CashFlowFilter filter = new CashFlowFilter(company, branch, bankAccount, costCenter);
+		final LocalDate to = TODAY.plusDays(3);
+		final Payable inCostCenter = payable("10.00", TODAY.plusDays(1), List.of(new CostCenterShare(costCenter,
 				new BigDecimal("100"))));
 		when(payableRepositoryPort.findOutstandingDueUntil(to, filter)).thenReturn(List.of(inCostCenter));
 
@@ -179,7 +189,7 @@ class GetCashFlowServiceTest {
 		verify(receivableRepositoryPort).findOutstandingDueUntil(to, filter);
 		verify(payableRepositoryPort).findOutstandingDueUntil(to, filter);
 		verify(settlementRepositoryPort).findRealizedBetween(any(), any(), eq(filter));
-		ArgumentCaptor<NegativeBalanceProjectionAlert> alert = ArgumentCaptor
+		final ArgumentCaptor<NegativeBalanceProjectionAlert> alert = ArgumentCaptor
 				.forClass(NegativeBalanceProjectionAlert.class);
 		verify(notifyPort).notify(alert.capture());
 		assertThat(alert.getValue().filter()).isEqualTo(filter);
@@ -187,20 +197,20 @@ class GetCashFlowServiceTest {
 
 	@Test
 	@DisplayName("Counts only the cost center's share of each payable, open or paid")
-	void aCostCenterCountsOnlyItsShareOfEachPayableOpenOrPaid() {
-		UUID costCenter = UUID.randomUUID();
-		UUID other = UUID.randomUUID();
-		CashFlowFilter filter = new CashFlowFilter(null, null, null, costCenter);
-		Payable split = payable("200.00", TODAY.plusDays(1), List.of(new CostCenterShare(costCenter,
+	void costCenterCountsOnlyItsShareOfEachPayableOpenOrPaid() {
+		final UUID costCenter = UUID.randomUUID();
+		final UUID other = UUID.randomUUID();
+		final CashFlowFilter filter = new CashFlowFilter(null, null, null, costCenter);
+		final Payable split = payable("200.00", TODAY.plusDays(1), List.of(new CostCenterShare(costCenter,
 				new BigDecimal("25")), new CostCenterShare(other, new BigDecimal("75"))));
-		Payable paid = payable("100.00", TODAY.minusDays(1), List.of(new CostCenterShare(costCenter,
+		final Payable paid = payable("100.00", TODAY.minusDays(1), List.of(new CostCenterShare(costCenter,
 				new BigDecimal("40")), new CostCenterShare(other, new BigDecimal("60"))));
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), eq(filter))).thenReturn(List.of(split));
 		when(settlementRepositoryPort.findRealizedBetween(any(), any(), eq(filter)))
 				.thenReturn(List.of(paymentOf(paid, "100.00", NOW.minusSeconds(86_400))));
 		when(payableRepositoryPort.findByIds(List.of(paid.getId()))).thenReturn(List.of(paid));
 
-		CashFlowProjection projection = service.execute(new GetCashFlowQuery(CashFlowGranularity.DAILY, null, null,
+		final CashFlowProjection projection = service.execute(new GetCashFlowQuery(CashFlowGranularity.DAILY, null, null,
 				null, costCenter, TODAY.minusDays(1), TODAY.plusDays(2), null));
 
 		assertThat(bucketOn(projection, TODAY.plusDays(1)).projectedOutflow()).isEqualByComparingTo("50.00");
@@ -218,7 +228,7 @@ class GetCashFlowServiceTest {
 		service.execute(new GetCashFlowQuery(CashFlowGranularity.DAILY, null, null, null, null, TODAY,
 				TODAY.plusDays(5), new BigDecimal("100.00")));
 
-		ArgumentCaptor<NegativeBalanceProjectionAlert> alert = ArgumentCaptor
+		final ArgumentCaptor<NegativeBalanceProjectionAlert> alert = ArgumentCaptor
 				.forClass(NegativeBalanceProjectionAlert.class);
 		verify(notifyPort).notify(alert.capture());
 		assertThat(alert.getValue().firstNegativePeriodStart()).isEqualTo(TODAY.plusDays(2));
@@ -240,9 +250,9 @@ class GetCashFlowServiceTest {
 
 	@Test
 	@DisplayName("Raises no alert for a negative balance that is already in the past")
-	void aNegativeBalanceThatIsAlreadyInThePastDoesNotAlert() {
-		Receivable paid = receivable("10.00", TODAY.minusDays(9), ReceivableStatus.SETTLED);
-		Payable spent = payable("500.00", TODAY.minusDays(9), List.of());
+	void negativeBalanceThatIsAlreadyInThePastDoesNotAlert() {
+		final Receivable paid = receivable("10.00", TODAY.minusDays(9), ReceivableStatus.SETTLED);
+		final Payable spent = payable("500.00", TODAY.minusDays(9), List.of());
 		when(settlementRepositoryPort.findRealizedBetween(any(), any(), any()))
 				.thenReturn(List.of(paymentOf(spent, "500.00", NOW.minusSeconds(9 * 86_400)),
 						receiptOf(paid, "10.00", "0", NOW.minusSeconds(9 * 86_400))));
@@ -256,12 +266,12 @@ class GetCashFlowServiceTest {
 
 	@Test
 	@DisplayName("Does not fail the cash flow view when the notification fails")
-	void aFailingNotificationDoesNotFailTheView() {
+	void failingNotificationDoesNotFailTheView() {
 		when(payableRepositoryPort.findOutstandingDueUntil(any(), any()))
 				.thenReturn(List.of(payable("500.00", TODAY.plusDays(2), List.of())));
 		doThrow(new IllegalStateException("queue down")).when(notifyPort).notify(any());
 
-		CashFlowProjection projection = service.execute(daily(TODAY, TODAY.plusDays(3)));
+		final CashFlowProjection projection = service.execute(daily(TODAY, TODAY.plusDays(3)));
 
 		assertThat(projection.getClosingBalance()).isEqualByComparingTo("-500.00");
 	}
@@ -269,7 +279,7 @@ class GetCashFlowServiceTest {
 	@Test
 	@DisplayName("Defaults the range to thirty days back and ninety days ahead")
 	void theRangeDefaultsToThirtyDaysBackAndNinetyDaysAhead() {
-		CashFlowProjection projection = service.execute(new GetCashFlowQuery(CashFlowGranularity.MONTHLY, null, null,
+		final CashFlowProjection projection = service.execute(new GetCashFlowQuery(CashFlowGranularity.MONTHLY, null, null,
 				null, null, null, null, null));
 
 		assertThat(projection.getFrom()).isEqualTo(TODAY.minusDays(30));

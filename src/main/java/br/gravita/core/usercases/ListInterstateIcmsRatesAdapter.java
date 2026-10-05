@@ -13,12 +13,12 @@ public class ListInterstateIcmsRatesAdapter implements ListInterstateIcmsRatesPo
 
 	private final InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort;
 
-	public ListInterstateIcmsRatesAdapter(InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort) {
+	public ListInterstateIcmsRatesAdapter(final InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort) {
 		this.interstateIcmsRateRepositoryPort = interstateIcmsRateRepositoryPort;
 	}
 
 	@Override
-	public List<InterstateIcmsRateDomain> execute(Context context) {
+	public List<InterstateIcmsRateDomain> execute(final Context context) {
 		return interstateIcmsRateRepositoryPort.findAll();
 	}
 }

@@ -66,7 +66,7 @@ class GenerateBoletoServiceTest {
 
 	private final UUID customerId = UUID.randomUUID();
 
-	private Receivable receivable(ReceivableStatus status) {
+	private Receivable receivable(final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), customerId, ReceivableOrigin.MANUAL,
 				new BigDecimal("150.00"), LocalDate.now().plusDays(30), null, status, null, null);
 	}
@@ -74,14 +74,14 @@ class GenerateBoletoServiceTest {
 	@Test
 	@DisplayName("Generates a boleto linked to the receivable from the chosen bank and emails it")
 	void generatesALinkedBoletoFromTheChosenBankAndEmailsIt() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(bankIntegrationPort.issueBoleto(any())).thenReturn(new IssuedBoleto(BARCODE_LINE));
 		when(boletoRepositoryPort.save(any(Boleto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(customerRepositoryPort.get(customerId))
 				.thenReturn(Optional.of(CustomerDomain.builder().email("cliente@example.com").build()));
 
-		Boleto boleto = service
+		final Boleto boleto = service
 				.execute(new GenerateBoletoCommand(receivable.getId().value(), BankIntegration.SICOOB));
 
 		assertThat(boleto.getReceivableId()).isEqualTo(receivable.getId());
@@ -89,13 +89,13 @@ class GenerateBoletoServiceTest {
 		assertThat(boleto.getBarcodeLine()).isEqualTo(BARCODE_LINE);
 		assertThat(boleto.getStatus()).isEqualTo(BoletoStatus.ISSUED);
 
-		ArgumentCaptor<BoletoIssueRequest> request = ArgumentCaptor.forClass(BoletoIssueRequest.class);
+		final ArgumentCaptor<BoletoIssueRequest> request = ArgumentCaptor.forClass(BoletoIssueRequest.class);
 		verify(bankIntegrationPort).issueBoleto(request.capture());
 		assertThat(request.getValue().bankIntegration()).isEqualTo(BankIntegration.SICOOB);
 		assertThat(request.getValue().amount()).isEqualByComparingTo("150.00");
 		assertThat(request.getValue().dueDate()).isEqualTo(receivable.getDueDate());
 
-		ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+		final ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
 		verify(emailNotificationPort).send(org.mockito.ArgumentMatchers.eq("cliente@example.com"), anyString(),
 				body.capture());
 		assertThat(body.getValue()).contains(BARCODE_LINE);
@@ -104,7 +104,7 @@ class GenerateBoletoServiceTest {
 	@Test
 	@DisplayName("Rejects a receivable that is not open without contacting the bank")
 	void rejectsAReceivableThatIsNotOpenWithoutContactingTheBank() {
-		Receivable settled = receivable(ReceivableStatus.SETTLED);
+		final Receivable settled = receivable(ReceivableStatus.SETTLED);
 		when(receivableRepositoryPort.findById(settled.getId())).thenReturn(Optional.of(settled));
 
 		assertThatThrownBy(
@@ -117,7 +117,7 @@ class GenerateBoletoServiceTest {
 	@Test
 	@DisplayName("Fails when the receivable does not exist")
 	void failsWhenTheReceivableDoesNotExist() {
-		UUID missing = UUID.randomUUID();
+		final UUID missing = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(missing))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new GenerateBoletoCommand(missing, BankIntegration.ITAU)))
@@ -129,7 +129,7 @@ class GenerateBoletoServiceTest {
 	@Test
 	@DisplayName("Saves and sends nothing when the bank fails")
 	void savesNothingAndSendsNothingWhenTheBankFails() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(bankIntegrationPort.issueBoleto(any()))
 				.thenThrow(new BankIntegrationUnavailableException("bank down"));
@@ -144,13 +144,13 @@ class GenerateBoletoServiceTest {
 	@Test
 	@DisplayName("Still generates the boleto when the customer has no email")
 	void stillGeneratesTheBoletoWhenTheCustomerHasNoEmail() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(bankIntegrationPort.issueBoleto(any())).thenReturn(new IssuedBoleto(BARCODE_LINE));
 		when(boletoRepositoryPort.save(any(Boleto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(CustomerDomain.builder().build()));
 
-		Boleto boleto = service
+		final Boleto boleto = service
 				.execute(new GenerateBoletoCommand(receivable.getId().value(), BankIntegration.SICREDI));
 
 		assertThat(boleto.getBarcodeLine()).isEqualTo(BARCODE_LINE);

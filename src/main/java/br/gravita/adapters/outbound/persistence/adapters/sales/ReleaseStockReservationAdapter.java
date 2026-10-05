@@ -11,12 +11,12 @@ class ReleaseStockReservationAdapter implements ReleaseStockReservationPort {
 
 	private final ReleaseStockReservationUseCase releaseStockReservationUseCase;
 
-	ReleaseStockReservationAdapter(ReleaseStockReservationUseCase releaseStockReservationUseCase) {
+	ReleaseStockReservationAdapter(final ReleaseStockReservationUseCase releaseStockReservationUseCase) {
 		this.releaseStockReservationUseCase = releaseStockReservationUseCase;
 	}
 
 	@Override
-	public void releaseByOrderRef(UUID orderId) {
+	public void releaseByOrderRef(final UUID orderId) {
 		releaseStockReservationUseCase.execute(ReleaseStockReservationCommand.byOrderRef(orderId));
 	}
 }

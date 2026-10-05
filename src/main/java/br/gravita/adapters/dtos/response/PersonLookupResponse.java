@@ -4,7 +4,7 @@ import br.gravita.core.domain.PersonLookupResult;
 
 public record PersonLookupResponse(String name, AddressResponse address) {
 
-	public static PersonLookupResponse from(PersonLookupResult result) {
+	public static PersonLookupResponse from(final PersonLookupResult result) {
 		return new PersonLookupResponse(result.name(), AddressResponse.from(result.address()));
 	}
 }

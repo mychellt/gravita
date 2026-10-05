@@ -9,7 +9,7 @@ public record NfeDocumentId(UUID value) implements TransmissionQueueId {
 		Objects.requireNonNull(value, "NfeDocumentId value is required");
 	}
 
-	public static NfeDocumentId of(UUID value) {
+	public static NfeDocumentId of(final UUID value) {
 		return new NfeDocumentId(value);
 	}
 }

@@ -13,15 +13,15 @@ public class CreatePurchaseRequestService implements CreatePurchaseRequestUseCas
 
 	private final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
 
-	public CreatePurchaseRequestService(PurchaseRequestRepositoryPort purchaseRequestRepositoryPort) {
+	public CreatePurchaseRequestService(final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort) {
 		this.purchaseRequestRepositoryPort = purchaseRequestRepositoryPort;
 	}
 
 	@Override
-	public PurchaseRequestId execute(CreatePurchaseRequestCommand command) {
-		PurchaseRequestId id = PurchaseRequestId.of(UUID.randomUUID());
-		PurchaseRequest purchaseRequest = PurchaseRequest.open(id, command.origin(), command.items(), command.requestedBy());
-		PurchaseRequest saved = purchaseRequestRepositoryPort.save(purchaseRequest);
+	public PurchaseRequestId execute(final CreatePurchaseRequestCommand command) {
+		final PurchaseRequestId id = PurchaseRequestId.of(UUID.randomUUID());
+		final PurchaseRequest purchaseRequest = PurchaseRequest.open(id, command.origin(), command.items(), command.requestedBy());
+		final PurchaseRequest saved = purchaseRequestRepositoryPort.save(purchaseRequest);
 		return saved.getId();
 	}
 }

@@ -5,7 +5,7 @@ import java.time.Instant;
 
 public record CorrectionLetterResponse(int sequenceNumber, String text, String protocol, Instant issuedAt) {
 
-	public static CorrectionLetterResponse from(CorrectionLetter correctionLetter) {
+	public static CorrectionLetterResponse from(final CorrectionLetter correctionLetter) {
 		return new CorrectionLetterResponse(correctionLetter.sequenceNumber(), correctionLetter.text(),
 				correctionLetter.protocol(), correctionLetter.issuedAt());
 	}

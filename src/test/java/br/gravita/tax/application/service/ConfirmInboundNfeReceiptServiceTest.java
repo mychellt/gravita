@@ -32,7 +32,6 @@ import br.gravita.core.ports.outbound.tax.NotifyStockEntryPort.NotifyStockEntryC
 import br.gravita.core.usercases.tax.ConfirmInboundNfeReceiptService;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -78,11 +77,11 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Records the three-way comparison before confirming the receipt")
 	void confirmingRecordsTheThreeWayComparisonBeforeConfirmingTheReceipt() {
-		InboundNfe pending = pendingInboundNfe();
+		final InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
 		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		InboundNfe result = service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+		final InboundNfe result = service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
 
 		assertThat(result.getConferenceResult()).hasSize(1);
 		assertThat(result.getConferenceResult().get(0).itemRef()).isEqualTo(productId);
@@ -94,13 +93,13 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Registers the stock entry immediately for what was physically received")
 	void confirmingRegistersTheStockEntryImmediatelyForWhatWasPhysicallyReceived() {
-		InboundNfe pending = pendingInboundNfe();
+		final InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
 		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
 
-		ArgumentCaptor<NotifyStockEntryCommand> captor = ArgumentCaptor.forClass(NotifyStockEntryCommand.class);
+		final ArgumentCaptor<NotifyStockEntryCommand> captor = ArgumentCaptor.forClass(NotifyStockEntryCommand.class);
 		verify(notifyStockEntryPort).notifyEntry(captor.capture());
 		assertThat(captor.getValue().productId()).isEqualTo(productId);
 		assertThat(captor.getValue().quantity()).isEqualByComparingTo("8");
@@ -111,13 +110,13 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Generates a payable installment matching the NF-e's own total value")
 	void confirmingGeneratesAPayableInstallmentMatchingTheNfsOwnTotalValue() {
-		InboundNfe pending = pendingInboundNfe();
+		final InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
 		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
 
-		ArgumentCaptor<NotifyPayableGeneratedCommand> captor =
+		final ArgumentCaptor<NotifyPayableGeneratedCommand> captor =
 				ArgumentCaptor.forClass(NotifyPayableGeneratedCommand.class);
 		verify(notifyPayableGeneratedPort).notifyGenerated(captor.capture());
 		assertThat(captor.getValue().sourceInboundNfeId()).isEqualTo(pending.getId().value());
@@ -131,13 +130,13 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Computes the ICMS, PIS and COFINS credit under the company's tax regime")
 	void confirmingComputesTheIcmsPisCofinsCreditUnderTheCompanysTaxRegime() {
-		InboundNfe pending = pendingInboundNfe();
+		final InboundNfe pending = pendingInboundNfe();
 		mockLookups(pending);
 		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
 
-		ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
+		final ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
 		verify(calculateTaxUseCase).execute(captor.capture());
 		assertThat(captor.getValue().taxRegime()).isEqualTo(br.gravita.core.domain.tax.TaxRegime.LUCRO_PRESUMIDO);
 		assertThat(captor.getValue().originState()).isEqualTo("SP");
@@ -150,7 +149,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming an inbound NF-e that does not exist")
 	void rejectsConfirmingAnInboundNfeThatDoesNotExist() {
-		UUID inboundNfeId = UUID.randomUUID();
+		final UUID inboundNfeId = UUID.randomUUID();
 		when(inboundNfeRepositoryPort.findById(InboundNfeId.of(inboundNfeId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(command(inboundNfeId, BigDecimal.TEN, BigDecimal.TEN)))
@@ -164,7 +163,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming an already confirmed inbound NF-e without duplicating side effects")
 	void rejectsConfirmingAnAlreadyConfirmedInboundNfeWithoutDuplicatingSideEffects() {
-		InboundNfe confirmed = pendingInboundNfe()
+		final InboundNfe confirmed = pendingInboundNfe()
 				.confirm(List.of(new br.gravita.core.domain.tax.InboundNfeConferenceItem(productId, BigDecimal.TEN,
 						BigDecimal.TEN)));
 		when(inboundNfeRepositoryPort.findById(confirmed.getId())).thenReturn(Optional.of(confirmed));
@@ -179,21 +178,31 @@ class ConfirmInboundNfeReceiptServiceTest {
 		verify(inboundNfeRepositoryPort, never()).save(any());
 	}
 
-	private void mockLookups(InboundNfe pending) {
+	private void mockLookups(final InboundNfe pending) {
 		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
 		when(calculateTaxUseCase.execute(any())).thenReturn(new TaxCalculationResult(List.of(), null));
 	}
 
-	private ConfirmInboundNfeReceiptCommand command(UUID inboundNfeId, BigDecimal orderedQty, BigDecimal receivedQty) {
+	private ConfirmInboundNfeReceiptCommand command(final UUID inboundNfeId, final BigDecimal orderedQty, final BigDecimal receivedQty) {
 		return new ConfirmInboundNfeReceiptCommand(inboundNfeId,
 				List.of(new ConferenceItem(productId, orderedQty, receivedQty)));
 	}
 
 	private InboundNfe pendingInboundNfe() {
-		return InboundNfe.importedFromXml(InboundNfeId.of(UUID.randomUUID()), companyId,
-				"35240111222333000181550010000012345123456789", "1", "12345", Document.cnpj("11222333000181"),
-				"Fornecedor Exemplo LTDA", issuedAt, List.of(item()), totals(), "xml-ref-1");
+		return InboundNfe.importedFromXml()
+				.id(InboundNfeId.of(UUID.randomUUID()))
+				.companyId(companyId)
+				.accessKey("35240111222333000181550010000012345123456789")
+				.series("1")
+				.number("12345")
+				.supplierDocument(Document.cnpj("11222333000181"))
+				.supplierName("Fornecedor Exemplo LTDA")
+				.issuedAt(issuedAt)
+				.items(List.of(item()))
+				.totals(totals())
+				.xmlStorageRef("xml-ref-1")
+				.build();
 	}
 
 	private InboundNfeItem item() {
@@ -209,8 +218,22 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj("11444777000161"), "123456789", "12345", "4711301",
-				TaxRegime.LUCRO_PRESUMIDO, false, SefazEnvironment.HOMOLOGATION, "Rua Exemplo, 100", "SP",
-				"fiscal@exemplo.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11444777000161"))
+				.ie("123456789")
+				.im("12345")
+				.cnae("4711301")
+				.taxRegime(TaxRegime.LUCRO_PRESUMIDO)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Exemplo, 100")
+				.state("SP")
+				.issuingEmail("fiscal@exemplo.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 }

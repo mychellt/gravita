@@ -23,16 +23,16 @@ public class SqsQuoteWhatsAppAdapter implements SendQuoteByWhatsAppPort {
     private final ObjectMapper objectMapper;
     private final String queueUrl;
 
-    public SqsQuoteWhatsAppAdapter(SqsClient sqsClient, ObjectMapper objectMapper,
-                                   @Value("${aws.sqs.whatsapp-queue-url}") String queueUrl) {
+    public SqsQuoteWhatsAppAdapter(final SqsClient sqsClient, final ObjectMapper objectMapper,
+                                   @Value("${aws.sqs.whatsapp-queue-url}") final String queueUrl) {
         this.sqsClient = sqsClient;
         this.objectMapper = objectMapper;
         this.queueUrl = queueUrl;
     }
 
     @Override
-    public void send(SendQuoteByWhatsAppRequest request) {
-        String messageBody = objectMapper.writeValueAsString(Map.of(
+    public void send(final SendQuoteByWhatsAppRequest request) {
+        final String messageBody = objectMapper.writeValueAsString(Map.of(
                 "phoneNumber", request.phoneNumber(),
                 "quoteId", request.quoteId().toString(),
                 "totalValue", request.totalValue().toString(),

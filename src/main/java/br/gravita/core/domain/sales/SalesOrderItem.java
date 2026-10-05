@@ -31,7 +31,7 @@ public record SalesOrderItem(UUID productOrServiceId, BigDecimal quantity, BigDe
 		}
 	}
 
-	public static SalesOrderItem fromQuoteItem(QuoteItem item) {
+	public static SalesOrderItem fromQuoteItem(final QuoteItem item) {
 		return new SalesOrderItem(item.productOrServiceId(), item.quantity(), item.unitPrice(), item.discount());
 	}
 

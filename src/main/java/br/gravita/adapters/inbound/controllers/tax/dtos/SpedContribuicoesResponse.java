@@ -12,7 +12,7 @@ import java.util.UUID;
 public record SpedContribuicoesResponse(UUID companyId, YearMonth period, String fileName, byte[] txt,
 		Assessment assessment) {
 
-	public static SpedContribuicoesResponse from(SpedContribuicoesFile file) {
+	public static SpedContribuicoesResponse from(final SpedContribuicoesFile file) {
 		return new SpedContribuicoesResponse(file.companyId().value(), file.period(), file.fileName(), file.txt(),
 				file.assessment());
 	}

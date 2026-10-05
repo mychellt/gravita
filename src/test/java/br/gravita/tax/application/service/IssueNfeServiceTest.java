@@ -13,7 +13,6 @@ import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
-import br.gravita.core.domain.masterdata.DiscountCheckResult;
 import br.gravita.core.domain.masterdata.DocumentNumber;
 import br.gravita.core.domain.masterdata.FiscalDocumentType;
 import br.gravita.core.domain.masterdata.MaxDiscountBehavior;
@@ -106,15 +105,29 @@ class IssueNfeServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj(VALID_CNPJ), "123456789", "987654", "6201500",
-				br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
-				"Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj(VALID_CNPJ))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(br.gravita.core.domain.masterdata.TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private TaxCalculationResult taxResult() {
-		TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+		final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
 				new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-		List<ItemTaxBreakdown> items = List.of(new ItemTaxBreakdown(0, productId.toString(), List.of(line)));
+		final List<ItemTaxBreakdown> items = List.of(new ItemTaxBreakdown(0, productId.toString(), List.of(line)));
 		return new TaxCalculationResult(items, br.gravita.core.domain.tax.TaxCalculationTotals.from(items));
 	}
 
@@ -122,13 +135,13 @@ class IssueNfeServiceTest {
 		return new RecipientCommand(null, VALID_CNPJ, PersonType.COMPANY, "Cliente PJ Teste", "123456789", "RJ");
 	}
 
-	private ItemCommand item(BigDecimal discount) {
+	private ItemCommand item(final BigDecimal discount) {
 		return new ItemCommand(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"), discount);
 	}
 
-	private IssueNfeCommand command(UUID originSalesOrderId, NaturezaOperacao naturezaOperacao,
-			RecipientCommand recipient, UUID priceTableId, String discountOverrideJustification,
-			List<TaxOverrideCommand> taxOverrides, String referencedAccessKey) {
+	private IssueNfeCommand command(final UUID originSalesOrderId, final NaturezaOperacao naturezaOperacao,
+			final RecipientCommand recipient, final UUID priceTableId, final String discountOverrideJustification,
+			final List<TaxOverrideCommand> taxOverrides, final String referencedAccessKey) {
 		return new IssueNfeCommand(companyId.value(), originSalesOrderId, naturezaOperacao, recipient,
 				List.of(item(BigDecimal.ZERO)), priceTableId, discountOverrideJustification, taxOverrides,
 				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, referencedAccessKey, null);
@@ -140,10 +153,10 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Preserves the origin sales order id when provided")
-	void ac1_originSalesOrderIdIsPreservedWhenProvided() {
-		UUID orderId = UUID.randomUUID();
+	void ac1OriginSalesOrderIdIsPreservedWhenProvided() {
+		final UUID orderId = UUID.randomUUID();
 
-		NfeDocument document = service.execute(command(orderId, NaturezaOperacao.VENDA, companyRecipient(), null,
+		final NfeDocument document = service.execute(command(orderId, NaturezaOperacao.VENDA, companyRecipient(), null,
 				null, null, null));
 
 		assertThat(document.getOriginSalesOrderId()).isEqualTo(orderId);
@@ -151,18 +164,18 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Leaves the origin sales order id null for a manual entry")
-	void ac1_manualEntryLeavesOriginSalesOrderIdNull() {
-		NfeDocument document = service.execute(defaultCommand());
+	void ac1ManualEntryLeavesOriginSalesOrderIdNull() {
+		final NfeDocument document = service.execute(defaultCommand());
 
 		assertThat(document.getOriginSalesOrderId()).isNull();
 	}
 
 	@Test
 	@DisplayName("Resolves the CFOP from the registry rather than hardcoding it")
-	void ac2_cfopIsResolvedFromTheRegistryNotHardcoded() {
+	void ac2CfopIsResolvedFromTheRegistryNotHardcoded() {
 		when(cfopRegistryPort.resolve(NaturezaOperacao.VENDA)).thenReturn(new Cfop("6102"));
 
-		NfeDocument document = service.execute(defaultCommand());
+		final NfeDocument document = service.execute(defaultCommand());
 
 		assertThat(document.getCfop()).isEqualTo(new Cfop("6102"));
 		verify(cfopRegistryPort).resolve(NaturezaOperacao.VENDA);
@@ -170,8 +183,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Validates the recipient's document and IE before the document is created")
-	void ac3_recipientDocumentAndIeAreValidatedBeforeTheDocumentIsCreated() {
-		NfeDocument document = service.execute(defaultCommand());
+	void ac3RecipientDocumentAndIeAreValidatedBeforeTheDocumentIsCreated() {
+		final NfeDocument document = service.execute(defaultCommand());
 
 		assertThat(document.getRecipient().document().number()).isEqualTo(Document.digitsOnly(VALID_CNPJ));
 		verify(nfeRepositoryPort).save(any());
@@ -179,8 +192,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Rejects an invalid recipient CPF/CNPJ before anything else happens")
-	void ac3_anInvalidRecipientCpfCnpjIsRejectedBeforeAnythingElseHappens() {
-		RecipientCommand invalidRecipient = new RecipientCommand(null, "111.111.111-11", PersonType.INDIVIDUAL,
+	void ac3AnInvalidRecipientCpfCnpjIsRejectedBeforeAnythingElseHappens() {
+		final RecipientCommand invalidRecipient = new RecipientCommand(null, "111.111.111-11", PersonType.INDIVIDUAL,
 				"Cliente Invalido", null, "SP");
 
 		assertThatThrownBy(() -> service.execute(command(null, NaturezaOperacao.VENDA, invalidRecipient, null, null,
@@ -191,8 +204,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Rejects a company recipient without an IE")
-	void ac3_aCompanyRecipientWithoutAnIeIsRejected() {
-		RecipientCommand recipientWithoutIe = new RecipientCommand(null, VALID_CNPJ, PersonType.COMPANY,
+	void ac3ACompanyRecipientWithoutAnIeIsRejected() {
+		final RecipientCommand recipientWithoutIe = new RecipientCommand(null, VALID_CNPJ, PersonType.COMPANY,
 				"Cliente PJ Teste", null, "RJ");
 
 		assertThatThrownBy(() -> service.execute(command(null, NaturezaOperacao.VENDA, recipientWithoutIe, null, null,
@@ -201,8 +214,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Takes the item tax totals from the shared CalculateTax use case")
-	void ac4_itemTaxTotalsComeFromTheSharedCalculateTaxUseCase() {
-		NfeDocument document = service.execute(defaultCommand());
+	void ac4ItemTaxTotalsComeFromTheSharedCalculateTaxUseCase() {
+		final NfeDocument document = service.execute(defaultCommand());
 
 		assertThat(document.getTaxTotals().grandTotal()).isEqualByComparingTo("18.00");
 		verify(calculateTaxUseCase).execute(any());
@@ -210,8 +223,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Rejects a manual tax override without justification")
-	void ac4_aManualTaxOverrideWithoutJustificationIsRejected() {
-		TaxOverrideCommand unjustifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"), null);
+	void ac4AManualTaxOverrideWithoutJustificationIsRejected() {
+		final TaxOverrideCommand unjustifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"), null);
 
 		assertThatThrownBy(() -> service.execute(
 				command(null, NaturezaOperacao.VENDA, companyRecipient(), null, null, List.of(unjustifiedOverride),
@@ -222,25 +235,25 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Forwards a justified manual tax override to the tax engine")
-	void ac4_aJustifiedManualTaxOverrideIsForwardedToTheTaxEngine() {
-		TaxOverrideCommand justifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"),
+	void ac4AJustifiedManualTaxOverrideIsForwardedToTheTaxEngine() {
+		final TaxOverrideCommand justifiedOverride = new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5.00"),
 				"Isenção aprovada pelo fiscal");
 
 		service.execute(command(null, NaturezaOperacao.VENDA, companyRecipient(), null, null,
 				List.of(justifiedOverride), null));
 
-		ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
+		final ArgumentCaptor<CalculateTaxCommand> captor = ArgumentCaptor.forClass(CalculateTaxCommand.class);
 		verify(calculateTaxUseCase).execute(captor.capture());
 		assertThat(captor.getValue().overrides()).containsExactly(justifiedOverride);
 	}
 
 	@Test
 	@DisplayName("Rejects a discount that exceeds the price table's maximum")
-	void ac5_discountExceedingThePriceTableMaxIsRejected() {
-		UUID priceTableId = UUID.randomUUID();
+	void ac5DiscountExceedingThePriceTableMaxIsRejected() {
+		final UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
 				.thenReturn(Optional.of(blockingPriceTable()));
-		IssueNfeCommand withExcessiveDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
+		final IssueNfeCommand withExcessiveDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
 				companyRecipient(), List.of(item(new BigDecimal("50.00"))), priceTableId, null, null, BigDecimal.ZERO,
 				BigDecimal.ZERO, BigDecimal.ZERO, null, null, null);
 
@@ -252,23 +265,23 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Lets an explicitly justified override bypass the price table's maximum discount")
-	void ac5_anExplicitlyJustifiedOverrideBypassesThePriceTableMaxDiscount() {
-		UUID priceTableId = UUID.randomUUID();
+	void ac5AnExplicitlyJustifiedOverrideBypassesThePriceTableMaxDiscount() {
+		final UUID priceTableId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(priceTableId)))
 				.thenReturn(Optional.of(blockingPriceTable()));
-		IssueNfeCommand withJustifiedDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
+		final IssueNfeCommand withJustifiedDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
 				companyRecipient(), List.of(item(new BigDecimal("50.00"))), priceTableId,
 				"Desconto aprovado pela gerência", null, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
 				null, null);
 
-		NfeDocument document = service.execute(withJustifiedDiscount);
+		final NfeDocument document = service.execute(withJustifiedDiscount);
 
 		assertThat(document.getStatus()).isEqualTo(NfeDocumentStatus.QUEUED);
 	}
 
 	@Test
 	@DisplayName("Rejects a return without a referenced access key")
-	void ac6_aReturnWithoutAReferencedAccessKeyIsRejected() {
+	void ac6AReturnWithoutAReferencedAccessKeyIsRejected() {
 		assertThatThrownBy(() -> service.execute(
 				command(null, NaturezaOperacao.DEVOLUCAO, companyRecipient(), null, null, null, null)))
 				.isInstanceOf(BusinessRuleException.class);
@@ -276,10 +289,10 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Accepts a return with a referenced access key")
-	void ac6_aReturnWithAReferencedAccessKeyIsAccepted() {
-		String referencedAccessKey = "3".repeat(44);
+	void ac6AReturnWithAReferencedAccessKeyIsAccepted() {
+		final String referencedAccessKey = "3".repeat(44);
 
-		NfeDocument document = service.execute(
+		final NfeDocument document = service.execute(
 				command(null, NaturezaOperacao.DEVOLUCAO, companyRecipient(), null, null, null, referencedAccessKey));
 
 		assertThat(document.getReferencedAccessKey()).isEqualTo(referencedAccessKey);
@@ -287,8 +300,8 @@ class IssueNfeServiceTest {
 
 	@Test
 	@DisplayName("Queues the document and enqueues it for transmission on success")
-	void ac7_onSuccessTheDocumentIsQueuedAndEnqueuedForTransmission() {
-		NfeDocument document = service.execute(defaultCommand());
+	void ac7OnSuccessTheDocumentIsQueuedAndEnqueuedForTransmission() {
+		final NfeDocument document = service.execute(defaultCommand());
 
 		assertThat(document.getStatus()).isEqualTo(NfeDocumentStatus.QUEUED);
 		assertThat(document.getAccessKey()).hasSize(44);
@@ -296,7 +309,7 @@ class IssueNfeServiceTest {
 
 		verify(transmissionQueuePort, times(1)).enqueue(document.getId());
 
-		ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor
+		final ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor
 				.forClass(AllocateDocumentNumberCommand.class);
 		verify(allocateDocumentNumberUseCase).execute(captor.capture());
 		assertThat(captor.getValue().companyId()).isEqualTo(companyId);

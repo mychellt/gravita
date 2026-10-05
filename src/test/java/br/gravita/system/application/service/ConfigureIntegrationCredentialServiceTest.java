@@ -33,13 +33,13 @@ class ConfigureIntegrationCredentialServiceTest {
 	@Test
 	@DisplayName("Registers a new credential when none exists yet")
 	void shouldRegisterNewCredentialWhenNoneExistsYet() {
-		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
+		final ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.BANK, null))
 				.thenReturn(Optional.empty());
 
 		service.execute(new ConfigureIntegrationCredentialCommand("bank", null, "https://bank.example.com", "key"));
 
-		ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
+		final ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
 		verify(repositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getIntegrationName()).isEqualTo(IntegrationName.BANK);
 		assertThat(captor.getValue().getEndpoint()).isEqualTo("https://bank.example.com");
@@ -49,8 +49,8 @@ class ConfigureIntegrationCredentialServiceTest {
 	@Test
 	@DisplayName("Rotates the existing credential instead of creating a new one")
 	void shouldRotateExistingCredentialInsteadOfCreatingANewOne() {
-		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
-		IntegrationCredential existing = IntegrationCredential.register(IntegrationName.SEFAZ,
+		final ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
+		final IntegrationCredential existing = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.PRODUCTION, "https://old.example.com", "old-cert");
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ, IntegrationEnvironment.PRODUCTION))
 				.thenReturn(Optional.of(existing));
@@ -58,7 +58,7 @@ class ConfigureIntegrationCredentialServiceTest {
 		service.execute(new ConfigureIntegrationCredentialCommand("sefaz", IntegrationEnvironment.PRODUCTION,
 				"https://new.example.com", "new-cert"));
 
-		ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
+		final ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
 		verify(repositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getId()).isEqualTo(existing.getId());
 		assertThat(captor.getValue().getEndpoint()).isEqualTo("https://new.example.com");
@@ -68,7 +68,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	@Test
 	@DisplayName("Keeps SEFAZ production and homologation credentials independent")
 	void shouldKeepProductionAndHomologationSefazCredentialsIndependent() {
-		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
+		final ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ, IntegrationEnvironment.HOMOLOGATION))
 				.thenReturn(Optional.empty());
 
@@ -77,7 +77,7 @@ class ConfigureIntegrationCredentialServiceTest {
 
 		verify(repositoryPort, never()).findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ,
 				IntegrationEnvironment.PRODUCTION);
-		ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
+		final ArgumentCaptor<IntegrationCredential> captor = ArgumentCaptor.forClass(IntegrationCredential.class);
 		verify(repositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getEnvironment()).isEqualTo(IntegrationEnvironment.HOMOLOGATION);
 	}
@@ -85,7 +85,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown integration name before touching the repository")
 	void shouldRejectUnknownIntegrationNameBeforeTouchingTheRepository() {
-		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
+		final ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 
 		assertThatThrownBy(() -> service.execute(
 				new ConfigureIntegrationCredentialCommand("stripe", null, "https://stripe.example.com", "key")))
@@ -98,7 +98,7 @@ class ConfigureIntegrationCredentialServiceTest {
 	@Test
 	@DisplayName("Rejects a SEFAZ credential without an environment")
 	void shouldRejectSefazWithoutEnvironment() {
-		ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
+		final ConfigureIntegrationCredentialService service = new ConfigureIntegrationCredentialService(repositoryPort);
 		when(repositoryPort.findByIntegrationNameAndEnvironment(IntegrationName.SEFAZ, null)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(

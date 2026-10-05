@@ -13,18 +13,18 @@ class AsyncConfigurationTest {
 	@Test
 	@DisplayName("A saturated activation-email executor drops the task instead of throwing into the signup request")
 	void saturationDoesNotThrow() {
-		ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) new AsyncConfiguration().activationEmailExecutor();
+		final ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) new AsyncConfiguration().activationEmailExecutor();
 		executor.afterPropertiesSet();
-		CountDownLatch release = new CountDownLatch(1);
+		final CountDownLatch release = new CountDownLatch(1);
 		try {
-			int capacity = executor.getMaxPoolSize() + executor.getQueueCapacity();
+			final int capacity = executor.getMaxPoolSize() + executor.getQueueCapacity();
 
 			assertThatCode(() -> {
 				for (int i = 0; i < capacity + 10; i++) {
 					executor.execute(() -> {
 						try {
 							release.await();
-						} catch (InterruptedException e) {
+						} catch (final InterruptedException e) {
 							Thread.currentThread().interrupt();
 						}
 					});

@@ -9,7 +9,7 @@ public record SerialUnitId(UUID value) {
 		Objects.requireNonNull(value, "SerialUnitId value is required");
 	}
 
-	public static SerialUnitId of(UUID value) {
+	public static SerialUnitId of(final UUID value) {
 		return new SerialUnitId(value);
 	}
 }

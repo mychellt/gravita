@@ -11,7 +11,7 @@ public record ConfigureDocumentSeriesRequest(
 		@NotBlank String series,
 		@NotNull @Positive Long nextNumber) {
 
-	public ConfigureDocumentSeriesCommand toCommand(CompanyId companyId, FiscalDocumentType documentType) {
+	public ConfigureDocumentSeriesCommand toCommand(final CompanyId companyId, final FiscalDocumentType documentType) {
 		return new ConfigureDocumentSeriesCommand(companyId, documentType, series, nextNumber);
 	}
 }

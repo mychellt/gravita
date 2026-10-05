@@ -13,20 +13,20 @@ public class LookupIntegrationConfiguration {
 
 	@Bean
 	public RestClient cnpjLookupRestClient(
-			@Value("${gravita.lookup.cnpj.base-url:https://brasilapi.com.br/api}") String baseUrl,
-			@Value("${gravita.lookup.timeout-ms:2000}") long timeoutMs) {
+			@Value("${gravita.lookup.cnpj.base-url:https://brasilapi.com.br/api}") final String baseUrl,
+			@Value("${gravita.lookup.timeout-ms:2000}") final long timeoutMs) {
 		return RestClient.builder().baseUrl(baseUrl).requestFactory(timeoutRequestFactory(timeoutMs)).build();
 	}
 
 	@Bean
 	public RestClient cepLookupRestClient(
-			@Value("${gravita.lookup.cep.base-url:https://viacep.com.br/ws}") String baseUrl,
-			@Value("${gravita.lookup.timeout-ms:2000}") long timeoutMs) {
+			@Value("${gravita.lookup.cep.base-url:https://viacep.com.br/ws}") final String baseUrl,
+			@Value("${gravita.lookup.timeout-ms:2000}") final long timeoutMs) {
 		return RestClient.builder().baseUrl(baseUrl).requestFactory(timeoutRequestFactory(timeoutMs)).build();
 	}
 
-	private SimpleClientHttpRequestFactory timeoutRequestFactory(long timeoutMs) {
-		SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+	private SimpleClientHttpRequestFactory timeoutRequestFactory(final long timeoutMs) {
+		final SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
 		factory.setConnectTimeout(Duration.ofMillis(timeoutMs));
 		factory.setReadTimeout(Duration.ofMillis(timeoutMs));
 		return factory;

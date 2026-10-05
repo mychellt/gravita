@@ -12,19 +12,32 @@ public class SwitchSefazEnvironmentService implements SwitchSefazEnvironmentUseC
 
 	private final CompanyRepositoryPort companyRepositoryPort;
 
-	public SwitchSefazEnvironmentService(CompanyRepositoryPort companyRepositoryPort) {
+	public SwitchSefazEnvironmentService(final CompanyRepositoryPort companyRepositoryPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 	}
 
 	@Override
-	public void execute(SwitchSefazEnvironmentCommand command) {
-		Company existing = companyRepositoryPort.findById(command.companyId())
+	public void execute(final SwitchSefazEnvironmentCommand command) {
+		final Company existing = companyRepositoryPort.findById(command.companyId())
 				.orElseThrow(() -> new CompanyNotFoundException(command.companyId().value()));
 
-		Company updated = Company.of(existing.getId(), existing.getName(), existing.getCnpj(), existing.getIe(), existing.getIm(),
-				existing.getCnae(), existing.getTaxRegime(), existing.isSimplesOptante(), command.environment(),
-				existing.getAddress(), existing.getState(), existing.getIssuingEmail(), existing.getPhone(),
-				existing.getLogoUrl(), existing.getParentCompanyId());
+		final Company updated = Company.builder()
+				.id(existing.getId())
+				.name(existing.getName())
+				.cnpj(existing.getCnpj())
+				.ie(existing.getIe())
+				.im(existing.getIm())
+				.cnae(existing.getCnae())
+				.taxRegime(existing.getTaxRegime())
+				.simplesOptante(existing.isSimplesOptante())
+				.sefazEnvironment(command.environment())
+				.address(existing.getAddress())
+				.state(existing.getState())
+				.issuingEmail(existing.getIssuingEmail())
+				.phone(existing.getPhone())
+				.logoUrl(existing.getLogoUrl())
+				.parentCompanyId(existing.getParentCompanyId())
+				.build();
 
 		companyRepositoryPort.save(updated);
 	}

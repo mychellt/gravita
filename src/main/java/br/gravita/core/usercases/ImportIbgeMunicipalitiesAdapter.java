@@ -14,14 +14,14 @@ public class ImportIbgeMunicipalitiesAdapter implements ImportIbgeMunicipalities
 
 	private final IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort;
 
-	public ImportIbgeMunicipalitiesAdapter(IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort) {
+	public ImportIbgeMunicipalitiesAdapter(final IbgeMunicipalityRepositoryPort ibgeMunicipalityRepositoryPort) {
 		this.ibgeMunicipalityRepositoryPort = ibgeMunicipalityRepositoryPort;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<IbgeMunicipalityDomain> execute(Context context) {
-		List<IbgeMunicipalityDomain> incoming = (List<IbgeMunicipalityDomain>) context.getData(List.class);
+	public List<IbgeMunicipalityDomain> execute(final Context context) {
+		final List<IbgeMunicipalityDomain> incoming = (List<IbgeMunicipalityDomain>) context.getData(List.class);
 		incoming.forEach(municipality -> ibgeMunicipalityRepositoryPort.findByIbgeCode(municipality.getIbgeCode())
 				.ifPresentOrElse(
 						existing -> municipality.setId(existing.getId()),

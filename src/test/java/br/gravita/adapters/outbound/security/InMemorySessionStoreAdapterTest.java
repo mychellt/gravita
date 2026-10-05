@@ -13,7 +13,7 @@ class InMemorySessionStoreAdapterTest {
 	@Test
 	@DisplayName("Resolves a stored token back to its user")
 	void shouldResolveAStoredTokenBackToItsUser() {
-		UserId userId = UserId.generate();
+		final UserId userId = UserId.generate();
 
 		adapter.store("token-1", userId);
 

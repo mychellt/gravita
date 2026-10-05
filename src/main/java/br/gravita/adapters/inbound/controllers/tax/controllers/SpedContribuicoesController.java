@@ -20,7 +20,7 @@ public class SpedContribuicoesController {
 
 	@PostMapping
 	public ResponseEntity<SpedContribuicoesResponse> generate(
-			@Valid @RequestBody GenerateSpedContribuicoesRequest request) {
+			@Valid @RequestBody final GenerateSpedContribuicoesRequest request) {
 		return ResponseEntity
 				.ok(SpedContribuicoesResponse.from(generateSpedContribuicoesUseCase.execute(request.toCommand())));
 	}

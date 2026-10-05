@@ -25,9 +25,9 @@ public class SupplierPurchaseSummaryController {
 
 	/** {@code period} is a month as {@code yyyy-MM}. */
 	@GetMapping
-	public ResponseEntity<List<SupplierPurchaseSummary>> get(@AuthenticatedUser UserId callerId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period,
-			@RequestParam(required = false) UUID companyId) {
+	public ResponseEntity<List<SupplierPurchaseSummary>> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period,
+			@RequestParam(required = false) final UUID companyId) {
 		return ResponseEntity.ok(getSupplierPurchaseSummaryUseCase
 				.execute(new SupplierPurchaseSummaryQuery(callerId, period, companyId)));
 	}

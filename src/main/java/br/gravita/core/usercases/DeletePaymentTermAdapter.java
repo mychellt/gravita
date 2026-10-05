@@ -13,13 +13,13 @@ public class DeletePaymentTermAdapter implements DeletePaymentTermPort {
 
 	private final PaymentTermRepositoryPort paymentTermRepositoryPort;
 
-	public DeletePaymentTermAdapter(PaymentTermRepositoryPort paymentTermRepositoryPort) {
+	public DeletePaymentTermAdapter(final PaymentTermRepositoryPort paymentTermRepositoryPort) {
 		this.paymentTermRepositoryPort = paymentTermRepositoryPort;
 	}
 
 	@Override
-	public Void execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public Void execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		paymentTermRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Payment term not found: " + id));
 		paymentTermRepositoryPort.deleteById(id);

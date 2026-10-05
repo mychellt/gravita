@@ -48,34 +48,34 @@ class IssueFiscalDocumentAdapterTest {
 	@Mock
 	private NfeRepositoryPort nfeRepositoryPort;
 
-	private static IssueFiscalDocumentAdapter newAdapter(IssueNfeUseCase useCase,
-			CustomerRepositoryPort customerRepositoryPort, NfeRepositoryPort nfeRepositoryPort) {
+	private static IssueFiscalDocumentAdapter newAdapter(final IssueNfeUseCase useCase,
+			final CustomerRepositoryPort customerRepositoryPort, final NfeRepositoryPort nfeRepositoryPort) {
 		return new IssueFiscalDocumentAdapter(useCase, customerRepositoryPort, nfeRepositoryPort);
 	}
 
 	@Test
 	@DisplayName("Issues an NF-e for product items using the default issuer company and the customer's address")
 	void issuesAnNfeForProductItemsUsingTheDefaultIssuerCompanyAndTheCustomersAddress() {
-		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
-		UUID customerId = UUID.randomUUID();
+		final IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(individualCustomer(customerId)));
-		NfeDocumentId nfeId = NfeDocumentId.of(UUID.randomUUID());
-		NfeDocument issuedDocument = nfeDocumentWithId(nfeId);
+		final NfeDocumentId nfeId = NfeDocumentId.of(UUID.randomUUID());
+		final NfeDocument issuedDocument = nfeDocumentWithId(nfeId);
 		when(issueNfeUseCase.execute(any())).thenReturn(issuedDocument);
 
-		UUID orderId = UUID.randomUUID();
-		UUID productId = UUID.randomUUID();
-		IssueFiscalDocumentCommand command = new IssueFiscalDocumentCommand(orderId, customerId,
+		final UUID orderId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		final IssueFiscalDocumentCommand command = new IssueFiscalDocumentCommand(orderId, customerId,
 				List.of(new Item(productId, "SKU-1", BigDecimal.ONE, new BigDecimal("10.00"), BigDecimal.ZERO)));
 
-		FiscalDocumentRef ref = adapter.issueForProducts(command);
+		final FiscalDocumentRef ref = adapter.issueForProducts(command);
 
 		assertThat(ref.type()).isEqualTo(FiscalDocumentType.NFE);
 		assertThat(ref.documentId()).isEqualTo(nfeId.value());
 
-		ArgumentCaptor<IssueNfeCommand> captor = ArgumentCaptor.forClass(IssueNfeCommand.class);
+		final ArgumentCaptor<IssueNfeCommand> captor = ArgumentCaptor.forClass(IssueNfeCommand.class);
 		verify(issueNfeUseCase).execute(captor.capture());
-		IssueNfeCommand nfeCommand = captor.getValue();
+		final IssueNfeCommand nfeCommand = captor.getValue();
 		assertThat(nfeCommand.issuerCompanyId()).isEqualTo(IssueFiscalDocumentAdapter.DEFAULT_ISSUER_COMPANY_ID);
 		assertThat(nfeCommand.originSalesOrderId()).isEqualTo(orderId);
 		assertThat(nfeCommand.naturezaOperacao()).isEqualTo(NaturezaOperacao.VENDA);
@@ -88,8 +88,8 @@ class IssueFiscalDocumentAdapterTest {
 	@Test
 	@DisplayName("Reports that NFS-e issuance is not yet available")
 	void nfseIssuanceIsNotYetAvailable() {
-		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
-		IssueFiscalDocumentCommand command = new IssueFiscalDocumentCommand(UUID.randomUUID(), UUID.randomUUID(),
+		final IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
+		final IssueFiscalDocumentCommand command = new IssueFiscalDocumentCommand(UUID.randomUUID(), UUID.randomUUID(),
 				List.of(new Item(UUID.randomUUID(), "Service", BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 
 		assertThatThrownBy(() -> adapter.issueForServices(command)).isInstanceOf(BusinessRuleException.class)
@@ -99,48 +99,48 @@ class IssueFiscalDocumentAdapterTest {
 	@Test
 	@DisplayName("Issues a return NF-e referencing the original document's access key")
 	void issuesAReturnNfeReferencingTheOriginalDocumentsAccessKey() {
-		IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
-		UUID customerId = UUID.randomUUID();
+		final IssueFiscalDocumentAdapter adapter = newAdapter(issueNfeUseCase, customerRepositoryPort, nfeRepositoryPort);
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(individualCustomer(customerId)));
 
-		UUID originalDocumentId = UUID.randomUUID();
-		NfeDocument originalDocument = mock(NfeDocument.class);
+		final UUID originalDocumentId = UUID.randomUUID();
+		final NfeDocument originalDocument = mock(NfeDocument.class);
 		when(originalDocument.getAccessKey()).thenReturn("35250000000000000000000000000000000000000000");
 		when(nfeRepositoryPort.findById(NfeDocumentId.of(originalDocumentId)))
 				.thenReturn(Optional.of(originalDocument));
 
-		NfeDocumentId returnNfeId = NfeDocumentId.of(UUID.randomUUID());
-		NfeDocument returnDocument = nfeDocumentWithId(returnNfeId);
+		final NfeDocumentId returnNfeId = NfeDocumentId.of(UUID.randomUUID());
+		final NfeDocument returnDocument = nfeDocumentWithId(returnNfeId);
 		when(issueNfeUseCase.execute(any())).thenReturn(returnDocument);
 
-		UUID orderId = UUID.randomUUID();
-		UUID productId = UUID.randomUUID();
-		IssueReturnFiscalDocumentCommand command = new IssueReturnFiscalDocumentCommand(orderId, customerId,
+		final UUID orderId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		final IssueReturnFiscalDocumentCommand command = new IssueReturnFiscalDocumentCommand(orderId, customerId,
 				new FiscalDocumentRef(FiscalDocumentType.NFE, originalDocumentId),
 				List.of(new Item(productId, "SKU-1", BigDecimal.ONE, new BigDecimal("10.00"), BigDecimal.ZERO)));
 
-		FiscalDocumentRef ref = adapter.issueForReturn(command);
+		final FiscalDocumentRef ref = adapter.issueForReturn(command);
 
 		assertThat(ref.type()).isEqualTo(FiscalDocumentType.NFE);
 		assertThat(ref.documentId()).isEqualTo(returnNfeId.value());
 
-		ArgumentCaptor<IssueNfeCommand> captor = ArgumentCaptor.forClass(IssueNfeCommand.class);
+		final ArgumentCaptor<IssueNfeCommand> captor = ArgumentCaptor.forClass(IssueNfeCommand.class);
 		verify(issueNfeUseCase).execute(captor.capture());
-		IssueNfeCommand nfeCommand = captor.getValue();
+		final IssueNfeCommand nfeCommand = captor.getValue();
 		assertThat(nfeCommand.naturezaOperacao()).isEqualTo(NaturezaOperacao.DEVOLUCAO);
 		assertThat(nfeCommand.referencedAccessKey()).isEqualTo("35250000000000000000000000000000000000000000");
 		assertThat(nfeCommand.originSalesOrderId()).isEqualTo(orderId);
 	}
 
-	private static CustomerDomain individualCustomer(UUID customerId) {
+	private static CustomerDomain individualCustomer(final UUID customerId) {
 		return CustomerDomain.builder().id(customerId).name("Cliente Teste")
 				.documentDomain(Document.cpf("111.444.777-35")).status(CustomerStatus.REGULAR)
 				.addresses(List.of(AddressDomain.builder().type(AddressType.BILLING).state("SP").isDefault(true).build()))
 				.build();
 	}
 
-	private static NfeDocument nfeDocumentWithId(NfeDocumentId id) {
-		NfeDocument document = mock(NfeDocument.class);
+	private static NfeDocument nfeDocumentWithId(final NfeDocumentId id) {
+		final NfeDocument document = mock(NfeDocument.class);
 		when(document.getId()).thenReturn(id);
 		return document;
 	}

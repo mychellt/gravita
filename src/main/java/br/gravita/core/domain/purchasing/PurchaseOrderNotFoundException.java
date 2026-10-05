@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class PurchaseOrderNotFoundException extends RuntimeException {
 
-	public PurchaseOrderNotFoundException(UUID purchaseOrderId) {
+	public PurchaseOrderNotFoundException(final UUID purchaseOrderId) {
 		super("Purchase order not found: " + purchaseOrderId);
 	}
 }

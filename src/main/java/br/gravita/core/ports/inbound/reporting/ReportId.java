@@ -19,7 +19,7 @@ public enum ReportId {
 
 	private final String slug;
 
-	ReportId(String slug) {
+	ReportId(final String slug) {
 		this.slug = slug;
 	}
 
@@ -27,7 +27,7 @@ public enum ReportId {
 		return slug;
 	}
 
-	public static Optional<ReportId> fromSlug(String slug) {
+	public static Optional<ReportId> fromSlug(final String slug) {
 		return Arrays.stream(values()).filter(id -> id.slug.equalsIgnoreCase(slug == null ? "" : slug.trim()))
 				.findFirst();
 	}

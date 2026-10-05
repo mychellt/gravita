@@ -52,11 +52,11 @@ public class ExportReportService implements ExportReportUseCase {
 	private final RenderExcelPort renderExcelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public ExportReportService(GetExecutiveDashboardUseCase getExecutiveDashboardUseCase,
-			GetAbcCurveUseCase getAbcCurveUseCase, GetStockTurnoverUseCase getStockTurnoverUseCase,
-			GetCommissionReportUseCase getCommissionReportUseCase, GetFiscalBooksUseCase getFiscalBooksUseCase,
-			GetAssessedTaxesUseCase getAssessedTaxesUseCase, RenderPdfPort renderPdfPort,
-			RenderExcelPort renderExcelPort, PermissionCheckPort permissionCheckPort) {
+	public ExportReportService(final GetExecutiveDashboardUseCase getExecutiveDashboardUseCase,
+			final GetAbcCurveUseCase getAbcCurveUseCase, final GetStockTurnoverUseCase getStockTurnoverUseCase,
+			final GetCommissionReportUseCase getCommissionReportUseCase, final GetFiscalBooksUseCase getFiscalBooksUseCase,
+			final GetAssessedTaxesUseCase getAssessedTaxesUseCase, final RenderPdfPort renderPdfPort,
+			final RenderExcelPort renderExcelPort, final PermissionCheckPort permissionCheckPort) {
 		this.getExecutiveDashboardUseCase = getExecutiveDashboardUseCase;
 		this.getAbcCurveUseCase = getAbcCurveUseCase;
 		this.getStockTurnoverUseCase = getStockTurnoverUseCase;
@@ -69,8 +69,8 @@ public class ExportReportService implements ExportReportUseCase {
 	}
 
 	@Override
-	public ExportedFile execute(ExportReportQuery query) {
-		ReportId report = query.reportId();
+	public ExportedFile execute(final ExportReportQuery query) {
+		final ReportId report = query.reportId();
 		if (!permissionCheckPort.canExport(query.requesterId(), report.slug())) {
 			throw new ForbiddenException("The user's profile cannot export the " + report.slug() + " report");
 		}
@@ -97,24 +97,24 @@ public class ExportReportService implements ExportReportUseCase {
 		};
 	}
 
-	private ExportedFile fiscalBooks(ExportReportQuery query) {
-		FiscalBooks books = getFiscalBooksUseCase.execute(new FiscalBooksQuery(query.requesterId(), query.period()));
-		String name = "fiscal-books-" + query.period().format(MONTH);
+	private ExportedFile fiscalBooks(final ExportReportQuery query) {
+		final FiscalBooks books = getFiscalBooksUseCase.execute(new FiscalBooksQuery(query.requesterId(), query.period()));
+		final String name = "fiscal-books-" + query.period().format(MONTH);
 		if (query.format() == ExportFormat.PDF) {
 			return file(query.format(), name, books.pdf());
 		}
 		return render(query, name, ExportLayouts.fiscalBooks(books));
 	}
 
-	private ExportedFile render(ExportReportQuery query, String name, ExportLayout layout) {
-		byte[] content = switch (query.format()) {
+	private ExportedFile render(final ExportReportQuery query, final String name, final ExportLayout layout) {
+		final byte[] content = switch (query.format()) {
 			case PDF -> renderPdfPort.render(layout.pdfReport());
 			case XLSX -> renderExcelPort.render(layout.excelWorkbook());
 		};
 		return file(query.format(), name, content);
 	}
 
-	private static ExportedFile file(ExportFormat format, String name, byte[] content) {
+	private static ExportedFile file(final ExportFormat format, final String name, final byte[] content) {
 		return new ExportedFile(content, name + "." + format.extension(), format.contentType());
 	}
 }

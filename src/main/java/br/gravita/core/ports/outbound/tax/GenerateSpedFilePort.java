@@ -35,7 +35,7 @@ public interface GenerateSpedFilePort {
 			fields = fields == null ? List.of() : Collections.unmodifiableList(new ArrayList<>(fields));
 		}
 
-		public static SpedRecord of(String register, Object... fields) {
+		public static SpedRecord of(final String register, final Object... fields) {
 			return new SpedRecord(register, Arrays.asList(fields));
 		}
 	}

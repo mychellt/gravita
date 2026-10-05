@@ -10,7 +10,7 @@ import java.util.UUID;
 public record CnabRemittanceResponse(String reference, BankIntegration bankIntegration, List<UUID> payableIds,
 		BigDecimal totalAmount, String fileContent) {
 
-	public static CnabRemittanceResponse from(CnabRemittance remittance) {
+	public static CnabRemittanceResponse from(final CnabRemittance remittance) {
 		return new CnabRemittanceResponse(remittance.reference(), remittance.bankIntegration(),
 				remittance.payableIds().stream().map(PayableId::value).toList(), remittance.totalAmount(),
 				remittance.fileContent());

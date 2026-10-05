@@ -36,7 +36,7 @@ class ConfirmDailyBatchPaymentServiceTest {
 	@Test
 	@DisplayName("Confirms the payments from the file the bank published")
 	void confirmsTheFileTheBankPublished() {
-		BankReturnImportResult expected = new BankReturnImportResult(2, 0, List.of());
+		final BankReturnImportResult expected = new BankReturnImportResult(2, 0, List.of());
 		when(bankIntegrationPort.fetchPaymentReturnFile(BankIntegration.SICOOB)).thenReturn(Optional.of("cnab"));
 		when(confirmBatchPaymentUseCase.execute(new ConfirmBatchPaymentCommand(BankIntegration.SICOOB, "cnab")))
 				.thenReturn(expected);

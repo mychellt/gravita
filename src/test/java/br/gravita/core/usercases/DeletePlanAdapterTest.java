@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,8 +28,8 @@ class DeletePlanAdapterTest {
 	@DisplayName("Deletes the plan when it exists and has no subscriptions")
 	@Test
 	void shouldDeleteWhenPlanExists() {
-		DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
-		PlanDomain existing = aPlan().build();
+		final DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
+		final PlanDomain existing = plan().build();
 		when(planRepositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
 		when(planRepositoryPort.hasSubscriptions(existing.getId())).thenReturn(false);
 
@@ -41,8 +41,8 @@ class DeletePlanAdapterTest {
 	@DisplayName("Fails with not found when the plan to delete does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
-		DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(planRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id))).isInstanceOf(BusinessRuleException.class);
@@ -52,8 +52,8 @@ class DeletePlanAdapterTest {
 	@DisplayName("Refuses to delete a plan that subscriptions still reference")
 	@Test
 	void shouldRejectDeletingPlanWithSubscriptions() {
-		DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
-		PlanDomain existing = aPlan().build();
+		final DeletePlanAdapter adapter = new DeletePlanAdapter(planRepositoryPort);
+		final PlanDomain existing = plan().build();
 		when(planRepositoryPort.findById(existing.getId())).thenReturn(Optional.of(existing));
 		when(planRepositoryPort.hasSubscriptions(existing.getId())).thenReturn(true);
 

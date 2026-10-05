@@ -52,11 +52,11 @@ class CalculateTaxServiceTest {
 				.thenReturn(List.of(new TaxRateRule("85171231", "SP", "RJ", TaxRegime.LUCRO_REAL, "VENDA", TaxType.ICMS,
 						new BigDecimal("12"), BigDecimal.ZERO, BigDecimal.ZERO)));
 
-		CalculateTaxCommand command = new CalculateTaxCommand(
+		final CalculateTaxCommand command = new CalculateTaxCommand(
 				List.of(new TaxItemCommand("PROD-1", new BigDecimal("10"), new BigDecimal("100.00"))),
 				"SP", "RJ", TaxRegime.LUCRO_REAL, "VENDA", List.of());
 
-		TaxCalculationResult result = service().execute(command);
+		final TaxCalculationResult result = service().execute(command);
 
 		assertThat(result.items()).hasSize(1);
 		assertThat(result.items().get(0).totalAmount()).isEqualByComparingTo("120.00");
@@ -71,13 +71,13 @@ class CalculateTaxServiceTest {
 				.thenReturn(Optional.of(new ProductTaxProfile("PROD-1", "85171231")));
 		when(taxRuleTableRepositoryPort.findApplicableRates(any())).thenReturn(List.of());
 
-		CalculateTaxCommand nfceCommand = new CalculateTaxCommand(
+		final CalculateTaxCommand nfceCommand = new CalculateTaxCommand(
 				List.of(new TaxItemCommand("PROD-1", BigDecimal.ONE, BigDecimal.TEN)),
 				"SP", "SP", TaxRegime.SIMPLES_NACIONAL, "VENDA_PDV", List.of());
 
 		service().execute(nfceCommand);
 
-		ArgumentCaptor<TaxRateQuery> captor = ArgumentCaptor.forClass(TaxRateQuery.class);
+		final ArgumentCaptor<TaxRateQuery> captor = ArgumentCaptor.forClass(TaxRateQuery.class);
 		verify(taxRuleTableRepositoryPort).findApplicableRates(captor.capture());
 		assertThat(captor.getValue().operationType()).isEqualTo("VENDA_PDV");
 		assertThat(captor.getValue().regime()).isEqualTo(TaxRegime.SIMPLES_NACIONAL);
@@ -88,7 +88,7 @@ class CalculateTaxServiceTest {
 	void shouldFailWhenProductHasNoRegisteredTaxProfile() {
 		when(productTaxProfileRepositoryPort.findByProductRef("UNKNOWN")).thenReturn(Optional.empty());
 
-		CalculateTaxCommand command = new CalculateTaxCommand(
+		final CalculateTaxCommand command = new CalculateTaxCommand(
 				List.of(new TaxItemCommand("UNKNOWN", BigDecimal.ONE, BigDecimal.TEN)),
 				"SP", "SP", TaxRegime.LUCRO_PRESUMIDO, "VENDA", List.of());
 
@@ -98,7 +98,7 @@ class CalculateTaxServiceTest {
 	@Test
 	@DisplayName("Rejects an override without justification before calling any port")
 	void shouldRejectAnOverrideWithoutJustificationBeforeCallingAnyPort() {
-		CalculateTaxCommand command = new CalculateTaxCommand(
+		final CalculateTaxCommand command = new CalculateTaxCommand(
 				List.of(new TaxItemCommand("PROD-1", BigDecimal.ONE, BigDecimal.TEN)),
 				"SP", "SP", TaxRegime.LUCRO_REAL, "VENDA",
 				List.of(new TaxOverrideCommand(0, TaxType.ICMS, new BigDecimal("5"), "")));

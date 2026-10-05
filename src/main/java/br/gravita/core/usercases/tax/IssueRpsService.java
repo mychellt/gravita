@@ -50,10 +50,10 @@ public class IssueRpsService implements IssueRpsUseCase {
 	private final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase;
 	private final ServiceTaxCalculator serviceTaxCalculator = new ServiceTaxCalculator(new TaxEngine());
 
-	public IssueRpsService(NfseRepositoryPort nfseRepositoryPort, CompanyRepositoryPort companyRepositoryPort,
-			ServiceTaxRuleRepositoryPort serviceTaxRuleRepositoryPort,
-			MunicipalServiceCodeRepositoryPort municipalServiceCodeRepositoryPort,
-			AllocateDocumentNumberUseCase allocateDocumentNumberUseCase) {
+	public IssueRpsService(final NfseRepositoryPort nfseRepositoryPort, final CompanyRepositoryPort companyRepositoryPort,
+			final ServiceTaxRuleRepositoryPort serviceTaxRuleRepositoryPort,
+			final MunicipalServiceCodeRepositoryPort municipalServiceCodeRepositoryPort,
+			final AllocateDocumentNumberUseCase allocateDocumentNumberUseCase) {
 		this.nfseRepositoryPort = nfseRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.serviceTaxRuleRepositoryPort = serviceTaxRuleRepositoryPort;
@@ -62,45 +62,58 @@ public class IssueRpsService implements IssueRpsUseCase {
 	}
 
 	@Override
-	public RpsId execute(IssueRpsCommand command) {
-		Company company = companyRepositoryPort.findById(CompanyId.of(command.providerCompanyId()))
+	public RpsId execute(final IssueRpsCommand command) {
+		final Company company = companyRepositoryPort.findById(CompanyId.of(command.providerCompanyId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + command.providerCompanyId()));
 
-		NfseTomador tomador = buildTomador(command.tomador());
-		String issMunicipality = resolveIssMunicipality(command, tomador);
+		final NfseTomador tomador = buildTomador(command.tomador());
+		final String issMunicipality = resolveIssMunicipality(command, tomador);
 
 		// AC1: LC 116/2003 list, then the list of the municipality the service is taxed in.
-		ServiceCode serviceCode = ServiceCode.of(command.serviceCode());
+		final ServiceCode serviceCode = ServiceCode.of(command.serviceCode());
 		validateAgainstMunicipalList(serviceCode, issMunicipality);
 
 		// AC3: a manual ISS rate is only accepted together with a justification.
-		BigDecimal issRateOverride = validateOverride(command);
+		final BigDecimal issRateOverride = validateOverride(command);
 
 		// AC3/AC4: rate and withholdings come from the rule table, applied by the shared engine.
-		TaxRegime regime = TaxRegime.valueOf(company.getTaxRegime().name());
-		List<ServiceTaxRule> candidates = serviceTaxRuleRepositoryPort.findCandidates(serviceCode.value(),
+		final TaxRegime regime = TaxRegime.valueOf(company.getTaxRegime().name());
+		final List<ServiceTaxRule> candidates = serviceTaxRuleRepositoryPort.findCandidates(serviceCode.value(),
 				issMunicipality);
-		ServiceTaxCalculator.Result tax = serviceTaxCalculator.calculate(candidates, serviceCode.value(),
+		final ServiceTaxCalculator.Result tax = serviceTaxCalculator.calculate(candidates, serviceCode.value(),
 				issMunicipality, regime, company.getState(), tomador, command.serviceAmount(), issRateOverride);
 
 		// AC2: checked before a number is allocated, so a rejected RPS never burns one.
 		NfseDocument.requireFullAddressIfWithheld(tomador, tax.withholdings());
 
 		// AC5: the RPS has its own series/number, independent of the NFe series.
-		DocumentNumber number = allocateDocumentNumberUseCase
+		final DocumentNumber number = allocateDocumentNumberUseCase
 				.execute(new AllocateDocumentNumberCommand(company.getId(), FiscalDocumentType.RPS));
-		NfseDocument rps = NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), company.getId(),
-				command.providerMunicipalityIbgeCode(), tomador, serviceCode, command.placeOfProvision(),
-				issMunicipality, command.serviceAmount(), tax.issRate(), tax.issAmount(),
-				issRateOverride == null ? null : command.overrideJustification(), tax.withholdings(),
-				command.discrimination(), number.series(), number.number(), Instant.now());
+		final NfseDocument rps = NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(company.getId())
+				.providerMunicipalityIbgeCode(command.providerMunicipalityIbgeCode())
+				.tomador(tomador)
+				.serviceCode(serviceCode)
+				.placeOfProvision(command.placeOfProvision())
+				.issMunicipalityIbgeCode(issMunicipality)
+				.serviceAmount(command.serviceAmount())
+				.issRate(tax.issRate())
+				.issAmount(tax.issAmount())
+				.issRateOverrideJustification(issRateOverride == null ? null : command.overrideJustification())
+				.withholdings(tax.withholdings())
+				.discrimination(command.discrimination())
+				.rpsSeries(number.series())
+				.rpsNumber(number.number())
+				.createdAt(Instant.now())
+				.build();
 
 		return nfseRepositoryPort.save(rps).getRpsId();
 	}
 
-	private NfseTomador buildTomador(TomadorCommand tomador) {
-		AddressCommand address = tomador.address();
-		TomadorAddress tomadorAddress = address == null ? null
+	private NfseTomador buildTomador(final TomadorCommand tomador) {
+		final AddressCommand address = tomador.address();
+		final TomadorAddress tomadorAddress = address == null ? null
 				: new TomadorAddress(address.street(), address.number(), address.complement(),
 						address.neighborhood(), address.zipCode(), address.state());
 		return NfseTomador.of(PersonRef.of(tomador.personId()), tomador.document(), tomador.personType(),
@@ -108,7 +121,7 @@ public class IssueRpsService implements IssueRpsUseCase {
 	}
 
 	/** Place of provision decides which municipality ISS is due to (doc §5.2). */
-	private String resolveIssMunicipality(IssueRpsCommand command, NfseTomador tomador) {
+	private String resolveIssMunicipality(final IssueRpsCommand command, final NfseTomador tomador) {
 		if (command.placeOfProvision() == PlaceOfProvision.PROVIDER) {
 			return command.providerMunicipalityIbgeCode();
 		}
@@ -123,7 +136,7 @@ public class IssueRpsService implements IssueRpsUseCase {
 	 * A municipality with its own service-code list only accepts the codes on it; one with no list configured falls
 	 * back to the LC 116/2003 list alone.
 	 */
-	private void validateAgainstMunicipalList(ServiceCode serviceCode, String municipalityIbgeCode) {
+	private void validateAgainstMunicipalList(final ServiceCode serviceCode, final String municipalityIbgeCode) {
 		if (municipalServiceCodeRepositoryPort.hasServiceCodeList(municipalityIbgeCode)
 				&& !municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(municipalityIbgeCode,
 						serviceCode.value())) {
@@ -132,8 +145,8 @@ public class IssueRpsService implements IssueRpsUseCase {
 		}
 	}
 
-	private BigDecimal validateOverride(IssueRpsCommand command) {
-		BigDecimal override = command.issRateOverride();
+	private BigDecimal validateOverride(final IssueRpsCommand command) {
+		final BigDecimal override = command.issRateOverride();
 		if (override == null) {
 			return null;
 		}

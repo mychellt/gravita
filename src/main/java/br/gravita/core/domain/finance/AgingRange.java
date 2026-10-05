@@ -17,7 +17,7 @@ public enum AgingRange {
 	private final long fromDays;
 	private final long toDays;
 
-	AgingRange(long fromDays, long toDays) {
+	AgingRange(final long fromDays, final long toDays) {
 		this.fromDays = fromDays;
 		this.toDays = toDays;
 	}
@@ -32,8 +32,8 @@ public enum AgingRange {
 	}
 
 	/** The range {@code daysOverdue} falls in; {@code empty} for a title that is not due yet (negative days). */
-	public static Optional<AgingRange> of(long daysOverdue) {
-		for (AgingRange range : values()) {
+	public static Optional<AgingRange> of(final long daysOverdue) {
+		for (final AgingRange range : values()) {
 			if (daysOverdue >= range.fromDays && daysOverdue <= range.toDays) {
 				return Optional.of(range);
 			}

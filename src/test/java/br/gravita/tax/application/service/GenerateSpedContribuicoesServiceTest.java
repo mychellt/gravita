@@ -78,7 +78,7 @@ class GenerateSpedContribuicoesServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown company without reading or writing anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrWritingAnything() {
-		CompanyId stranger = CompanyId.of(UUID.randomUUID());
+		final CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new GenerateSpedContribuicoesCommand(stranger, PERIOD)))
@@ -116,7 +116,7 @@ class GenerateSpedContribuicoesServiceTest {
 	@Test
 	@DisplayName("Returns the file the writer produced, named after the company and the period")
 	void returnsTheFileTheWriterProducedNamedAfterTheCompanyAndThePeriod() {
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.txt()).isSameAs(TXT);
 		assertThat(file.companyId()).isEqualTo(companyId);
@@ -131,7 +131,7 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("6102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "100.00", "0.65", "3.00", "2028-02-12T10:00:00Z");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.assessment().taxRegime()).isEqualTo(TaxRegime.LUCRO_REAL);
 		assertThat(file.assessment().incidence()).isEqualTo(Incidence.NON_CUMULATIVE);
@@ -141,7 +141,7 @@ class GenerateSpedContribuicoesServiceTest {
 		assertContribution(file.assessment().pis(), "200.00", "200.00", "3.30", "1.65", "1.65", "0.00", "1.65");
 		assertContribution(file.assessment().cofins(), "200.00", "200.00", "15.20", "7.60", "7.60", "0.00", "7.60");
 
-		List<SpedRecord> m = block(layout(), 'M');
+		final List<SpedRecord> m = block(layout(), 'M');
 		assertThat(registers(m)).containsExactly("M100", "M105", "M200", "M210", "M500", "M505", "M600", "M610");
 		assertThat(fields(m, "M100")).containsExactly("101", "0", "100.00", "1.6500", "", "", "1.65", "0.00", "0.00",
 				"0.00", "1.65", "0", "1.65", "0.00");
@@ -165,11 +165,11 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "600.00", "9.90", "45.60", "2028-02-12T10:00:00Z");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertContribution(file.assessment().pis(), "100.00", "100.00", "1.65", "9.90", "1.65", "8.25", "0.00");
 		assertContribution(file.assessment().cofins(), "100.00", "100.00", "7.60", "45.60", "7.60", "38.00", "0.00");
-		List<SpedRecord> m = block(layout(), 'M');
+		final List<SpedRecord> m = block(layout(), 'M');
 		// Used in part: IND_DESC_CRED 1, the rest is the balance of the credit.
 		assertThat(fields(m, "M100")).containsExactly("101", "0", "600.00", "1.6500", "", "", "9.90", "0.00", "0.00",
 				"0.00", "9.90", "1", "1.65", "8.25");
@@ -184,13 +184,13 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "0.65", "3.00");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "600.00", "9.90", "45.60", "2028-02-12T10:00:00Z");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.assessment().incidence()).isEqualTo(Incidence.CUMULATIVE);
 		assertContribution(file.assessment().pis(), "100.00", "100.00", "0.65", "0.00", "0.00", "0.00", "0.65");
 		assertContribution(file.assessment().cofins(), "100.00", "100.00", "3.00", "0.00", "0.00", "0.00", "3.00");
 
-		List<SpedRecord> m = block(layout(), 'M');
+		final List<SpedRecord> m = block(layout(), 'M');
 		assertThat(registers(m)).containsExactly("M200", "M210", "M600", "M610");
 		assertThat(fields(m, "M200")).containsExactly("0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.65",
 				"0.00", "0.00", "0.65", "0.65");
@@ -210,7 +210,7 @@ class GenerateSpedContribuicoesServiceTest {
 		purchase(InboundNfeStatus.CONFIRMED, "101", "1102", "100.00", "0.00", "0.00", "2028-02-12T10:00:00Z");
 		purchase(InboundNfeStatus.CONFIRMED, "102", "1102", "100.00", "0.00", "7.60", "2028-02-13T10:00:00Z");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		// The third one bore COFINS but not PIS: a credit of the one, not of the other.
 		assertContribution(file.assessment().pis(), "100.00", "100.00", "1.65", "0.00", "0.00", "0.00", "1.65");
@@ -229,7 +229,7 @@ class GenerateSpedContribuicoesServiceTest {
 
 		execute();
 
-		List<SpedRecord> m = block(layout(), 'M');
+		final List<SpedRecord> m = block(layout(), 'M');
 		assertThat(m.stream().filter(record -> record.register().equals("M105")).map(this::stringFields).toList())
 				.containsExactly(List.of("01", "50", "200.00", "0.00", "200.00", "200.00", "", "", ""),
 						List.of("02", "50", "100.00", "0.00", "100.00", "100.00", "", "", ""));
@@ -244,7 +244,7 @@ class GenerateSpedContribuicoesServiceTest {
 		purchase(InboundNfeStatus.PENDING_CONFERENCE, "101", "1102", "999.00", "1.65", "7.60",
 				"2028-02-12T10:00:00Z");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.assessment().entryDocuments()).isEqualTo(1);
 		assertThat(block(layout(), 'C').stream().filter(record -> record.register().equals("C100")).toList())
@@ -259,7 +259,7 @@ class GenerateSpedContribuicoesServiceTest {
 				SpedContribuicoesFixtures.issuedNfe(companyId, "1102", "1", 7L, Instant.parse("2028-02-10T10:00:00Z"),
 						"1.65", "7.60")));
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.assessment().exitDocuments()).isZero();
 		assertThat(file.assessment().entryDocuments()).isEqualTo(1);
@@ -274,10 +274,10 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", null, null);
 		sale("5102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertContribution(file.assessment().pis(), "100.00", "100.00", "1.65", "0.00", "0.00", "0.00", "1.65");
-		List<String> untaxed = itemFields(layout(), 0);
+		final List<String> untaxed = itemFields(layout(), 0);
 		assertThat(untaxed.subList(23, 29)).containsExactly("49", "", "", "", "", "");
 		assertThat(untaxed.subList(29, 35)).containsExactly("49", "", "", "", "", "");
 		assertThat(block(layout(), 'M').stream().filter(record -> record.register().equals("M210"))).hasSize(1);
@@ -289,10 +289,10 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "0.65", "7.60");
 		sale("5102", 13, "2028-02-11T10:00:00Z", "1.65", "7.60");
 
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertContribution(file.assessment().pis(), "200.00", "200.00", "2.30", "0.00", "0.00", "0.00", "2.30");
-		List<SpedRecord> m = block(layout(), 'M');
+		final List<SpedRecord> m = block(layout(), 'M');
 		assertThat(m.stream().filter(record -> record.register().equals("M210")).map(this::stringFields).toList())
 				.containsExactly(
 						List.of("01", "100.00", "100.00", "1.6500", "", "", "1.65", "0.00", "0.00", "0.00", "0.00",
@@ -309,12 +309,12 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "100.00", "1.65", "7.60", "2028-02-11T10:00:00Z");
 
-		SpedLayout layout = layout();
+		final SpedLayout layout = layout();
 
 		assertThat(layout.header().register()).isEqualTo("0000");
 		assertThat(stringFields(layout.header())).containsExactly("006", "0", "", "", "2028-02-01", "2028-02-29", "",
 				"11222333000181", "SP", "", "", "00", "2");
-		List<SpedRecord> zero = block(layout, '0');
+		final List<SpedRecord> zero = block(layout, '0');
 		assertThat(registers(zero)).containsExactly("0110", "0140", "0150", "0150", "0190", "0200", "0200");
 		assertThat(fields(zero, "0140")).containsExactly("11222333000181", "", "11222333000181", "SP", "123456789",
 				"", "987654", "");
@@ -339,7 +339,7 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 9, "2028-02-10T08:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "5", "1102", "100.00", "1.65", "7.60", "2028-02-03T08:00:00Z");
 
-		List<SpedRecord> c = block(layout(), 'C');
+		final List<SpedRecord> c = block(layout(), 'C');
 
 		assertThat(registers(c)).containsExactly("C010", "C100", "C170", "C100", "C170", "C100", "C170");
 		assertThat(c.stream().filter(record -> record.register().equals("C100")).map(record -> stringFields(record)
@@ -352,7 +352,7 @@ class GenerateSpedContribuicoesServiceTest {
 	void writesTheDocumentAndItsItemsWithTheFieldsOfTheLayout() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 
-		List<SpedRecord> c = block(layout(), 'C');
+		final List<SpedRecord> c = block(layout(), 'C');
 
 		assertThat(fields(c, "C100")).containsExactly("1", "0", "11444777000161", "55", "00", "1", "12",
 				String.format("%044d", 12), "2028-02-10", "2028-02-10", "100.00", "9", "0.00", "0.00", "100.00", "9",
@@ -368,9 +368,9 @@ class GenerateSpedContribuicoesServiceTest {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 		purchase(InboundNfeStatus.CONFIRMED, "100", "1102", "600.00", "9.90", "45.60", "2028-02-12T10:00:00Z");
 
-		SpedLayout layout = layout();
+		final SpedLayout layout = layout();
 
-		List<SpedRecord> all = new java.util.ArrayList<>(List.of(layout.header()));
+		final List<SpedRecord> all = new java.util.ArrayList<>(List.of(layout.header()));
 		layout.blocks().forEach(block -> all.addAll(block.records()));
 		assertThat(all).isNotEmpty().allSatisfy(record -> assertThat(record.fields())
 				.as(record.register()).hasSize(FIELDS.get(record.register())));
@@ -383,7 +383,7 @@ class GenerateSpedContribuicoesServiceTest {
 	void writesEveryBlockInOrderLeavingEmptyTheOnesTheModuleHasNothingFor() {
 		sale("5102", 12, "2028-02-10T10:00:00Z", "1.65", "7.60");
 
-		SpedLayout layout = layout();
+		final SpedLayout layout = layout();
 
 		assertThat(layout.blocks()).extracting(SpedBlock::id).containsExactly('0', 'A', 'C', 'D', 'F', 'I', 'M', 'P',
 				'1');
@@ -394,13 +394,13 @@ class GenerateSpedContribuicoesServiceTest {
 	@Test
 	@DisplayName("Writes an empty period as a file with no documents or assessment")
 	void writesAnEmptyPeriodAsAFileWithNoDocumentsOrAssessment() {
-		SpedContribuicoesFile file = execute();
+		final SpedContribuicoesFile file = execute();
 
 		assertThat(file.assessment().exitDocuments()).isZero();
 		assertThat(file.assessment().entryDocuments()).isZero();
 		assertContribution(file.assessment().pis(), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00");
 		assertContribution(file.assessment().cofins(), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00");
-		SpedLayout layout = layout();
+		final SpedLayout layout = layout();
 		assertThat(layout.header().register()).isEqualTo("0000");
 		assertThat(block(layout, 'C')).isEmpty();
 		assertThat(block(layout, 'M')).isEmpty();
@@ -425,27 +425,41 @@ class GenerateSpedContribuicoesServiceTest {
 		return service.execute(new GenerateSpedContribuicoesCommand(companyId, PERIOD));
 	}
 
-	private void company(TaxRegime regime) {
+	private void company(final TaxRegime regime) {
 		company(regime, "4712100");
 	}
 
-	private void company(TaxRegime regime, String cnae) {
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda", Document.cnpj(SUPPLIER),
-				"123456789", "987654", cnae, regime, regime == TaxRegime.SIMPLES_NACIONAL,
-				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null)));
+	private void company(final TaxRegime regime, final String cnae) {
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj(SUPPLIER))
+				.ie("123456789")
+				.im("987654")
+				.cnae(cnae)
+				.taxRegime(regime)
+				.simplesOptante(regime == TaxRegime.SIMPLES_NACIONAL)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build()));
 	}
 
 	private final java.util.ArrayList<br.gravita.core.domain.tax.NfeDocument> issued = new java.util.ArrayList<>();
 	private final java.util.ArrayList<br.gravita.core.domain.tax.InboundNfe> received = new java.util.ArrayList<>();
 
-	private void sale(String cfop, long number, String authorizedAt, String pisRate, String cofinsRate) {
+	private void sale(final String cfop, final long number, final String authorizedAt, final String pisRate, final String cofinsRate) {
 		issued.add(SpedContribuicoesFixtures.issuedNfe(companyId, cfop, "1", number, Instant.parse(authorizedAt),
 				pisRate, cofinsRate));
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.copyOf(issued));
 	}
 
-	private void purchase(InboundNfeStatus status, String number, String cfop, String value, String pis,
-			String cofins, String issuedAt) {
+	private void purchase(final InboundNfeStatus status, final String number, final String cfop, final String value, final String pis,
+			final String cofins, final String issuedAt) {
 		received.add(SpedContribuicoesFixtures.receivedNfe(companyId, status, number, "11.222.333/0001-81",
 				"Fornecedor Alfa", cfop, value, pis, cofins, Instant.parse(issuedAt)));
 		when(inbound.findIssuedByCompanyBetween(any(), any(), any())).thenReturn(List.copyOf(received));
@@ -457,7 +471,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	private SpedLayout lastLayout0() {
-		ArgumentCaptor<SpedLayout> captor = ArgumentCaptor.forClass(SpedLayout.class);
+		final ArgumentCaptor<SpedLayout> captor = ArgumentCaptor.forClass(SpedLayout.class);
 		org.mockito.Mockito.verify(sped, org.mockito.Mockito.atLeastOnce()).generate(captor.capture());
 		return captor.getValue();
 	}
@@ -466,26 +480,26 @@ class GenerateSpedContribuicoesServiceTest {
 		return lastLayout0().header();
 	}
 
-	private static List<SpedRecord> block(SpedLayout layout, char id) {
+	private static List<SpedRecord> block(final SpedLayout layout, final char id) {
 		return layout.blocks().stream().filter(block -> block.id() == id).findFirst().orElseThrow().records();
 	}
 
-	private static List<String> registers(List<SpedRecord> records) {
+	private static List<String> registers(final List<SpedRecord> records) {
 		return records.stream().map(SpedRecord::register).toList();
 	}
 
-	private List<String> fields(List<SpedRecord> records, String register) {
+	private List<String> fields(final List<SpedRecord> records, final String register) {
 		return stringFields(records.stream().filter(record -> record.register().equals(register)).findFirst()
 				.orElseThrow());
 	}
 
 	/** The fields of the {@code index}-th (from 0) C170, in the order of the layout. */
-	private List<String> itemFields(SpedLayout layout, int index) {
+	private List<String> itemFields(final SpedLayout layout, final int index) {
 		return stringFields(block(layout, 'C').stream().filter(record -> record.register().equals("C170"))
 				.toList().get(index));
 	}
 
-	private List<String> stringFields(SpedRecord record) {
+	private List<String> stringFields(final SpedRecord record) {
 		return record.fields().stream().map(field -> switch (field) {
 			case null -> "";
 			case BigDecimal amount -> amount.toPlainString();
@@ -493,8 +507,8 @@ class GenerateSpedContribuicoesServiceTest {
 		}).collect(Collectors.toList());
 	}
 
-	private static void assertContribution(Contribution contribution, String revenue, String base, String levied,
-			String credit, String used, String balance, String payable) {
+	private static void assertContribution(final Contribution contribution, final String revenue, final String base, final String levied,
+			final String credit, final String used, final String balance, final String payable) {
 		assertThat(contribution.revenue()).isEqualTo(new BigDecimal(revenue));
 		assertThat(contribution.base()).isEqualTo(new BigDecimal(base));
 		assertThat(contribution.contribution()).isEqualTo(new BigDecimal(levied));

@@ -46,16 +46,16 @@ class CloseDailyCashServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		Clock clock = Clock.fixed(Instant.parse("2026-09-30T10:00:00Z"), ZoneOffset.UTC);
+		final Clock clock = Clock.fixed(Instant.parse("2026-09-30T10:00:00Z"), ZoneOffset.UTC);
 		service = new CloseDailyCashService(internalCashBoxRepositoryPort, clock);
 	}
 
-	private static CashMovement movement(CashMovementDirection direction, String amount, String at) {
+	private static CashMovement movement(final CashMovementDirection direction, final String amount, final String at) {
 		return CashMovement.of(CashMovementId.of(UUID.randomUUID()), InternalCashBoxId.MAIN, direction,
 				new BigDecimal(amount), "Reason", Instant.parse(at));
 	}
 
-	private void boxWithBalance(String balance, CashMovement... fromDayStart) {
+	private void boxWithBalance(final String balance, final CashMovement... fromDayStart) {
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN))
 				.thenReturn(Optional.of(InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal(balance))));
 		when(internalCashBoxRepositoryPort.findMovementsFrom(InternalCashBoxId.MAIN, DAY_START))
@@ -70,7 +70,7 @@ class CloseDailyCashServiceTest {
 				movement(CashMovementDirection.FROM_BANK, "60.00", "2026-09-28T09:00:00Z"),
 				movement(CashMovementDirection.TO_BANK, "25.00", "2026-09-28T17:30:00Z"));
 
-		DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
+		final DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
 
 		assertThat(closing.getEntries()).isEqualByComparingTo("60.00");
 		assertThat(closing.getExits()).isEqualByComparingTo("25.00");
@@ -87,7 +87,7 @@ class CloseDailyCashServiceTest {
 				movement(CashMovementDirection.FROM_BANK, "40.00", "2026-09-28T23:59:59Z"),
 				movement(CashMovementDirection.TO_BANK, "30.00", "2026-09-29T00:00:00Z"));
 
-		DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
+		final DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
 
 		assertThat(closing.getOpeningBalance()).isEqualByComparingTo("100.00");
 		assertThat(closing.getEntries()).isEqualByComparingTo("40.00");
@@ -100,8 +100,8 @@ class CloseDailyCashServiceTest {
 	@DisplayName("Uses the prior day's closing balance as the opening balance")
 	void openingBalanceEqualsThePriorDaysClosingBalance() {
 		// Box moves: 27th: +50 (opening 20, closing 70); 28th: -10 (opening 70, closing 60)
-		CashMovement dayBefore = movement(CashMovementDirection.FROM_BANK, "50.00", "2026-09-27T10:00:00Z");
-		CashMovement day = movement(CashMovementDirection.TO_BANK, "10.00", "2026-09-28T10:00:00Z");
+		final CashMovement dayBefore = movement(CashMovementDirection.FROM_BANK, "50.00", "2026-09-27T10:00:00Z");
+		final CashMovement day = movement(CashMovementDirection.TO_BANK, "10.00", "2026-09-28T10:00:00Z");
 		when(internalCashBoxRepositoryPort.findByIdForUpdate(InternalCashBoxId.MAIN))
 				.thenReturn(Optional.of(InternalCashBox.of(InternalCashBoxId.MAIN, new BigDecimal("60.00"))));
 		when(internalCashBoxRepositoryPort.findMovementsFrom(InternalCashBoxId.MAIN, DAY_START))
@@ -109,9 +109,9 @@ class CloseDailyCashServiceTest {
 		when(internalCashBoxRepositoryPort.findMovementsFrom(InternalCashBoxId.MAIN,
 				Instant.parse("2026-09-27T00:00:00Z"))).thenReturn(List.of(dayBefore, day));
 
-		DailyClosing previous = service
+		final DailyClosing previous = service
 				.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY.minusDays(1)));
-		DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
+		final DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
 
 		assertThat(previous.getClosingBalance()).isEqualByComparingTo("70.00");
 		assertThat(closing.getOpeningBalance()).isEqualByComparingTo(previous.getClosingBalance());
@@ -119,10 +119,10 @@ class CloseDailyCashServiceTest {
 
 	@Test
 	@DisplayName("Keeps the balance unchanged on a day without movements")
-	void aDayWithoutMovementsKeepsTheBalance() {
+	void dayWithoutMovementsKeepsTheBalance() {
 		boxWithBalance("80.00");
 
-		DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
+		final DailyClosing closing = service.execute(new CloseDailyCashCommand(InternalCashBoxId.MAIN, DAY));
 
 		assertThat(closing.getOpeningBalance()).isEqualByComparingTo("80.00");
 		assertThat(closing.getClosingBalance()).isEqualByComparingTo("80.00");

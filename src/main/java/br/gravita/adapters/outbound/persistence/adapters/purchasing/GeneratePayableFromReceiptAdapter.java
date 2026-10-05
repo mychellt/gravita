@@ -18,13 +18,13 @@ class GeneratePayableFromReceiptAdapter implements GeneratePayableFromReceiptPor
 
 	private final GeneratePayableFromReceiptUseCase generatePayableFromReceiptUseCase;
 
-	GeneratePayableFromReceiptAdapter(GeneratePayableFromReceiptUseCase generatePayableFromReceiptUseCase) {
+	GeneratePayableFromReceiptAdapter(final GeneratePayableFromReceiptUseCase generatePayableFromReceiptUseCase) {
 		this.generatePayableFromReceiptUseCase = generatePayableFromReceiptUseCase;
 	}
 
 	@Override
-	public void generatePayables(GeneratePayableFromReceiptCommand command) {
-		List<Installment> installments = command.installments().stream()
+	public void generatePayables(final GeneratePayableFromReceiptCommand command) {
+		final List<Installment> installments = command.installments().stream()
 				.map(installment -> new Installment(installment.dueDate(), installment.amount())).toList();
 		generatePayableFromReceiptUseCase.execute(
 				new br.gravita.core.ports.inbound.finance.GeneratePayableFromReceiptCommand(command.supplierId(),

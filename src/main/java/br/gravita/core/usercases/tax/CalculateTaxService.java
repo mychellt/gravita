@@ -22,40 +22,40 @@ public class CalculateTaxService implements CalculateTaxUseCase {
 	private final TaxEngine taxEngine;
 
 	@Autowired
-	public CalculateTaxService(ProductTaxProfileRepositoryPort productTaxProfileRepositoryPort,
-			TaxRuleTableRepositoryPort taxRuleTableRepositoryPort) {
+	public CalculateTaxService(final ProductTaxProfileRepositoryPort productTaxProfileRepositoryPort,
+			final TaxRuleTableRepositoryPort taxRuleTableRepositoryPort) {
 		this(productTaxProfileRepositoryPort, taxRuleTableRepositoryPort, new TaxEngine());
 	}
 
-	CalculateTaxService(ProductTaxProfileRepositoryPort productTaxProfileRepositoryPort,
-			TaxRuleTableRepositoryPort taxRuleTableRepositoryPort, TaxEngine taxEngine) {
+	CalculateTaxService(final ProductTaxProfileRepositoryPort productTaxProfileRepositoryPort,
+			final TaxRuleTableRepositoryPort taxRuleTableRepositoryPort, final TaxEngine taxEngine) {
 		this.productTaxProfileRepositoryPort = productTaxProfileRepositoryPort;
 		this.taxRuleTableRepositoryPort = taxRuleTableRepositoryPort;
 		this.taxEngine = taxEngine;
 	}
 
 	@Override
-	public TaxCalculationResult execute(CalculateTaxCommand command) {
-		List<TaxOverrideInput> overrides = command.overrides().stream()
+	public TaxCalculationResult execute(final CalculateTaxCommand command) {
+		final List<TaxOverrideInput> overrides = command.overrides().stream()
 				.map(o -> new TaxOverrideInput(o.itemIndex(), o.tax(), o.value(), o.justification()))
 				.toList();
 
-		List<TaxItemCommand> items = command.items();
-		List<ItemTaxBreakdown> breakdowns = new ArrayList<>(items.size());
+		final List<TaxItemCommand> items = command.items();
+		final List<ItemTaxBreakdown> breakdowns = new ArrayList<>(items.size());
 		for (int itemIndex = 0; itemIndex < items.size(); itemIndex++) {
-			int currentItemIndex = itemIndex;
-			TaxItemCommand item = items.get(itemIndex);
-			ProductTaxProfile profile = productTaxProfileRepositoryPort.findByProductRef(item.productRef())
+			final int currentItemIndex = itemIndex;
+			final TaxItemCommand item = items.get(itemIndex);
+			final ProductTaxProfile profile = productTaxProfileRepositoryPort.findByProductRef(item.productRef())
 					.orElseThrow(() -> new TaxDomainException(
 							"No tax profile registered for product " + item.productRef()));
 
-			TaxRateQuery query = new TaxRateQuery(profile.ncm(), command.originState(), command.destinationState(),
+			final TaxRateQuery query = new TaxRateQuery(profile.ncm(), command.originState(), command.destinationState(),
 					command.taxRegime(), command.operationType());
-			List<TaxRateRule> applicableRates = taxRuleTableRepositoryPort.findApplicableRates(query);
+			final List<TaxRateRule> applicableRates = taxRuleTableRepositoryPort.findApplicableRates(query);
 
-			ItemTaxInput input = new ItemTaxInput(itemIndex, item.productRef(), item.quantity(), item.unitPrice(),
+			final ItemTaxInput input = new ItemTaxInput(itemIndex, item.productRef(), item.quantity(), item.unitPrice(),
 					applicableRates);
-			List<TaxOverrideInput> overridesForItem = overrides.stream()
+			final List<TaxOverrideInput> overridesForItem = overrides.stream()
 					.filter(override -> override.itemIndex() == currentItemIndex)
 					.toList();
 

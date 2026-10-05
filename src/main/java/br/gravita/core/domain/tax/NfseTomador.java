@@ -28,12 +28,12 @@ public record NfseTomador(PersonRef personRef, Document document, String name, S
 		}
 	}
 
-	public static NfseTomador of(PersonRef personRef, String documentNumber, PersonType personType, String name,
-			String municipalityIbgeCode, TomadorAddress address) {
+	public static NfseTomador of(final PersonRef personRef, final String documentNumber, final PersonType personType, final String name,
+			final String municipalityIbgeCode, final TomadorAddress address) {
 		if (personType == null) {
 			throw new BusinessRuleException("Tomador personType is required");
 		}
-		Document document = personType == PersonType.COMPANY ? Document.cnpj(documentNumber)
+		final Document document = personType == PersonType.COMPANY ? Document.cnpj(documentNumber)
 				: Document.cpf(documentNumber);
 		return new NfseTomador(personRef, document, name, municipalityIbgeCode, address);
 	}

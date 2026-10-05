@@ -13,8 +13,8 @@ public final class FollowUpRule {
 	private final boolean notifyOwner;
 	private final boolean active;
 
-	public FollowUpRule(FollowUpRuleId id, int daysWithoutContact, FollowUpTarget target, boolean notifyOwner,
-			boolean active) {
+	public FollowUpRule(final FollowUpRuleId id, final int daysWithoutContact, final FollowUpTarget target, final boolean notifyOwner,
+			final boolean active) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.daysWithoutContact = requirePositive(daysWithoutContact);
 		this.target = Objects.requireNonNull(target, "target is required");
@@ -22,13 +22,13 @@ public final class FollowUpRule {
 		this.active = active;
 	}
 
-	public static FollowUpRule of(FollowUpRuleId id, int daysWithoutContact, FollowUpTarget target,
-			boolean notifyOwner, boolean active) {
+	public static FollowUpRule of(final FollowUpRuleId id, final int daysWithoutContact, final FollowUpTarget target,
+			final boolean notifyOwner, final boolean active) {
 		return new FollowUpRule(id, daysWithoutContact, target, notifyOwner, active);
 	}
 
-	public FollowUpRule withUpdatedFields(Integer daysWithoutContact, FollowUpTarget target, Boolean notifyOwner,
-			Boolean active) {
+	public FollowUpRule withUpdatedFields(final Integer daysWithoutContact, final FollowUpTarget target, final Boolean notifyOwner,
+			final Boolean active) {
 		return new FollowUpRule(id,
 				daysWithoutContact != null ? daysWithoutContact : this.daysWithoutContact,
 				target != null ? target : this.target,
@@ -36,7 +36,7 @@ public final class FollowUpRule {
 				active != null ? active : this.active);
 	}
 
-	private static int requirePositive(int daysWithoutContact) {
+	private static int requirePositive(final int daysWithoutContact) {
 		if (daysWithoutContact <= 0) {
 			throw new BusinessRuleException("daysWithoutContact must be a positive integer: " + daysWithoutContact);
 		}

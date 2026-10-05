@@ -36,11 +36,11 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 	private static final String DATE_FORMAT = "dd/mm/yyyy";
 
 	@Override
-	public byte[] render(ExcelWorkbook workbook) {
+	public byte[] render(final ExcelWorkbook workbook) {
 		try (XSSFWorkbook xlsx = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-			Styles styles = new Styles(xlsx);
-			Set<String> usedNames = new HashSet<>();
-			for (Sheet sheet : workbook.sheets()) {
+			final Styles styles = new Styles(xlsx);
+			final Set<String> usedNames = new HashSet<>();
+			for (final Sheet sheet : workbook.sheets()) {
 				writeSheet(xlsx, styles, workbook, sheet, uniqueName(sheet.name(), usedNames));
 			}
 			if (workbook.sheets().isEmpty()) {
@@ -48,48 +48,48 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 			}
 			xlsx.write(out);
 			return out.toByteArray();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new UncheckedIOException("Failed to render the Excel report " + workbook.title(), e);
 		}
 	}
 
-	private void writeSheet(Workbook xlsx, Styles styles, ExcelWorkbook workbook, Sheet sheet, String name) {
-		org.apache.poi.ss.usermodel.Sheet worksheet = xlsx.createSheet(name);
-		int[] widths = new int[sheet.columns().size()];
+	private void writeSheet(final Workbook xlsx, final Styles styles, final ExcelWorkbook workbook, final Sheet sheet, final String name) {
+		final org.apache.poi.ss.usermodel.Sheet worksheet = xlsx.createSheet(name);
+		final int[] widths = new int[sheet.columns().size()];
 		int rowIndex = 0;
 		text(worksheet.createRow(rowIndex++), 0, workbook.title(), styles.title());
-		for (String line : workbook.headerLines()) {
+		for (final String line : workbook.headerLines()) {
 			text(worksheet.createRow(rowIndex++), 0, line, null);
 		}
 		rowIndex++;
-		int headerRow = rowIndex++;
-		Row header = worksheet.createRow(headerRow);
+		final int headerRow = rowIndex++;
+		final Row header = worksheet.createRow(headerRow);
 		for (int i = 0; i < widths.length; i++) {
 			text(header, i, sheet.columns().get(i), styles.header());
 			widths[i] = sheet.columns().get(i).length();
 		}
-		for (List<Object> values : sheet.rows()) {
-			Row row = worksheet.createRow(rowIndex++);
+		for (final List<Object> values : sheet.rows()) {
+			final Row row = worksheet.createRow(rowIndex++);
 			for (int i = 0; i < widths.length; i++) {
 				widths[i] = Math.max(widths[i], write(row, i, values.get(i), styles));
 			}
 		}
 		if (!sheet.footerLines().isEmpty()) {
 			rowIndex++;
-			for (String line : sheet.footerLines()) {
+			for (final String line : sheet.footerLines()) {
 				text(worksheet.createRow(rowIndex++), 0, line, styles.header());
 			}
 		}
 		for (int i = 0; i < widths.length; i++) {
-			int chars = Math.min(MAX_COLUMN_CHARS, Math.max(MIN_COLUMN_CHARS, widths[i] + 2));
+			final int chars = Math.min(MAX_COLUMN_CHARS, Math.max(MIN_COLUMN_CHARS, widths[i] + 2));
 			worksheet.setColumnWidth(i, chars * 256);
 		}
 		worksheet.createFreezePane(0, headerRow + 1);
 	}
 
 	/** Writes one cell and returns how many characters wide it is shown. */
-	private int write(Row row, int column, Object value, Styles styles) {
-		Cell cell = row.createCell(column);
+	private int write(final Row row, final int column, final Object value, final Styles styles) {
+		final Cell cell = row.createCell(column);
 		switch (value) {
 			case null -> {
 				return 0;
@@ -109,15 +109,15 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 				return DATE_FORMAT.length();
 			}
 			default -> {
-				String text = value.toString();
+				final String text = value.toString();
 				cell.setCellValue(text);
 				return text.length();
 			}
 		}
 	}
 
-	private static void text(Row row, int column, String value, CellStyle style) {
-		Cell cell = row.createCell(column);
+	private static void text(final Row row, final int column, final String value, final CellStyle style) {
+		final Cell cell = row.createCell(column);
 		cell.setCellValue(value);
 		if (style != null) {
 			cell.setCellStyle(style);
@@ -125,17 +125,17 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 	}
 
 	/** Excel allows 31 characters and none of {@code : \ / ? * [ ]}; a repeated name gets a numeric suffix. */
-	private static String uniqueName(String wanted, Set<String> used) {
-		String base = sanitize(wanted);
+	private static String uniqueName(final String wanted, final Set<String> used) {
+		final String base = sanitize(wanted);
 		String name = base;
 		for (int suffix = 2; !used.add(name.toLowerCase()); suffix++) {
-			String tail = " (" + suffix + ")";
+			final String tail = " (" + suffix + ")";
 			name = base.substring(0, Math.min(base.length(), MAX_SHEET_NAME - tail.length())) + tail;
 		}
 		return name;
 	}
 
-	private static String sanitize(String wanted) {
+	private static String sanitize(final String wanted) {
 		String name = (wanted == null ? "" : wanted).replaceAll("[:\\\\/?*\\[\\]]", " ").strip();
 		name = name.replaceAll("^'+|'+$", "");
 		if (name.isEmpty()) {
@@ -152,11 +152,11 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 		private final CellStyle date;
 		private final Map<Integer, CellStyle> numbers = new HashMap<>();
 
-		Styles(Workbook workbook) {
+		Styles(final Workbook workbook) {
 			this.workbook = workbook;
 			this.title = bold(14);
 			this.header = bold(10);
-			CreationHelper helper = workbook.getCreationHelper();
+			final CreationHelper helper = workbook.getCreationHelper();
 			this.date = workbook.createCellStyle();
 			this.date.setDataFormat(helper.createDataFormat().getFormat(DATE_FORMAT));
 		}
@@ -174,21 +174,21 @@ public class PoiExcelReportAdapter implements RenderExcelPort {
 		}
 
 		/** An amount shows with the decimals it was reported with, and a thousands separator. */
-		CellStyle number(int scale) {
-			int decimals = Math.max(0, scale);
+		CellStyle number(final int scale) {
+			final int decimals = Math.max(0, scale);
 			return numbers.computeIfAbsent(decimals, key -> {
-				CellStyle style = workbook.createCellStyle();
-				String format = key == 0 ? "#,##0" : "#,##0." + "0".repeat(key);
+				final CellStyle style = workbook.createCellStyle();
+				final String format = key == 0 ? "#,##0" : "#,##0." + "0".repeat(key);
 				style.setDataFormat(workbook.getCreationHelper().createDataFormat().getFormat(format));
 				return style;
 			});
 		}
 
-		private CellStyle bold(int size) {
-			Font font = workbook.createFont();
+		private CellStyle bold(final int size) {
+			final Font font = workbook.createFont();
 			font.setBold(true);
 			font.setFontHeightInPoints((short) size);
-			CellStyle style = workbook.createCellStyle();
+			final CellStyle style = workbook.createCellStyle();
 			style.setFont(font);
 			return style;
 		}

@@ -9,7 +9,7 @@ public record PhysicalCountId(UUID value) {
 		Objects.requireNonNull(value, "PhysicalCountId value is required");
 	}
 
-	public static PhysicalCountId of(UUID value) {
+	public static PhysicalCountId of(final UUID value) {
 		return new PhysicalCountId(value);
 	}
 }

@@ -20,8 +20,8 @@ public class VoidNumberRangeController {
 	private final VoidDocumentNumberRangeUseCase voidDocumentNumberRangeUseCase;
 
 	@PostMapping
-	public ResponseEntity<VoidNumberRangeResponse> voidRange(@Valid @RequestBody VoidNumberRangeRequest request) {
-		VoidedNumberRange voidedNumberRange = voidDocumentNumberRangeUseCase.execute(request.toCommand());
+	public ResponseEntity<VoidNumberRangeResponse> voidRange(@Valid @RequestBody final VoidNumberRangeRequest request) {
+		final VoidedNumberRange voidedNumberRange = voidDocumentNumberRangeUseCase.execute(request.toCommand());
 		return ResponseEntity.ok(VoidNumberRangeResponse.from(voidedNumberRange));
 	}
 }

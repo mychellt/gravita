@@ -65,30 +65,30 @@ class RenegotiateTitleServiceTest {
 				.thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private Receivable receivable(UUID customer, ReceivableStatus status, LocalDate dueDate, String amount) {
+	private Receivable receivable(final UUID customer, final ReceivableStatus status, final LocalDate dueDate, final String amount) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), customer, ReceivableOrigin.INVOICING,
 				new BigDecimal(amount), dueDate, null, status, UUID.randomUUID(), 1);
 	}
 
-	private Receivable overdue(String amount) {
+	private Receivable overdue(final String amount) {
 		return found(unstubbedOverdue(amount));
 	}
 
-	private Receivable unstubbedOverdue(String amount) {
+	private Receivable unstubbedOverdue(final String amount) {
 		return receivable(customerId, ReceivableStatus.OPEN, today.minusDays(10), amount);
 	}
 
-	private Receivable found(Receivable receivable) {
+	private Receivable found(final Receivable receivable) {
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		return receivable;
 	}
 
-	private RenegotiateTitleCommand command(List<Receivable> originals, Installment... plan) {
+	private RenegotiateTitleCommand command(final List<Receivable> originals, final Installment... plan) {
 		return new RenegotiateTitleCommand(originals.stream().map(r -> r.getId().value()).toList(), List.of(plan));
 	}
 
 	private List<Receivable> savedReceivables() {
-		ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
+		final ArgumentCaptor<Receivable> saved = ArgumentCaptor.forClass(Receivable.class);
 		verify(receivableRepositoryPort, atLeastOnce()).save(saved.capture());
 		return saved.getAllValues();
 	}
@@ -96,17 +96,17 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Marks the original titles as renegotiated and creates one open receivable per installment")
 	void marksTheOriginalsRenegotiatedAndCreatesOneOpenReceivablePerInstallment() {
-		Receivable first = overdue("100.00");
-		Receivable second = overdue("50.00");
+		final Receivable first = overdue("100.00");
+		final Receivable second = overdue("50.00");
 
-		Renegotiation renegotiation = service.execute(command(List.of(first, second),
+		final Renegotiation renegotiation = service.execute(command(List.of(first, second),
 				new Installment(today.plusDays(30), new BigDecimal("80.00")),
 				new Installment(today.plusDays(60), new BigDecimal("80.00"))));
 
-		List<Receivable> saved = savedReceivables();
+		final List<Receivable> saved = savedReceivables();
 		assertThat(saved).filteredOn(r -> r.getStatus() == ReceivableStatus.RENEGOTIATED)
 				.extracting(Receivable::getId).containsExactly(first.getId(), second.getId());
-		List<Receivable> created = saved.stream().filter(r -> r.getStatus() == ReceivableStatus.OPEN).toList();
+		final List<Receivable> created = saved.stream().filter(r -> r.getStatus() == ReceivableStatus.OPEN).toList();
 		assertThat(created).hasSize(2);
 		assertThat(created).allSatisfy(r -> {
 			assertThat(r.getOrigin()).isEqualTo(ReceivableOrigin.RENEGOTIATION);
@@ -125,10 +125,10 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Links the renegotiation back to the original titles")
 	void theRenegotiationLinksBackToTheOriginalTitles() {
-		Receivable first = overdue("100.00");
-		Receivable second = overdue("50.00");
+		final Receivable first = overdue("100.00");
+		final Receivable second = overdue("50.00");
 
-		Renegotiation renegotiation = service.execute(command(List.of(first, second),
+		final Renegotiation renegotiation = service.execute(command(List.of(first, second),
 				new Installment(today.plusDays(30), new BigDecimal("150.00"))));
 
 		assertThat(renegotiation.getCustomerId()).isEqualTo(customerId);
@@ -139,11 +139,11 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Refreshes the customer's credit status once everything is saved")
 	void refreshesTheCustomersCreditStatusOnceEverythingIsSaved() {
-		Receivable original = overdue("100.00");
+		final Receivable original = overdue("100.00");
 
 		service.execute(command(List.of(original), new Installment(today.plusDays(30), new BigDecimal("100.00"))));
 
-		InOrder inOrder = inOrder(receivableRepositoryPort, renegotiationRepositoryPort,
+		final InOrder inOrder = inOrder(receivableRepositoryPort, renegotiationRepositoryPort,
 				updateCustomerCreditStatusPort);
 		inOrder.verify(receivableRepositoryPort, atLeastOnce()).save(any(Receivable.class));
 		inOrder.verify(renegotiationRepositoryPort).save(any(Renegotiation.class));
@@ -153,7 +153,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects a title that is not overdue without writing anything")
 	void rejectsATitleThatIsNotOverdueWithoutWritingAnything() {
-		Receivable notDue = found(receivable(customerId, ReceivableStatus.OPEN, today.plusDays(5), "100.00"));
+		final Receivable notDue = found(receivable(customerId, ReceivableStatus.OPEN, today.plusDays(5), "100.00"));
 
 		assertThatThrownBy(() -> service.execute(
 				command(List.of(notDue), new Installment(today.plusDays(30), new BigDecimal("100.00")))))
@@ -166,7 +166,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects a title that was already renegotiated")
 	void rejectsAnAlreadyRenegotiatedTitle() {
-		Receivable done = found(receivable(customerId, ReceivableStatus.RENEGOTIATED, today.minusDays(5), "100.00"));
+		final Receivable done = found(receivable(customerId, ReceivableStatus.RENEGOTIATED, today.minusDays(5), "100.00"));
 
 		assertThatThrownBy(() -> service.execute(
 				command(List.of(done), new Installment(today.plusDays(30), new BigDecimal("100.00")))))
@@ -178,7 +178,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown receivable")
 	void rejectsAnUnknownReceivable() {
-		UUID unknown = UUID.randomUUID();
+		final UUID unknown = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(unknown))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new RenegotiateTitleCommand(List.of(unknown),
@@ -191,8 +191,8 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects titles that belong to different customers")
 	void rejectsTitlesOfDifferentCustomers() {
-		Receivable mine = overdue("100.00");
-		Receivable other = found(receivable(UUID.randomUUID(), ReceivableStatus.OPEN, today.minusDays(4), "10.00"));
+		final Receivable mine = overdue("100.00");
+		final Receivable other = found(receivable(UUID.randomUUID(), ReceivableStatus.OPEN, today.minusDays(4), "10.00"));
 
 		assertThatThrownBy(() -> service.execute(command(List.of(mine, other),
 				new Installment(today.plusDays(30), new BigDecimal("110.00")))))
@@ -204,8 +204,8 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects the same title listed twice")
 	void rejectsTheSameTitleTwice() {
-		Receivable original = unstubbedOverdue("100.00");
-		RenegotiateTitleCommand twice = new RenegotiateTitleCommand(
+		final Receivable original = unstubbedOverdue("100.00");
+		final RenegotiateTitleCommand twice = new RenegotiateTitleCommand(
 				List.of(original.getId().value(), original.getId().value()),
 				List.of(new Installment(today.plusDays(30), BigDecimal.TEN)));
 
@@ -215,7 +215,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Requires an installment plan and at least one title")
 	void requiresAnInstallmentPlanAndAtLeastOneTitle() {
-		Receivable original = unstubbedOverdue("100.00");
+		final Receivable original = unstubbedOverdue("100.00");
 
 		assertThatThrownBy(() -> service.execute(command(List.of(original))))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("installment");
@@ -229,7 +229,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects an installment whose due date has already passed")
 	void rejectsAnInstallmentThatIsAlreadyDue() {
-		Receivable original = overdue("100.00");
+		final Receivable original = overdue("100.00");
 
 		assertThatThrownBy(() -> service.execute(
 				command(List.of(original), new Installment(today.minusDays(1), new BigDecimal("100.00")))))
@@ -241,7 +241,7 @@ class RenegotiateTitleServiceTest {
 	@Test
 	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
-		Receivable original = overdue("100.00");
+		final Receivable original = overdue("100.00");
 
 		assertThatThrownBy(() -> service.execute(
 				command(List.of(original), new Installment(today.plusDays(30), BigDecimal.ZERO))))

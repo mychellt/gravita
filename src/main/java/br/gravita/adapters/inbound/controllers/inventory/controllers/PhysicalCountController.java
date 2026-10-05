@@ -28,23 +28,23 @@ public class PhysicalCountController {
     private final ApprovePhysicalCountUseCase approvePhysicalCountUseCase;
 
     @PostMapping
-    public ResponseEntity<StartPhysicalCountResponse> start(@Valid @RequestBody StartPhysicalCountRequest request) {
-        PhysicalCount physicalCount = startPhysicalCountUseCase.execute(request.toCommand());
+    public ResponseEntity<StartPhysicalCountResponse> start(@Valid @RequestBody final StartPhysicalCountRequest request) {
+        final PhysicalCount physicalCount = startPhysicalCountUseCase.execute(request.toCommand());
         return ResponseEntity.created(URI.create("/api/inventory/counts/" + physicalCount.getId().value()))
                 .body(StartPhysicalCountResponse.from(physicalCount));
     }
 
     @PostMapping("/{id}/submit")
-    public ResponseEntity<SubmitPhysicalCountResponse> submit(@PathVariable UUID id,
-            @Valid @RequestBody SubmitPhysicalCountRequest request) {
-        PhysicalCount physicalCount = submitPhysicalCountUseCase.execute(request.toCommand(id));
+    public ResponseEntity<SubmitPhysicalCountResponse> submit(@PathVariable final UUID id,
+            @Valid @RequestBody final SubmitPhysicalCountRequest request) {
+        final PhysicalCount physicalCount = submitPhysicalCountUseCase.execute(request.toCommand(id));
         return ResponseEntity.ok(SubmitPhysicalCountResponse.from(physicalCount));
     }
 
     @PostMapping("/{id}/approve")
-    public ResponseEntity<ApprovePhysicalCountResponse> approve(@PathVariable UUID id,
-            @Valid @RequestBody ApprovePhysicalCountRequest request) {
-        PhysicalCount physicalCount = approvePhysicalCountUseCase.execute(request.toCommand(id));
+    public ResponseEntity<ApprovePhysicalCountResponse> approve(@PathVariable final UUID id,
+            @Valid @RequestBody final ApprovePhysicalCountRequest request) {
+        final PhysicalCount physicalCount = approvePhysicalCountUseCase.execute(request.toCommand(id));
         return ResponseEntity.ok(ApprovePhysicalCountResponse.from(physicalCount));
     }
 }

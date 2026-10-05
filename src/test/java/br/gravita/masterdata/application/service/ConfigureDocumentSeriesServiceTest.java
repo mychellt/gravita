@@ -36,15 +36,15 @@ class ConfigureDocumentSeriesServiceTest {
 	@Test
 	@DisplayName("Configures the series on first setup")
 	void shouldConfigureSeriesOnFirstSetup() {
-		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
-		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
+		final ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
+		final DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.of(placeholder));
 		when(documentSeriesRepositoryPort.save(any(DocumentSeries.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new ConfigureDocumentSeriesCommand(COMPANY_ID, FiscalDocumentType.NFE, "001", 1000L));
 
-		ArgumentCaptor<DocumentSeries> captor = ArgumentCaptor.forClass(DocumentSeries.class);
+		final ArgumentCaptor<DocumentSeries> captor = ArgumentCaptor.forClass(DocumentSeries.class);
 		verify(documentSeriesRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getSeries()).isEqualTo("001");
 		assertThat(captor.getValue().getNextNumber()).isEqualTo(1000L);
@@ -53,8 +53,8 @@ class ConfigureDocumentSeriesServiceTest {
 	@Test
 	@DisplayName("Rejects decreasing the next number once already configured")
 	void shouldRejectDecreasingNextNumberOnceAlreadyConfigured() {
-		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 500L);
+		final ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFCE).reconfigure("001", 500L);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFCE))
 				.thenReturn(Optional.of(configured));
 
@@ -68,7 +68,7 @@ class ConfigureDocumentSeriesServiceTest {
 	@Test
 	@DisplayName("Throws when the series row does not exist")
 	void shouldThrowWhenSeriesRowDoesNotExist() {
-		ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
+		final ConfigureDocumentSeriesService service = new ConfigureDocumentSeriesService(documentSeriesRepositoryPort);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFSE))
 				.thenReturn(Optional.empty());
 

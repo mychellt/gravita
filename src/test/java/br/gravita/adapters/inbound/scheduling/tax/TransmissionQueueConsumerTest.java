@@ -67,21 +67,21 @@ class TransmissionQueueConsumerTest {
 
 	@Test
 	@DisplayName("Reschedules the entry with exponential backoff on a timeout instead of failing it immediately")
-	void ac2_aTimeoutReschedulesTheEntryWithExponentialBackoffInsteadOfFailingItImmediately() {
+	void ac2ATimeoutReschedulesTheEntryWithExponentialBackoffInsteadOfFailingItImmediately() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 1, Instant.now());
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 1, Instant.now());
 
 		consumer.processEntry(entry);
 
-		ArgumentCaptor<Instant> nextRetryCaptor = ArgumentCaptor.forClass(Instant.class);
+		final ArgumentCaptor<Instant> nextRetryCaptor = ArgumentCaptor.forClass(Instant.class);
 		verify(transmissionQueuePort).reschedule(eq(documentId.value()), eq(2), nextRetryCaptor.capture());
 		assertThat(nextRetryCaptor.getValue()).isAfter(Instant.now());
 	}
 
 	@Test
 	@DisplayName("Grows the backoff delay exponentially with each attempt up to the configured cap")
-	void ac2_theBackoffDelayGrowsExponentiallyWithEachAttemptUpToTheConfiguredCap() {
+	void ac2TheBackoffDelayGrowsExponentiallyWithEachAttemptUpToTheConfiguredCap() {
 		assertThat(TransmissionQueueConsumer.backoff(1)).isEqualTo(TransmissionQueueConsumer.BASE_BACKOFF);
 		assertThat(TransmissionQueueConsumer.backoff(2)).isEqualTo(TransmissionQueueConsumer.BASE_BACKOFF.multipliedBy(2));
 		assertThat(TransmissionQueueConsumer.backoff(3)).isEqualTo(TransmissionQueueConsumer.BASE_BACKOFF.multipliedBy(4));
@@ -90,27 +90,27 @@ class TransmissionQueueConsumerTest {
 
 	@Test
 	@DisplayName("Switches to SVC contingency automatically once the attempt threshold is reached")
-	void ac3_switchesToSvcContingencyAutomaticallyOnceTheAttemptThresholdIsReached() {
+	void ac3SwitchesToSvcContingencyAutomaticallyOnceTheAttemptThresholdIsReached() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
-		int attemptsBeforeThisOne = TransmissionQueueConsumer.CONTINGENCY_THRESHOLD_ATTEMPTS - 1;
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), attemptsBeforeThisOne,
+		final int attemptsBeforeThisOne = TransmissionQueueConsumer.CONTINGENCY_THRESHOLD_ATTEMPTS - 1;
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), attemptsBeforeThisOne,
 				Instant.now());
 
 		consumer.processEntry(entry);
 
-		ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
+		final ArgumentCaptor<NfeDocument> savedCaptor = ArgumentCaptor.forClass(NfeDocument.class);
 		verify(nfeRepositoryPort).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().isContingencyMode()).isTrue();
 	}
 
 	@Test
 	@DisplayName("Does not switch to contingency before the attempt threshold is reached")
-	void ac3_doesNotSwitchToContingencyBeforeTheAttemptThresholdIsReached() {
+	void ac3DoesNotSwitchToContingencyBeforeTheAttemptThresholdIsReached() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
-		int attemptsBeforeThisOne = TransmissionQueueConsumer.CONTINGENCY_THRESHOLD_ATTEMPTS - 2;
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), attemptsBeforeThisOne,
+		final int attemptsBeforeThisOne = TransmissionQueueConsumer.CONTINGENCY_THRESHOLD_ATTEMPTS - 2;
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), attemptsBeforeThisOne,
 				Instant.now());
 
 		consumer.processEntry(entry);
@@ -120,10 +120,10 @@ class TransmissionQueueConsumerTest {
 
 	@Test
 	@DisplayName("Does not switch again a document that is already in contingency mode")
-	void ac3_aDocumentAlreadyInContingencyModeIsNotSwitchedAgain() {
+	void ac3ADocumentAlreadyInContingencyModeIsNotSwitchedAgain() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(true)));
 		when(transmitNfeUseCase.execute(any())).thenThrow(new SefazUnavailableException("timeout", null));
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(),
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(),
 				TransmissionQueueConsumer.CONTINGENCY_THRESHOLD_ATTEMPTS, Instant.now());
 
 		consumer.processEntry(entry);
@@ -133,9 +133,9 @@ class TransmissionQueueConsumerTest {
 
 	@Test
 	@DisplayName("Neither reschedules nor changes contingency mode after a successful transmission")
-	void aSuccessfulTransmissionNeitherReschedulesNorTouchesContingencyMode() {
+	void successfulTransmissionNeitherReschedulesNorTouchesContingencyMode() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.of(document(false)));
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());
 
 		consumer.processEntry(entry);
 
@@ -148,27 +148,53 @@ class TransmissionQueueConsumerTest {
 	@DisplayName("Silently leaves for the other consumer an entry that does not resolve to an NF-e document")
 	void anEntryThatDoesNotResolveToAnNfeDocumentIsSilentlyLeftForTheOtherConsumer() {
 		when(nfeRepositoryPort.findById(documentId)).thenReturn(Optional.empty());
-		TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());
+		final TransmissionQueueEntry entry = new TransmissionQueueEntry(documentId.value(), 0, Instant.now());
 
 		consumer.processEntry(entry);
 
 		verify(transmitNfeUseCase, never()).execute(any());
 	}
 
-	private NfeDocument document(boolean contingencyMode) {
-		UUID productId = UUID.randomUUID();
-		TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
+	private NfeDocument document(final boolean contingencyMode) {
+		final UUID productId = UUID.randomUUID();
+		final TaxLineBreakdown line = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
 				new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
-		ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
-		NfeItem item = new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"),
+		final ItemTaxBreakdown breakdown = new ItemTaxBreakdown(0, productId.toString(), List.of(line));
+		final NfeItem item = new NfeItem(productId, "Produto Teste", BigDecimal.ONE, new BigDecimal("100.00"),
 				BigDecimal.ZERO, breakdown);
-		NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), VALID_CNPJ, PersonType.COMPANY,
+		final NfeRecipient recipient = NfeRecipient.of(PersonRef.of(UUID.randomUUID()), VALID_CNPJ, PersonType.COMPANY,
 				"Cliente PJ Teste", "123456789", "RJ");
-		TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
+		final TaxCalculationTotals totals = TaxCalculationTotals.from(List.of(item.taxBreakdown()));
 
-		return NfeDocument.of(documentId, CompanyId.of(UUID.randomUUID()), null, NaturezaOperacao.VENDA,
-				new Cfop("5102"), recipient, List.of(item), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
-				null, null, totals, NfeDocumentStatus.SENT, Instant.now(), "001", 42L, "3".repeat(44), null,
-				contingencyMode, null, null, null, List.of(), null, null, null);
+		return NfeDocument.builder()
+				.id(documentId)
+				.issuerCompanyId(CompanyId.of(UUID.randomUUID()))
+				.originSalesOrderId(null)
+				.naturezaOperacao(NaturezaOperacao.VENDA)
+				.cfop(new Cfop("5102"))
+				.recipient(recipient)
+				.items(List.of(item))
+				.freight(BigDecimal.ZERO)
+				.insurance(BigDecimal.ZERO)
+				.otherExpenses(BigDecimal.ZERO)
+				.transport(null)
+				.referencedAccessKey(null)
+				.additionalInfo(null)
+				.taxTotals(totals)
+				.status(NfeDocumentStatus.SENT)
+				.createdAt(Instant.now())
+				.documentSeries("001")
+				.documentNumber(42L)
+				.accessKey("3".repeat(44))
+				.sefazProtocol(null)
+				.contingencyMode(contingencyMode)
+				.rejectionReason(null)
+				.xmlStorageRef(null)
+				.danfeStorageRef(null)
+				.correctionLetters(List.of())
+				.authorizedAt(null)
+				.cancellationJustification(null)
+				.cancelledAt(null)
+				.build();
 	}
 }

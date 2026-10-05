@@ -23,11 +23,11 @@ class ReceivableTest {
 
 	@Test
 	@DisplayName("Starts a manually created receivable as open with the manual origin")
-	void aManuallyCreatedReceivableStartsOpenWithManualOrigin() {
-		UUID customerId = UUID.randomUUID();
-		LocalDate dueDate = LocalDate.now().plusDays(30);
+	void manuallyCreatedReceivableStartsOpenWithManualOrigin() {
+		final UUID customerId = UUID.randomUUID();
+		final LocalDate dueDate = LocalDate.now().plusDays(30);
 
-		Receivable receivable = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), customerId,
+		final Receivable receivable = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), customerId,
 				BigDecimal.TEN, dueDate, null);
 
 		assertThat(receivable.getOrigin()).isEqualTo(ReceivableOrigin.MANUAL);
@@ -76,10 +76,10 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Passes the open check for an open receivable and fails for any other status")
 	void requireOpenPassesForAnOpenReceivableAndFailsOtherwise() {
-		ReceivableId id = ReceivableId.of(UUID.randomUUID());
-		Receivable open = Receivable.createManual(id, UUID.randomUUID(), BigDecimal.TEN,
+		final ReceivableId id = ReceivableId.of(UUID.randomUUID());
+		final Receivable open = Receivable.createManual(id, UUID.randomUUID(), BigDecimal.TEN,
 				LocalDate.now().plusDays(1), null);
-		Receivable cancelled = Receivable.of(id, UUID.randomUUID(), ReceivableOrigin.MANUAL, BigDecimal.TEN,
+		final Receivable cancelled = Receivable.of(id, UUID.randomUUID(), ReceivableOrigin.MANUAL, BigDecimal.TEN,
 				LocalDate.now().plusDays(1), null, ReceivableStatus.CANCELLED, null, null);
 
 		open.requireOpen();
@@ -90,12 +90,12 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Moves an open or partially settled receivable to settled")
 	void settleMovesAnOpenOrPartiallySettledReceivableToSettled() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
-			Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+			final Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 					ReceivableOrigin.MANUAL, BigDecimal.TEN, LocalDate.now().plusDays(1), null, status, null, null);
 
-			Receivable settled = receivable.settle();
+			final Receivable settled = receivable.settle();
 
 			assertThat(settled.getStatus()).isEqualTo(ReceivableStatus.SETTLED);
 			assertThat(settled.getId()).isEqualTo(receivable.getId());
@@ -106,9 +106,9 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Rejects settling a receivable that cannot be settled")
 	void settleRejectsAReceivableThatCannotBeSettled() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.SETTLED,
 				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
-			Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+			final Receivable receivable = Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 					ReceivableOrigin.MANUAL, BigDecimal.TEN, LocalDate.now().plusDays(1), null, status, null, null);
 
 			assertThatThrownBy(receivable::settle).isInstanceOf(BusinessRuleException.class)
@@ -116,7 +116,7 @@ class ReceivableTest {
 		}
 	}
 
-	private Receivable receivable(ReceivableStatus status) {
+	private Receivable receivable(final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
 				new BigDecimal("100.00"), LocalDate.now().plusDays(1), null, status, null, null);
 	}
@@ -133,7 +133,7 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Partially settles the receivable when the credited total does not cover it")
 	void applyCreditedTotalPartiallySettlesWhenTheTitleIsNotCovered() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.OPEN,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.OPEN,
 				ReceivableStatus.PARTIALLY_SETTLED }) {
 			assertThat(receivable(status).applyCreditedTotal(new BigDecimal("40.00")).getStatus())
 					.isEqualTo(ReceivableStatus.PARTIALLY_SETTLED);
@@ -143,9 +143,9 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Rejects a credited total on a receivable that cannot take a payment")
 	void applyCreditedTotalRejectsAReceivableThatCannotTakeAPayment() {
-		for (ReceivableStatus status : new ReceivableStatus[] { ReceivableStatus.SETTLED,
+		for (final ReceivableStatus status : new ReceivableStatus[] {ReceivableStatus.SETTLED,
 				ReceivableStatus.CANCELLED, ReceivableStatus.RENEGOTIATED }) {
-			Receivable receivable = receivable(status);
+			final Receivable receivable = receivable(status);
 
 			assertThatThrownBy(() -> receivable.applyCreditedTotal(new BigDecimal("40.00")))
 					.isInstanceOf(BusinessRuleException.class);
@@ -164,10 +164,10 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Computes the remaining balance as the amount minus what the settlements credited")
 	void remainingBalanceIsTheAmountLessWhatTheSettlementsCredited() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
-		Settlement first = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+		final Settlement first = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
 				new BigDecimal("30.00"), new BigDecimal("5.00"), null, new BigDecimal("10.00"), null, Instant.now());
-		Settlement second = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
+		final Settlement second = Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(),
 				new BigDecimal("20.00"), null, null, null, null, Instant.now());
 
 		assertThat(receivable.remainingBalance(List.of())).isEqualByComparingTo("100.00");
@@ -177,12 +177,12 @@ class ReceivableTest {
 	@Test
 	@DisplayName("Keeps the scope through every status transition")
 	void theScopeSurvivesEveryStatusTransition() {
-		LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
-		Receivable open = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
+		final LedgerScope scope = new LedgerScope(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+		final Receivable open = Receivable.createManual(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(),
 				new BigDecimal("100.00"), LocalDate.now().minusDays(5), null);
 
 		assertThat(open.getScope()).isEqualTo(LedgerScope.NONE);
-		Receivable scoped = open.inScope(scope);
+		final Receivable scoped = open.inScope(scope);
 		assertThat(scoped.settle().getScope()).isEqualTo(scope);
 		assertThat(scoped.applyCreditedTotal(new BigDecimal("40.00")).getScope()).isEqualTo(scope);
 		assertThat(scoped.renegotiate(LocalDate.now()).getScope()).isEqualTo(scope);

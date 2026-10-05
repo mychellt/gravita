@@ -53,22 +53,22 @@ class ApprovePayableServiceTest {
 	@InjectMocks
 	private ApprovePayableService service;
 
-	private Payable openPayable(String amount) {
-		Payable payable = Payable.createManual(PayableId.of(UUID.randomUUID()), null, new BigDecimal(amount),
+	private Payable openPayable(final String amount) {
+		final Payable payable = Payable.createManual(PayableId.of(UUID.randomUUID()), null, new BigDecimal(amount),
 				LocalDate.now().plusDays(10), null);
 		when(payableRepositoryPort.findById(payable.getId())).thenReturn(Optional.of(payable));
 		return payable;
 	}
 
-	private void alcada(String thresholdValue) {
+	private void alcada(final String thresholdValue) {
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.FINANCE))
 				.thenReturn(Optional.of(ApprovalAlcada.builder().id(UUID.randomUUID())
 						.thresholdValue(thresholdValue == null ? null : new BigDecimal(thresholdValue))
 						.approverProfileId(ELEVATED_PROFILE).build()));
 	}
 
-	private UUID approverWithProfile(UUID profileId) {
-		UUID approver = UUID.randomUUID();
+	private UUID approverWithProfile(final UUID profileId) {
+		final UUID approver = UUID.randomUUID();
 		when(userRepositoryPort.findById(UserId.of(approver)))
 				.thenReturn(Optional.of(User.builder().id(UserId.of(approver)).profileId(profileId).build()));
 		return approver;
@@ -81,16 +81,16 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Approves an open payable when no approval limit is configured")
 	void approvesAnOpenPayableWhenNoAlcadaIsConfigured() {
-		Payable payable = openPayable("5000.00");
-		UUID approver = UUID.randomUUID();
+		final Payable payable = openPayable("5000.00");
+		final UUID approver = UUID.randomUUID();
 		when(approvalAlcadaRepositoryPort.findByModule(ApprovalModule.FINANCE)).thenReturn(Optional.empty());
 		savesWhatItIsGiven();
 
-		Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
+		final Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
 
 		assertThat(result.getStatus()).isEqualTo(PayableStatus.APPROVED);
 		assertThat(result.getApprovedBy()).isEqualTo(approver);
-		ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
+		final ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
 		verify(payableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(PayableStatus.APPROVED);
 		assertThat(saved.getValue().getApprovedBy()).isEqualTo(approver);
@@ -100,12 +100,12 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Lets any approver approve a payable below the approval limit")
 	void anyApproverMayApproveAPayableBelowTheAlcada() {
-		Payable payable = openPayable("99.99");
-		UUID approver = UUID.randomUUID();
+		final Payable payable = openPayable("99.99");
+		final UUID approver = UUID.randomUUID();
 		alcada("100.00");
 		savesWhatItIsGiven();
 
-		Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
+		final Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
 
 		assertThat(result.getStatus()).isEqualTo(PayableStatus.APPROVED);
 		verify(userRepositoryPort, never()).findById(any());
@@ -114,24 +114,24 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Does not restrict payables when the approval limit has no value threshold")
 	void anAlcadaWithoutAValueThresholdDoesNotRestrictPayables() {
-		Payable payable = openPayable("1000000.00");
+		final Payable payable = openPayable("1000000.00");
 		alcada(null);
 		savesWhatItIsGiven();
 
-		Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), UUID.randomUUID()));
+		final Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), UUID.randomUUID()));
 
 		assertThat(result.getStatus()).isEqualTo(PayableStatus.APPROVED);
 	}
 
 	@Test
 	@DisplayName("Requires an approver with the elevated profile for a payable at or above the approval limit")
-	void aPayableAtOrAboveTheAlcadaRequiresAnApproverWithTheElevatedProfile() {
-		Payable payable = openPayable("100.00");
+	void payableAtOrAboveTheAlcadaRequiresAnApproverWithTheElevatedProfile() {
+		final Payable payable = openPayable("100.00");
 		alcada("100.00");
-		UUID approver = approverWithProfile(ELEVATED_PROFILE);
+		final UUID approver = approverWithProfile(ELEVATED_PROFILE);
 		savesWhatItIsGiven();
 
-		Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
+		final Payable result = service.execute(new ApprovePayableCommand(payable.getId().value(), approver));
 
 		assertThat(result.getStatus()).isEqualTo(PayableStatus.APPROVED);
 		assertThat(result.getApprovedBy()).isEqualTo(approver);
@@ -140,9 +140,9 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Rejects an approver without the elevated profile when the payable exceeds the approval limit")
 	void rejectsAnApproverWithoutTheElevatedProfileWhenThePayableExceedsTheAlcada() {
-		Payable payable = openPayable("250.00");
+		final Payable payable = openPayable("250.00");
 		alcada("100.00");
-		UUID approver = approverWithProfile(UUID.randomUUID());
+		final UUID approver = approverWithProfile(UUID.randomUUID());
 
 		assertThatThrownBy(() -> service.execute(new ApprovePayableCommand(payable.getId().value(), approver)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("alcada");
@@ -153,9 +153,9 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Rejects an unknown approver when the payable exceeds the approval limit")
 	void rejectsAnUnknownApproverWhenThePayableExceedsTheAlcada() {
-		Payable payable = openPayable("250.00");
+		final Payable payable = openPayable("250.00");
 		alcada("100.00");
-		UUID approver = UUID.randomUUID();
+		final UUID approver = UUID.randomUUID();
 		when(userRepositoryPort.findById(UserId.of(approver))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ApprovePayableCommand(payable.getId().value(), approver)))
@@ -167,7 +167,7 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Rejects approving a payable that does not exist")
 	void rejectsAPayableThatDoesNotExist() {
-		UUID payableId = UUID.randomUUID();
+		final UUID payableId = UUID.randomUUID();
 		when(payableRepositoryPort.findById(PayableId.of(payableId))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ApprovePayableCommand(payableId, UUID.randomUUID())))
@@ -179,9 +179,19 @@ class ApprovePayableServiceTest {
 	@Test
 	@DisplayName("Rejects approving a payable that is not open")
 	void rejectsAPayableThatIsNotOpen() {
-		for (PayableStatus status : List.of(PayableStatus.APPROVED, PayableStatus.PAID, PayableStatus.CANCELLED)) {
-			Payable payable = Payable.of(PayableId.of(UUID.randomUUID()), null, PayableOrigin.MANUAL, BigDecimal.TEN,
-					LocalDate.now().plusDays(3), List.of(), status, null, null, null);
+		for (final PayableStatus status : List.of(PayableStatus.APPROVED, PayableStatus.PAID, PayableStatus.CANCELLED)) {
+			final Payable payable = Payable.builder()
+					.id(PayableId.of(UUID.randomUUID()))
+					.supplierId(null)
+					.origin(PayableOrigin.MANUAL)
+					.amount(BigDecimal.TEN)
+					.dueDate(LocalDate.now().plusDays(3))
+					.costCenterSplit(List.of())
+					.status(status)
+					.purchaseReceiptRef(null)
+					.installmentNumber(null)
+					.installments(null)
+					.build();
 			when(payableRepositoryPort.findById(payable.getId())).thenReturn(Optional.of(payable));
 
 			assertThatThrownBy(

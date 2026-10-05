@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record SwitchSefazEnvironmentRequest(@NotNull SefazEnvironment environment) {
 
-	public SwitchSefazEnvironmentCommand toCommand(CompanyId companyId) {
+	public SwitchSefazEnvironmentCommand toCommand(final CompanyId companyId) {
 		return new SwitchSefazEnvironmentCommand(companyId, environment);
 	}
 }

@@ -26,8 +26,8 @@ public class ResendNfeEmailService implements ResendNfeEmailUseCase {
 	private final XmlObjectStoragePort xmlObjectStoragePort;
 	private final SendFiscalDocumentByEmailPort sendFiscalDocumentByEmailPort;
 
-	public ResendNfeEmailService(NfeRepositoryPort nfeRepositoryPort, CustomerRepositoryPort customerRepositoryPort,
-			XmlObjectStoragePort xmlObjectStoragePort, SendFiscalDocumentByEmailPort sendFiscalDocumentByEmailPort) {
+	public ResendNfeEmailService(final NfeRepositoryPort nfeRepositoryPort, final CustomerRepositoryPort customerRepositoryPort,
+			final XmlObjectStoragePort xmlObjectStoragePort, final SendFiscalDocumentByEmailPort sendFiscalDocumentByEmailPort) {
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.customerRepositoryPort = customerRepositoryPort;
 		this.xmlObjectStoragePort = xmlObjectStoragePort;
@@ -35,9 +35,9 @@ public class ResendNfeEmailService implements ResendNfeEmailUseCase {
 	}
 
 	@Override
-	public void execute(ResendNfeEmailCommand command) {
-		NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
-		NfeDocument document = nfeRepositoryPort.findById(id)
+	public void execute(final ResendNfeEmailCommand command) {
+		final NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
+		final NfeDocument document = nfeRepositoryPort.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("NfeDocument not found: " + command.nfeDocumentId()));
 
 		if (document.getStatus() != NfeDocumentStatus.AUTHORIZED) {
@@ -45,12 +45,12 @@ public class ResendNfeEmailService implements ResendNfeEmailUseCase {
 					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + document.getStatus() + ")");
 		}
 
-		String email = NfeEmailSupport.resolveRecipientEmail(document, customerRepositoryPort)
+		final String email = NfeEmailSupport.resolveRecipientEmail(document, customerRepositoryPort)
 				.orElseThrow(() -> new BusinessRuleException(
 						"NfeDocument " + id.value() + " has no recipient e-mail address on file"));
 
-		byte[] xml = xmlObjectStoragePort.retrieve(document.getXmlStorageRef());
-		byte[] danfe = xmlObjectStoragePort.retrieve(document.getDanfeStorageRef());
+		final byte[] xml = xmlObjectStoragePort.retrieve(document.getXmlStorageRef());
+		final byte[] danfe = xmlObjectStoragePort.retrieve(document.getDanfeStorageRef());
 
 		sendFiscalDocumentByEmailPort.send(NfeEmailSupport.buildEmailRequest(document, email, xml, danfe));
 	}

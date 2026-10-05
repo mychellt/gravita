@@ -14,7 +14,7 @@ class PixKeyTest {
 	@Test
 	@DisplayName("Accepts a valid CPF key")
 	void shouldAcceptValidCpfKey() {
-		PixKey pixKey = PixKey.of("529.982.247-25");
+		final PixKey pixKey = PixKey.of("529.982.247-25");
 
 		assertThat(pixKey.type()).isEqualTo(PixKeyType.CPF);
 		assertThat(pixKey.value()).isEqualTo("52998224725");
@@ -30,7 +30,7 @@ class PixKeyTest {
 	@Test
 	@DisplayName("Accepts a valid CNPJ key")
 	void shouldAcceptValidCnpjKey() {
-		PixKey pixKey = PixKey.of("11.222.333/0001-81");
+		final PixKey pixKey = PixKey.of("11.222.333/0001-81");
 
 		assertThat(pixKey.type()).isEqualTo(PixKeyType.CNPJ);
 		assertThat(pixKey.value()).isEqualTo("11222333000181");
@@ -39,7 +39,7 @@ class PixKeyTest {
 	@Test
 	@DisplayName("Accepts an email key")
 	void shouldAcceptEmailKey() {
-		PixKey pixKey = PixKey.of("supplier@example.com");
+		final PixKey pixKey = PixKey.of("supplier@example.com");
 
 		assertThat(pixKey.type()).isEqualTo(PixKeyType.EMAIL);
 	}
@@ -54,7 +54,7 @@ class PixKeyTest {
 	@Test
 	@DisplayName("Accepts a random UUID key")
 	void shouldAcceptRandomUuidKey() {
-		PixKey pixKey = PixKey.of("123e4567-e89b-12d3-a456-426614174000");
+		final PixKey pixKey = PixKey.of("123e4567-e89b-12d3-a456-426614174000");
 
 		assertThat(pixKey.type()).isEqualTo(PixKeyType.RANDOM);
 	}

@@ -48,7 +48,7 @@ class ProductRestControllerTest {
 	@Test
 	@DisplayName("Returns 201 Created when a product is registered")
 	void shouldReturn201WhenRegisteringProduct() throws Exception {
-		ProductDomain created = request.toDomain(UUID.randomUUID());
+		final ProductDomain created = request.toDomain(UUID.randomUUID());
 		created.setStatus(ProductStatus.ACTIVE);
 		when(registerProductPort.execute(any())).thenReturn(created);
 
@@ -63,7 +63,7 @@ class ProductRestControllerTest {
 	@Test
 	@DisplayName("Returns 400 Bad Request when more than five images are submitted")
 	void shouldReturn400WhenMoreThanFiveImagesAreSubmitted() throws Exception {
-		RegisterProductRequest tooManyImages = new RegisterProductRequest(
+		final RegisterProductRequest tooManyImages = new RegisterProductRequest(
 				"SKU-1", List.of("7891234567895"), ProductType.SIMPLE, "12345678", "0100", 0,
 				null, null, null, null, null, null, null, null, null, null, null, null,
 				List.of("1", "2", "3", "4", "5", "6"), null, null);
@@ -77,7 +77,7 @@ class ProductRestControllerTest {
 	@Test
 	@DisplayName("Returns 400 Bad Request when the product type is missing")
 	void shouldReturn400WhenTypeIsMissing() throws Exception {
-		RegisterProductRequest missingType = new RegisterProductRequest(
+		final RegisterProductRequest missingType = new RegisterProductRequest(
 				"SKU-1", null, null, null, null, null,
 				null, null, null, null, null, null, null, null, null, null, null, null,
 				null, null, null);
@@ -91,11 +91,11 @@ class ProductRestControllerTest {
 	@Test
 	@DisplayName("Returns 200 OK when a product is partially updated")
 	void shouldReturn200WhenPartiallyUpdatingProduct() throws Exception {
-		UUID id = UUID.randomUUID();
-		UpdateProductRequest partialUpdate = new UpdateProductRequest(
+		final UUID id = UUID.randomUUID();
+		final UpdateProductRequest partialUpdate = new UpdateProductRequest(
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
 				null, null, null, ProductStatus.INACTIVE, null, null);
-		ProductDomain updated = request.toDomain(id);
+		final ProductDomain updated = request.toDomain(id);
 		updated.setStatus(ProductStatus.INACTIVE);
 		when(updateProductPort.execute(any())).thenReturn(updated);
 

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record RegisterMunicipalityIntegrationResponse(UUID id) {
 
-	public static RegisterMunicipalityIntegrationResponse from(MunicipalityIntegrationId id) {
+	public static RegisterMunicipalityIntegrationResponse from(final MunicipalityIntegrationId id) {
 		return new RegisterMunicipalityIntegrationResponse(id.value());
 	}
 }

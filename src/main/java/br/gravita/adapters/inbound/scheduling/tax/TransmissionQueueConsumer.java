@@ -37,8 +37,8 @@ public class TransmissionQueueConsumer {
 	private final NfeRepositoryPort nfeRepositoryPort;
 	private final TransmitNfeUseCase transmitNfeUseCase;
 
-	public TransmissionQueueConsumer(TransmissionQueuePort transmissionQueuePort, NfeRepositoryPort nfeRepositoryPort,
-			TransmitNfeUseCase transmitNfeUseCase) {
+	public TransmissionQueueConsumer(final TransmissionQueuePort transmissionQueuePort, final NfeRepositoryPort nfeRepositoryPort,
+			final TransmitNfeUseCase transmitNfeUseCase) {
 		this.transmissionQueuePort = transmissionQueuePort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.transmitNfeUseCase = transmitNfeUseCase;
@@ -46,24 +46,24 @@ public class TransmissionQueueConsumer {
 
 	@Scheduled(fixedDelayString = "${gravita.tax.transmission-queue.poll-interval-ms:30000}")
 	public void pollAndTransmit() {
-		for (TransmissionQueueEntry entry : transmissionQueuePort.findDue(Instant.now())) {
+		for (final TransmissionQueueEntry entry : transmissionQueuePort.findDue(Instant.now())) {
 			processEntry(entry);
 		}
 	}
 
-	void processEntry(TransmissionQueueEntry entry) {
+	void processEntry(final TransmissionQueueEntry entry) {
 		if (nfeRepositoryPort.findById(NfeDocumentId.of(entry.documentId())).isEmpty()) {
 			return;
 		}
 		try {
 			transmitNfeUseCase.execute(new TransmitNfeCommand(entry.documentId()));
-		} catch (SefazUnavailableException unavailable) {
+		} catch (final SefazUnavailableException unavailable) {
 			handleTimeout(entry);
 		}
 	}
 
-	private void handleTimeout(TransmissionQueueEntry entry) {
-		int attempts = entry.attempts() + 1;
+	private void handleTimeout(final TransmissionQueueEntry entry) {
+		final int attempts = entry.attempts() + 1;
 		transmissionQueuePort.reschedule(entry.documentId(), attempts, Instant.now().plus(backoff(attempts)));
 
 		if (attempts >= CONTINGENCY_THRESHOLD_ATTEMPTS) {
@@ -73,9 +73,9 @@ public class TransmissionQueueConsumer {
 		}
 	}
 
-	static Duration backoff(int attempts) {
-		long factor = 1L << Math.min(Math.max(attempts, 1) - 1, 10);
-		long seconds = Math.min(BASE_BACKOFF.getSeconds() * factor, MAX_BACKOFF.getSeconds());
+	static Duration backoff(final int attempts) {
+		final long factor = 1L << Math.min(Math.max(attempts, 1) - 1, 10);
+		final long seconds = Math.min(BASE_BACKOFF.getSeconds() * factor, MAX_BACKOFF.getSeconds());
 		return Duration.ofSeconds(seconds);
 	}
 }

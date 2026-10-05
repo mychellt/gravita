@@ -17,13 +17,13 @@ public class EnterInboundNfeManuallyService implements EnterInboundNfeManuallyUs
 	private final InboundNfeRepositoryPort inboundNfeRepositoryPort;
 
 	@Autowired
-	public EnterInboundNfeManuallyService(InboundNfeRepositoryPort inboundNfeRepositoryPort) {
+	public EnterInboundNfeManuallyService(final InboundNfeRepositoryPort inboundNfeRepositoryPort) {
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
 	}
 
 	@Override
-	public InboundNfe execute(EnterInboundNfeManuallyCommand command) {
-		ManualInboundNfeData manualData = command.manualData();
+	public InboundNfe execute(final EnterInboundNfeManuallyCommand command) {
+		final ManualInboundNfeData manualData = command.manualData();
 		if (manualData != null) {
 			return inboundNfeRepositoryPort.save(toInboundNfe(command));
 		}
@@ -34,8 +34,8 @@ public class EnterInboundNfeManuallyService implements EnterInboundNfeManuallyUs
 		throw new BusinessRuleException("Either accessKey or manualData must be provided");
 	}
 
-	private InboundNfe toInboundNfe(EnterInboundNfeManuallyCommand command) {
-		ManualInboundNfeData data = command.manualData();
+	private InboundNfe toInboundNfe(final EnterInboundNfeManuallyCommand command) {
+		final ManualInboundNfeData data = command.manualData();
 		return InboundNfe.enteredManually(InboundNfeId.of(UUID.randomUUID()), command.companyId(), data.accessKey(),
 				data.series(), data.number(), data.supplierDocument(), data.supplierName(), data.issuedAt(),
 				data.items(), data.totals());

@@ -27,25 +27,25 @@ public class SupplierController {
     private final UpdateSupplierUseCase updateSupplierUseCase;
 
     @PostMapping
-    public ResponseEntity<SupplierResponse> register(@Valid @RequestBody RegisterSupplierRequest request) {
-        SupplierId id = registerSupplierUseCase.execute(request.toCommand());
+    public ResponseEntity<SupplierResponse> register(@Valid @RequestBody final RegisterSupplierRequest request) {
+        final SupplierId id = registerSupplierUseCase.execute(request.toCommand());
         return ResponseEntity.created(URI.create("/api/suppliers/" + id.value())).body(SupplierResponse.from(id));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<SupplierResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateSupplierRequest request) {
-        SupplierId supplierId = SupplierId.of(id);
+    public ResponseEntity<SupplierResponse> update(@PathVariable final UUID id, @Valid @RequestBody final UpdateSupplierRequest request) {
+        final SupplierId supplierId = SupplierId.of(id);
         updateSupplierUseCase.execute(request.toCommand(supplierId));
         return ResponseEntity.ok(SupplierResponse.from(supplierId));
     }
 
     @ExceptionHandler(SupplierNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleSupplierNotFoundException(SupplierNotFoundException exception) {
+    public ResponseEntity<Map<String, String>> handleSupplierNotFoundException(final SupplierNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 }

@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record IssueRpsResponse(UUID id) {
 
-	public static IssueRpsResponse from(RpsId id) {
+	public static IssueRpsResponse from(final RpsId id) {
 		return new IssueRpsResponse(id.value());
 	}
 }

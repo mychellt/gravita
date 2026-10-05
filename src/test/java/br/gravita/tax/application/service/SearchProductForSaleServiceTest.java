@@ -8,7 +8,6 @@ import br.gravita.core.domain.CustomerPriceTableLink;
 import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
-import br.gravita.core.domain.masterdata.MaxDiscountBehavior;
 import br.gravita.core.domain.masterdata.PriceFormation;
 import br.gravita.core.domain.masterdata.PriceTable;
 import br.gravita.core.domain.masterdata.PriceTableEntry;
@@ -53,57 +52,57 @@ class SearchProductForSaleServiceTest {
 
 	@Test
 	@DisplayName("Matches a product by barcode")
-	void ac1_matchesByBarcode() {
-		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+	void ac1MatchesByBarcode() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("7891234567895", null));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("7891234567895", null));
 
 		assertThat(results).extracting(ProductSearchResult::productId).containsExactly(product.getId());
 	}
 
 	@Test
 	@DisplayName("Matches a product by a substring of the internal code")
-	void ac1_matchesByInternalCodeSubstring() {
-		ProductDomain product = product("SKU-COLA-2L", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+	void ac1MatchesByInternalCodeSubstring() {
+		final ProductDomain product = product("SKU-COLA-2L", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("cola", null));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("cola", null));
 
 		assertThat(results).extracting(ProductSearchResult::productId).containsExactly(product.getId());
 	}
 
 	@Test
 	@DisplayName("Returns an empty list when nothing matches")
-	void ac1_noMatchReturnsEmptyList() {
-		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+	void ac1NoMatchReturnsEmptyList() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("does-not-exist", null));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("does-not-exist", null));
 
 		assertThat(results).isEmpty();
 	}
 
 	@Test
 	@DisplayName("Excludes out-of-stock and inactive products")
-	void ac4_excludesOutOfStockAndInactiveProducts() {
-		ProductDomain active = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
-		ProductDomain outOfStock = product("SKU-2", List.of("7891234567896"), ProductStatus.OUT_OF_STOCK, "9.90");
-		ProductDomain inactive = product("SKU-3", List.of("7891234567897"), ProductStatus.INACTIVE, "9.90");
+	void ac4ExcludesOutOfStockAndInactiveProducts() {
+		final ProductDomain active = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+		final ProductDomain outOfStock = product("SKU-2", List.of("7891234567896"), ProductStatus.OUT_OF_STOCK, "9.90");
+		final ProductDomain inactive = product("SKU-3", List.of("7891234567897"), ProductStatus.INACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(active, outOfStock, inactive));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU", null));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU", null));
 
 		assertThat(results).extracting(ProductSearchResult::productId).containsExactly(active.getId());
 	}
 
 	@Test
 	@DisplayName("Falls back to the base price when no customer is set")
-	void ac3_fallsBackToBasePriceWhenNoCustomerIsSet() {
-		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+	void ac3FallsBackToBasePriceWhenNoCustomerIsSet() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
 		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", null));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", null));
 
 		assertThat(results).extracting(ProductSearchResult::unitPrice)
 				.usingElementComparator(BigDecimal::compareTo)
@@ -112,13 +111,13 @@ class SearchProductForSaleServiceTest {
 
 	@Test
 	@DisplayName("Uses the customer's linked price table when a customer is set")
-	void ac3_usesTheCustomersLinkedPriceTableWhenACustomerIsSet() {
-		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
-		UUID customerId = UUID.randomUUID();
-		PriceTableId priceTableId = PriceTableId.of(UUID.randomUUID());
-		PriceTable priceTable = PriceTable.of(priceTableId, PriceFormation.FIXED, LocalDate.now().minusDays(1), null,
+	void ac3UsesTheCustomersLinkedPriceTableWhenACustomerIsSet() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+		final UUID customerId = UUID.randomUUID();
+		final PriceTableId priceTableId = PriceTableId.of(UUID.randomUUID());
+		final PriceTable priceTable = PriceTable.of(priceTableId, PriceFormation.FIXED, LocalDate.now().minusDays(1), null,
 				null, null, List.of(new PriceTableEntry(ProductOrClassRef.product(product.getId().toString()), new BigDecimal("7.50"))));
-		CustomerDomain customer = CustomerDomain.builder()
+		final CustomerDomain customer = CustomerDomain.builder()
 				.priceTables(List.of(CustomerPriceTableLink.builder().priceTableId(priceTableId.value()).priority(1).build()))
 				.build();
 
@@ -126,7 +125,7 @@ class SearchProductForSaleServiceTest {
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(customer));
 		when(priceTableRepositoryPort.findById(priceTableId)).thenReturn(Optional.of(priceTable));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", customerId));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", customerId));
 
 		assertThat(results).extracting(ProductSearchResult::unitPrice)
 				.usingElementComparator(BigDecimal::compareTo)
@@ -135,13 +134,13 @@ class SearchProductForSaleServiceTest {
 
 	@Test
 	@DisplayName("Falls back to the base price when the customer's price table has no entry for the product")
-	void ac3_fallsBackToBasePriceWhenTheCustomersPriceTableHasNoEntryForTheProduct() {
-		ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
-		UUID customerId = UUID.randomUUID();
-		PriceTableId priceTableId = PriceTableId.of(UUID.randomUUID());
-		PriceTable priceTable = PriceTable.of(priceTableId, PriceFormation.FIXED, LocalDate.now().minusDays(1), null,
+	void ac3FallsBackToBasePriceWhenTheCustomersPriceTableHasNoEntryForTheProduct() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+		final UUID customerId = UUID.randomUUID();
+		final PriceTableId priceTableId = PriceTableId.of(UUID.randomUUID());
+		final PriceTable priceTable = PriceTable.of(priceTableId, PriceFormation.FIXED, LocalDate.now().minusDays(1), null,
 				null, null, List.of(new PriceTableEntry(ProductOrClassRef.product(UUID.randomUUID().toString()), new BigDecimal("7.50"))));
-		CustomerDomain customer = CustomerDomain.builder()
+		final CustomerDomain customer = CustomerDomain.builder()
 				.priceTables(List.of(CustomerPriceTableLink.builder().priceTableId(priceTableId.value()).priority(1).build()))
 				.build();
 
@@ -149,15 +148,15 @@ class SearchProductForSaleServiceTest {
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(customer));
 		when(priceTableRepositoryPort.findById(priceTableId)).thenReturn(Optional.of(priceTable));
 
-		List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", customerId));
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", customerId));
 
 		assertThat(results).extracting(ProductSearchResult::unitPrice)
 				.usingElementComparator(BigDecimal::compareTo)
 				.containsExactly(new BigDecimal("9.90"));
 	}
 
-	private static ProductDomain product(String internalCode, List<String> barcodes, ProductStatus status, String basePrice) {
-		ProductDomain product = ProductDomain.builder()
+	private static ProductDomain product(final String internalCode, final List<String> barcodes, final ProductStatus status, final String basePrice) {
+		final ProductDomain product = ProductDomain.builder()
 				.internalCode(internalCode)
 				.barcodes(barcodes)
 				.type(ProductType.SIMPLE)

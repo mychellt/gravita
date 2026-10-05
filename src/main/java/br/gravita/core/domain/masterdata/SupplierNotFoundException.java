@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class SupplierNotFoundException extends RuntimeException {
 
-	public SupplierNotFoundException(UUID supplierId) {
+	public SupplierNotFoundException(final UUID supplierId) {
 		super("Supplier not found: " + supplierId);
 	}
 }

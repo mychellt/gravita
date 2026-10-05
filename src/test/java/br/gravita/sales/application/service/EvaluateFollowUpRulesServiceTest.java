@@ -66,9 +66,9 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Notifies the opportunity owner when the last interaction is older than the rule threshold")
 	void notifiesTheOpportunityOwnerWhenLastInteractionIsOlderThanTheThreshold() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
 				true);
-		Opportunity opportunity = anOpportunity();
+		final Opportunity opportunity = anOpportunity();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of(opportunity));
 		when(interactionRepositoryPort.findByOpportunityId(opportunity.getId()))
@@ -78,7 +78,7 @@ class EvaluateFollowUpRulesServiceTest {
 
 		service.execute();
 
-		ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
+		final ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
 		verify(sendFollowUpAlertPort).send(sentTask.capture());
 		assertThat(sentTask.getValue().getOpportunityId()).isEqualTo(opportunity.getId().value());
 		assertThat(sentTask.getValue().getOwner()).isEqualTo(opportunity.getOwner());
@@ -88,9 +88,9 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Does not notify when the opportunity was contacted within the rule threshold")
 	void doesNotNotifyWhenTheOpportunityWasContactedWithinTheThreshold() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
 				true);
-		Opportunity opportunity = anOpportunity();
+		final Opportunity opportunity = anOpportunity();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of(opportunity));
 		when(interactionRepositoryPort.findByOpportunityId(opportunity.getId()))
@@ -104,9 +104,9 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("A target with no interactions at all is treated as breaching the rule")
 	void treatsATargetWithNoInteractionsAtAllAsBreachingTheRule() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
 				true);
-		Opportunity opportunity = anOpportunity();
+		final Opportunity opportunity = anOpportunity();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of(opportunity));
 		when(interactionRepositoryPort.findByOpportunityId(opportunity.getId())).thenReturn(List.of());
@@ -121,11 +121,11 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Resolves the owner for a customer-targeted rule through the customer's opportunity")
 	void resolvesTheOwnerOfACustomerTargetedRuleThroughTheCustomersOpportunity() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.CUSTOMER, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.CUSTOMER, true,
 				true);
-		UUID customerId = UUID.randomUUID();
-		Opportunity opportunity = anOpportunityFor(customerId);
-		CustomerDomain customer = CustomerDomain.builder().id(customerId).build();
+		final UUID customerId = UUID.randomUUID();
+		final Opportunity opportunity = anOpportunityFor(customerId);
+		final CustomerDomain customer = CustomerDomain.builder().id(customerId).build();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of(opportunity));
 		when(customerRepositoryPort.findAll()).thenReturn(List.of(customer));
@@ -135,7 +135,7 @@ class EvaluateFollowUpRulesServiceTest {
 
 		service.execute();
 
-		ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
+		final ArgumentCaptor<FollowUpTask> sentTask = ArgumentCaptor.forClass(FollowUpTask.class);
 		verify(sendFollowUpAlertPort).send(sentTask.capture());
 		assertThat(sentTask.getValue().getCustomerId()).isEqualTo(customerId);
 		assertThat(sentTask.getValue().getOwner()).isEqualTo(opportunity.getOwner());
@@ -144,10 +144,10 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Skips a customer breach when no opportunity resolves an owner")
 	void skipsACustomerBreachWhenNoOpportunityResolvesAnOwner() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.CUSTOMER, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.CUSTOMER, true,
 				true);
-		UUID customerId = UUID.randomUUID();
-		CustomerDomain customer = CustomerDomain.builder().id(customerId).build();
+		final UUID customerId = UUID.randomUUID();
+		final CustomerDomain customer = CustomerDomain.builder().id(customerId).build();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of());
 		when(customerRepositoryPort.findAll()).thenReturn(List.of(customer));
@@ -161,9 +161,9 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Does not send a duplicate alert for a breach already notified today")
 	void doesNotSendADuplicateAlertForABreachAlreadyNotifiedToday() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY, true,
 				true);
-		Opportunity opportunity = anOpportunity();
+		final Opportunity opportunity = anOpportunity();
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 		when(opportunityRepositoryPort.findAll()).thenReturn(List.of(opportunity));
 		when(interactionRepositoryPort.findByOpportunityId(opportunity.getId())).thenReturn(List.of());
@@ -179,7 +179,7 @@ class EvaluateFollowUpRulesServiceTest {
 	@Test
 	@DisplayName("Skips rules that are not configured to notify the owner")
 	void skipsRulesThatDoNotNotifyTheOwner() {
-		FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY,
+		final FollowUpRule rule = FollowUpRule.of(FollowUpRuleId.of(UUID.randomUUID()), 5, FollowUpTarget.OPPORTUNITY,
 				false, true);
 		when(followUpRuleRepositoryPort.findAllActive()).thenReturn(List.of(rule));
 
@@ -193,12 +193,12 @@ class EvaluateFollowUpRulesServiceTest {
 		return anOpportunityFor(UUID.randomUUID());
 	}
 
-	private static Opportunity anOpportunityFor(UUID customerId) {
+	private static Opportunity anOpportunityFor(final UUID customerId) {
 		return Opportunity.of(OpportunityId.of(UUID.randomUUID()), customerId, BigDecimal.TEN, 50,
 				LocalDate.now().plusDays(30), UUID.randomUUID(), OpportunityStage.PROSPECTING);
 	}
 
-	private static Interaction interactionAt(Instant timestamp) {
+	private static Interaction interactionAt(final Instant timestamp) {
 		return Interaction.of(InteractionId.of(UUID.randomUUID()), OpportunityId.of(UUID.randomUUID()), null,
 				InteractionChannel.CALL, "summary", timestamp);
 	}

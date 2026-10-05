@@ -14,7 +14,7 @@ import java.util.UUID;
 public record ReconciliationResponse(int matchedCount, int unmatchedCount, List<StatementLine> matched,
 		List<StatementLine> unmatched) {
 
-	public static ReconciliationResponse from(ReconciliationResult result) {
+	public static ReconciliationResponse from(final ReconciliationResult result) {
 		return new ReconciliationResponse(result.matched().size(), result.unmatched().size(),
 				result.matched().stream().map(StatementLine::from).toList(),
 				result.unmatched().stream().map(StatementLine::from).toList());
@@ -23,7 +23,7 @@ public record ReconciliationResponse(int matchedCount, int unmatchedCount, List<
 	public record StatementLine(int lineNumber, LocalDate date, BigDecimal amount, String description,
 			String reference, UUID settlementId, UUID cashMovementId) {
 
-		static StatementLine from(BankStatementLine line) {
+		static StatementLine from(final BankStatementLine line) {
 			return new StatementLine(line.getLineNumber(), line.getPostedOn(), line.getAmount(),
 					line.getDescription(), line.getReference(),
 					line.getSettlementId() == null ? null : line.getSettlementId().value(),

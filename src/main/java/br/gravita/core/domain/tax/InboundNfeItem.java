@@ -43,8 +43,8 @@ public record InboundNfeItem(
 		}
 	}
 
-	private static BigDecimal requireNonNegative(BigDecimal value, String field) {
-		BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
+	private static BigDecimal requireNonNegative(final BigDecimal value, final String field) {
+		final BigDecimal resolved = value == null ? BigDecimal.ZERO : value;
 		if (resolved.compareTo(BigDecimal.ZERO) < 0) {
 			throw new BusinessRuleException("Item " + field + " cannot be negative: " + resolved);
 		}

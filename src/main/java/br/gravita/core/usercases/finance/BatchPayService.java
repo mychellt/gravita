@@ -32,14 +32,14 @@ public class BatchPayService implements BatchPayUseCase {
 	private final BankIntegrationPort bankIntegrationPort;
 
 	@Override
-	public CnabRemittance execute(BatchPayCommand command) {
-		List<PayableId> ids = requireDistinct(command.payableIds());
-		List<Payable> payables = loadInRequestedOrder(ids);
+	public CnabRemittance execute(final BatchPayCommand command) {
+		final List<PayableId> ids = requireDistinct(command.payableIds());
+		final List<Payable> payables = loadInRequestedOrder(ids);
 		// Checked before the bank is contacted so a rejected batch never sends a remittance.
 		requireAllApproved(payables);
 
-		BigDecimal total = payables.stream().map(Payable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-		IssuedRemittance issued = bankIntegrationPort.sendRemittance(new RemittanceRequest(command.bankIntegration(),
+		final BigDecimal total = payables.stream().map(Payable::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+		final IssuedRemittance issued = bankIntegrationPort.sendRemittance(new RemittanceRequest(command.bankIntegration(),
 				payables.stream().map(payable -> new RemittanceItem(payable.getId().value(), payable.getSupplierId(),
 						payable.getAmount(), payable.getDueDate())).toList()));
 
@@ -47,12 +47,12 @@ public class BatchPayService implements BatchPayUseCase {
 	}
 
 	/** A payable listed twice would be paid twice in the same remittance. */
-	private static List<PayableId> requireDistinct(List<UUID> payableIds) {
+	private static List<PayableId> requireDistinct(final List<UUID> payableIds) {
 		if (payableIds.isEmpty()) {
 			throw new BusinessRuleException("payableIds is required: select at least one payable");
 		}
-		Set<UUID> seen = new HashSet<>();
-		for (UUID id : payableIds) {
+		final Set<UUID> seen = new HashSet<>();
+		for (final UUID id : payableIds) {
 			if (!seen.add(id)) {
 				throw new BusinessRuleException("payableIds repeats payable " + id);
 			}
@@ -60,10 +60,10 @@ public class BatchPayService implements BatchPayUseCase {
 		return payableIds.stream().map(PayableId::of).toList();
 	}
 
-	private List<Payable> loadInRequestedOrder(List<PayableId> ids) {
-		Map<PayableId, Payable> found = payableRepositoryPort.findByIds(ids).stream()
+	private List<Payable> loadInRequestedOrder(final List<PayableId> ids) {
+		final Map<PayableId, Payable> found = payableRepositoryPort.findByIds(ids).stream()
 				.collect(Collectors.toMap(Payable::getId, Function.identity()));
-		List<PayableId> missing = ids.stream().filter(id -> !found.containsKey(id)).toList();
+		final List<PayableId> missing = ids.stream().filter(id -> !found.containsKey(id)).toList();
 		if (!missing.isEmpty()) {
 			throw new ResourceNotFoundException("Payable not found: " + missing.stream()
 					.map(id -> id.value().toString()).collect(Collectors.joining(", ")));
@@ -71,8 +71,8 @@ public class BatchPayService implements BatchPayUseCase {
 		return ids.stream().map(found::get).toList();
 	}
 
-	private static void requireAllApproved(List<Payable> payables) {
-		List<Payable> notApproved = payables.stream()
+	private static void requireAllApproved(final List<Payable> payables) {
+		final List<Payable> notApproved = payables.stream()
 				.filter(payable -> payable.getStatus() != PayableStatus.APPROVED).toList();
 		if (!notApproved.isEmpty()) {
 			throw new BusinessRuleException("Only APPROVED payables can be paid in a batch: " + notApproved.stream()

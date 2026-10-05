@@ -14,13 +14,13 @@ public class FindChartOfAccountsAdapter implements FindChartOfAccountsPort {
 
 	private final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort;
 
-	public FindChartOfAccountsAdapter(ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
+	public FindChartOfAccountsAdapter(final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
 		this.chartOfAccountsRepositoryPort = chartOfAccountsRepositoryPort;
 	}
 
 	@Override
-	public ChartOfAccountsDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public ChartOfAccountsDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return chartOfAccountsRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Chart of accounts entry not found: " + id));
 	}

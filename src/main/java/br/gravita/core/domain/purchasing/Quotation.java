@@ -20,8 +20,8 @@ public final class Quotation {
 	private final List<SupplierId> suppliers;
 	private final List<QuotationResponse> responses;
 
-	public Quotation(QuotationId id, PurchaseRequestId requestId, List<QuotationItem> items,
-			List<SupplierId> suppliers, List<QuotationResponse> responses) {
+	public Quotation(final QuotationId id, final PurchaseRequestId requestId, final List<QuotationItem> items,
+			final List<SupplierId> suppliers, final List<QuotationResponse> responses) {
 		this.id = Objects.requireNonNull(id, "QuotationId is required");
 		this.requestId = Objects.requireNonNull(requestId, "requestId is required");
 		this.items = requireNonEmptyItems(items);
@@ -29,22 +29,22 @@ public final class Quotation {
 		this.responses = responses == null ? List.of() : List.copyOf(responses);
 	}
 
-	public static Quotation send(QuotationId id, PurchaseRequestId requestId, List<QuotationItem> items,
-			List<SupplierId> suppliers) {
+	public static Quotation send(final QuotationId id, final PurchaseRequestId requestId, final List<QuotationItem> items,
+			final List<SupplierId> suppliers) {
 		return new Quotation(id, requestId, items, suppliers, List.of());
 	}
 
-	public static Quotation of(QuotationId id, PurchaseRequestId requestId, List<QuotationItem> items,
-			List<SupplierId> suppliers, List<QuotationResponse> responses) {
+	public static Quotation of(final QuotationId id, final PurchaseRequestId requestId, final List<QuotationItem> items,
+			final List<SupplierId> suppliers, final List<QuotationResponse> responses) {
 		return new Quotation(id, requestId, items, suppliers, responses);
 	}
 
-	public Quotation registerResponse(SupplierId supplierId, List<QuotationItemPrice> itemPrices, LocalDate deadline) {
+	public Quotation registerResponse(final SupplierId supplierId, final List<QuotationItemPrice> itemPrices, final LocalDate deadline) {
 		requireSupplierWasSentTheQuotation(supplierId);
-		QuotationResponse response = new QuotationResponse(supplierId, itemPrices, deadline);
+		final QuotationResponse response = new QuotationResponse(supplierId, itemPrices, deadline);
 		requireItemPricesCoverEveryItem(response.itemPrices());
 
-		List<QuotationResponse> updatedResponses = responses.stream()
+		final List<QuotationResponse> updatedResponses = responses.stream()
 				.filter(existing -> !existing.supplierId().equals(supplierId))
 				.collect(Collectors.toCollection(ArrayList::new));
 		updatedResponses.add(response);
@@ -52,7 +52,7 @@ public final class Quotation {
 		return new Quotation(id, requestId, items, suppliers, updatedResponses);
 	}
 
-	private void requireSupplierWasSentTheQuotation(SupplierId supplierId) {
+	private void requireSupplierWasSentTheQuotation(final SupplierId supplierId) {
 		Objects.requireNonNull(supplierId, "supplierId is required");
 		if (!suppliers.contains(supplierId)) {
 			throw new BusinessRuleException(
@@ -60,9 +60,9 @@ public final class Quotation {
 		}
 	}
 
-	private void requireItemPricesCoverEveryItem(List<QuotationItemPrice> itemPrices) {
-		Set<UUID> requiredProductIds = items.stream().map(QuotationItem::productId).collect(Collectors.toSet());
-		Set<UUID> pricedProductIds = itemPrices.stream().map(QuotationItemPrice::productId).collect(Collectors.toSet());
+	private void requireItemPricesCoverEveryItem(final List<QuotationItemPrice> itemPrices) {
+		final Set<UUID> requiredProductIds = items.stream().map(QuotationItem::productId).collect(Collectors.toSet());
+		final Set<UUID> pricedProductIds = itemPrices.stream().map(QuotationItemPrice::productId).collect(Collectors.toSet());
 		if (!pricedProductIds.equals(requiredProductIds)) {
 			throw new BusinessRuleException(
 					"itemPrices must cover every item in the quotation: expected " + requiredProductIds
@@ -70,16 +70,16 @@ public final class Quotation {
 		}
 	}
 
-	private static List<QuotationItem> requireNonEmptyItems(List<QuotationItem> items) {
-		List<QuotationItem> copy = items == null ? List.of() : List.copyOf(items);
+	private static List<QuotationItem> requireNonEmptyItems(final List<QuotationItem> items) {
+		final List<QuotationItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("A quotation must carry at least one item");
 		}
 		return copy;
 	}
 
-	private static List<SupplierId> requireNonEmptySuppliers(List<SupplierId> suppliers) {
-		List<SupplierId> copy = suppliers == null ? List.of() : List.copyOf(suppliers);
+	private static List<SupplierId> requireNonEmptySuppliers(final List<SupplierId> suppliers) {
+		final List<SupplierId> copy = suppliers == null ? List.of() : List.copyOf(suppliers);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("A quotation must be sent to at least one supplier");
 		}

@@ -40,50 +40,50 @@ public class GetFiscalBooksService implements GetFiscalBooksUseCase {
 	private final RenderPdfPort renderPdfPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetFiscalBooksService(TaxReadModelPort taxReadModelPort, RenderPdfPort renderPdfPort,
-			PermissionCheckPort permissionCheckPort) {
+	public GetFiscalBooksService(final TaxReadModelPort taxReadModelPort, final RenderPdfPort renderPdfPort,
+			final PermissionCheckPort permissionCheckPort) {
 		this.taxReadModelPort = taxReadModelPort;
 		this.renderPdfPort = renderPdfPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public FiscalBooks execute(FiscalBooksQuery query) {
+	public FiscalBooks execute(final FiscalBooksQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the fiscal books");
 		}
-		LocalDate from = query.period().atDay(1);
-		LocalDate to = query.period().atEndOfMonth();
-		List<FiscalBookEntry> entries = book(taxReadModelPort.entryDocuments(from, to), FiscalBookFlow.ENTRY);
-		List<FiscalBookEntry> exits = book(taxReadModelPort.exitDocuments(from, to), FiscalBookFlow.EXIT);
+		final LocalDate from = query.period().atDay(1);
+		final LocalDate to = query.period().atEndOfMonth();
+		final List<FiscalBookEntry> entries = book(taxReadModelPort.entryDocuments(from, to), FiscalBookFlow.ENTRY);
+		final List<FiscalBookEntry> exits = book(taxReadModelPort.exitDocuments(from, to), FiscalBookFlow.EXIT);
 
-		BigDecimal icmsDebit = totalIcms(exits);
-		BigDecimal icmsCredit = totalIcms(entries);
-		List<FiscalBookEntry> icmsAssessment = new ArrayList<>(withIcms(exits));
+		final BigDecimal icmsDebit = totalIcms(exits);
+		final BigDecimal icmsCredit = totalIcms(entries);
+		final List<FiscalBookEntry> icmsAssessment = new ArrayList<>(withIcms(exits));
 		icmsAssessment.addAll(withIcms(entries));
 
-		FiscalBooksLayout layout = new FiscalBooksLayout(query.period(), entries, exits, icmsAssessment, icmsDebit,
+		final FiscalBooksLayout layout = new FiscalBooksLayout(query.period(), entries, exits, icmsAssessment, icmsDebit,
 				icmsCredit);
 		return new FiscalBooks(query.period(), entries, exits, List.copyOf(icmsAssessment), icmsDebit, icmsCredit,
 				icmsDebit.subtract(icmsCredit), renderPdfPort.render(layout.pdfReport()),
 				layout.txt().getBytes(StandardCharsets.UTF_8));
 	}
 
-	private static List<FiscalBookEntry> book(List<FiscalDocumentRecord> documents, FiscalBookFlow flow) {
+	private static List<FiscalBookEntry> book(final List<FiscalDocumentRecord> documents, final FiscalBookFlow flow) {
 		return documents.stream().map(document -> toEntry(document, flow)).sorted(DOCUMENT_ORDER).toList();
 	}
 
-	private static FiscalBookEntry toEntry(FiscalDocumentRecord document, FiscalBookFlow flow) {
+	private static FiscalBookEntry toEntry(final FiscalDocumentRecord document, final FiscalBookFlow flow) {
 		return new FiscalBookEntry(flow, document.date(), document.documentModel(), document.series(),
 				document.number(), document.accessKey(), document.counterpartName(), document.counterpartDocument(),
 				document.cfop(), document.totalValue(), document.icmsValue() == null ? BigDecimal.ZERO : document.icmsValue());
 	}
 
-	private static List<FiscalBookEntry> withIcms(List<FiscalBookEntry> book) {
+	private static List<FiscalBookEntry> withIcms(final List<FiscalBookEntry> book) {
 		return book.stream().filter(entry -> entry.icmsValue().signum() != 0).toList();
 	}
 
-	private static BigDecimal totalIcms(List<FiscalBookEntry> book) {
+	private static BigDecimal totalIcms(final List<FiscalBookEntry> book) {
 		return book.stream().map(FiscalBookEntry::icmsValue).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 }

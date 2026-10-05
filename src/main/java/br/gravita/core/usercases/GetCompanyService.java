@@ -12,12 +12,12 @@ public class GetCompanyService implements GetCompanyUseCase {
 
 	private final CompanyRepositoryPort companyRepositoryPort;
 
-	public GetCompanyService(CompanyRepositoryPort companyRepositoryPort) {
+	public GetCompanyService(final CompanyRepositoryPort companyRepositoryPort) {
 		this.companyRepositoryPort = companyRepositoryPort;
 	}
 
 	@Override
-	public Company execute(CompanyId id) {
+	public Company execute(final CompanyId id) {
 		return companyRepositoryPort.findById(id).orElseThrow(() -> new CompanyNotFoundException(id.value()));
 	}
 }

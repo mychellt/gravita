@@ -18,13 +18,13 @@ public class RegisterProductAdapter implements RegisterProductPort {
 
 	private final ProductRepositoryPort productRepositoryPort;
 
-	public RegisterProductAdapter(ProductRepositoryPort productRepositoryPort) {
+	public RegisterProductAdapter(final ProductRepositoryPort productRepositoryPort) {
 		this.productRepositoryPort = productRepositoryPort;
 	}
 
 	@Override
-	public ProductDomain execute(Context context) {
-		ProductDomain product = context.getData(ProductDomain.class);
+	public ProductDomain execute(final Context context) {
+		final ProductDomain product = context.getData(ProductDomain.class);
 		if (product.getId() == null) {
 			product.setId(UUID.randomUUID());
 		}
@@ -37,22 +37,22 @@ public class RegisterProductAdapter implements RegisterProductPort {
 		return productRepositoryPort.save(product);
 	}
 
-	private void validateBarcodesAreUnique(List<String> barcodes) {
+	private void validateBarcodesAreUnique(final List<String> barcodes) {
 		if (barcodes == null) {
 			return;
 		}
-		for (String barcode : barcodes) {
+		for (final String barcode : barcodes) {
 			if (productRepositoryPort.existsByBarcode(barcode)) {
 				throw new BusinessRuleException("Barcode is already registered to another product: " + barcode);
 			}
 		}
 	}
 
-	private void validateKitComponentsExist(ProductDomain product) {
+	private void validateKitComponentsExist(final ProductDomain product) {
 		if (product.getType() != ProductType.KIT) {
 			return;
 		}
-		for (KitComponentDomain component : product.getKitComponents()) {
+		for (final KitComponentDomain component : product.getKitComponents()) {
 			if (productRepositoryPort.get(component.productId()).isEmpty()) {
 				throw new BusinessRuleException("Kit references a product that does not exist: " + component.productId());
 			}

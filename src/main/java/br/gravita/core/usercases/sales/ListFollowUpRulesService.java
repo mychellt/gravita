@@ -11,7 +11,7 @@ public class ListFollowUpRulesService implements ListFollowUpRulesUseCase {
 
 	private final FollowUpRuleRepositoryPort followUpRuleRepositoryPort;
 
-	public ListFollowUpRulesService(FollowUpRuleRepositoryPort followUpRuleRepositoryPort) {
+	public ListFollowUpRulesService(final FollowUpRuleRepositoryPort followUpRuleRepositoryPort) {
 		this.followUpRuleRepositoryPort = followUpRuleRepositoryPort;
 	}
 

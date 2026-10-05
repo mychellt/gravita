@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record CancelSalesOrderRequest(String reason) {
 
-	public CancelSalesOrderCommand toCommand(UUID orderId) {
+	public CancelSalesOrderCommand toCommand(final UUID orderId) {
 		return new CancelSalesOrderCommand(orderId, reason);
 	}
 }

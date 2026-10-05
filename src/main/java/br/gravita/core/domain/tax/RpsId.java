@@ -13,7 +13,7 @@ public record RpsId(UUID value) {
 		Objects.requireNonNull(value, "RpsId value is required");
 	}
 
-	public static RpsId of(UUID value) {
+	public static RpsId of(final UUID value) {
 		return new RpsId(value);
 	}
 

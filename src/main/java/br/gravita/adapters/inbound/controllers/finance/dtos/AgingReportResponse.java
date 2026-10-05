@@ -13,13 +13,13 @@ public record AgingReportResponse(LocalDate asOfDate, BigDecimal total, int titl
 	/** {@code toDays} is {@code null} for the open-ended last range. */
 	public record BucketResponse(AgingRange range, long fromDays, Long toDays, int titleCount, BigDecimal total) {
 
-		static BucketResponse from(AgingBucket bucket) {
+		static BucketResponse from(final AgingBucket bucket) {
 			return new BucketResponse(bucket.range(), bucket.range().fromDays(),
 					bucket.range().toDays().orElse(null), bucket.titleCount(), bucket.total());
 		}
 	}
 
-	public static AgingReportResponse from(AgingReport report) {
+	public static AgingReportResponse from(final AgingReport report) {
 		return new AgingReportResponse(report.getAsOfDate(), report.getTotal(), report.getTitleCount(),
 				report.getBuckets().stream().map(BucketResponse::from).toList());
 	}

@@ -71,8 +71,8 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Confirming a receipt that fully covers the order registers stock, generates payables and closes the order")
 	void confirmingARequestFullyCoveringTheOrderRegistersStockGeneratesPayablesAndClosesTheOrder() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
-		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), BigDecimal.TEN, "100.00");
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), BigDecimal.TEN, "100.00");
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 		when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
@@ -80,24 +80,24 @@ class ConfirmPurchaseReceiptServiceTest {
 
 		service.execute(new ConfirmPurchaseReceiptCommand(receiptId));
 
-		ArgumentCaptor<RegisterStockEntryCommand> stockEntry = ArgumentCaptor.forClass(RegisterStockEntryCommand.class);
+		final ArgumentCaptor<RegisterStockEntryCommand> stockEntry = ArgumentCaptor.forClass(RegisterStockEntryCommand.class);
 		verify(registerStockEntryPort, times(1)).registerEntry(stockEntry.capture());
 		assertThat(stockEntry.getValue().productId()).isEqualTo(productId);
 		assertThat(stockEntry.getValue().quantity()).isEqualByComparingTo(BigDecimal.TEN);
 		assertThat(stockEntry.getValue().unitCost()).isEqualByComparingTo("5.00");
 
-		ArgumentCaptor<GeneratePayableFromReceiptCommand> payables =
+		final ArgumentCaptor<GeneratePayableFromReceiptCommand> payables =
 				ArgumentCaptor.forClass(GeneratePayableFromReceiptCommand.class);
 		verify(generatePayableFromReceiptPort).generatePayables(payables.capture());
 		assertThat(payables.getValue().supplierId()).isEqualTo(supplierId.value());
 		assertThat(payables.getValue().installments()).hasSize(1);
 		assertThat(payables.getValue().installments().get(0).amount()).isEqualByComparingTo("100.00");
 
-		ArgumentCaptor<PurchaseReceipt> savedReceipt = ArgumentCaptor.forClass(PurchaseReceipt.class);
+		final ArgumentCaptor<PurchaseReceipt> savedReceipt = ArgumentCaptor.forClass(PurchaseReceipt.class);
 		verify(purchaseReceiptRepositoryPort).save(savedReceipt.capture());
 		assertThat(savedReceipt.getValue().getId()).isEqualTo(receiptId);
 
-		ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
+		final ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
 		verify(purchaseOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(PurchaseOrderStatus.CLOSED);
 	}
@@ -105,8 +105,8 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Confirming a partial receipt leaves the order partially received")
 	void confirmingAPartialReceiptLeavesTheOrderPartiallyReceived() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
-		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(purchaseReceiptRepositoryPort.findByOrderId(order.getId())).thenReturn(List.of());
 		when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
@@ -114,7 +114,7 @@ class ConfirmPurchaseReceiptServiceTest {
 
 		service.execute(new ConfirmPurchaseReceiptCommand(receiptId));
 
-		ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
+		final ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
 		verify(purchaseOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(PurchaseOrderStatus.PARTIALLY_RECEIVED);
 	}
@@ -122,9 +122,9 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Closes the order only when all its confirmed receipts together cover the ordered quantity")
 	void closesTheOrderOnlyWhenAllOfItsConfirmedReceiptsTogetherCoverTheOrderedQuantity() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
-		PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
-		PurchaseReceipt earlierConfirmedReceipt = PurchaseReceipt
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseReceiptId receiptId = conferencedReceipt(order.getId(), new BigDecimal("4"), "40.00");
+		final PurchaseReceipt earlierConfirmedReceipt = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
 						List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, new BigDecimal("6"))))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal("60.00"), LocalDate.now())))
@@ -136,7 +136,7 @@ class ConfirmPurchaseReceiptServiceTest {
 
 		service.execute(new ConfirmPurchaseReceiptCommand(receiptId));
 
-		ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
+		final ArgumentCaptor<PurchaseOrder> savedOrder = ArgumentCaptor.forClass(PurchaseOrder.class);
 		verify(purchaseOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(PurchaseOrderStatus.CLOSED);
 	}
@@ -144,8 +144,8 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming a receipt still pending conference without any side effect")
 	void confirmingAReceiptStillPendingConferenceIsRejectedWithoutAnySideEffect() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
-		PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseReceipt pending = PurchaseReceipt.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
 				List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, BigDecimal.TEN)));
 		when(purchaseReceiptRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
 		when(purchaseOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -163,8 +163,8 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming an already confirmed receipt without duplicating side effects")
 	void confirmingAnAlreadyConfirmedReceiptIsRejectedWithoutDuplicatingSideEffects() {
-		PurchaseOrder order = openOrder(BigDecimal.TEN);
-		PurchaseReceipt confirmed = PurchaseReceipt
+		final PurchaseOrder order = openOrder(BigDecimal.TEN);
+		final PurchaseReceipt confirmed = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), order.getId(),
 						List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, BigDecimal.TEN)))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal("100.00"), LocalDate.now())))
@@ -184,7 +184,7 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming a receipt that does not exist")
 	void rejectsConfirmingAReceiptThatDoesNotExist() {
-		PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
+		final PurchaseReceiptId receiptId = PurchaseReceiptId.of(UUID.randomUUID());
 		when(purchaseReceiptRepositoryPort.findById(receiptId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new ConfirmPurchaseReceiptCommand(receiptId)))
@@ -194,8 +194,8 @@ class ConfirmPurchaseReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects confirming a receipt whose order cannot be found")
 	void rejectsConfirmingAReceiptWhoseOrderCannotBeFound() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
-		PurchaseReceipt receipt = PurchaseReceipt
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseReceipt receipt = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
 						List.of(new PurchaseReceiptItem(productId, BigDecimal.TEN, BigDecimal.TEN)))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal("100.00"), LocalDate.now())));
@@ -206,13 +206,13 @@ class ConfirmPurchaseReceiptServiceTest {
 				.isInstanceOf(PurchaseOrderNotFoundException.class);
 	}
 
-	private PurchaseOrder openOrder(BigDecimal orderedQty) {
+	private PurchaseOrder openOrder(final BigDecimal orderedQty) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, supplierId, List.of(new PurchaseOrderItem(productId, orderedQty, new BigDecimal("5.00"))), false);
 	}
 
-	private PurchaseReceiptId conferencedReceipt(PurchaseOrderId orderId, BigDecimal receivedQty, String amount) {
-		PurchaseReceipt conferenced = PurchaseReceipt
+	private PurchaseReceiptId conferencedReceipt(final PurchaseOrderId orderId, final BigDecimal receivedQty, final String amount) {
+		final PurchaseReceipt conferenced = PurchaseReceipt
 				.pending(PurchaseReceiptId.of(UUID.randomUUID()), orderId,
 						List.of(new PurchaseReceiptItem(productId, receivedQty, receivedQty)))
 				.completeConference(List.of(new InstallmentTerm(new BigDecimal(amount), LocalDate.now().plusDays(30))));

@@ -9,7 +9,7 @@ import java.util.UUID;
 public record OpportunityResponse(UUID id, UUID customerId, BigDecimal estimatedValue, Integer probability,
 		LocalDate expectedCloseDate, UUID owner, OpportunityStage stage) {
 
-	public static OpportunityResponse from(OpportunityView view) {
+	public static OpportunityResponse from(final OpportunityView view) {
 		return new OpportunityResponse(view.id(), view.customerId(), view.estimatedValue(), view.probability(),
 				view.expectedCloseDate(), view.owner(), view.stage());
 	}

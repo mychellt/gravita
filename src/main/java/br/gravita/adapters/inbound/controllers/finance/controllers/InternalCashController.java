@@ -30,23 +30,23 @@ public class InternalCashController {
 
 	@PostMapping("/movements")
 	public ResponseEntity<CashMovementResponse> recordMovement(
-			@Valid @RequestBody RecordInternalCashMovementRequest request) {
-		CashMovement recorded = recordInternalCashMovementUseCase.execute(request.toCommand());
+			@Valid @RequestBody final RecordInternalCashMovementRequest request) {
+		final CashMovement recorded = recordInternalCashMovementUseCase.execute(request.toCommand());
 		return ResponseEntity.status(HttpStatus.CREATED).body(CashMovementResponse.from(recorded));
 	}
 
 	@PostMapping("/close")
-	public ResponseEntity<DailyClosingResponse> close(@Valid @RequestBody CloseDailyCashRequest request) {
+	public ResponseEntity<DailyClosingResponse> close(@Valid @RequestBody final CloseDailyCashRequest request) {
 		return ResponseEntity.ok(DailyClosingResponse.from(closeDailyCashUseCase.execute(request.toCommand())));
 	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException exception) {
+	public ResponseEntity<Map<String, String>> handleResourceNotFoundException(final ResourceNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

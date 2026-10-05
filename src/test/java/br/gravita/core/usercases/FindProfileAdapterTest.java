@@ -29,15 +29,15 @@ class FindProfileAdapterTest {
 	@DisplayName("Returns the profile when it exists")
 	@Test
 	void shouldReturnProfileWhenFound() {
-		FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);
-		UUID id = UUID.randomUUID();
-		ProfileDomain profile = ProfileDomain.builder().id(id).name("Financial")
+		final FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProfileDomain profile = ProfileDomain.builder().id(id).name("Financial")
 				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices")
 						.action(PermissionAction.VIEW).build()))
 				.build();
 		when(profileRepositoryPort.findById(id)).thenReturn(Optional.of(profile));
 
-		ProfileDomain found = adapter.execute(new Context(id));
+		final ProfileDomain found = adapter.execute(new Context(id));
 
 		assertThat(found).isEqualTo(profile);
 	}
@@ -45,8 +45,8 @@ class FindProfileAdapterTest {
 	@DisplayName("Fails with not found when the profile does not exist")
 	@Test
 	void shouldFailWhenProfileNotFound() {
-		FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);
-		UUID id = UUID.randomUUID();
+		final FindProfileAdapter adapter = new FindProfileAdapter(profileRepositoryPort);
+		final UUID id = UUID.randomUUID();
 		when(profileRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id))).isInstanceOf(ResourceNotFoundException.class);

@@ -84,14 +84,28 @@ class IssueRpsServiceTest {
 				.thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private Company company(br.gravita.core.domain.masterdata.TaxRegime regime) {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj(CNPJ), "123456789",
-				"987654", "6201500", regime, false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfse@example.com", "11999999999", null, null);
+	private Company company(final br.gravita.core.domain.masterdata.TaxRegime regime) {
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj(CNPJ))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(regime)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfse@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
-	private static ServiceTaxRule rule(String municipality, TaxRegime regime, TaxType type, String rate,
-			WithholdingMode mode) {
+	private static ServiceTaxRule rule(final String municipality, final TaxRegime regime, final TaxType type, final String rate,
+			final WithholdingMode mode) {
 		return new ServiceTaxRule("01.05", municipality, regime, type, new BigDecimal(rate), mode);
 	}
 
@@ -106,7 +120,7 @@ class IssueRpsServiceTest {
 				rule(null, null, TaxType.INSS, "11.0000", WithholdingMode.NEVER));
 	}
 
-	private static TomadorCommand pjTomador(String municipality, boolean withAddress) {
+	private static TomadorCommand pjTomador(final String municipality, final boolean withAddress) {
 		return new TomadorCommand(null, CNPJ, PersonType.COMPANY, "Tomador SA", municipality,
 				withAddress ? new AddressCommand("Rua A", "10", null, "Centro", "01001000", "SP") : null);
 	}
@@ -115,30 +129,30 @@ class IssueRpsServiceTest {
 		return new TomadorCommand(null, CPF, PersonType.INDIVIDUAL, "Pessoa Fisica", null, null);
 	}
 
-	private IssueRpsCommand command(TomadorCommand tomador, PlaceOfProvision place, String serviceCode,
-			BigDecimal override, String justification) {
+	private IssueRpsCommand command(final TomadorCommand tomador, final PlaceOfProvision place, final String serviceCode,
+			final BigDecimal override, final String justification) {
 		return new IssueRpsCommand(companyId.value(), SP, tomador, serviceCode, place, new BigDecimal("1000.00"),
 				"Desenvolvimento de software", override, justification);
 	}
 
-	private IssueRpsCommand command(TomadorCommand tomador) {
+	private IssueRpsCommand command(final TomadorCommand tomador) {
 		return command(tomador, PlaceOfProvision.PROVIDER, "1.05", null, null);
 	}
 
 	private NfseDocument savedDocument() {
-		ArgumentCaptor<NfseDocument> captor = ArgumentCaptor.forClass(NfseDocument.class);
+		final ArgumentCaptor<NfseDocument> captor = ArgumentCaptor.forClass(NfseDocument.class);
 		verify(nfseRepositoryPort).save(captor.capture());
 		return captor.getValue();
 	}
 
 	@Test
 	@DisplayName("Defaults to the most specific configured ISS rate and computes the withholdings from the rules")
-	void ac3and4_defaultsToTheMostSpecificConfiguredIssRateAndComputesTheWithholdingsFromTheRules() {
+	void ac3and4DefaultsToTheMostSpecificConfiguredIssRateAndComputesTheWithholdingsFromTheRules() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
-		RpsId id = service.execute(command(pjTomador(SP, true)));
+		final RpsId id = service.execute(command(pjTomador(SP, true)));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(id.value()).isEqualTo(saved.getId().value());
 		assertThat(saved.getStatus()).isEqualTo(NfseStatus.RPS);
 		assertThat(saved.getIssRate()).isEqualByComparingTo("5.0000");
@@ -158,33 +172,33 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Withholds nothing for an individual tomador and needs no address, as it is not a withholding agent")
-	void ac4_aPfTomadorIsNotAWithholdingAgentSoNothingIsWithheldAndNoAddressIsNeeded() {
+	void ac4APfTomadorIsNotAWithholdingAgentSoNothingIsWithheldAndNoAddressIsNeeded() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
 		service.execute(command(pfTomador()));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(saved.getWithholdings()).isEmpty();
 		assertThat(saved.getIssRate()).isEqualByComparingTo("5.0000");
 	}
 
 	@Test
 	@DisplayName("Follows the rule table, not the code, when determining withholdings")
-	void ac4_withholdingsFollowTheRuleTableNotTheCode() {
+	void ac4WithholdingsFollowTheRuleTableNotTheCode() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of(
 				rule(SP, null, TaxType.ISS, "3.0000", WithholdingMode.NEVER),
 				rule(null, null, TaxType.INSS, "11.0000", WithholdingMode.ALWAYS)));
 
 		service.execute(command(pjTomador(SP, true)));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(saved.getWithholdings()).extracting("taxType").containsExactly(TaxType.INSS);
 		assertThat(saved.getWithholdings().get(0).amount()).isEqualByComparingTo("110.00");
 	}
 
 	@Test
 	@DisplayName("Ranks a regime-specific rule above a wildcard one")
-	void ac4_aRegimeSpecificRuleOutranksAWildcardOne() {
+	void ac4ARegimeSpecificRuleOutranksAWildcardOne() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of(
 				rule(SP, null, TaxType.ISS, "5.0000", WithholdingMode.NEVER),
 				rule(SP, TaxRegime.LUCRO_PRESUMIDO, TaxType.ISS, "3.5000", WithholdingMode.NEVER),
@@ -194,7 +208,7 @@ class IssueRpsServiceTest {
 
 		service.execute(command(pfTomador()));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		// The company is Lucro Presumido: its own regime row wins and the Lucro Real PIS row is ignored.
 		assertThat(saved.getIssRate()).isEqualByComparingTo("3.5000");
 		assertThat(saved.getWithholdings()).isEmpty();
@@ -202,13 +216,13 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Replaces the configured rate with a manual override that carries a justification")
-	void ac3_aManualOverrideWithJustificationReplacesTheConfiguredRate() {
+	void ac3AManualOverrideWithJustificationReplacesTheConfiguredRate() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
 		service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05", new BigDecimal("3.0"),
 				"Beneficio fiscal municipal"));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(saved.getIssRate()).isEqualByComparingTo("3.0");
 		assertThat(saved.getIssAmount()).isEqualByComparingTo("30.00");
 		assertThat(saved.isIssRateOverridden()).isTrue();
@@ -217,7 +231,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Keeps the configured ISS withholding behaviour when the rate is overridden")
-	void ac3_anOverrideKeepsTheConfiguredIssWithholdingBehaviour() {
+	void ac3AnOverrideKeepsTheConfiguredIssWithholdingBehaviour() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
 		service.execute(command(pjTomador(SP, true), PlaceOfProvision.PROVIDER, "1.05", new BigDecimal("3.0"), "j"));
@@ -228,7 +242,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Rejects an override without justification")
-	void ac3_anOverrideWithoutJustificationIsRejected() {
+	void ac3AnOverrideWithoutJustificationIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05",
 				new BigDecimal("3.0"), null))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("justification");
@@ -241,7 +255,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Rejects an override outside the zero-to-one-hundred range")
-	void ac3_anOverrideOutsideZeroToOneHundredIsRejected() {
+	void ac3AnOverrideOutsideZeroToOneHundredIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05",
 				new BigDecimal("120"), "j"))).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05",
@@ -250,7 +264,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Lets a justified override cover a service with no configured rate")
-	void ac3_aJustifiedOverrideCoversAServiceWithNoConfiguredRate() {
+	void ac3AJustifiedOverrideCoversAServiceWithNoConfiguredRate() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of());
 
 		service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "1.05", new BigDecimal("4"), "j"));
@@ -260,7 +274,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Rejects an RPS with no configured rate and no override")
-	void ac3_noConfiguredRateAndNoOverrideIsRejected() {
+	void ac3NoConfiguredRateAndNoOverrideIsRejected() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(List.of());
 
 		assertThatThrownBy(() -> service.execute(command(pfTomador()))).isInstanceOf(BusinessRuleException.class)
@@ -270,7 +284,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Rejects withheld tax without the tomador's full address before any number is allocated")
-	void ac2_aWithheldTaxWithoutTheTomadorsFullAddressIsRejectedBeforeAnyNumberIsAllocated() {
+	void ac2AWithheldTaxWithoutTheTomadorsFullAddressIsRejectedBeforeAnyNumberIsAllocated() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
 		assertThatThrownBy(() -> service.execute(command(pjTomador(SP, false))))
@@ -285,7 +299,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Rejects a service code outside the LC 116 list")
-	void ac1_aCodeOutsideTheLc116ListIsRejected() {
+	void ac1ACodeOutsideTheLc116ListIsRejected() {
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "99.99", null, null)))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("LC 116");
 		assertThatThrownBy(() -> service.execute(command(pfTomador(), PlaceOfProvision.PROVIDER, "abc", null, null)))
@@ -296,7 +310,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Accepts only the codes on the list when the municipality has its own list")
-	void ac1_aMunicipalityWithItsOwnListOnlyAcceptsTheCodesOnIt() {
+	void ac1AMunicipalityWithItsOwnListOnlyAcceptsTheCodesOnIt() {
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(SP)).thenReturn(true);
 		when(municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(SP, "01.05")).thenReturn(false);
 
@@ -307,7 +321,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Accepts a code that is on the municipal list")
-	void ac1_aCodeOnTheMunicipalListIsAccepted() {
+	void ac1ACodeOnTheMunicipalListIsAccepted() {
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(SP)).thenReturn(true);
 		when(municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(SP, "01.05")).thenReturn(true);
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
@@ -319,7 +333,7 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Checks the list of the municipality to which ISS is due")
-	void ac1_theListCheckedIsTheOneOfTheMunicipalityIssIsDueTo() {
+	void ac1TheListCheckedIsTheOneOfTheMunicipalityIssIsDueTo() {
 		// place of provision = RECIPIENT: ISS is due to the tomador's municipality, so that municipality's list rules.
 		when(municipalServiceCodeRepositoryPort.hasServiceCodeList(RIO)).thenReturn(true);
 		when(municipalServiceCodeRepositoryPort.existsByMunicipalityAndServiceCode(RIO, "01.05")).thenReturn(false);
@@ -338,7 +352,7 @@ class IssueRpsServiceTest {
 
 		service.execute(command(pjTomador(RIO, true), PlaceOfProvision.RECIPIENT, "1.05", null, null));
 
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(saved.getIssMunicipalityIbgeCode()).isEqualTo(RIO);
 		assertThat(saved.getProviderMunicipalityIbgeCode()).isEqualTo(SP);
 		assertThat(saved.getPlaceOfProvision()).isEqualTo(PlaceOfProvision.RECIPIENT);
@@ -354,18 +368,18 @@ class IssueRpsServiceTest {
 
 	@Test
 	@DisplayName("Numbers the RPS from its own RPS series, not the NF-e one")
-	void ac5_numbersTheRpsFromItsOwnRpsSeriesNotTheNfeOne() {
+	void ac5NumbersTheRpsFromItsOwnRpsSeriesNotTheNfeOne() {
 		when(serviceTaxRuleRepositoryPort.findCandidates("01.05", SP)).thenReturn(standardRules());
 
 		service.execute(command(pfTomador()));
 
-		ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor
+		final ArgumentCaptor<AllocateDocumentNumberCommand> captor = ArgumentCaptor
 				.forClass(AllocateDocumentNumberCommand.class);
 		verify(allocateDocumentNumberUseCase).execute(captor.capture());
 		assertThat(captor.getValue().documentType()).isEqualTo(FiscalDocumentType.RPS);
 		assertThat(captor.getValue().documentType()).isNotEqualTo(FiscalDocumentType.NFE);
 		assertThat(captor.getValue().companyId()).isEqualTo(companyId);
-		NfseDocument saved = savedDocument();
+		final NfseDocument saved = savedDocument();
 		assertThat(saved.getRpsSeries()).isEqualTo("RPS1");
 		assertThat(saved.getRpsNumber()).isEqualTo(42L);
 	}
@@ -373,7 +387,7 @@ class IssueRpsServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown provider company")
 	void anUnknownProviderCompanyIsNotFound() {
-		UUID unknown = UUID.randomUUID();
+		final UUID unknown = UUID.randomUUID();
 		when(companyRepositoryPort.findById(CompanyId.of(unknown))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new IssueRpsCommand(unknown, SP, pfTomador(), "1.05",
@@ -384,7 +398,7 @@ class IssueRpsServiceTest {
 	@Test
 	@DisplayName("Rejects an invalid tomador document")
 	void anInvalidTomadorDocumentIsRejected() {
-		TomadorCommand bad = new TomadorCommand(null, "11111111111", PersonType.INDIVIDUAL, "X", null, null);
+		final TomadorCommand bad = new TomadorCommand(null, "11111111111", PersonType.INDIVIDUAL, "X", null, null);
 
 		assertThatThrownBy(() -> service.execute(command(bad))).isInstanceOf(RuntimeException.class);
 		verify(allocateDocumentNumberUseCase, never()).execute(any());

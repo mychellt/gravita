@@ -14,7 +14,7 @@ public record TomadorAddress(String street, String number, String complement, St
 		requireNonBlank(state, "state");
 	}
 
-	private static void requireNonBlank(String value, String field) {
+	private static void requireNonBlank(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException("Tomador address " + field + " is required");
 		}

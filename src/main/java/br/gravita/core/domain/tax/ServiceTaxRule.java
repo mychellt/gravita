@@ -23,12 +23,12 @@ public record ServiceTaxRule(String serviceCode, String municipalityIbgeCode, Ta
 		return (municipalityIbgeCode != null ? 2 : 0) + (regime != null ? 1 : 0);
 	}
 
-	public boolean appliesTo(String ibgeCode, TaxRegime providerRegime) {
+	public boolean appliesTo(final String ibgeCode, final TaxRegime providerRegime) {
 		return (municipalityIbgeCode == null || municipalityIbgeCode.equals(ibgeCode))
 				&& (regime == null || regime == providerRegime);
 	}
 
-	public boolean isWithheldFor(NfseTomador tomador) {
+	public boolean isWithheldFor(final NfseTomador tomador) {
 		return switch (withholding) {
 			case NEVER -> false;
 			case ALWAYS -> true;

@@ -14,12 +14,12 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
 
 	private final ObjectProvider<SessionStorePort> sessionStorePortProvider;
 
-	public WebMvcConfiguration(ObjectProvider<SessionStorePort> sessionStorePortProvider) {
+	public WebMvcConfiguration(final ObjectProvider<SessionStorePort> sessionStorePortProvider) {
 		this.sessionStorePortProvider = sessionStorePortProvider;
 	}
 
 	@Override
-	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+	public void addArgumentResolvers(final List<HandlerMethodArgumentResolver> resolvers) {
 		resolvers.add(new AuthenticatedUserArgumentResolver(sessionStorePortProvider));
 	}
 }

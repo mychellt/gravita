@@ -16,21 +16,21 @@ public final class DiscriminationTemplate {
 	private ServiceCode serviceCode;
 	private String templateText;
 
-	public DiscriminationTemplate(DiscriminationTemplateId id, ServiceCode serviceCode, String templateText) {
+	public DiscriminationTemplate(final DiscriminationTemplateId id, final ServiceCode serviceCode, final String templateText) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		apply(serviceCode, templateText);
 	}
 
-	public static DiscriminationTemplate of(DiscriminationTemplateId id, ServiceCode serviceCode,
-			String templateText) {
+	public static DiscriminationTemplate of(final DiscriminationTemplateId id, final ServiceCode serviceCode,
+			final String templateText) {
 		return new DiscriminationTemplate(id, serviceCode, templateText);
 	}
 
-	public void update(ServiceCode serviceCode, String templateText) {
+	public void update(final ServiceCode serviceCode, final String templateText) {
 		apply(serviceCode, templateText);
 	}
 
-	private void apply(ServiceCode serviceCode, String templateText) {
+	private void apply(final ServiceCode serviceCode, final String templateText) {
 		if (serviceCode == null) {
 			throw new BusinessRuleException("serviceCode is required");
 		}

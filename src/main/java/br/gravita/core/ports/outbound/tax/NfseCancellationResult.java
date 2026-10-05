@@ -15,11 +15,11 @@ public record NfseCancellationResult(Instant cancelledAt, String rejectionReason
 		}
 	}
 
-	public static NfseCancellationResult confirmed(Instant cancelledAt) {
+	public static NfseCancellationResult confirmed(final Instant cancelledAt) {
 		return new NfseCancellationResult(Objects.requireNonNull(cancelledAt, "cancelledAt"), null);
 	}
 
-	public static NfseCancellationResult rejected(String reason) {
+	public static NfseCancellationResult rejected(final String reason) {
 		return new NfseCancellationResult(null, Objects.requireNonNull(reason, "reason"));
 	}
 

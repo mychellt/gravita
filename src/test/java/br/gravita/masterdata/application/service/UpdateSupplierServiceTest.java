@@ -35,25 +35,25 @@ class UpdateSupplierServiceTest {
 	@Mock
 	private SupplierRepositoryPort supplierRepositoryPort;
 
-	private Supplier existingSupplier(SupplierId id) {
+	private Supplier existingSupplier(final SupplierId id) {
 		return Supplier.of(id, VALID_CNPJ, "Acme Supplies", List.of(VALID_ADDRESS), List.of(), null, null, 5, "1102");
 	}
 
 	@Test
 	@DisplayName("Keeps unspecified fields on a partial update")
 	void shouldKeepUnspecifiedFieldsOnPartialUpdate() {
-		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
-		SupplierId id = SupplierId.of(UUID.randomUUID());
+		final UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
+		final SupplierId id = SupplierId.of(UUID.randomUUID());
 		when(supplierRepositoryPort.findById(id)).thenReturn(Optional.of(existingSupplier(id)));
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpdateSupplierCommand command = new UpdateSupplierCommand(id, null, null, null, null, null, null, null, "1401");
+		final UpdateSupplierCommand command = new UpdateSupplierCommand(id, null, null, null, null, null, null, null, "1401");
 
 		service.execute(command);
 
-		ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
+		final ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
 		verify(supplierRepositoryPort).save(savedSupplier.capture());
-		Supplier saved = savedSupplier.getValue();
+		final Supplier saved = savedSupplier.getValue();
 		assertThat(saved.getDefaultPurchaseCfop()).isEqualTo("1401");
 		assertThat(saved.getName()).isEqualTo("Acme Supplies");
 		assertThat(saved.getDocument()).isEqualTo(VALID_CNPJ);
@@ -64,18 +64,18 @@ class UpdateSupplierServiceTest {
 	@Test
 	@DisplayName("Updates the PIX key without requiring other fields")
 	void shouldUpdatePixKeyWithoutRequiringOtherFields() {
-		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
-		SupplierId id = SupplierId.of(UUID.randomUUID());
+		final UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
+		final SupplierId id = SupplierId.of(UUID.randomUUID());
 		when(supplierRepositoryPort.findById(id)).thenReturn(Optional.of(existingSupplier(id)));
 		when(supplierRepositoryPort.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PixKey newPixKey = PixKey.of("supplier@example.com");
-		UpdateSupplierCommand command =
+		final PixKey newPixKey = PixKey.of("supplier@example.com");
+		final UpdateSupplierCommand command =
 				new UpdateSupplierCommand(id, null, null, null, null, null, newPixKey, null, null);
 
 		service.execute(command);
 
-		ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
+		final ArgumentCaptor<Supplier> savedSupplier = ArgumentCaptor.forClass(Supplier.class);
 		verify(supplierRepositoryPort).save(savedSupplier.capture());
 		assertThat(savedSupplier.getValue().getPixKey()).isEqualTo(newPixKey);
 		assertThat(savedSupplier.getValue().getDefaultPurchaseCfop()).isEqualTo("1102");
@@ -84,11 +84,11 @@ class UpdateSupplierServiceTest {
 	@Test
 	@DisplayName("Throws when the supplier does not exist")
 	void shouldThrowWhenSupplierDoesNotExist() {
-		UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
-		SupplierId id = SupplierId.of(UUID.randomUUID());
+		final UpdateSupplierService service = new UpdateSupplierService(supplierRepositoryPort);
+		final SupplierId id = SupplierId.of(UUID.randomUUID());
 		when(supplierRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
-		UpdateSupplierCommand command = new UpdateSupplierCommand(id, null, "New Name", null, null, null, null, null, null);
+		final UpdateSupplierCommand command = new UpdateSupplierCommand(id, null, "New Name", null, null, null, null, null, null);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(SupplierNotFoundException.class);
 	}

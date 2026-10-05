@@ -66,34 +66,34 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Invoices an approved product-only order through NF-e and generates a receivable for the total")
 	void invoicesAnApprovedOrderWithOnlyProductItemsThroughNfeAndGeneratesAReceivableForTheTotal() {
-		UUID productId = UUID.randomUUID();
-		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
+		final UUID productId = UUID.randomUUID();
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
 				List.of(item(productId, new BigDecimal("2"), new BigDecimal("10.00"), BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(product(ProductType.SIMPLE)));
-		FiscalDocumentRef nfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
+		final FiscalDocumentRef nfeRef = new FiscalDocumentRef(FiscalDocumentType.NFE, UUID.randomUUID());
 		when(issueFiscalDocumentPort.issueForProducts(any())).thenReturn(nfeRef);
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(salesInvoiceRepositoryPort.save(any(SalesInvoice.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesInvoiceView view = service.execute(new InvoiceSalesOrderCommand(order.getId().value()));
+		final SalesInvoiceView view = service.execute(new InvoiceSalesOrderCommand(order.getId().value()));
 
 		assertThat(view.orderId()).isEqualTo(order.getId().value());
 		assertThat(view.fiscalDocuments()).containsExactly(nfeRef);
 
-		ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
+		final ArgumentCaptor<SalesOrder> savedOrder = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(savedOrder.capture());
 		assertThat(savedOrder.getValue().getStatus()).isEqualTo(SalesOrderStatus.INVOICED);
 
-		ArgumentCaptor<IssueFiscalDocumentCommand> issued = ArgumentCaptor.forClass(IssueFiscalDocumentCommand.class);
+		final ArgumentCaptor<IssueFiscalDocumentCommand> issued = ArgumentCaptor.forClass(IssueFiscalDocumentCommand.class);
 		verify(issueFiscalDocumentPort).issueForProducts(issued.capture());
 		assertThat(issued.getValue().orderId()).isEqualTo(order.getId().value());
 		assertThat(issued.getValue().customerId()).isEqualTo(order.getCustomerId());
 		assertThat(issued.getValue().items()).hasSize(1);
 		verify(issueFiscalDocumentPort, never()).issueForServices(any());
 
-		ArgumentCaptor<GenerateAccountsReceivableCommand> receivable = ArgumentCaptor
+		final ArgumentCaptor<GenerateAccountsReceivableCommand> receivable = ArgumentCaptor
 				.forClass(GenerateAccountsReceivableCommand.class);
 		verify(generateAccountsReceivablePort).generate(receivable.capture());
 		assertThat(receivable.getValue().originDocument()).isEqualTo(nfeRef);
@@ -103,7 +103,7 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects invoicing an order that does not exist")
 	void rejectsInvoicingAnOrderThatDoesNotExist() {
-		UUID orderId = UUID.randomUUID();
+		final UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new InvoiceSalesOrderCommand(orderId)))
@@ -116,7 +116,7 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects invoicing a draft order and issues no fiscal document")
 	void rejectsInvoicingADraftOrderWithoutIssuingAnyFiscalDocument() {
-		SalesOrder order = orderWithStatus(SalesOrderStatus.DRAFT,
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.DRAFT,
 				List.of(item(UUID.randomUUID(), BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 
@@ -133,8 +133,8 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects invoicing when the product or service of an item cannot be found")
 	void rejectsInvoicingWhenAnItemsProductOrServiceCannotBeFound() {
-		UUID productId = UUID.randomUUID();
-		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
+		final UUID productId = UUID.randomUUID();
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
 				List.of(item(productId, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.empty());
@@ -148,18 +148,18 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Routes service line items to NFS-e issuance and links the resulting document")
 	void routesServiceLineItemsToNfseIssuanceAndLinksTheResultingDocument() {
-		UUID serviceId = UUID.randomUUID();
-		SalesOrder order = orderWithStatus(SalesOrderStatus.IN_SEPARATION,
+		final UUID serviceId = UUID.randomUUID();
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.IN_SEPARATION,
 				List.of(item(serviceId, BigDecimal.ONE, new BigDecimal("100.00"), BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(productRepositoryPort.get(serviceId)).thenReturn(Optional.of(product(ProductType.SERVICE)));
-		FiscalDocumentRef nfseRef = new FiscalDocumentRef(FiscalDocumentType.NFSE, UUID.randomUUID());
+		final FiscalDocumentRef nfseRef = new FiscalDocumentRef(FiscalDocumentType.NFSE, UUID.randomUUID());
 		when(issueFiscalDocumentPort.issueForServices(any())).thenReturn(nfseRef);
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(salesInvoiceRepositoryPort.save(any(SalesInvoice.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		SalesInvoiceView view = service.execute(new InvoiceSalesOrderCommand(order.getId().value()));
+		final SalesInvoiceView view = service.execute(new InvoiceSalesOrderCommand(order.getId().value()));
 
 		assertThat(view.fiscalDocuments()).containsExactly(nfseRef);
 		verify(issueFiscalDocumentPort, never()).issueForProducts(any());
@@ -168,8 +168,8 @@ class InvoiceSalesOrderServiceTest {
 	@Test
 	@DisplayName("Propagates an NFS-e unavailable failure without transitioning the order")
 	void propagatesTheNfseNotAvailableFailureWithoutTransitioningTheOrder() {
-		UUID serviceId = UUID.randomUUID();
-		SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
+		final UUID serviceId = UUID.randomUUID();
+		final SalesOrder order = orderWithStatus(SalesOrderStatus.APPROVED,
 				List.of(item(serviceId, BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(productRepositoryPort.get(serviceId)).thenReturn(Optional.of(product(ProductType.SERVICE)));
@@ -184,18 +184,18 @@ class InvoiceSalesOrderServiceTest {
 		verify(generateAccountsReceivablePort, never()).generate(any());
 	}
 
-	private static SalesOrder orderWithStatus(SalesOrderStatus status, List<SalesOrderItem> items) {
+	private static SalesOrder orderWithStatus(final SalesOrderStatus status, final List<SalesOrderItem> items) {
 		return SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()), UUID.randomUUID(),
 				UUID.randomUUID(), items, status, status == SalesOrderStatus.DRAFT ? null : UUID.randomUUID(), null);
 	}
 
-	private static SalesOrderItem item(UUID productOrServiceId, BigDecimal quantity, BigDecimal unitPrice,
-			BigDecimal discount) {
+	private static SalesOrderItem item(final UUID productOrServiceId, final BigDecimal quantity, final BigDecimal unitPrice,
+			final BigDecimal discount) {
 		return new SalesOrderItem(productOrServiceId, quantity, unitPrice, discount);
 	}
 
-	private static ProductDomain product(ProductType type) {
-		ProductDomain product = ProductDomain.builder().type(type).internalCode("SKU-1").build();
+	private static ProductDomain product(final ProductType type) {
+		final ProductDomain product = ProductDomain.builder().type(type).internalCode("SKU-1").build();
 		return product;
 	}
 }

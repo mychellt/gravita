@@ -32,7 +32,7 @@ public record GenerateSpedFiscalCommand(CompanyId companyId, Period period, Fina
 			}
 		}
 
-		public static Period ofMonth(YearMonth month) {
+		public static Period ofMonth(final YearMonth month) {
 			return new Period(month.atDay(1), month.atEndOfMonth());
 		}
 
@@ -47,7 +47,7 @@ public record GenerateSpedFiscalCommand(CompanyId companyId, Period period, Fina
 
 		private final String code;
 
-		Finality(String code) {
+		Finality(final String code) {
 			this.code = code;
 		}
 
@@ -67,7 +67,7 @@ public record GenerateSpedFiscalCommand(CompanyId companyId, Period period, Fina
 
 		private final String code;
 
-		ActivityType(String code) {
+		ActivityType(final String code) {
 			this.code = code;
 		}
 

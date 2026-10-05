@@ -14,14 +14,14 @@ public class DeletePlanAdapter implements DeletePlanPort {
 
 	private final PlanRepositoryPort planRepositoryPort;
 
-	public DeletePlanAdapter(PlanRepositoryPort planRepositoryPort) {
+	public DeletePlanAdapter(final PlanRepositoryPort planRepositoryPort) {
 		this.planRepositoryPort = planRepositoryPort;
 	}
 
 	@Override
 	@Transactional
-	public Void execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public Void execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		planRepositoryPort.findById(id)
 				.orElseThrow(() -> new BusinessRuleException("Plan not found: " + id));
 		if (planRepositoryPort.hasSubscriptions(id)) {

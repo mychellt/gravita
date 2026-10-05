@@ -31,22 +31,22 @@ public class PosSessionController {
 	private final GetZReportUseCase getZReportUseCase;
 
 	@PostMapping
-	public ResponseEntity<OpenPosSessionResponse> open(@Valid @RequestBody OpenPosSessionRequest request) {
-		PosSessionId id = openPosSessionUseCase.execute(request.toCommand());
+	public ResponseEntity<OpenPosSessionResponse> open(@Valid @RequestBody final OpenPosSessionRequest request) {
+		final PosSessionId id = openPosSessionUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/pdv/sessions/" + id.value()))
 				.body(OpenPosSessionResponse.from(id));
 	}
 
 	@PostMapping("/{id}/close")
-	public ResponseEntity<CashClosingReportResponse> close(@PathVariable UUID id,
-			@Valid @RequestBody ClosePosSessionRequest request) {
-		CashClosingReport report = closePosSessionUseCase.execute(request.toCommand(id));
+	public ResponseEntity<CashClosingReportResponse> close(@PathVariable final UUID id,
+			@Valid @RequestBody final ClosePosSessionRequest request) {
+		final CashClosingReport report = closePosSessionUseCase.execute(request.toCommand(id));
 		return ResponseEntity.ok(CashClosingReportResponse.from(report));
 	}
 
 	@GetMapping("/{id}/z-report")
-	public ResponseEntity<CashClosingReportResponse> zReport(@PathVariable UUID id) {
-		CashClosingReport report = getZReportUseCase.execute(id);
+	public ResponseEntity<CashClosingReportResponse> reportZ(@PathVariable final UUID id) {
+		final CashClosingReport report = getZReportUseCase.execute(id);
 		return ResponseEntity.ok(CashClosingReportResponse.from(report));
 	}
 }

@@ -21,8 +21,8 @@ class PurchaseOrderTest {
 
 	@Test
 	@DisplayName("A newly created order starts OPEN")
-	void aNewlyCreatedOrderStartsOpen() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void newlyCreatedOrderStartsOpen() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
 
 		assertThat(order.getStatus()).isEqualTo(PurchaseOrderStatus.OPEN);
@@ -31,7 +31,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("Total value sums each line's quantity times unit price")
 	void totalValueSumsEachLinesQuantityTimesUnitPrice() {
-		PurchaseOrder order = create(List.of(
+		final PurchaseOrder order = create(List.of(
 				new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("2.00")),
 				new PurchaseOrderItem(UUID.randomUUID(), new BigDecimal("3"), new BigDecimal("1.50"))), false);
 
@@ -41,7 +41,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("Carries the approval-required flag it was created with")
 	void carriesTheApprovalRequiredFlagItWasCreatedWith() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.ONE,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.ONE,
 				BigDecimal.TEN)), true);
 
 		assertThat(order.isApprovalRequired()).isTrue();
@@ -65,22 +65,22 @@ class PurchaseOrderTest {
 
 	@Test
 	@DisplayName("An order whose quantities are fully received is closed")
-	void aFullyReceivedOrderCloses() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void fullyReceivedOrderCloses() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
 
-		PurchaseOrder updated = order.afterReceiptConfirmed(true);
+		final PurchaseOrder updated = order.afterReceiptConfirmed(true);
 
 		assertThat(updated.getStatus()).isEqualTo(PurchaseOrderStatus.CLOSED);
 	}
 
 	@Test
 	@DisplayName("A partially received order stays partially received")
-	void aPartiallyReceivedOrderStaysPartiallyReceived() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void partiallyReceivedOrderStaysPartiallyReceived() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
 
-		PurchaseOrder updated = order.afterReceiptConfirmed(false);
+		final PurchaseOrder updated = order.afterReceiptConfirmed(false);
 
 		assertThat(updated.getStatus()).isEqualTo(PurchaseOrderStatus.PARTIALLY_RECEIVED);
 	}
@@ -88,7 +88,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("Rejects confirming a receipt against a closed order")
 	void confirmingAReceiptAgainstAClosedOrderIsRejected() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
 
 		assertThatThrownBy(() -> order.afterReceiptConfirmed(true))
@@ -99,7 +99,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("An open order that does not require approval can be received against")
 	void anOpenOrderNotRequiringApprovalIsReceivable() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
 
 		assertThatCode(order::assertReceivable).doesNotThrowAnyException();
@@ -107,8 +107,8 @@ class PurchaseOrderTest {
 
 	@Test
 	@DisplayName("A partially received order can still be received against")
-	void aPartiallyReceivedOrderIsStillReceivable() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void partiallyReceivedOrderIsStillReceivable() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(false);
 
 		assertThatCode(order::assertReceivable).doesNotThrowAnyException();
@@ -116,8 +116,8 @@ class PurchaseOrderTest {
 
 	@Test
 	@DisplayName("A closed order cannot be received against")
-	void aClosedOrderCannotBeReceivedAgainst() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void closedOrderCannotBeReceivedAgainst() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false).afterReceiptConfirmed(true);
 
 		assertThatThrownBy(order::assertReceivable)
@@ -128,7 +128,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("An order still requiring approval cannot be received against")
 	void anOrderRequiringApprovalCannotBeReceivedAgainst() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
 
 		assertThatThrownBy(order::assertReceivable)
@@ -139,11 +139,11 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("Approving an order pending approval clears the flag and makes it receivable")
 	void approvingAnOrderPendingApprovalClearsTheFlagAndMakesItReceivable() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
-		UUID approvedBy = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
 
-		PurchaseOrder approved = order.approve(approvedBy);
+		final PurchaseOrder approved = order.approve(approvedBy);
 
 		assertThat(approved.isApprovalRequired()).isFalse();
 		assertThat(approved.getApprovedBy()).isEqualTo(approvedBy);
@@ -154,10 +154,10 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("Rejecting an order pending approval cancels it")
 	void rejectingAnOrderPendingApprovalCancelsIt() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true);
 
-		PurchaseOrder rejected = order.reject();
+		final PurchaseOrder rejected = order.reject();
 
 		assertThat(rejected.getStatus()).isEqualTo(PurchaseOrderStatus.CANCELLED);
 	}
@@ -165,7 +165,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("An order that does not require approval cannot be approved")
 	void anOrderNotRequiringApprovalCannotBeApproved() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), false);
 
 		assertThatThrownBy(() -> order.approve(UUID.randomUUID()))
@@ -176,7 +176,7 @@ class PurchaseOrderTest {
 	@Test
 	@DisplayName("An already approved order cannot be approved again")
 	void anAlreadyApprovedOrderCannotBeApprovedAgain() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true).approve(UUID.randomUUID());
 
 		assertThatThrownBy(() -> order.approve(UUID.randomUUID()))
@@ -186,8 +186,8 @@ class PurchaseOrderTest {
 
 	@Test
 	@DisplayName("A cancelled order cannot be rejected again")
-	void aCancelledOrderCannotBeRejectedAgain() {
-		PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
+	void cancelledOrderCannotBeRejectedAgain() {
+		final PurchaseOrder order = create(List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN,
 				new BigDecimal("5.00"))), true).reject();
 
 		assertThatThrownBy(order::reject)
@@ -195,7 +195,7 @@ class PurchaseOrderTest {
 				.hasMessageContaining("CANCELLED");
 	}
 
-	private PurchaseOrder create(List<PurchaseOrderItem> items, boolean approvalRequired) {
+	private PurchaseOrder create(final List<PurchaseOrderItem> items, final boolean approvalRequired) {
 		return PurchaseOrder.create(PurchaseOrderId.of(UUID.randomUUID()), PurchaseRequestId.of(UUID.randomUUID()),
 				null, SupplierId.of(UUID.randomUUID()), items, approvalRequired);
 	}

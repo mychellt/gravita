@@ -12,13 +12,13 @@ public class UpdateCustomerService implements UpdateCustomerUseCase {
 
 	private final CustomerRepositoryPort customerRepositoryPort;
 
-	public UpdateCustomerService(CustomerRepositoryPort customerRepositoryPort) {
+	public UpdateCustomerService(final CustomerRepositoryPort customerRepositoryPort) {
 		this.customerRepositoryPort = customerRepositoryPort;
 	}
 
 	@Override
-	public void execute(UpdateCustomerCommand command) {
-		CustomerDomain existing = customerRepositoryPort.get(command.customerId())
+	public void execute(final UpdateCustomerCommand command) {
+		final CustomerDomain existing = customerRepositoryPort.get(command.customerId())
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + command.customerId()));
 
 		existing.setDocumentDomain(coalesce(command.document(), existing.getDocumentDomain()));
@@ -38,7 +38,7 @@ public class UpdateCustomerService implements UpdateCustomerUseCase {
 		customerRepositoryPort.save(existing);
 	}
 
-	private static <T> T coalesce(T newValue, T currentValue) {
+	private static <T> T coalesce(final T newValue, final T currentValue) {
 		return newValue != null ? newValue : currentValue;
 	}
 }

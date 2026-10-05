@@ -25,9 +25,9 @@ public class StockTurnoverController {
 
 	/** {@code period} is a month as {@code yyyy-MM}. */
 	@GetMapping
-	public ResponseEntity<List<StockTurnoverEntry>> get(@AuthenticatedUser UserId callerId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period,
-			@RequestParam(required = false) UUID companyId) {
+	public ResponseEntity<List<StockTurnoverEntry>> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period,
+			@RequestParam(required = false) final UUID companyId) {
 		return ResponseEntity.ok(getStockTurnoverUseCase.execute(new StockTurnoverQuery(callerId, period, companyId)));
 	}
 }

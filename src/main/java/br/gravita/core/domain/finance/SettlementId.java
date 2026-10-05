@@ -9,7 +9,7 @@ public record SettlementId(UUID value) {
 		Objects.requireNonNull(value, "SettlementId value is required");
 	}
 
-	public static SettlementId of(UUID value) {
+	public static SettlementId of(final UUID value) {
 		return new SettlementId(value);
 	}
 }

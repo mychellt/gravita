@@ -35,41 +35,41 @@ public class FollowUpRuleController {
 	private final ListFollowUpRulesUseCase listFollowUpRulesUseCase;
 
 	@PostMapping
-	public ResponseEntity<FollowUpRuleResponse> create(@Valid @RequestBody CreateFollowUpRuleRequest request) {
-		FollowUpRuleResponse created =
+	public ResponseEntity<FollowUpRuleResponse> create(@Valid @RequestBody final CreateFollowUpRuleRequest request) {
+		final FollowUpRuleResponse created =
 				FollowUpRuleResponse.from(manageFollowUpRuleUseCase.create(request.toCommand()));
 		return ResponseEntity.created(URI.create("/api/crm/follow-up-rules/" + created.id())).body(created);
 	}
 
 	@GetMapping
 	public ResponseEntity<List<FollowUpRuleResponse>> list() {
-		List<FollowUpRuleResponse> response =
+		final List<FollowUpRuleResponse> response =
 				listFollowUpRulesUseCase.execute().stream().map(FollowUpRuleResponse::from).toList();
 		return ResponseEntity.ok(response);
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<FollowUpRuleResponse> update(@PathVariable UUID id,
-			@Valid @RequestBody UpdateFollowUpRuleRequest request) {
-		FollowUpRuleResponse updated =
+	public ResponseEntity<FollowUpRuleResponse> update(@PathVariable final UUID id,
+			@Valid @RequestBody final UpdateFollowUpRuleRequest request) {
+		final FollowUpRuleResponse updated =
 				FollowUpRuleResponse.from(manageFollowUpRuleUseCase.update(request.toCommand(id)));
 		return ResponseEntity.ok(updated);
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable UUID id) {
+	public ResponseEntity<Void> delete(@PathVariable final UUID id) {
 		manageFollowUpRuleUseCase.delete(FollowUpRuleId.of(id));
 		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(FollowUpRuleNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleFollowUpRuleNotFoundException(
-			FollowUpRuleNotFoundException exception) {
+			final FollowUpRuleNotFoundException exception) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

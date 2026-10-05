@@ -18,9 +18,9 @@ public class StockBalanceController {
     private final GetStockBalanceUseCase getStockBalanceUseCase;
 
     @GetMapping("/{id}/balance")
-    public ResponseEntity<StockBalanceResponse> getBalance(@PathVariable UUID id,
-                                                           @RequestParam(required = false) UUID warehouseId) {
-        StockBalanceView view = getStockBalanceUseCase.execute(new GetStockBalanceQuery(id, warehouseId));
+    public ResponseEntity<StockBalanceResponse> getBalance(@PathVariable final UUID id,
+                                                           @RequestParam(required = false) final UUID warehouseId) {
+        final StockBalanceView view = getStockBalanceUseCase.execute(new GetStockBalanceQuery(id, warehouseId));
         return ResponseEntity.ok(StockBalanceResponse.from(view));
     }
 }

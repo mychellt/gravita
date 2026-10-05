@@ -16,19 +16,19 @@ public class CreateManualReceivableService implements CreateManualReceivableUseC
 	private final ReceivableRepositoryPort receivableRepositoryPort;
 	private final CustomerRepositoryPort customerRepositoryPort;
 
-	public CreateManualReceivableService(ReceivableRepositoryPort receivableRepositoryPort,
-			CustomerRepositoryPort customerRepositoryPort) {
+	public CreateManualReceivableService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final CustomerRepositoryPort customerRepositoryPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.customerRepositoryPort = customerRepositoryPort;
 	}
 
 	@Override
-	public Receivable execute(CreateManualReceivableCommand command) {
+	public Receivable execute(final CreateManualReceivableCommand command) {
 		customerRepositoryPort.get(command.customerId())
 				.orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + command.customerId()));
 
-		ReceivableId id = ReceivableId.of(UUID.randomUUID());
-		Receivable receivable = Receivable.createManual(id, command.customerId(), command.amount(),
+		final ReceivableId id = ReceivableId.of(UUID.randomUUID());
+		final Receivable receivable = Receivable.createManual(id, command.customerId(), command.amount(),
 				command.dueDate(), command.installments());
 
 		return receivableRepositoryPort.save(receivable);

@@ -14,7 +14,7 @@ public record LogInteractionRequest(
 		@NotBlank String summary,
 		@NotNull Instant timestamp) {
 
-	public LogInteractionCommand toCommand(UUID opportunityId) {
+	public LogInteractionCommand toCommand(final UUID opportunityId) {
 		return LogInteractionCommand.builder()
 				.opportunityId(opportunityId != null ? OpportunityId.of(opportunityId) : null)
 				.customerId(customerId)

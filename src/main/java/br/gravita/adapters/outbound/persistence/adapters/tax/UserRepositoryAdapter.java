@@ -21,22 +21,22 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 	private final PasswordHasher passwordHasher;
 	private final UserPersistenceMapper mapper;
 
-	UserRepositoryAdapter(UserJpaRepository jpaRepository, PasswordHasher passwordHasher, UserPersistenceMapper mapper) {
+	UserRepositoryAdapter(final UserJpaRepository jpaRepository, final PasswordHasher passwordHasher, final UserPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.passwordHasher = passwordHasher;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public User save(User user) {
-		String passwordHash = passwordHasher.hash(user.getRawPassword());
-		UserJpaEntity saved = jpaRepository.save(mapper.map(user, passwordHash));
+	public User save(final User user) {
+		final String passwordHash = passwordHasher.hash(user.getRawPassword());
+		final UserJpaEntity saved = jpaRepository.save(mapper.map(user, passwordHash));
 		return mapper.map(saved);
 	}
 
 	@Override
-	public void update(User user) {
-		UserJpaEntity entity = jpaRepository.findById(user.getId().value())
+	public void update(final User user) {
+		final UserJpaEntity entity = jpaRepository.findById(user.getId().value())
 				.orElseThrow(() -> new UserNotFoundException(user.getId().value()));
 		entity.setName(user.getName());
 		entity.setEmail(user.getEmail());
@@ -47,30 +47,30 @@ class UserRepositoryAdapter implements UserRepositoryPort {
 	}
 
 	@Override
-	public void updatePassword(User user) {
-		UserJpaEntity entity = jpaRepository.findById(user.getId().value())
+	public void updatePassword(final User user) {
+		final UserJpaEntity entity = jpaRepository.findById(user.getId().value())
 				.orElseThrow(() -> new UserNotFoundException(user.getId().value()));
 		entity.setPasswordHash(passwordHasher.hash(user.getRawPassword()));
 		jpaRepository.save(entity);
 	}
 
 	@Override
-	public Optional<User> findById(UserId userId) {
+	public Optional<User> findById(final UserId userId) {
 		return jpaRepository.findById(userId.value()).map(mapper::map);
 	}
 
 	@Override
-	public Optional<User> findByEmail(String email) {
+	public Optional<User> findByEmail(final String email) {
 		return jpaRepository.findByEmail(email).map(mapper::map);
 	}
 
 	@Override
-	public boolean existsByEmail(String email) {
+	public boolean existsByEmail(final String email) {
 		return jpaRepository.existsByEmail(email);
 	}
 
 	@Override
-	public List<User> findAllByCompanyId(UUID companyId) {
+	public List<User> findAllByCompanyId(final UUID companyId) {
 		return jpaRepository.findAllByCompanyId(companyId).stream().map(mapper::map).toList();
 	}
 }

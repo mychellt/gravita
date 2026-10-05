@@ -39,16 +39,16 @@ class ManagePriceTableServiceTest {
 	@Test
 	@DisplayName("Creates a new price table when no id is provided")
 	void shouldCreateNewPriceTableWhenNoIdIsProvided() {
-		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
+		final ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
 		when(priceTableRepositoryPort.save(any(PriceTable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpsertPriceTableCommand command = new UpsertPriceTableCommand(null, PriceFormation.FIXED,
+		final UpsertPriceTableCommand command = new UpsertPriceTableCommand(null, PriceFormation.FIXED,
 				LocalDate.of(2026, 1, 1), null, null, null, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
-		PriceTableId id = service.execute(command);
+		final PriceTableId id = service.execute(command);
 
 		assertThat(id).isNotNull();
-		ArgumentCaptor<PriceTable> saved = ArgumentCaptor.forClass(PriceTable.class);
+		final ArgumentCaptor<PriceTable> saved = ArgumentCaptor.forClass(PriceTable.class);
 		verify(priceTableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getId()).isEqualTo(id);
 	}
@@ -56,21 +56,21 @@ class ManagePriceTableServiceTest {
 	@Test
 	@DisplayName("Updates the existing price table when an id is provided and found")
 	void shouldUpdateExistingPriceTableWhenIdIsProvidedAndFound() {
-		UUID existingId = UUID.randomUUID();
-		PriceTable existing = PriceTable.of(PriceTableId.of(existingId), PriceFormation.FIXED, LocalDate.of(2026, 1, 1),
+		final UUID existingId = UUID.randomUUID();
+		final PriceTable existing = PriceTable.of(PriceTableId.of(existingId), PriceFormation.FIXED, LocalDate.of(2026, 1, 1),
 				null, null, null, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 		when(priceTableRepositoryPort.findById(PriceTableId.of(existingId))).thenReturn(Optional.of(existing));
 		when(priceTableRepositoryPort.save(any(PriceTable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
-		UpsertPriceTableCommand command = new UpsertPriceTableCommand(existingId, PriceFormation.PERCENT_OVER_BASE,
+		final ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
+		final UpsertPriceTableCommand command = new UpsertPriceTableCommand(existingId, PriceFormation.PERCENT_OVER_BASE,
 				LocalDate.of(2026, 2, 1), null, null, null,
 				List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.valueOf(15))));
 
-		PriceTableId id = service.execute(command);
+		final PriceTableId id = service.execute(command);
 
 		assertThat(id.value()).isEqualTo(existingId);
-		ArgumentCaptor<PriceTable> saved = ArgumentCaptor.forClass(PriceTable.class);
+		final ArgumentCaptor<PriceTable> saved = ArgumentCaptor.forClass(PriceTable.class);
 		verify(priceTableRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getFormation()).isEqualTo(PriceFormation.PERCENT_OVER_BASE);
 	}
@@ -78,11 +78,11 @@ class ManagePriceTableServiceTest {
 	@Test
 	@DisplayName("Rejects an update when the price table id is unknown")
 	void shouldRejectUpdateWhenPriceTableIdIsUnknown() {
-		UUID unknownId = UUID.randomUUID();
+		final UUID unknownId = UUID.randomUUID();
 		when(priceTableRepositoryPort.findById(PriceTableId.of(unknownId))).thenReturn(Optional.empty());
 
-		ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
-		UpsertPriceTableCommand command = new UpsertPriceTableCommand(unknownId, PriceFormation.FIXED,
+		final ManagePriceTable service = new ManagePriceTable(priceTableRepositoryPort);
+		final UpsertPriceTableCommand command = new UpsertPriceTableCommand(unknownId, PriceFormation.FIXED,
 				LocalDate.of(2026, 1, 1), null, null, null, List.of(new PriceTableEntry(PRODUCT_REF, BigDecimal.TEN)));
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(PriceTableNotFoundException.class);

@@ -30,15 +30,15 @@ public class NfceSaleController {
 	private final CancelNfceUseCase cancelNfceUseCase;
 
 	@PostMapping
-	public ResponseEntity<RegisterNfceSaleResponse> register(@Valid @RequestBody RegisterNfceSaleRequest request) {
-		NfceSaleId id = registerNfceSaleUseCase.execute(request.toCommand());
-		NfceIssuanceResult issuance = issueNfceUseCase.execute(new IssueNfceCommand(id.value()));
+	public ResponseEntity<RegisterNfceSaleResponse> register(@Valid @RequestBody final RegisterNfceSaleRequest request) {
+		final NfceSaleId id = registerNfceSaleUseCase.execute(request.toCommand());
+		final NfceIssuanceResult issuance = issueNfceUseCase.execute(new IssueNfceCommand(id.value()));
 		return ResponseEntity.created(URI.create("/api/pdv/sales/" + id.value()))
 				.body(RegisterNfceSaleResponse.from(id, issuance));
 	}
 
 	@PostMapping("/{id}/cancel")
-	public ResponseEntity<Void> cancel(@PathVariable UUID id, @Valid @RequestBody CancelNfceRequest request) {
+	public ResponseEntity<Void> cancel(@PathVariable final UUID id, @Valid @RequestBody final CancelNfceRequest request) {
 		cancelNfceUseCase.execute(request.toCommand(id));
 		return ResponseEntity.noContent().build();
 	}

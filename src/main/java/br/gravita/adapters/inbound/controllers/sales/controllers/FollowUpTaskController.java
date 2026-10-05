@@ -24,14 +24,14 @@ public class FollowUpTaskController {
 	private final ScheduleFollowUpTaskUseCase scheduleFollowUpTaskUseCase;
 
 	@PostMapping
-	public ResponseEntity<FollowUpTaskResponse> schedule(@Valid @RequestBody ScheduleFollowUpTaskRequest request) {
-		FollowUpTaskView created = scheduleFollowUpTaskUseCase.execute(request.toCommand());
+	public ResponseEntity<FollowUpTaskResponse> schedule(@Valid @RequestBody final ScheduleFollowUpTaskRequest request) {
+		final FollowUpTaskView created = scheduleFollowUpTaskUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/crm/follow-ups/" + created.id()))
 				.body(FollowUpTaskResponse.from(created));
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

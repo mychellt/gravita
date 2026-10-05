@@ -13,31 +13,31 @@ public final class TaxEngine {
 	private static final RoundingMode ROUNDING = RoundingMode.HALF_UP;
 	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
-	public ItemTaxBreakdown calculate(ItemTaxInput input, List<TaxOverrideInput> overridesForItem) {
-		BigDecimal grossAmount = input.grossAmount();
-		Map<TaxType, TaxRateRule> rulesByType = new EnumMap<>(TaxType.class);
-		for (TaxRateRule rule : input.applicableRates()) {
+	public ItemTaxBreakdown calculate(final ItemTaxInput input, final List<TaxOverrideInput> overridesForItem) {
+		final BigDecimal grossAmount = input.grossAmount();
+		final Map<TaxType, TaxRateRule> rulesByType = new EnumMap<>(TaxType.class);
+		for (final TaxRateRule rule : input.applicableRates()) {
 			rulesByType.putIfAbsent(rule.taxType(), rule);
 		}
 
 		BigDecimal icmsAmount = BigDecimal.ZERO;
-		TaxRateRule icmsRule = rulesByType.get(TaxType.ICMS);
+		final TaxRateRule icmsRule = rulesByType.get(TaxType.ICMS);
 		if (icmsRule != null) {
-			BigDecimal base = effectiveBase(grossAmount, icmsRule.baseReductionPercentage());
+			final BigDecimal base = effectiveBase(grossAmount, icmsRule.baseReductionPercentage());
 			icmsAmount = percentageOf(base, icmsRule.ratePercentage());
 		}
 
-		List<TaxLineBreakdown> lines = new ArrayList<>();
-		for (TaxRateRule rule : rulesByType.values()) {
-			BigDecimal base;
-			BigDecimal amount;
+		final List<TaxLineBreakdown> lines = new ArrayList<>();
+		for (final TaxRateRule rule : rulesByType.values()) {
+			final BigDecimal base;
+			final BigDecimal amount;
 			if (rule.taxType() == TaxType.ICMS) {
 				base = effectiveBase(grossAmount, rule.baseReductionPercentage());
 				amount = icmsAmount;
 			} else if (rule.taxType() == TaxType.ICMS_ST) {
-				BigDecimal mvaFactor = BigDecimal.ONE.add(rule.mvaPercentage().divide(HUNDRED, CALC_SCALE, ROUNDING));
+				final BigDecimal mvaFactor = BigDecimal.ONE.add(rule.mvaPercentage().divide(HUNDRED, CALC_SCALE, ROUNDING));
 				base = effectiveBase(grossAmount, rule.baseReductionPercentage()).multiply(mvaFactor);
-				BigDecimal grossIcmsSt = percentageOf(base, rule.ratePercentage());
+				final BigDecimal grossIcmsSt = percentageOf(base, rule.ratePercentage());
 				amount = grossIcmsSt.subtract(icmsAmount).max(BigDecimal.ZERO);
 			} else {
 				base = effectiveBase(grossAmount, rule.baseReductionPercentage());
@@ -50,10 +50,10 @@ public final class TaxEngine {
 		return new ItemTaxBreakdown(input.itemIndex(), input.productRef(), lines);
 	}
 
-	private TaxLineBreakdown buildLine(TaxType taxType, BigDecimal base, BigDecimal ratePercentage,
-			BigDecimal computedAmount, int itemIndex, List<TaxOverrideInput> overrides) {
-		BigDecimal roundedComputed = computedAmount.setScale(MONEY_SCALE, ROUNDING);
-		TaxOverrideInput override = findOverride(overrides, itemIndex, taxType);
+	private TaxLineBreakdown buildLine(final TaxType taxType, final BigDecimal base, final BigDecimal ratePercentage,
+			final BigDecimal computedAmount, final int itemIndex, final List<TaxOverrideInput> overrides) {
+		final BigDecimal roundedComputed = computedAmount.setScale(MONEY_SCALE, ROUNDING);
+		final TaxOverrideInput override = findOverride(overrides, itemIndex, taxType);
 		if (override != null) {
 			return new TaxLineBreakdown(taxType, base, ratePercentage, roundedComputed,
 					override.value().setScale(MONEY_SCALE, ROUNDING), true, override.justification());
@@ -61,8 +61,8 @@ public final class TaxEngine {
 		return new TaxLineBreakdown(taxType, base, ratePercentage, roundedComputed, roundedComputed, false, null);
 	}
 
-	private TaxOverrideInput findOverride(List<TaxOverrideInput> overrides, int itemIndex, TaxType taxType) {
-		for (TaxOverrideInput override : overrides) {
+	private TaxOverrideInput findOverride(final List<TaxOverrideInput> overrides, final int itemIndex, final TaxType taxType) {
+		for (final TaxOverrideInput override : overrides) {
 			if (override.itemIndex() == itemIndex && override.taxType() == taxType) {
 				return override;
 			}
@@ -70,15 +70,15 @@ public final class TaxEngine {
 		return null;
 	}
 
-	private BigDecimal effectiveBase(BigDecimal grossAmount, BigDecimal reductionPercentage) {
+	private BigDecimal effectiveBase(final BigDecimal grossAmount, final BigDecimal reductionPercentage) {
 		if (reductionPercentage.signum() == 0) {
 			return grossAmount;
 		}
-		BigDecimal factor = BigDecimal.ONE.subtract(reductionPercentage.divide(HUNDRED, CALC_SCALE, ROUNDING));
+		final BigDecimal factor = BigDecimal.ONE.subtract(reductionPercentage.divide(HUNDRED, CALC_SCALE, ROUNDING));
 		return grossAmount.multiply(factor);
 	}
 
-	private BigDecimal percentageOf(BigDecimal base, BigDecimal ratePercentage) {
+	private BigDecimal percentageOf(final BigDecimal base, final BigDecimal ratePercentage) {
 		return base.multiply(ratePercentage).divide(HUNDRED, CALC_SCALE, ROUNDING);
 	}
 }

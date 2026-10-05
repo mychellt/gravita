@@ -21,8 +21,8 @@ final class NfeXmlRenderer {
 	private NfeXmlRenderer() {
 	}
 
-	static byte[] render(NfeDocument document, Company company) {
-		StringBuilder xml = new StringBuilder();
+	static byte[] render(final NfeDocument document, final Company company) {
+		final StringBuilder xml = new StringBuilder();
 		xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
 		xml.append("<NFe><infNFe Id=\"NFe").append(escape(document.getAccessKey())).append("\">");
 		xml.append("<ide>");
@@ -37,7 +37,7 @@ final class NfeXmlRenderer {
 		xml.append("<xNome>").append(escape(document.getRecipient().name())).append("</xNome>");
 		xml.append("<doc>").append(escape(document.getRecipient().document().number())).append("</doc>");
 		xml.append("</dest>");
-		for (NfeItem item : document.getItems()) {
+		for (final NfeItem item : document.getItems()) {
 			xml.append("<det>");
 			xml.append("<prod>");
 			xml.append("<xProd>").append(escape(item.description())).append("</xProd>");
@@ -56,7 +56,7 @@ final class NfeXmlRenderer {
 		return xml.toString().getBytes(StandardCharsets.UTF_8);
 	}
 
-	private static String escape(String value) {
+	private static String escape(final String value) {
 		if (value == null) {
 			return "";
 		}

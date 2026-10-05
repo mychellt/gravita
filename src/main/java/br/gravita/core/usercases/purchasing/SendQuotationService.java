@@ -19,25 +19,25 @@ public class SendQuotationService implements SendQuotationUseCase {
 	private final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort;
 	private final QuotationRepositoryPort quotationRepositoryPort;
 
-	public SendQuotationService(PurchaseRequestRepositoryPort purchaseRequestRepositoryPort,
-			QuotationRepositoryPort quotationRepositoryPort) {
+	public SendQuotationService(final PurchaseRequestRepositoryPort purchaseRequestRepositoryPort,
+			final QuotationRepositoryPort quotationRepositoryPort) {
 		this.purchaseRequestRepositoryPort = purchaseRequestRepositoryPort;
 		this.quotationRepositoryPort = quotationRepositoryPort;
 	}
 
 	@Override
-	public QuotationId execute(SendQuotationCommand command) {
-		PurchaseRequest purchaseRequest = purchaseRequestRepositoryPort.findById(command.requestId())
+	public QuotationId execute(final SendQuotationCommand command) {
+		final PurchaseRequest purchaseRequest = purchaseRequestRepositoryPort.findById(command.requestId())
 				.orElseThrow(() -> new PurchaseRequestNotFoundException(command.requestId().value()));
 
-		PurchaseRequest quoted = purchaseRequest.quote();
+		final PurchaseRequest quoted = purchaseRequest.quote();
 
-		List<QuotationItem> items = purchaseRequest.getItems().stream()
+		final List<QuotationItem> items = purchaseRequest.getItems().stream()
 				.map(item -> new QuotationItem(item.productId(), item.quantity()))
 				.toList();
-		Quotation quotation = Quotation.send(QuotationId.of(UUID.randomUUID()), command.requestId(), items,
+		final Quotation quotation = Quotation.send(QuotationId.of(UUID.randomUUID()), command.requestId(), items,
 				command.suppliers());
-		Quotation saved = quotationRepositoryPort.save(quotation);
+		final Quotation saved = quotationRepositoryPort.save(quotation);
 
 		purchaseRequestRepositoryPort.save(quoted);
 

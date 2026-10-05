@@ -28,7 +28,7 @@ public record CustomerResponse(
 		List<ContactResponse> contacts,
 		List<PriceTableLinkResponse> priceTables) {
 
-	public static CustomerResponse from(CustomerDomain domain) {
+	public static CustomerResponse from(final CustomerDomain domain) {
 		return new CustomerResponse(
 				domain.getId(),
 				domain.getName(),
@@ -49,7 +49,7 @@ public record CustomerResponse(
 	public record AddressResponse(String type, String street, String number, String complement, String neighborhood,
 			String city, String state, String zipCode, boolean isDefault) {
 
-		static AddressResponse from(AddressDomain domain) {
+		static AddressResponse from(final AddressDomain domain) {
 			return new AddressResponse(domain.getType().name(), domain.getStreet(), domain.getNumber(), domain.getComplement(),
 					domain.getNeighborhood(), domain.getCity(), domain.getState(), domain.getZipCode(), domain.isDefault());
 		}
@@ -57,14 +57,14 @@ public record CustomerResponse(
 
 	public record ContactResponse(String type, String value) {
 
-		static ContactResponse from(ContactDomain domain) {
+		static ContactResponse from(final ContactDomain domain) {
 			return new ContactResponse(domain.getType().name(), domain.getValue());
 		}
 	}
 
 	public record PriceTableLinkResponse(UUID priceTableId, Integer priority) {
 
-		static PriceTableLinkResponse from(CustomerPriceTableLink domain) {
+		static PriceTableLinkResponse from(final CustomerPriceTableLink domain) {
 			return new PriceTableLinkResponse(domain.getPriceTableId(), domain.getPriority());
 		}
 	}

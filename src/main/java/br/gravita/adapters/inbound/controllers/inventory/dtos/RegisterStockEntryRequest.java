@@ -13,7 +13,7 @@ public record RegisterStockEntryRequest(@NotNull UUID productId, @NotNull UUID w
 		@NotBlank String originReference, @NotNull UUID user) {
 
 	public RegisterStockEntryCommand toCommand() {
-		RegisterStockEntryCommand.LotDetails lotDetails = lot == null ? null
+		final RegisterStockEntryCommand.LotDetails lotDetails = lot == null ? null
 				: new RegisterStockEntryCommand.LotDetails(lot.code(), lot.expiryDate());
 		return new RegisterStockEntryCommand(productId, warehouseId, quantity, unitCost, lotDetails, serials,
 				originReference, user);

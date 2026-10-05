@@ -23,7 +23,7 @@ class SupplierTest {
 	@Test
 	@DisplayName("Registers a PJ supplier with the optional purchasing fields absent")
 	void shouldRegisterPjSupplierWithOptionalPurchasingFieldsAbsent() {
-		Supplier supplier = validBuilder().build();
+		final Supplier supplier = validBuilder().build();
 
 		assertThat(supplier.personType()).isEqualTo(PersonType.COMPANY);
 		assertThat(supplier.getDocument()).isEqualTo(VALID_CNPJ);
@@ -36,7 +36,7 @@ class SupplierTest {
 	@Test
 	@DisplayName("Registers a PF supplier reusing the shared document value object")
 	void shouldRegisterPfSupplierReusingSharedDocumentValueObject() {
-		Supplier supplier = validBuilder().document(VALID_CPF).build();
+		final Supplier supplier = validBuilder().document(VALID_CPF).build();
 
 		assertThat(supplier.personType()).isEqualTo(PersonType.INDIVIDUAL);
 		assertThat(supplier.getDocument()).isEqualTo(VALID_CPF);
@@ -75,10 +75,10 @@ class SupplierTest {
 	@Test
 	@DisplayName("Accepts an optional bank account and PIX key")
 	void shouldAcceptOptionalBankAccountAndPixKey() {
-		BankAccount bankAccount = new BankAccount("001", "1234", "56789-0");
-		PixKey pixKey = PixKey.of("supplier@example.com");
+		final BankAccount bankAccount = new BankAccount("001", "1234", "56789-0");
+		final PixKey pixKey = PixKey.of("supplier@example.com");
 
-		Supplier supplier = validBuilder().bankAccount(bankAccount).pixKey(pixKey).build();
+		final Supplier supplier = validBuilder().bankAccount(bankAccount).pixKey(pixKey).build();
 
 		assertThat(supplier.getBankAccount()).isEqualTo(bankAccount);
 		assertThat(supplier.getPixKey()).isEqualTo(pixKey);
@@ -103,7 +103,7 @@ class SupplierTest {
 	@Test
 	@DisplayName("Allows using the supplier in a purchase order once both purchasing fields are set")
 	void shouldAllowUsingSupplierInPurchaseOrderOnceBothPurchasingFieldsAreSet() {
-		Supplier supplier = validBuilder().averageLeadTimeDays(5).defaultPurchaseCfop("1102").build();
+		final Supplier supplier = validBuilder().averageLeadTimeDays(5).defaultPurchaseCfop("1102").build();
 
 		assertThatCode(supplier::assertReadyForPurchasing).doesNotThrowAnyException();
 	}
@@ -111,7 +111,7 @@ class SupplierTest {
 	@Test
 	@DisplayName("Rejects purchase order use when the average lead time is missing")
 	void shouldRejectPurchaseOrderUseWhenAverageLeadTimeDaysIsMissing() {
-		Supplier supplier = validBuilder().defaultPurchaseCfop("1102").build();
+		final Supplier supplier = validBuilder().defaultPurchaseCfop("1102").build();
 
 		assertThatThrownBy(supplier::assertReadyForPurchasing)
 				.isInstanceOf(BusinessRuleException.class)
@@ -121,15 +121,15 @@ class SupplierTest {
 	@Test
 	@DisplayName("Rejects purchase order use when the default purchase CFOP is missing")
 	void shouldRejectPurchaseOrderUseWhenDefaultPurchaseCfopIsMissing() {
-		Supplier supplier = validBuilder().averageLeadTimeDays(5).build();
+		final Supplier supplier = validBuilder().averageLeadTimeDays(5).build();
 
 		assertThatThrownBy(supplier::assertReadyForPurchasing)
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("CFOP");
 	}
 
-	private void build(java.util.function.Consumer<Builder> customize) {
-		Builder builder = validBuilder();
+	private void build(final java.util.function.Consumer<Builder> customize) {
+		final Builder builder = validBuilder();
 		customize.accept(builder);
 		builder.build();
 	}
@@ -149,42 +149,42 @@ class SupplierTest {
 		private Integer averageLeadTimeDays = null;
 		private String defaultPurchaseCfop = null;
 
-		Builder document(Document document) {
+		Builder document(final Document document) {
 			this.document = document;
 			return this;
 		}
 
-		Builder name(String name) {
+		Builder name(final String name) {
 			this.name = name;
 			return this;
 		}
 
-		Builder addresses(List<Address> addresses) {
+		Builder addresses(final List<Address> addresses) {
 			this.addresses = addresses;
 			return this;
 		}
 
-		Builder contacts(List<Contact> contacts) {
+		Builder contacts(final List<Contact> contacts) {
 			this.contacts = contacts;
 			return this;
 		}
 
-		Builder bankAccount(BankAccount bankAccount) {
+		Builder bankAccount(final BankAccount bankAccount) {
 			this.bankAccount = bankAccount;
 			return this;
 		}
 
-		Builder pixKey(PixKey pixKey) {
+		Builder pixKey(final PixKey pixKey) {
 			this.pixKey = pixKey;
 			return this;
 		}
 
-		Builder averageLeadTimeDays(Integer averageLeadTimeDays) {
+		Builder averageLeadTimeDays(final Integer averageLeadTimeDays) {
 			this.averageLeadTimeDays = averageLeadTimeDays;
 			return this;
 		}
 
-		Builder defaultPurchaseCfop(String defaultPurchaseCfop) {
+		Builder defaultPurchaseCfop(final String defaultPurchaseCfop) {
 			this.defaultPurchaseCfop = defaultPurchaseCfop;
 			return this;
 		}

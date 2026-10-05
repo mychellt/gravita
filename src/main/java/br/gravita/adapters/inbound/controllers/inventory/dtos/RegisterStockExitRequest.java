@@ -12,7 +12,7 @@ public record RegisterStockExitRequest(@NotNull UUID productId, @NotNull UUID wa
 		Boolean allowNegativeStock, @NotBlank String originReference, @NotNull UUID user) {
 
 	public RegisterStockExitCommand toCommand() {
-		RegisterStockExitCommand.LotRef lotRef = lot == null ? null
+		final RegisterStockExitCommand.LotRef lotRef = lot == null ? null
 				: new RegisterStockExitCommand.LotRef(lot.code());
 		return new RegisterStockExitCommand(productId, warehouseId, quantity, lotRef, serials, reservationId,
 				Boolean.TRUE.equals(allowNegativeStock), originReference, user);

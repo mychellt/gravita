@@ -10,7 +10,7 @@ import java.util.UUID;
 public record CloseDailyCashRequest(UUID account, @NotNull LocalDate date) {
 
 	public CloseDailyCashCommand toCommand() {
-		InternalCashBoxId cashBoxId = account == null ? InternalCashBoxId.MAIN : InternalCashBoxId.of(account);
+		final InternalCashBoxId cashBoxId = account == null ? InternalCashBoxId.MAIN : InternalCashBoxId.of(account);
 		return new CloseDailyCashCommand(cashBoxId, date);
 	}
 }

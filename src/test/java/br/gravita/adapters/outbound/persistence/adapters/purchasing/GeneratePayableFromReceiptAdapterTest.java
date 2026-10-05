@@ -43,7 +43,7 @@ class GeneratePayableFromReceiptAdapterTest {
 	void delegatesTheReceiptsInstallmentsInOrder() {
 		adapter.generatePayables(command);
 
-		ArgumentCaptor<GeneratePayableFromReceiptCommand> captured = ArgumentCaptor
+		final ArgumentCaptor<GeneratePayableFromReceiptCommand> captured = ArgumentCaptor
 				.forClass(GeneratePayableFromReceiptCommand.class);
 		verify(useCase).execute(captured.capture());
 		assertThat(captured.getValue().supplierId()).isEqualTo(supplierId);
@@ -59,7 +59,7 @@ class GeneratePayableFromReceiptAdapterTest {
 
 	@Test
 	@DisplayName("Propagates a failure, leaving the receipt unconfirmed instead of swallowing it")
-	void aFailureLeavesTheReceiptUnconfirmedInsteadOfBeingSwallowed() {
+	void failureLeavesTheReceiptUnconfirmedInsteadOfBeingSwallowed() {
 		when(useCase.execute(any())).thenThrow(new IllegalStateException("db down"));
 
 		assertThatThrownBy(() -> adapter.generatePayables(command)).isInstanceOf(IllegalStateException.class);

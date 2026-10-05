@@ -46,12 +46,12 @@ class AdjustReceivableForReturnServiceTest {
 
 	private final UUID salesReturnRef = UUID.randomUUID();
 
-	private Receivable receivable(ReceivableStatus status) {
+	private Receivable receivable(final ReceivableStatus status) {
 		return Receivable.of(ReceivableId.of(UUID.randomUUID()), UUID.randomUUID(), ReceivableOrigin.MANUAL,
 				new BigDecimal("100.00"), LocalDate.now().plusDays(30), null, status, null, null);
 	}
 
-	private void found(Receivable receivable, Settlement... settlements) {
+	private void found(final Receivable receivable, final Settlement... settlements) {
 		when(receivableRepositoryPort.findById(receivable.getId())).thenReturn(Optional.of(receivable));
 		when(settlementRepositoryPort.findByReceivableId(receivable.getId())).thenReturn(List.of(settlements));
 	}
@@ -60,24 +60,24 @@ class AdjustReceivableForReturnServiceTest {
 		when(receivableRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private Settlement settled(Receivable receivable, String amount) {
+	private Settlement settled(final Receivable receivable, final String amount) {
 		return Settlement.manual(SettlementId.of(UUID.randomUUID()), receivable.getId(), new BigDecimal(amount), null,
 				null, null, null, Instant.now());
 	}
 
-	private AdjustReceivableForReturnCommand command(Receivable receivable, String returned) {
+	private AdjustReceivableForReturnCommand command(final Receivable receivable, final String returned) {
 		return new AdjustReceivableForReturnCommand(receivable.getId().value(), new BigDecimal(returned),
 				salesReturnRef);
 	}
 
 	@Test
 	@DisplayName("Cancels the receivable when the return covers the whole open balance")
-	void aReturnCoveringTheWholeOpenBalanceCancelsTheReceivable() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+	void returnCoveringTheWholeOpenBalanceCancelsTheReceivable() {
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 		savesEcho();
 
-		Receivable result = service.execute(command(receivable, "100.00"));
+		final Receivable result = service.execute(command(receivable, "100.00"));
 
 		assertThat(result.getStatus()).isEqualTo(ReceivableStatus.CANCELLED);
 		verify(receivableRepositoryPort).save(result);
@@ -85,12 +85,12 @@ class AdjustReceivableForReturnServiceTest {
 
 	@Test
 	@DisplayName("Lowers the amount and keeps the receivable open on a partial return")
-	void aPartialReturnLowersTheAmountAndKeepsTheReceivableOpen() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+	void partialReturnLowersTheAmountAndKeepsTheReceivableOpen() {
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 		savesEcho();
 
-		Receivable result = service.execute(command(receivable, "30.00"));
+		final Receivable result = service.execute(command(receivable, "30.00"));
 
 		assertThat(result.getStatus()).isEqualTo(ReceivableStatus.OPEN);
 		assertThat(result.getAmount()).isEqualByComparingTo("70.00");
@@ -98,12 +98,12 @@ class AdjustReceivableForReturnServiceTest {
 
 	@Test
 	@DisplayName("Keeps a partially settled receivable partially settled after a partial return")
-	void aPartialReturnKeepsAPartiallySettledReceivablePartiallySettled() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+	void partialReturnKeepsAPartiallySettledReceivablePartiallySettled() {
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
 		savesEcho();
 
-		Receivable result = service.execute(command(receivable, "20.00"));
+		final Receivable result = service.execute(command(receivable, "20.00"));
 
 		assertThat(result.getStatus()).isEqualTo(ReceivableStatus.PARTIALLY_SETTLED);
 		assertThat(result.getAmount()).isEqualByComparingTo("80.00");
@@ -112,7 +112,7 @@ class AdjustReceivableForReturnServiceTest {
 	@Test
 	@DisplayName("Allows returning only the unsettled portion of the receivable")
 	void onlyTheUnsettledPortionCanBeReturned() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
 
 		assertThatThrownBy(() -> service.execute(command(receivable, "60.01")))
@@ -122,12 +122,12 @@ class AdjustReceivableForReturnServiceTest {
 
 	@Test
 	@DisplayName("Cancels the receivable on a return of the whole unsettled balance without altering what was settled")
-	void aReturnOfTheWholeUnsettledBalanceCancelsWithoutTouchingWhatWasSettled() {
-		Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
+	void returnOfTheWholeUnsettledBalanceCancelsWithoutTouchingWhatWasSettled() {
+		final Receivable receivable = receivable(ReceivableStatus.PARTIALLY_SETTLED);
 		found(receivable, settled(receivable, "40.00"));
 		savesEcho();
 
-		Receivable result = service.execute(command(receivable, "60.00"));
+		final Receivable result = service.execute(command(receivable, "60.00"));
 
 		assertThat(result.getStatus()).isEqualTo(ReceivableStatus.CANCELLED);
 		assertThat(result.getAmount()).isEqualByComparingTo("100.00");
@@ -136,7 +136,7 @@ class AdjustReceivableForReturnServiceTest {
 	@Test
 	@DisplayName("Rejects a return above the open balance")
 	void rejectsAReturnAboveTheOpenBalance() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 
 		assertThatThrownBy(() -> service.execute(command(receivable, "100.01")))
@@ -147,7 +147,7 @@ class AdjustReceivableForReturnServiceTest {
 	@Test
 	@DisplayName("Rejects a returned amount that is zero or negative")
 	void rejectsANonPositiveReturnedAmount() {
-		Receivable receivable = receivable(ReceivableStatus.OPEN);
+		final Receivable receivable = receivable(ReceivableStatus.OPEN);
 		found(receivable);
 
 		assertThatThrownBy(() -> service.execute(command(receivable, "0.00")))
@@ -157,9 +157,9 @@ class AdjustReceivableForReturnServiceTest {
 	@Test
 	@DisplayName("Rejects a return for a receivable that is no longer outstanding")
 	void rejectsAReceivableThatIsNoLongerOutstanding() {
-		for (ReceivableStatus status : List.of(ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
+		for (final ReceivableStatus status : List.of(ReceivableStatus.SETTLED, ReceivableStatus.CANCELLED,
 				ReceivableStatus.RENEGOTIATED)) {
-			Receivable receivable = receivable(status);
+			final Receivable receivable = receivable(status);
 			found(receivable);
 
 			assertThatThrownBy(() -> service.execute(command(receivable, "10.00")))
@@ -171,7 +171,7 @@ class AdjustReceivableForReturnServiceTest {
 	@Test
 	@DisplayName("Fails when the receivable does not exist")
 	void failsWhenTheReceivableDoesNotExist() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(receivableRepositoryPort.findById(ReceivableId.of(id))).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service

@@ -56,12 +56,12 @@ class GetStockBalanceServiceTest {
 	@DisplayName("Returns available as on-hand minus reserved for a known warehouse")
 	void returnsAvailableAsOnHandMinusReservedForAKnownWarehouse() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("50"), new BigDecimal("20"), new BigDecimal("5"), new BigDecimal("10.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));
 
-		StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, warehouseId));
+		final StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, warehouseId));
 
 		assertThat(view.warehouseId()).isEqualTo(warehouseId);
 		assertThat(view.onHand()).isEqualByComparingTo("50");
@@ -73,12 +73,12 @@ class GetStockBalanceServiceTest {
 
 	@Test
 	@DisplayName("A known product with no balance in the warehouse reads as zero rather than not-found")
-	void aKnownProductWithNoTrackedBalanceInAWarehouseReadsAsZeroNotNotFound() {
+	void knownProductWithNoTrackedBalanceInAWarehouseReadsAsZeroNotNotFound() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.empty());
 
-		StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, warehouseId));
+		final StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, warehouseId));
 
 		assertThat(view.onHand()).isEqualByComparingTo("0");
 		assertThat(view.available()).isEqualByComparingTo("0");
@@ -88,15 +88,15 @@ class GetStockBalanceServiceTest {
 	@DisplayName("Omitting the warehouse id sums the balances of every warehouse")
 	void omittingWarehouseIdAggregatesAcrossEveryWarehouse() {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
-		UUID warehouseA = UUID.randomUUID();
-		UUID warehouseB = UUID.randomUUID();
-		StockBalance balanceA = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseA,
+		final UUID warehouseA = UUID.randomUUID();
+		final UUID warehouseB = UUID.randomUUID();
+		final StockBalance balanceA = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseA,
 				new BigDecimal("30"), new BigDecimal("10"), BigDecimal.ZERO, new BigDecimal("8.00"));
-		StockBalance balanceB = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseB,
+		final StockBalance balanceB = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseB,
 				new BigDecimal("70"), new BigDecimal("0"), new BigDecimal("5"), new BigDecimal("12.00"));
 		when(stockBalanceRepositoryPort.findByProductId(productId)).thenReturn(List.of(balanceA, balanceB));
 
-		StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, null));
+		final StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, null));
 
 		assertThat(view.warehouseId()).isNull();
 		assertThat(view.onHand()).isEqualByComparingTo("100");
@@ -112,7 +112,7 @@ class GetStockBalanceServiceTest {
 		when(productRepositoryPort.get(productId)).thenReturn(Optional.of(knownProduct()));
 		when(stockBalanceRepositoryPort.findByProductId(productId)).thenReturn(List.of());
 
-		StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, null));
+		final StockBalanceView view = service.execute(new GetStockBalanceQuery(productId, null));
 
 		assertThat(view.onHand()).isEqualByComparingTo("0");
 		assertThat(view.available()).isEqualByComparingTo("0");

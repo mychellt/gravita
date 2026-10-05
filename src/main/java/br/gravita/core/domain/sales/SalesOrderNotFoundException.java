@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class SalesOrderNotFoundException extends RuntimeException {
 
-	public SalesOrderNotFoundException(UUID orderId) {
+	public SalesOrderNotFoundException(final UUID orderId) {
 		super("Sales order not found: " + orderId);
 	}
 }

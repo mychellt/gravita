@@ -8,7 +8,7 @@ import java.util.UUID;
 public record CancelNfeResponse(UUID id, NfeDocumentStatus status, String cancellationJustification,
 		Instant cancelledAt) {
 
-	public static CancelNfeResponse from(NfeDocument document) {
+	public static CancelNfeResponse from(final NfeDocument document) {
 		return new CancelNfeResponse(document.getId().value(), document.getStatus(),
 				document.getCancellationJustification(), document.getCancelledAt());
 	}

@@ -23,8 +23,8 @@ public record RenegotiateTitleRequest(
 	public record InstallmentRequest(@NotNull LocalDate dueDate, @NotNull @Positive BigDecimal amount) {
 	}
 
-	public RenegotiateTitleCommand toCommand(UUID receivableId) {
-		List<UUID> originals = new ArrayList<>();
+	public RenegotiateTitleCommand toCommand(final UUID receivableId) {
+		final List<UUID> originals = new ArrayList<>();
 		originals.add(receivableId);
 		if (additionalReceivableIds != null) {
 			originals.addAll(additionalReceivableIds);

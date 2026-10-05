@@ -21,7 +21,8 @@ final class ActivationEmailTemplate {
 			<body style="margin:0;padding:0;background-color:#F3F4F6;font-family:Arial,Helvetica,sans-serif;color:#1F2937;">
 			<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F3F4F6;padding:24px 0;">
 			<tr><td align="center">
-			<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background-color:#FFFFFF;border-radius:8px;overflow:hidden;">
+			<table role="presentation" width="560" cellpadding="0" cellspacing="0"
+				style="max-width:560px;width:100%;background-color:#FFFFFF;border-radius:8px;overflow:hidden;">
 			<tr><td style="background-color:{{dark}};padding:24px 32px;font-size:24px;font-weight:bold;color:#FFFFFF;">
 			<!-- Branding placeholder: swap the name for the logo image once the asset is hosted. -->
 			{{brand}}
@@ -58,9 +59,9 @@ final class ActivationEmailTemplate {
 	private ActivationEmailTemplate() {
 	}
 
-	static Rendered render(String recipientName, String activationLink, long validityHours) {
-		String hours = String.valueOf(validityHours);
-		String html = HTML
+	static Rendered render(final String recipientName, final String activationLink, final long validityHours) {
+		final String hours = String.valueOf(validityHours);
+		final String html = HTML
 				.replace("{{subject}}", SUBJECT)
 				.replace("{{dark}}", BRAND_DARK_COLOR)
 				.replace("{{primary}}", BRAND_PRIMARY_COLOR)
@@ -68,7 +69,7 @@ final class ActivationEmailTemplate {
 				.replace("{{hours}}", hours)
 				.replace("{{name}}", HtmlUtils.htmlEscape(recipientName))
 				.replace("{{link}}", HtmlUtils.htmlEscape(activationLink));
-		String text = TEXT
+		final String text = TEXT
 				.replace("{{brand}}", BRAND_NAME)
 				.replace("{{hours}}", hours)
 				.replace("{{name}}", recipientName)

@@ -41,7 +41,7 @@ class GenerateAccountsReceivableAdapterTest {
 	void delegatesAsASingleInstallmentReferencingTheFiscalDocument() {
 		adapter.generate(command);
 
-		ArgumentCaptor<GenerateReceivableFromInvoicingCommand> captured = ArgumentCaptor
+		final ArgumentCaptor<GenerateReceivableFromInvoicingCommand> captured = ArgumentCaptor
 				.forClass(GenerateReceivableFromInvoicingCommand.class);
 		verify(useCase).execute(captured.capture());
 		assertThat(captured.getValue().customerId()).isEqualTo(customerId);
@@ -54,7 +54,7 @@ class GenerateAccountsReceivableAdapterTest {
 
 	@Test
 	@DisplayName("Swallows failures so they never break the invoicing flow")
-	void aFailureNeverPropagatesToTheInvoicingFlow() {
+	void failureNeverPropagatesToTheInvoicingFlow() {
 		when(useCase.execute(any())).thenThrow(new IllegalStateException("db down"));
 
 		assertThatCode(() -> adapter.generate(command)).doesNotThrowAnyException();

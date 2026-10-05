@@ -15,24 +15,24 @@ class StageTransitionRepositoryAdapter implements StageTransitionRepositoryPort 
 	private final StageTransitionJpaRepository jpaRepository;
 	private final StageTransitionPersistenceMapper mapper;
 
-	StageTransitionRepositoryAdapter(StageTransitionJpaRepository jpaRepository,
-			StageTransitionPersistenceMapper mapper) {
+	StageTransitionRepositoryAdapter(final StageTransitionJpaRepository jpaRepository,
+			final StageTransitionPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public StageTransition save(StageTransition stageTransition) {
+	public StageTransition save(final StageTransition stageTransition) {
 		return mapper.map(jpaRepository.save(mapper.map(stageTransition)));
 	}
 
 	@Override
-	public List<StageTransition> findByOpportunityId(OpportunityId opportunityId) {
+	public List<StageTransition> findByOpportunityId(final OpportunityId opportunityId) {
 		return jpaRepository.findByOpportunityId(opportunityId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
-	public List<StageTransition> findByPeriod(Instant periodStart, Instant periodEnd) {
+	public List<StageTransition> findByPeriod(final Instant periodStart, final Instant periodEnd) {
 		return jpaRepository.findByTimestampGreaterThanEqualAndTimestampLessThan(periodStart, periodEnd).stream()
 				.map(mapper::map)
 				.toList();

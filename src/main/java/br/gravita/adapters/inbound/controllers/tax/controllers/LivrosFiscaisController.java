@@ -23,8 +23,8 @@ public class LivrosFiscaisController {
 
 	/** {@code period} is a month as {@code yyyy-MM}. */
 	@GetMapping
-	public ResponseEntity<LivrosFiscaisResponse> generate(@RequestParam UUID companyId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
+	public ResponseEntity<LivrosFiscaisResponse> generate(@RequestParam final UUID companyId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
 		return ResponseEntity.ok(LivrosFiscaisResponse.from(generateLivrosFiscaisUseCase
 				.execute(new GenerateLivrosFiscaisCommand(CompanyId.of(companyId), period))));
 	}

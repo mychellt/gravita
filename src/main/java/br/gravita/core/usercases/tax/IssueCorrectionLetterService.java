@@ -30,21 +30,21 @@ public class IssueCorrectionLetterService implements IssueCorrectionLetterUseCas
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final SubmitToSefazPort submitToSefazPort;
 
-	public IssueCorrectionLetterService(NfeRepositoryPort nfeRepositoryPort,
-			CompanyRepositoryPort companyRepositoryPort, SubmitToSefazPort submitToSefazPort) {
+	public IssueCorrectionLetterService(final NfeRepositoryPort nfeRepositoryPort,
+			final CompanyRepositoryPort companyRepositoryPort, final SubmitToSefazPort submitToSefazPort) {
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.submitToSefazPort = submitToSefazPort;
 	}
 
 	@Override
-	public CorrectionLetter execute(IssueCorrectionLetterCommand command) {
+	public CorrectionLetter execute(final IssueCorrectionLetterCommand command) {
 		if (command.text() == null || command.text().isBlank()) {
 			throw new BusinessRuleException("text is required");
 		}
 
-		NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
-		NfeDocument document = nfeRepositoryPort.findById(id)
+		final NfeDocumentId id = NfeDocumentId.of(command.nfeDocumentId());
+		final NfeDocument document = nfeRepositoryPort.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("NfeDocument not found: " + command.nfeDocumentId()));
 
 		if (document.getStatus() != NfeDocumentStatus.AUTHORIZED) {
@@ -56,16 +56,16 @@ public class IssueCorrectionLetterService implements IssueCorrectionLetterUseCas
 					+ NfeDocument.MAX_CORRECTION_LETTERS + " correction letters");
 		}
 
-		Company company = companyRepositoryPort.findById(document.getIssuerCompanyId())
+		final Company company = companyRepositoryPort.findById(document.getIssuerCompanyId())
 				.orElseThrow(
 						() -> new BusinessRuleException("Company not found: " + document.getIssuerCompanyId().value()));
 
-		int sequenceNumber = document.getCorrectionLetters().size() + 1;
-		SefazSubmissionResult result = submitToSefazPort.correct(new SefazCorrectionRequest(company.getId(),
+		final int sequenceNumber = document.getCorrectionLetters().size() + 1;
+		final SefazSubmissionResult result = submitToSefazPort.correct(new SefazCorrectionRequest(company.getId(),
 				company.getSefazEnvironment(), document.getAccessKey(), sequenceNumber, command.text()));
 
-		NfeDocument updated = document.issueCorrectionLetter(command.text(), result.protocol(), Instant.now());
-		NfeDocument saved = nfeRepositoryPort.save(updated);
+		final NfeDocument updated = document.issueCorrectionLetter(command.text(), result.protocol(), Instant.now());
+		final NfeDocument saved = nfeRepositoryPort.save(updated);
 
 		return saved.getCorrectionLetters().get(saved.getCorrectionLetters().size() - 1);
 	}

@@ -9,7 +9,7 @@ public record StockMovementId(UUID value) {
 		Objects.requireNonNull(value, "StockMovementId value is required");
 	}
 
-	public static StockMovementId of(UUID value) {
+	public static StockMovementId of(final UUID value) {
 		return new StockMovementId(value);
 	}
 }

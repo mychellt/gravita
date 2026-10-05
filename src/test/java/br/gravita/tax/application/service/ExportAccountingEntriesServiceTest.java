@@ -60,10 +60,23 @@ class ExportAccountingEntriesServiceTest {
 	@BeforeEach
 	void setUp() {
 		service = new ExportAccountingEntriesService(companies, nfes, inbound, files, Clock.system(ZoneOffset.UTC));
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
-				Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500", TaxRegime.LUCRO_PRESUMIDO,
-				false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null,
-				null)));
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.LUCRO_PRESUMIDO)
+				.simplesOptante(false)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build()));
 		when(nfes.findAuthorizedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of());
 		when(files.export(any(), any())).thenReturn(FILE);
@@ -72,7 +85,7 @@ class ExportAccountingEntriesServiceTest {
 	@Test
 	@DisplayName("Reports not found for an unknown company without reading or exporting anything")
 	void answersNotFoundForAnUnknownCompanyWithoutReadingOrExportingAnything() {
-		CompanyId stranger = CompanyId.of(UUID.randomUUID());
+		final CompanyId stranger = CompanyId.of(UUID.randomUUID());
 		when(companies.findById(stranger)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service
@@ -106,12 +119,13 @@ class ExportAccountingEntriesServiceTest {
 				LivrosFiscaisFixtures.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "1949", "1", 21,
 						Instant.parse("2028-02-03T12:00:00Z"))));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "9", "Alfa SA", "1102",
-						"1403", "165.00", "27.00", "5.00", "1.00", "4.00", Instant.parse("2028-02-05T08:00:00Z")))));
+				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "1", "9",
+						"Alfa SA", "1102", "1403", "165.00", new LivrosFiscaisFixtures.Taxes("27.00", "5.00",
+						"1.00", "4.00"), Instant.parse("2028-02-05T08:00:00Z")))));
 
-		AccountingExportFile file = execute(AccountingExportFormat.CSV);
+		final AccountingExportFile file = execute(AccountingExportFormat.CSV);
 
-		List<AccountingEntry> entries = exported(AccountingExportFormat.CSV);
+		final List<AccountingEntry> entries = exported(AccountingExportFormat.CSV);
 		assertThat(file.entryCount()).isEqualTo(3);
 		assertThat(entries).extracting(AccountingEntry::date).containsExactly(LocalDate.of(2028, 2, 3),
 				LocalDate.of(2028, 2, 5), LocalDate.of(2028, 2, 10));
@@ -126,12 +140,13 @@ class ExportAccountingEntriesServiceTest {
 				.issuedNfe(companyId, NfeDocumentStatus.AUTHORIZED, "5102", "1", 20,
 						Instant.parse("2028-02-10T12:00:00Z"))));
 		when(inbound.findConfirmedByCompanyBetween(any(), any(), any())).thenReturn(List.of(
-				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "2", "9", "Alfa SA", "1102",
-						"1403", "165.00", "27.00", "5.00", "1.00", "4.00", Instant.parse("2028-02-05T08:00:00Z")))));
+				SpedFiscalFixtures.confirmed(LivrosFiscaisFixtures.receivedNfe(companyId, "2", "9",
+						"Alfa SA", "1102", "1403", "165.00", new LivrosFiscaisFixtures.Taxes("27.00", "5.00",
+						"1.00", "4.00"), Instant.parse("2028-02-05T08:00:00Z")))));
 
 		execute(AccountingExportFormat.TXT);
 
-		AccountingEntry received = exported(AccountingExportFormat.TXT).get(0);
+		final AccountingEntry received = exported(AccountingExportFormat.TXT).get(0);
 		assertThat(received.series()).isEqualTo("2");
 		assertThat(received.number()).isEqualTo("9");
 		assertThat(received.counterpartName()).isEqualTo("Alfa SA");
@@ -141,7 +156,7 @@ class ExportAccountingEntriesServiceTest {
 		assertThat(received.ipiValue()).isEqualByComparingTo("5.00");
 		assertThat(received.pisValue()).isEqualByComparingTo("1.00");
 		assertThat(received.cofinsValue()).isEqualByComparingTo("4.00");
-		AccountingEntry issued = exported(AccountingExportFormat.TXT).get(1);
+		final AccountingEntry issued = exported(AccountingExportFormat.TXT).get(1);
 		assertThat(issued.number()).isEqualTo("20");
 		assertThat(issued.counterpartName()).isEqualTo("Cliente SA");
 		assertThat(issued.totalValue()).isEqualByComparingTo("1015.00");
@@ -152,7 +167,7 @@ class ExportAccountingEntriesServiceTest {
 	@Test
 	@DisplayName("Exports an empty period as a file without entries")
 	void exportsAnEmptyPeriodAsAFileWithoutEntries() {
-		AccountingExportFile file = execute(AccountingExportFormat.CSV);
+		final AccountingExportFile file = execute(AccountingExportFormat.CSV);
 
 		assertThat(file.entryCount()).isZero();
 		assertThat(file.content()).isEqualTo(FILE);
@@ -164,7 +179,7 @@ class ExportAccountingEntriesServiceTest {
 	void namesTheFileAfterTheCompanyThePeriodAndTheFormat() {
 		assertThat(execute(AccountingExportFormat.CSV).fileName())
 				.isEqualTo("accounting-entries-11222333000181-2028-02.csv");
-		AccountingExportFile txt = execute(AccountingExportFormat.TXT);
+		final AccountingExportFile txt = execute(AccountingExportFormat.TXT);
 		assertThat(txt.fileName()).isEqualTo("accounting-entries-11222333000181-2028-02.txt");
 		assertThat(txt.contentType()).isEqualTo("text/plain");
 	}
@@ -172,19 +187,19 @@ class ExportAccountingEntriesServiceTest {
 	@Test
 	@DisplayName("Exports as CSV when no format is given")
 	void exportsAsCsvWhenNoFormatIsGiven() {
-		AccountingExportFile file = service.execute(new ExportAccountingEntriesCommand(companyId, PERIOD, null));
+		final AccountingExportFile file = service.execute(new ExportAccountingEntriesCommand(companyId, PERIOD, null));
 
 		assertThat(file.format()).isEqualTo(AccountingExportFormat.CSV);
 		verify(files).export(any(), eq(AccountingExportFormat.CSV));
 	}
 
-	private AccountingExportFile execute(AccountingExportFormat format) {
+	private AccountingExportFile execute(final AccountingExportFormat format) {
 		return service.execute(new ExportAccountingEntriesCommand(companyId, PERIOD, format));
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<AccountingEntry> exported(AccountingExportFormat format) {
-		ArgumentCaptor<List<AccountingEntry>> captor = ArgumentCaptor.forClass(List.class);
+	private List<AccountingEntry> exported(final AccountingExportFormat format) {
+		final ArgumentCaptor<List<AccountingEntry>> captor = ArgumentCaptor.forClass(List.class);
 		verify(files).export(captor.capture(), eq(format));
 		return captor.getValue();
 	}

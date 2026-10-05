@@ -14,14 +14,14 @@ public class ImportInterstateIcmsRatesAdapter implements ImportInterstateIcmsRat
 
 	private final InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort;
 
-	public ImportInterstateIcmsRatesAdapter(InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort) {
+	public ImportInterstateIcmsRatesAdapter(final InterstateIcmsRateRepositoryPort interstateIcmsRateRepositoryPort) {
 		this.interstateIcmsRateRepositoryPort = interstateIcmsRateRepositoryPort;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<InterstateIcmsRateDomain> execute(Context context) {
-		List<InterstateIcmsRateDomain> incoming = (List<InterstateIcmsRateDomain>) context.getData(List.class);
+	public List<InterstateIcmsRateDomain> execute(final Context context) {
+		final List<InterstateIcmsRateDomain> incoming = (List<InterstateIcmsRateDomain>) context.getData(List.class);
 		incoming.forEach(rate -> interstateIcmsRateRepositoryPort
 				.findByOriginStateAndDestinationState(rate.getOriginState(), rate.getDestinationState())
 				.ifPresentOrElse(

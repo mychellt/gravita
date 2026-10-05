@@ -22,9 +22,9 @@ public final class Receivable {
 	private final Integer installmentNumber;
 	private final LedgerScope scope;
 
-	public Receivable(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
-			Integer installmentNumber, LedgerScope scope) {
+	public Receivable(final ReceivableId id, final UUID customerId, final ReceivableOrigin origin, final BigDecimal amount,
+			final LocalDate dueDate, final Integer installments, final ReceivableStatus status, final UUID originDocumentRef,
+			final Integer installmentNumber, final LedgerScope scope) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.customerId = Objects.requireNonNull(customerId, "customerId is required");
 		this.origin = Objects.requireNonNull(origin, "origin is required");
@@ -37,8 +37,8 @@ public final class Receivable {
 		this.scope = scope == null ? LedgerScope.NONE : scope;
 	}
 
-	public static Receivable createManual(ReceivableId id, UUID customerId, BigDecimal amount, LocalDate dueDate,
-			Integer installments) {
+	public static Receivable createManual(final ReceivableId id, final UUID customerId, final BigDecimal amount, final LocalDate dueDate,
+			final Integer installments) {
 		return new Receivable(id, customerId, ReceivableOrigin.MANUAL, amount, dueDate, installments,
 				ReceivableStatus.OPEN, null, null, LedgerScope.NONE);
 	}
@@ -48,8 +48,8 @@ public final class Receivable {
 	 * total number of installments of the invoice, {@code installmentNumber}
 	 * (1-based) is this title's position among them.
 	 */
-	public static Receivable createFromInvoicing(ReceivableId id, UUID customerId, UUID originDocumentRef,
-			BigDecimal amount, LocalDate dueDate, int installmentNumber, int installments) {
+	public static Receivable createFromInvoicing(final ReceivableId id, final UUID customerId, final UUID originDocumentRef,
+			final BigDecimal amount, final LocalDate dueDate, final int installmentNumber, final int installments) {
 		Objects.requireNonNull(originDocumentRef, "originDocumentRef is required");
 		if (installmentNumber < 1 || installmentNumber > installments) {
 			throw new BusinessRuleException(
@@ -64,8 +64,8 @@ public final class Receivable {
 	 * {@code installments} is the plan's total number of installments,
 	 * {@code installmentNumber} (1-based) this title's position in it.
 	 */
-	public static Receivable createFromRenegotiation(ReceivableId id, UUID customerId, BigDecimal amount,
-			LocalDate dueDate, int installmentNumber, int installments) {
+	public static Receivable createFromRenegotiation(final ReceivableId id, final UUID customerId, final BigDecimal amount,
+			final LocalDate dueDate, final int installmentNumber, final int installments) {
 		if (installmentNumber < 1 || installmentNumber > installments) {
 			throw new BusinessRuleException(
 					"installmentNumber must be between 1 and " + installments + ": " + installmentNumber);
@@ -74,22 +74,22 @@ public final class Receivable {
 				ReceivableStatus.OPEN, null, installmentNumber, LedgerScope.NONE);
 	}
 
-	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
-			Integer installmentNumber) {
+	public static Receivable of(final ReceivableId id, final UUID customerId, final ReceivableOrigin origin, final BigDecimal amount,
+			final LocalDate dueDate, final Integer installments, final ReceivableStatus status, final UUID originDocumentRef,
+			final Integer installmentNumber) {
 		return of(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
 				installmentNumber, LedgerScope.NONE);
 	}
 
-	public static Receivable of(ReceivableId id, UUID customerId, ReceivableOrigin origin, BigDecimal amount,
-			LocalDate dueDate, Integer installments, ReceivableStatus status, UUID originDocumentRef,
-			Integer installmentNumber, LedgerScope scope) {
+	public static Receivable of(final ReceivableId id, final UUID customerId, final ReceivableOrigin origin, final BigDecimal amount,
+			final LocalDate dueDate, final Integer installments, final ReceivableStatus status, final UUID originDocumentRef,
+			final Integer installmentNumber, final LedgerScope scope) {
 		return new Receivable(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
 				installmentNumber, scope);
 	}
 
 	/** The same title placed in {@code scope} (company, branch and bank account). */
-	public Receivable inScope(LedgerScope scope) {
+	public Receivable inScope(final LedgerScope scope) {
 		return new Receivable(id, customerId, origin, amount, dueDate, installments, status, originDocumentRef,
 				installmentNumber, scope);
 	}
@@ -107,7 +107,7 @@ public final class Receivable {
 	}
 
 	/** Outstanding and past its due date as of {@code today}. */
-	public boolean isOverdue(LocalDate today) {
+	public boolean isOverdue(final LocalDate today) {
 		return isOutstanding() && dueDate.isBefore(today);
 	}
 
@@ -116,7 +116,7 @@ public final class Receivable {
 	 * title (see {@link #isOverdue}) can be renegotiated; it leaves the aging
 	 * and every open-balance view as {@code RENEGOTIATED}.
 	 */
-	public Receivable renegotiate(LocalDate today) {
+	public Receivable renegotiate(final LocalDate today) {
 		if (!isOverdue(today)) {
 			throw new BusinessRuleException("Receivable " + id.value() + " is not overdue: " + status + ", due "
 					+ dueDate);
@@ -143,7 +143,7 @@ public final class Receivable {
 	 * amount, {@code PARTIALLY_SETTLED} until then. Only a title that is still
 	 * {@code OPEN} or {@code PARTIALLY_SETTLED} can take a payment.
 	 */
-	public Receivable applyCreditedTotal(BigDecimal totalCredited) {
+	public Receivable applyCreditedTotal(final BigDecimal totalCredited) {
 		if (totalCredited == null || totalCredited.signum() <= 0) {
 			throw new BusinessRuleException("totalCredited must be positive: " + totalCredited);
 		}
@@ -165,15 +165,15 @@ public final class Receivable {
 	 * unsettled portion is adjustable: what {@code settlements} already credited
 	 * is never clawed back, and a return above the remaining balance is rejected.
 	 */
-	public Receivable adjustForReturn(BigDecimal returnedAmount, Collection<Settlement> settlements) {
+	public Receivable adjustForReturn(final BigDecimal returnedAmount, final Collection<Settlement> settlements) {
 		if (returnedAmount == null || returnedAmount.signum() <= 0) {
 			throw new BusinessRuleException("returnedAmount must be positive: " + returnedAmount);
 		}
 		if (!isOutstanding()) {
 			throw new BusinessRuleException("Receivable " + id.value() + " cannot be adjusted: " + status);
 		}
-		BigDecimal remaining = remainingBalance(settlements);
-		int comparison = returnedAmount.compareTo(remaining);
+		final BigDecimal remaining = remainingBalance(settlements);
+		final int comparison = returnedAmount.compareTo(remaining);
 		if (comparison > 0) {
 			throw new BusinessRuleException("Returned amount of " + returnedAmount
 					+ " exceeds the open balance of " + remaining);
@@ -187,11 +187,11 @@ public final class Receivable {
 	}
 
 	/** What is still to be credited to this title once {@code settlements} (its baixas so far) are applied. */
-	public BigDecimal remainingBalance(Collection<Settlement> settlements) {
+	public BigDecimal remainingBalance(final Collection<Settlement> settlements) {
 		return settlements.stream().map(Settlement::creditedAmount).reduce(amount, BigDecimal::subtract);
 	}
 
-	private static BigDecimal requirePositive(BigDecimal amount) {
+	private static BigDecimal requirePositive(final BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
 		}
@@ -201,7 +201,7 @@ public final class Receivable {
 		return amount;
 	}
 
-	private static Integer requireValidInstallments(Integer installments) {
+	private static Integer requireValidInstallments(final Integer installments) {
 		if (installments != null && installments < 1) {
 			throw new BusinessRuleException("installments must be at least 1: " + installments);
 		}

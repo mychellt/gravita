@@ -22,8 +22,8 @@ public record SefazSubmissionRequest(CompanyId companyId, SefazEnvironment envir
 	 * own contingency is a local queue-and-sync flow, not a SEFAZ endpoint
 	 * switch) - this overload keeps its call site unchanged.
 	 */
-	public SefazSubmissionRequest(CompanyId companyId, SefazEnvironment environment, String accessKey,
-			BigDecimal saleTotal, TaxCalculationResult taxResult) {
+	public SefazSubmissionRequest(final CompanyId companyId, final SefazEnvironment environment, final String accessKey,
+			final BigDecimal saleTotal, final TaxCalculationResult taxResult) {
 		this(companyId, environment, accessKey, saleTotal, taxResult, false);
 	}
 }

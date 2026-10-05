@@ -17,16 +17,16 @@ final class TokenSecret {
     }
 
     static String generate() {
-        byte[] secret = new byte[SECRET_BYTES];
+        final byte[] secret = new byte[SECRET_BYTES];
         RANDOM.nextBytes(secret);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(secret);
     }
 
-    static String hash(String rawToken) {
+    static String hash(final String rawToken) {
         try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
+            final byte[] digest = MessageDigest.getInstance("SHA-256").digest(rawToken.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (final NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 is required by every Java platform", e);
         }
     }

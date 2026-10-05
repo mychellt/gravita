@@ -55,9 +55,9 @@ final class FiscalBookLayout {
 	private FiscalBookLayout() {
 	}
 
-	static PdfReport layout(LivrosFiscaisBooks books) {
-		YearMonth period = books.period();
-		List<String> header = List.of(
+	static PdfReport layout(final LivrosFiscaisBooks books) {
+		final YearMonth period = books.period();
+		final List<String> header = List.of(
 				"CNPJ: " + text(books.companyCnpj()) + " | Inscrição estadual: " + text(books.companyIe()),
 				"Período: " + period.atDay(1).format(DATE) + " a " + period.atEndOfMonth().format(DATE));
 		return new PdfReport("Livros Fiscais - " + period.format(MONTH), header, List.of(entrySection(books),
@@ -65,10 +65,10 @@ final class FiscalBookLayout {
 	}
 
 	/** Prints a report as fixed-width text: columns sized to their widest cell, amounts flush right. */
-	static String toText(PdfReport report) {
-		StringBuilder txt = new StringBuilder(report.title().toUpperCase(PT_BR)).append('\n');
+	static String toText(final PdfReport report) {
+		final StringBuilder txt = new StringBuilder(report.title().toUpperCase(PT_BR)).append('\n');
 		report.headerLines().forEach(line -> txt.append(line).append('\n'));
-		for (Section section : report.sections()) {
+		for (final Section section : report.sections()) {
 			txt.append('\n').append(section.heading().toUpperCase(PT_BR)).append('\n');
 			appendTable(txt, section);
 			section.footerLines().forEach(line -> txt.append(line).append('\n'));
@@ -76,27 +76,27 @@ final class FiscalBookLayout {
 		return txt.toString();
 	}
 
-	private static Section entrySection(LivrosFiscaisBooks books) {
+	private static Section entrySection(final LivrosFiscaisBooks books) {
 		return new Section("Livro de Entradas", DOCUMENT_COLUMNS, rows(books.entryBook().lines(), FiscalBookLayout::documentRow),
 				List.of(documentTotals(books.entryBook().lines().size(), books.entryBook().totalValue())));
 	}
 
-	private static Section exitSection(LivrosFiscaisBooks books) {
+	private static Section exitSection(final LivrosFiscaisBooks books) {
 		return new Section("Livro de Saídas", DOCUMENT_COLUMNS, rows(books.exitBook().lines(), FiscalBookLayout::documentRow),
 				List.of(documentTotals(books.exitBook().lines().size(), books.exitBook().totalValue())));
 	}
 
 	/** The voided ranges, so a gap in the exit book's numbering is explained by a line here. */
-	private static Section voidedSection(LivrosFiscaisBooks books) {
-		List<VoidedRange> ranges = books.exitBook().voidedRanges();
-		long numbers = ranges.stream().mapToLong(VoidedRange::quantity).sum();
+	private static Section voidedSection(final LivrosFiscaisBooks books) {
+		final List<VoidedRange> ranges = books.exitBook().voidedRanges();
+		final long numbers = ranges.stream().mapToLong(VoidedRange::quantity).sum();
 		return new Section("Livro de Saídas - Numeração inutilizada", VOIDED_COLUMNS,
 				rows(ranges, FiscalBookLayout::voidedRow),
 				List.of("Faixas: " + ranges.size() + " | Números inutilizados: " + numbers));
 	}
 
-	private static Section assessmentSection(LivrosFiscaisBooks books) {
-		LivrosFiscaisBooks.IcmsAssessment assessment = books.icmsAssessmentBook();
+	private static Section assessmentSection(final LivrosFiscaisBooks books) {
+		final LivrosFiscaisBooks.IcmsAssessment assessment = books.icmsAssessmentBook();
 		return new Section("Livro de Apuração do ICMS", ASSESSMENT_COLUMNS,
 				rows(assessment.lines(), FiscalBookLayout::assessmentRow),
 				List.of("Débitos (saídas): " + amount(assessment.debit()),
@@ -104,33 +104,33 @@ final class FiscalBookLayout {
 						"Saldo (débitos - créditos): " + amount(assessment.balance())));
 	}
 
-	private static Section summarySection(LivrosFiscaisBooks books) {
-		LivrosFiscaisBooks.TaxSummary summary = books.taxSummary();
+	private static Section summarySection(final LivrosFiscaisBooks books) {
+		final LivrosFiscaisBooks.TaxSummary summary = books.taxSummary();
 		return new Section("Resumo de Tributos", SUMMARY_COLUMNS,
 				List.of(summaryRow("ICMS", summary.icms()), summaryRow("IPI", summary.ipi()),
 						summaryRow("PIS", summary.pis()), summaryRow("COFINS", summary.cofins())),
 				List.of());
 	}
 
-	private static <T> List<List<String>> rows(List<T> items, Function<T, List<String>> row) {
+	private static <T> List<List<String>> rows(final List<T> items, final Function<T, List<String>> row) {
 		return items.stream().map(row).toList();
 	}
 
-	private static List<String> documentRow(Line line) {
+	private static List<String> documentRow(final Line line) {
 		return List.of(date(line.date()), text(line.series()), text(line.number()), text(line.accessKey()),
 				text(line.counterpartName()), text(line.counterpartDocument()), text(line.cfop()),
 				amount(line.totalValue()), amount(line.icmsValue()), amount(line.ipiValue()),
 				amount(line.pisValue()), amount(line.cofinsValue()));
 	}
 
-	private static List<String> voidedRow(VoidedRange range) {
+	private static List<String> voidedRow(final VoidedRange range) {
 		return List.of(text(range.series()), String.valueOf(range.startNumber()), String.valueOf(range.endNumber()),
 				String.valueOf(range.quantity()), INSTANT.format(range.voidedAt()), text(range.sefazProtocol()),
 				text(range.justification()));
 	}
 
-	private static List<String> assessmentRow(Line line) {
-		String nature = switch (line.flow()) {
+	private static List<String> assessmentRow(final Line line) {
+		final String nature = switch (line.flow()) {
 			case EXIT -> "Débito";
 			case ENTRY -> "Crédito";
 		};
@@ -138,20 +138,20 @@ final class FiscalBookLayout {
 				text(line.counterpartName()), text(line.cfop()), amount(line.totalValue()), amount(line.icmsValue()));
 	}
 
-	private static List<String> summaryRow(String tax, Totals totals) {
+	private static List<String> summaryRow(final String tax, final Totals totals) {
 		return List.of(tax, amount(totals.onExits()), amount(totals.onEntries()), amount(totals.balance()));
 	}
 
-	private static String documentTotals(int documents, BigDecimal totalValue) {
+	private static String documentTotals(final int documents, final BigDecimal totalValue) {
 		return "Documentos: " + documents + " | Valor total: " + amount(totalValue);
 	}
 
-	private static void appendTable(StringBuilder txt, Section section) {
-		List<Column> columns = section.columns();
-		int[] widths = new int[columns.size()];
+	private static void appendTable(final StringBuilder txt, final Section section) {
+		final List<Column> columns = section.columns();
+		final int[] widths = new int[columns.size()];
 		for (int i = 0; i < widths.length; i++) {
 			widths[i] = columns.get(i).header().length();
-			for (List<String> row : section.rows()) {
+			for (final List<String> row : section.rows()) {
 				widths[i] = Math.max(widths[i], row.get(i).length());
 			}
 		}
@@ -162,25 +162,25 @@ final class FiscalBookLayout {
 		}
 	}
 
-	private static void appendRow(StringBuilder txt, List<Column> columns, int[] widths, List<String> cells) {
-		StringBuilder line = new StringBuilder();
+	private static void appendRow(final StringBuilder txt, final List<Column> columns, final int[] widths, final List<String> cells) {
+		final StringBuilder line = new StringBuilder();
 		for (int i = 0; i < widths.length; i++) {
-			String format = "%" + (columns.get(i).rightAligned() ? "" : "-") + widths[i] + "s";
+			final String format = "%" + (columns.get(i).rightAligned() ? "" : "-") + widths[i] + "s";
 			line.append(i == 0 ? "" : "  ").append(String.format(format, cells.get(i)));
 		}
 		txt.append(line.toString().stripTrailing()).append('\n');
 	}
 
-	private static String date(LocalDate date) {
+	private static String date(final LocalDate date) {
 		return date.format(DATE);
 	}
 
-	private static String text(String value) {
+	private static String text(final String value) {
 		return value == null || value.isBlank() ? NONE : value;
 	}
 
-	private static String amount(BigDecimal value) {
-		NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
+	private static String amount(final BigDecimal value) {
+		final NumberFormat format = NumberFormat.getNumberInstance(PT_BR);
 		format.setMinimumFractionDigits(2);
 		format.setMaximumFractionDigits(2);
 		return format.format(value);

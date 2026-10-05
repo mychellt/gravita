@@ -26,8 +26,8 @@ public class FiscalBooksController {
 	 * in the JSON body, next to the structured books they were laid out from.
 	 */
 	@GetMapping
-	public ResponseEntity<FiscalBooks> get(@AuthenticatedUser UserId callerId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
+	public ResponseEntity<FiscalBooks> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
 		return ResponseEntity.ok(getFiscalBooksUseCase.execute(new FiscalBooksQuery(callerId, period)));
 	}
 }

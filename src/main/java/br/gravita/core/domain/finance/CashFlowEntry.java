@@ -22,19 +22,19 @@ public record CashFlowEntry(LocalDate date, Direction direction, boolean realize
 		Objects.requireNonNull(amount, "amount is required");
 	}
 
-	public static CashFlowEntry realizedInflow(LocalDate date, BigDecimal amount) {
+	public static CashFlowEntry realizedInflow(final LocalDate date, final BigDecimal amount) {
 		return new CashFlowEntry(date, Direction.INFLOW, true, amount);
 	}
 
-	public static CashFlowEntry realizedOutflow(LocalDate date, BigDecimal amount) {
+	public static CashFlowEntry realizedOutflow(final LocalDate date, final BigDecimal amount) {
 		return new CashFlowEntry(date, Direction.OUTFLOW, true, amount);
 	}
 
-	public static CashFlowEntry projectedInflow(LocalDate date, BigDecimal amount) {
+	public static CashFlowEntry projectedInflow(final LocalDate date, final BigDecimal amount) {
 		return new CashFlowEntry(date, Direction.INFLOW, false, amount);
 	}
 
-	public static CashFlowEntry projectedOutflow(LocalDate date, BigDecimal amount) {
+	public static CashFlowEntry projectedOutflow(final LocalDate date, final BigDecimal amount) {
 		return new CashFlowEntry(date, Direction.OUTFLOW, false, amount);
 	}
 }

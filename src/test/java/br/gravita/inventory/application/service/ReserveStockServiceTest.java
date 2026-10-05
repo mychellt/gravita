@@ -55,7 +55,7 @@ class ReserveStockServiceTest {
 	@Test
 	@DisplayName("Reserving more than the available quantity is rejected")
 	void reservingMoreThanAvailableIsRejected() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("10"), new BigDecimal("5"), BigDecimal.ZERO, new BigDecimal("2.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));
@@ -83,7 +83,7 @@ class ReserveStockServiceTest {
 	@Test
 	@DisplayName("Reserving increases the reserved quantity and leaves on-hand unchanged")
 	void reservingIncreasesReservedAndLeavesOnHandUnchanged() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), new BigDecimal("10"), BigDecimal.ZERO, new BigDecimal("5.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));
@@ -91,7 +91,7 @@ class ReserveStockServiceTest {
 
 		service.execute(new ReserveStockCommand(orderRef, productId, warehouseId, new BigDecimal("30")));
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("100");
 		assertThat(savedBalance.getValue().getReserved()).isEqualByComparingTo("40");
@@ -101,13 +101,13 @@ class ReserveStockServiceTest {
 	@Test
 	@DisplayName("The created reservation references its order and starts ACTIVE")
 	void theCreatedReservationIsTraceableBackToItsOrderRefAndStartsActive() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("5.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));
 		when(stockReservationRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		StockReservation reservation = service.execute(
+		final StockReservation reservation = service.execute(
 				new ReserveStockCommand(orderRef, productId, warehouseId, new BigDecimal("15")));
 
 		assertThat(reservation.getOrderRef()).isEqualTo(orderRef);
@@ -120,7 +120,7 @@ class ReserveStockServiceTest {
 	@Test
 	@DisplayName("Evaluates low-stock reorder for the affected warehouse after a successful reservation")
 	void evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulReservation() {
-		StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
+		final StockBalance balance = StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId,
 				new BigDecimal("100"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("5.00"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance));

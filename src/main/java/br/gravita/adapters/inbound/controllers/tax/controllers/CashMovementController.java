@@ -21,8 +21,8 @@ public class CashMovementController {
 	private final RecordCashMovementUseCase recordCashMovementUseCase;
 
 	@PostMapping
-	public ResponseEntity<RecordCashMovementResponse> record(@Valid @RequestBody RecordCashMovementRequest request) {
-		CashMovementId id = recordCashMovementUseCase.execute(request.toCommand());
+	public ResponseEntity<RecordCashMovementResponse> record(@Valid @RequestBody final RecordCashMovementRequest request) {
+		final CashMovementId id = recordCashMovementUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/pdv/cash-movements/" + id.value()))
 				.body(RecordCashMovementResponse.from(id));
 	}

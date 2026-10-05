@@ -26,30 +26,30 @@ public class PlanRestController {
     private final DeletePlanPort deletePlanPort;
 
     @PostMapping
-    public ResponseEntity<PlanResponse> create(@Valid @RequestBody PlanRequest request) {
-        PlanDomain created = createPlanPort.execute(new Context(request.toDomain(null)));
+    public ResponseEntity<PlanResponse> create(@Valid @RequestBody final PlanRequest request) {
+        final PlanDomain created = createPlanPort.execute(new Context(request.toDomain(null)));
         return ResponseEntity.created(URI.create("/api/plans/" + created.getId())).body(PlanResponse.from(created));
     }
 
     @GetMapping
     public ResponseEntity<List<PlanResponse>> findAll() {
-        List<PlanResponse> plans = listPlansPort.execute(new Context()).stream().map(PlanResponse::from).toList();
+        final List<PlanResponse> plans = listPlansPort.execute(new Context()).stream().map(PlanResponse::from).toList();
         return ResponseEntity.ok(plans);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PlanResponse> findById(@PathVariable UUID id) {
+    public ResponseEntity<PlanResponse> findById(@PathVariable final UUID id) {
         return ResponseEntity.ok(PlanResponse.from(findPlanPort.execute(new Context(id))));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PlanResponse> update(@PathVariable UUID id, @Valid @RequestBody PlanRequest request) {
-        PlanDomain updated = updatePlanPort.execute(new Context(request.toDomain(id)));
+    public ResponseEntity<PlanResponse> update(@PathVariable final UUID id, @Valid @RequestBody final PlanRequest request) {
+        final PlanDomain updated = updatePlanPort.execute(new Context(request.toDomain(id)));
         return ResponseEntity.ok(PlanResponse.from(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable final UUID id) {
         deletePlanPort.execute(new Context(id));
         return ResponseEntity.noContent().build();
     }

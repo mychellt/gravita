@@ -48,7 +48,7 @@ class GetStockTurnoverServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "stock-turnover")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new StockTurnoverQuery(stranger, PERIOD, company)))
@@ -60,10 +60,10 @@ class GetStockTurnoverServiceTest {
 	@DisplayName("Divides the quantity issued by the average of opening and closing stock")
 	@Test
 	void dividesWhatWasIssuedByTheAverageOfTheOpeningAndClosingStock() {
-		UUID product = UUID.randomUUID();
+		final UUID product = UUID.randomUUID();
 		when(inventory.stockFlows(FROM, TO, company)).thenReturn(List.of(flow(product, "30", "10", "20")));
 
-		List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, company));
+		final List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, company));
 
 		assertThat(report).singleElement().satisfies(entry -> {
 			assertThat(entry.product()).isEqualTo(product);
@@ -75,10 +75,10 @@ class GetStockTurnoverServiceTest {
 	@DisplayName("Flags a product that held stock but issued none as stalled")
 	@Test
 	void flagsAProductThatHeldStockButIssuedNoneAsStalled() {
-		UUID product = UUID.randomUUID();
+		final UUID product = UUID.randomUUID();
 		when(inventory.stockFlows(any(), any(), any())).thenReturn(List.of(flow(product, "0", "40", "40")));
 
-		List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
+		final List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
 
 		assertThat(report).singleElement().satisfies(entry -> {
 			assertThat(entry.turnoverRate()).isEqualByComparingTo("0");
@@ -89,10 +89,10 @@ class GetStockTurnoverServiceTest {
 	@DisplayName("Leaves the rate empty when no stock was held at either end of the period but something was issued")
 	@Test
 	void leavesTheRateEmptyWhenNoStockWasHeldAtEitherEndOfThePeriodButSomethingWasIssued() {
-		UUID product = UUID.randomUUID();
+		final UUID product = UUID.randomUUID();
 		when(inventory.stockFlows(any(), any(), any())).thenReturn(List.of(flow(product, "5", "0", "0")));
 
-		List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
+		final List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
 
 		assertThat(report).singleElement().satisfies(entry -> {
 			assertThat(entry.turnoverRate()).isNull();
@@ -112,20 +112,20 @@ class GetStockTurnoverServiceTest {
 	@DisplayName("Ranks the fastest movers first, with stalled and unrated products last")
 	@Test
 	void ranksTheFastestMoversFirstWithStalledAndUnratedProductsLast() {
-		UUID slow = UUID.fromString("00000000-0000-0000-0000-000000000001");
-		UUID fast = UUID.fromString("00000000-0000-0000-0000-000000000002");
-		UUID stalled = UUID.fromString("00000000-0000-0000-0000-000000000003");
-		UUID unrated = UUID.fromString("00000000-0000-0000-0000-000000000004");
+		final UUID slow = UUID.fromString("00000000-0000-0000-0000-000000000001");
+		final UUID fast = UUID.fromString("00000000-0000-0000-0000-000000000002");
+		final UUID stalled = UUID.fromString("00000000-0000-0000-0000-000000000003");
+		final UUID unrated = UUID.fromString("00000000-0000-0000-0000-000000000004");
 		when(inventory.stockFlows(any(), any(), any())).thenReturn(List.of(flow(unrated, "5", "0", "0"),
 				flow(stalled, "0", "10", "10"), flow(slow, "1", "10", "10"), flow(fast, "30", "10", "10")));
 
-		List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
+		final List<StockTurnoverEntry> report = service.execute(new StockTurnoverQuery(user, PERIOD, null));
 
 		assertThat(report).extracting(StockTurnoverEntry::product).containsExactly(fast, slow, stalled, unrated);
 		verify(inventory).stockFlows(FROM, TO, null);
 	}
 
-	private StockFlow flow(UUID product, String issued, String opening, String closing) {
+	private StockFlow flow(final UUID product, final String issued, final String opening, final String closing) {
 		return new StockFlow(product, new BigDecimal(issued), new BigDecimal(opening), new BigDecimal(closing));
 	}
 }

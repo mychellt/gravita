@@ -16,21 +16,21 @@ class CommissionRepositoryAdapter implements CommissionRepositoryPort {
 	private final CommissionJpaRepository jpaRepository;
 	private final CommissionPersistenceMapper mapper;
 
-	CommissionRepositoryAdapter(CommissionJpaRepository jpaRepository, CommissionPersistenceMapper mapper) {
+	CommissionRepositoryAdapter(final CommissionJpaRepository jpaRepository, final CommissionPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public Commission save(Commission commission) {
-		CommissionJpaEntity entity = mapper.map(commission);
+	public Commission save(final Commission commission) {
+		final CommissionJpaEntity entity = mapper.map(commission);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		CommissionJpaEntity saved = jpaRepository.save(entity);
+		final CommissionJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public List<Commission> findByOrderIds(Collection<SalesOrderId> orderIds) {
+	public List<Commission> findByOrderIds(final Collection<SalesOrderId> orderIds) {
 		if (orderIds.isEmpty()) {
 			return List.of();
 		}

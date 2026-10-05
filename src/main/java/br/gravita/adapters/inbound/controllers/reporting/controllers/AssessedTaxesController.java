@@ -23,8 +23,8 @@ public class AssessedTaxesController {
 
 	/** {@code period} is a month as {@code yyyy-MM}. */
 	@GetMapping
-	public ResponseEntity<AssessedTaxSummary> get(@AuthenticatedUser UserId callerId,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
+	public ResponseEntity<AssessedTaxSummary> get(@AuthenticatedUser final UserId callerId,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
 		return ResponseEntity.ok(getAssessedTaxesUseCase.execute(new AssessedTaxesQuery(callerId, period)));
 	}
 }

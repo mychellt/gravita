@@ -24,14 +24,14 @@ public class ProductRestController {
     private final UpdateProductPort updateProductPort;
 
     @PostMapping
-    public ResponseEntity<ProductResponse> register(@Valid @RequestBody RegisterProductRequest request) {
-        ProductDomain created = registerProductPort.execute(new Context(request.toDomain(null)));
+    public ResponseEntity<ProductResponse> register(@Valid @RequestBody final RegisterProductRequest request) {
+        final ProductDomain created = registerProductPort.execute(new Context(request.toDomain(null)));
         return ResponseEntity.created(URI.create("/api/products/" + created.getId())).body(ProductResponse.from(created));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ProductResponse> update(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
-        ProductDomain updated = updateProductPort.execute(new Context(request.toDomain(id)));
+    public ResponseEntity<ProductResponse> update(@PathVariable final UUID id, @Valid @RequestBody final UpdateProductRequest request) {
+        final ProductDomain updated = updateProductPort.execute(new Context(request.toDomain(id)));
         return ResponseEntity.ok(ProductResponse.from(updated));
     }
 }

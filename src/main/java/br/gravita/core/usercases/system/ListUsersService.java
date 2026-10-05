@@ -21,29 +21,29 @@ public class ListUsersService implements ListUsersUseCase {
 	private final ProfileRepositoryPort profileRepositoryPort;
 	private final CallerCompanyResolver callerCompanyResolver;
 
-	public ListUsersService(UserRepositoryPort userRepositoryPort, ProfileRepositoryPort profileRepositoryPort,
-			CallerCompanyResolver callerCompanyResolver) {
+	public ListUsersService(final UserRepositoryPort userRepositoryPort, final ProfileRepositoryPort profileRepositoryPort,
+			final CallerCompanyResolver callerCompanyResolver) {
 		this.userRepositoryPort = userRepositoryPort;
 		this.profileRepositoryPort = profileRepositoryPort;
 		this.callerCompanyResolver = callerCompanyResolver;
 	}
 
 	@Override
-	public List<UserSummary> execute(UserId callerId) {
+	public List<UserSummary> execute(final UserId callerId) {
 		return callerCompanyResolver.resolve(new Context().withCaller(callerId))
 				.map(this::summariesOf)
 				.orElse(List.of());
 	}
 
-	private List<UserSummary> summariesOf(UUID companyId) {
-		Map<UUID, String> profileNames = profileRepositoryPort.findAll().stream()
+	private List<UserSummary> summariesOf(final UUID companyId) {
+		final Map<UUID, String> profileNames = profileRepositoryPort.findAll().stream()
 				.collect(Collectors.toMap(ProfileReference::id, ProfileReference::name));
 		return userRepositoryPort.findAllByCompanyId(companyId).stream()
 				.map(user -> summaryOf(user, profileNames))
 				.toList();
 	}
 
-	private static UserSummary summaryOf(User user, Map<UUID, String> profileNames) {
+	private static UserSummary summaryOf(final User user, final Map<UUID, String> profileNames) {
 		return new UserSummary(user.getId().value(), user.getName(), user.getEmail(), user.getProfileId(),
 				profileNames.get(user.getProfileId()), user.isTwoFactorEnabled(), user.getStatus());
 	}

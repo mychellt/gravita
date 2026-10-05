@@ -31,9 +31,9 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 	private final RegisterStockEntryPort registerStockEntryPort;
 	private final GeneratePayableFromReceiptPort generatePayableFromReceiptPort;
 
-	public ConfirmPurchaseReceiptService(PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
-			PurchaseOrderRepositoryPort purchaseOrderRepositoryPort, RegisterStockEntryPort registerStockEntryPort,
-			GeneratePayableFromReceiptPort generatePayableFromReceiptPort) {
+	public ConfirmPurchaseReceiptService(final PurchaseReceiptRepositoryPort purchaseReceiptRepositoryPort,
+			final PurchaseOrderRepositoryPort purchaseOrderRepositoryPort, final RegisterStockEntryPort registerStockEntryPort,
+			final GeneratePayableFromReceiptPort generatePayableFromReceiptPort) {
 		this.purchaseReceiptRepositoryPort = purchaseReceiptRepositoryPort;
 		this.purchaseOrderRepositoryPort = purchaseOrderRepositoryPort;
 		this.registerStockEntryPort = registerStockEntryPort;
@@ -41,15 +41,15 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 	}
 
 	@Override
-	public void execute(ConfirmPurchaseReceiptCommand command) {
-		PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
+	public void execute(final ConfirmPurchaseReceiptCommand command) {
+		final PurchaseReceipt receipt = purchaseReceiptRepositoryPort.findById(command.receiptId())
 				.orElseThrow(() -> new PurchaseReceiptNotFoundException(command.receiptId().value()));
-		PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
+		final PurchaseOrder order = purchaseOrderRepositoryPort.findById(receipt.getOrderId())
 				.orElseThrow(() -> new PurchaseOrderNotFoundException(receipt.getOrderId().value()));
 
-		PurchaseReceipt confirmed = receipt.confirm();
+		final PurchaseReceipt confirmed = receipt.confirm();
 
-		for (PurchaseReceiptItem item : confirmed.getReceivedItems()) {
+		for (final PurchaseReceiptItem item : confirmed.getReceivedItems()) {
 			registerStockEntryPort.registerEntry(new RegisterStockEntryCommand(item.productId(), item.receivedQty(),
 					resolveUnitCost(order, item.productId()), confirmed.getId().value()));
 		}
@@ -59,17 +59,17 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 
 		purchaseReceiptRepositoryPort.save(confirmed);
 
-		List<PurchaseReceipt> otherConfirmedReceipts = purchaseReceiptRepositoryPort.findByOrderId(order.getId())
+		final List<PurchaseReceipt> otherConfirmedReceipts = purchaseReceiptRepositoryPort.findByOrderId(order.getId())
 				.stream()
 				.filter(other -> !other.getId().equals(confirmed.getId()))
 				.filter(other -> other.getStatus() == PurchaseReceiptStatus.CONFIRMED)
 				.toList();
 
-		boolean fullyReceived = isFullyReceived(order, confirmed, otherConfirmedReceipts);
+		final boolean fullyReceived = isFullyReceived(order, confirmed, otherConfirmedReceipts);
 		purchaseOrderRepositoryPort.save(order.afterReceiptConfirmed(fullyReceived));
 	}
 
-	private BigDecimal resolveUnitCost(PurchaseOrder order, UUID productId) {
+	private BigDecimal resolveUnitCost(final PurchaseOrder order, final UUID productId) {
 		return order.getItems().stream()
 				.filter(item -> item.productId().equals(productId))
 				.map(PurchaseOrderItem::unitPrice)
@@ -77,15 +77,15 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 				.orElse(BigDecimal.ZERO);
 	}
 
-	private List<Installment> toInstallments(PurchaseReceipt receipt) {
+	private List<Installment> toInstallments(final PurchaseReceipt receipt) {
 		return receipt.getInstallmentTerms().stream()
 				.map(term -> new Installment(term.amount(), term.dueDate()))
 				.toList();
 	}
 
-	private boolean isFullyReceived(PurchaseOrder order, PurchaseReceipt justConfirmed,
-			List<PurchaseReceipt> otherConfirmedReceipts) {
-		Map<UUID, BigDecimal> receivedByProduct = new HashMap<>();
+	private boolean isFullyReceived(final PurchaseOrder order, final PurchaseReceipt justConfirmed,
+			final List<PurchaseReceipt> otherConfirmedReceipts) {
+		final Map<UUID, BigDecimal> receivedByProduct = new HashMap<>();
 		accumulate(receivedByProduct, justConfirmed);
 		otherConfirmedReceipts.forEach(other -> accumulate(receivedByProduct, other));
 
@@ -94,8 +94,8 @@ public class ConfirmPurchaseReceiptService implements ConfirmPurchaseReceiptUseC
 						.compareTo(orderItem.quantity()) >= 0);
 	}
 
-	private void accumulate(Map<UUID, BigDecimal> receivedByProduct, PurchaseReceipt receipt) {
-		for (PurchaseReceiptItem item : receipt.getReceivedItems()) {
+	private void accumulate(final Map<UUID, BigDecimal> receivedByProduct, final PurchaseReceipt receipt) {
+		for (final PurchaseReceiptItem item : receipt.getReceivedItems()) {
 			receivedByProduct.merge(item.productId(), item.receivedQty(), BigDecimal::add);
 		}
 	}

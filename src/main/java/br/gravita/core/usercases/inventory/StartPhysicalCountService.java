@@ -26,28 +26,28 @@ public class StartPhysicalCountService implements StartPhysicalCountUseCase {
 	private final ProductRepositoryPort productRepositoryPort;
 	private final PhysicalCountRepositoryPort physicalCountRepositoryPort;
 
-	public StartPhysicalCountService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			ProductRepositoryPort productRepositoryPort, PhysicalCountRepositoryPort physicalCountRepositoryPort) {
+	public StartPhysicalCountService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final ProductRepositoryPort productRepositoryPort, final PhysicalCountRepositoryPort physicalCountRepositoryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.productRepositoryPort = productRepositoryPort;
 		this.physicalCountRepositoryPort = physicalCountRepositoryPort;
 	}
 
 	@Override
-	public PhysicalCount execute(StartPhysicalCountCommand command) {
-		List<PhysicalCountLine> lines = snapshotLines(command);
+	public PhysicalCount execute(final StartPhysicalCountCommand command) {
+		final List<PhysicalCountLine> lines = snapshotLines(command);
 
-		PhysicalCount physicalCount = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()), command.scope(),
+		final PhysicalCount physicalCount = PhysicalCount.start(PhysicalCountId.of(UUID.randomUUID()), command.scope(),
 				command.productGroupId(), command.warehouseId(), command.user(), Instant.now(), lines);
 
 		return physicalCountRepositoryPort.save(physicalCount);
 	}
 
-	private List<PhysicalCountLine> snapshotLines(StartPhysicalCountCommand command) {
+	private List<PhysicalCountLine> snapshotLines(final StartPhysicalCountCommand command) {
 		List<StockBalance> balances = stockBalanceRepositoryPort.findByWarehouseId(command.warehouseId());
 
 		if (command.scope() == PhysicalCountScope.PARTIAL_BY_GROUP) {
-			Set<UUID> productIdsInGroup = productIdsInGroup(command.productGroupId());
+			final Set<UUID> productIdsInGroup = productIdsInGroup(command.productGroupId());
 			balances = balances.stream().filter(balance -> productIdsInGroup.contains(balance.getProductId())).toList();
 		}
 
@@ -55,7 +55,7 @@ public class StartPhysicalCountService implements StartPhysicalCountUseCase {
 				.toList();
 	}
 
-	private Set<UUID> productIdsInGroup(String productGroupId) {
+	private Set<UUID> productIdsInGroup(final String productGroupId) {
 		return productRepositoryPort.findAll().stream()
 				.filter(product -> product.getClassification() != null
 						&& productGroupId.equals(product.getClassification().group()))

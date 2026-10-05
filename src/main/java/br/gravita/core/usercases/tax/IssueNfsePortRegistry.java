@@ -13,10 +13,10 @@ final class IssueNfsePortRegistry {
 	}
 
 	/** At most one adapter may claim a standard; two fail wiring rather than picking one silently. */
-	static Map<NfseStandard, IssueNfsePort> byStandard(List<IssueNfsePort> issuers) {
-		Map<NfseStandard, IssueNfsePort> byStandard = new EnumMap<>(NfseStandard.class);
-		for (IssueNfsePort issuer : issuers) {
-			IssueNfsePort previous = byStandard.put(issuer.standard(), issuer);
+	static Map<NfseStandard, IssueNfsePort> byStandard(final List<IssueNfsePort> issuers) {
+		final Map<NfseStandard, IssueNfsePort> byStandard = new EnumMap<>(NfseStandard.class);
+		for (final IssueNfsePort issuer : issuers) {
+			final IssueNfsePort previous = byStandard.put(issuer.standard(), issuer);
 			if (previous != null) {
 				throw new IllegalStateException("More than one IssueNfsePort for standard " + issuer.standard() + ": "
 						+ previous.getClass().getName() + " and " + issuer.getClass().getName());

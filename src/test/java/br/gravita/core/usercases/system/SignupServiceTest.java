@@ -70,11 +70,11 @@ class SignupServiceTest {
         lenient().when(profileRepository.findByName(SignupService.ADMINISTRATOR_PROFILE_NAME))
                 .thenReturn(Optional.of(ADMINISTRATOR));
         lenient().when(planRepository.findActiveByTier(any(PlanTier.class))).thenAnswer(invocation ->
-                Optional.of(PlanFixtures.aPlan().tier(invocation.getArgument(0)).build()));
+                Optional.of(PlanFixtures.plan().tier(invocation.getArgument(0)).build()));
         lenient().when(companyRepository.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         lenient().when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(invocation -> {
-            Subscription subscription = invocation.getArgument(0);
+            final Subscription subscription = invocation.getArgument(0);
             subscription.setId(subscriptionId);
             return subscription;
         });
@@ -83,11 +83,11 @@ class SignupServiceTest {
     @Test
     @DisplayName("A valid signup creates the company, an administrator linked to it and an active subscription")
     void shouldCreateCompanyAdministratorAndActiveSubscription() {
-        SignupResult result = service.execute(new Context(command("silver", "annual")));
+        final SignupResult result = service.execute(new Context(command("silver", "annual")));
 
-        ArgumentCaptor<Company> company = ArgumentCaptor.forClass(Company.class);
+        final ArgumentCaptor<Company> company = ArgumentCaptor.forClass(Company.class);
         verify(companyRepository).save(company.capture());
-        UUID companyId = company.getValue().getId().value();
+        final UUID companyId = company.getValue().getId().value();
         assertThat(company.getValue().getName()).isEqualTo("Acme Ltda");
         assertThat(company.getValue().getCnpj().number()).isEqualTo("11222333000181");
         assertThat(company.getValue().getPhone()).isEqualTo("(11) 91234-5678");
@@ -95,7 +95,7 @@ class SignupServiceTest {
         assertThat(company.getValue().getSefazEnvironment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
         assertThat(company.getValue().isProfileComplete()).as("fiscal profile is completed later in Settings").isFalse();
 
-        ArgumentCaptor<User> user = ArgumentCaptor.forClass(User.class);
+        final ArgumentCaptor<User> user = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(user.capture());
         assertThat(user.getValue().getEmail()).isEqualTo("ana@acme.com");
         assertThat(user.getValue().getProfileId()).isEqualTo(ADMINISTRATOR.id());
@@ -103,7 +103,7 @@ class SignupServiceTest {
         assertThat(user.getValue().getCompanyId()).isEqualTo(companyId);
         assertThat(user.getValue().getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
 
-        ArgumentCaptor<Subscription> subscription = ArgumentCaptor.forClass(Subscription.class);
+        final ArgumentCaptor<Subscription> subscription = ArgumentCaptor.forClass(Subscription.class);
         verify(subscriptionRepository).save(subscription.capture());
         assertThat(subscription.getValue().getPlan().getTier()).isEqualTo(PlanTier.SILVER);
         assertThat(subscription.getValue().getBillingCycle()).isEqualTo(BillingCycle.ANNUAL);
@@ -121,11 +121,11 @@ class SignupServiceTest {
     @Test
     @DisplayName("A completed signup announces the new user, carrying the trimmed e-mail and the name")
     void shouldAnnounceTheNewUser() {
-        SignupResult result = service.execute(new Context(command("silver", "monthly")));
+        final SignupResult result = service.execute(new Context(command("silver", "monthly")));
 
-        ArgumentCaptor<Context> context = ArgumentCaptor.forClass(Context.class);
+        final ArgumentCaptor<Context> context = ArgumentCaptor.forClass(Context.class);
         verify(notifyUserRegistrationProducerPort).execute(context.capture());
-        NotifyUserRegistrationMessage message = context.getValue().getData(NotifyUserRegistrationMessage.class);
+        final NotifyUserRegistrationMessage message = context.getValue().getData(NotifyUserRegistrationMessage.class);
         assertThat(message.username()).isEqualTo("Ana Souza");
         assertThat(message.recipient()).isEqualTo("ana@acme.com");
         assertThat(message.tenantId()).isEqualTo(result.companyId());
@@ -136,11 +136,11 @@ class SignupServiceTest {
     void shouldIssueAnActivationTokenForTheNewUser() {
         service.execute(new Context(command("silver", "monthly")));
 
-        ArgumentCaptor<ActivationToken> stored = ArgumentCaptor.forClass(ActivationToken.class);
+        final ArgumentCaptor<ActivationToken> stored = ArgumentCaptor.forClass(ActivationToken.class);
         verify(activationTokenRepository).save(stored.capture());
-        ArgumentCaptor<Context> context = ArgumentCaptor.forClass(Context.class);
+        final ArgumentCaptor<Context> context = ArgumentCaptor.forClass(Context.class);
         verify(notifyUserRegistrationProducerPort).execute(context.capture());
-        String rawToken = context.getValue().getData(NotifyUserRegistrationMessage.class).token();
+        final String rawToken = context.getValue().getData(NotifyUserRegistrationMessage.class).token();
 
         assertThat(rawToken).isNotBlank();
         assertThat(stored.getValue().getTokenHash()).isEqualTo(ActivationToken.hash(rawToken)).isNotEqualTo(rawToken);
@@ -151,7 +151,7 @@ class SignupServiceTest {
     @Test
     @DisplayName("Without plan and billing it defaults to Silver and Monthly")
     void shouldDefaultToSilverMonthly() {
-        SignupResult result = service.execute(new Context(command(null, null)));
+        final SignupResult result = service.execute(new Context(command(null, null)));
 
         assertThat(result.plan()).isEqualTo(PlanTier.SILVER);
         assertThat(result.billingCycle()).isEqualTo(BillingCycle.MONTHLY);
@@ -161,7 +161,7 @@ class SignupServiceTest {
     @Test
     @DisplayName("Plan and billing slugs are case-insensitive")
     void shouldAcceptSlugsInAnyCase() {
-        SignupResult result = service.execute(new Context(command(" Gold ", "ANNUAL")));
+        final SignupResult result = service.execute(new Context(command(" Gold ", "ANNUAL")));
 
         assertThat(result.plan()).isEqualTo(PlanTier.GOLD);
         assertThat(result.billingCycle()).isEqualTo(BillingCycle.ANNUAL);
@@ -196,8 +196,8 @@ class SignupServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"11.222.333/0001-80", "00.000.000/0000-00", "123", ""})
     @DisplayName("A CNPJ with a wrong check digit is rejected on the cnpj field")
-    void shouldRejectInvalidCnpj(String cnpj) {
-        SignupCommand command = new SignupCommand("Ana Souza", "ana@acme.com", "s3cret-pass", "Acme Ltda", cnpj,
+    void shouldRejectInvalidCnpj(final String cnpj) {
+        final SignupCommand command = new SignupCommand("Ana Souza", "ana@acme.com", "s3cret-pass", "Acme Ltda", cnpj,
                 null, "silver", "monthly");
 
         assertThatThrownBy(() -> service.execute(new Context(command)))
@@ -247,7 +247,7 @@ class SignupServiceTest {
     @Test
     @DisplayName("A missing company name is rejected before anything is saved")
     void shouldRejectBlankCompanyName() {
-        SignupCommand command = new SignupCommand("Ana Souza", "ana@acme.com", "s3cret-pass", " ", VALID_CNPJ, null,
+        final SignupCommand command = new SignupCommand("Ana Souza", "ana@acme.com", "s3cret-pass", " ", VALID_CNPJ, null,
                 "silver", "monthly");
 
         assertThatThrownBy(() -> service.execute(new Context(command))).hasMessageContaining("empresa");
@@ -255,7 +255,7 @@ class SignupServiceTest {
         verify(userRepository, never()).existsByEmail(anyString());
     }
 
-    private static SignupCommand command(String plan, String billing) {
+    private static SignupCommand command(final String plan, final String billing) {
         return new SignupCommand("Ana Souza", " ana@acme.com ", "s3cret-pass", "Acme Ltda", VALID_CNPJ,
                 "(11) 91234-5678", plan, billing);
     }

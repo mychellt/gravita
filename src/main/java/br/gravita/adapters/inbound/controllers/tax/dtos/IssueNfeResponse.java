@@ -7,7 +7,7 @@ import java.util.UUID;
 public record IssueNfeResponse(UUID id, String accessKey, String documentSeries, Long documentNumber,
 		NfeDocumentStatus status) {
 
-	public static IssueNfeResponse from(NfeDocument document) {
+	public static IssueNfeResponse from(final NfeDocument document) {
 		return new IssueNfeResponse(document.getId().value(), document.getAccessKey(), document.getDocumentSeries(),
 				document.getDocumentNumber(), document.getStatus());
 	}

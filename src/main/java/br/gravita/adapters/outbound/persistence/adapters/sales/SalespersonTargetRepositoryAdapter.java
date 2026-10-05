@@ -17,32 +17,32 @@ class SalespersonTargetRepositoryAdapter implements SalespersonTargetRepositoryP
 	private final SalespersonTargetJpaRepository jpaRepository;
 	private final SalespersonTargetPersistenceMapper mapper;
 
-	SalespersonTargetRepositoryAdapter(SalespersonTargetJpaRepository jpaRepository,
-			SalespersonTargetPersistenceMapper mapper) {
+	SalespersonTargetRepositoryAdapter(final SalespersonTargetJpaRepository jpaRepository,
+			final SalespersonTargetPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public SalespersonTarget save(SalespersonTarget target) {
-		String month = target.month().toString();
-		UUID id = jpaRepository.findBySalespersonIdAndMonth(target.salespersonId(), month)
+	public SalespersonTarget save(final SalespersonTarget target) {
+		final String month = target.month().toString();
+		final UUID id = jpaRepository.findBySalespersonIdAndMonth(target.salespersonId(), month)
 				.map(SalespersonTargetJpaEntity::getId)
 				.orElseGet(UUID::randomUUID);
 
-		SalespersonTargetJpaEntity entity = mapper.map(target, id);
+		final SalespersonTargetJpaEntity entity = mapper.map(target, id);
 		entity.setNew(!jpaRepository.existsById(id));
-		SalespersonTargetJpaEntity saved = jpaRepository.save(entity);
+		final SalespersonTargetJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<SalespersonTarget> findBySalespersonAndMonth(UUID salespersonId, YearMonth month) {
+	public Optional<SalespersonTarget> findBySalespersonAndMonth(final UUID salespersonId, final YearMonth month) {
 		return jpaRepository.findBySalespersonIdAndMonth(salespersonId, month.toString()).map(mapper::map);
 	}
 
 	@Override
-	public List<SalespersonTarget> findByMonth(YearMonth month) {
+	public List<SalespersonTarget> findByMonth(final YearMonth month) {
 		return jpaRepository.findByMonth(month.toString()).stream().map(mapper::map).toList();
 	}
 }

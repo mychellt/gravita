@@ -13,9 +13,9 @@ class LookupPersonByDocumentQueryTest {
 	@DisplayName("Builds a query from a document alone")
 	@Test
 	void shouldBuildDocumentQuery() {
-		Document cnpj = Document.cnpj("11444777000161");
+		final Document cnpj = Document.cnpj("11444777000161");
 
-		LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byDocument(cnpj);
+		final LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byDocument(cnpj);
 
 		assertThat(query.isDocumentQuery()).isTrue();
 		assertThat(query.document()).isEqualTo(cnpj);
@@ -24,7 +24,7 @@ class LookupPersonByDocumentQueryTest {
 	@DisplayName("Builds a query from a CEP alone")
 	@Test
 	void shouldBuildCepQuery() {
-		LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byCep("20000000");
+		final LookupPersonByDocumentQuery query = LookupPersonByDocumentQuery.byCep("20000000");
 
 		assertThat(query.isDocumentQuery()).isFalse();
 		assertThat(query.cep()).isEqualTo("20000000");
@@ -40,7 +40,7 @@ class LookupPersonByDocumentQueryTest {
 	@DisplayName("Rejects a query that has both a document and a CEP")
 	@Test
 	void shouldRejectBothDocumentAndCep() {
-		Document cnpj = Document.cnpj("11444777000161");
+		final Document cnpj = Document.cnpj("11444777000161");
 
 		assertThatThrownBy(() -> new LookupPersonByDocumentQuery(cnpj, "20000000"))
 				.isInstanceOf(BusinessRuleException.class);

@@ -40,18 +40,18 @@ class AllocateDocumentNumberServiceTest {
 	@Test
 	@DisplayName("Reserves the current next number and advances the series")
 	void shouldReserveCurrentNextNumberAndAdvanceTheSeries() {
-		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
+		final AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.of(configured));
 		when(documentSeriesRepositoryPort.save(any(DocumentSeries.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		DocumentNumber allocated = service.execute(COMMAND);
+		final DocumentNumber allocated = service.execute(COMMAND);
 
 		assertThat(allocated.series()).isEqualTo("001");
 		assertThat(allocated.number()).isEqualTo(500L);
 
-		ArgumentCaptor<DocumentSeries> captor = ArgumentCaptor.forClass(DocumentSeries.class);
+		final ArgumentCaptor<DocumentSeries> captor = ArgumentCaptor.forClass(DocumentSeries.class);
 		verify(documentSeriesRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getNextNumber()).isEqualTo(501L);
 	}
@@ -59,8 +59,8 @@ class AllocateDocumentNumberServiceTest {
 	@Test
 	@DisplayName("Retries internally on an optimistic lock conflict without surfacing it")
 	void shouldRetryInternallyOnOptimisticLockConflictWithoutSurfacingIt() {
-		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
+		final AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.of(configured));
 		when(documentSeriesRepositoryPort.save(any(DocumentSeries.class)))
@@ -68,7 +68,7 @@ class AllocateDocumentNumberServiceTest {
 				.thenThrow(new ObjectOptimisticLockingFailureException(DocumentSeries.class, configured.getId()))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		DocumentNumber allocated = service.execute(COMMAND);
+		final DocumentNumber allocated = service.execute(COMMAND);
 
 		assertThat(allocated.number()).isEqualTo(500L);
 		verify(documentSeriesRepositoryPort, times(3)).findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE);
@@ -78,8 +78,8 @@ class AllocateDocumentNumberServiceTest {
 	@Test
 	@DisplayName("Gives up after exhausting retries under a persistent conflict")
 	void shouldGiveUpAfterExhaustingRetriesUnderPersistentConflict() {
-		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
-		DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
+		final AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
+		final DocumentSeries configured = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE).reconfigure("001", 500L);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.of(configured));
 		when(documentSeriesRepositoryPort.save(any(DocumentSeries.class)))
@@ -92,7 +92,7 @@ class AllocateDocumentNumberServiceTest {
 	@Test
 	@DisplayName("Throws when the series row does not exist")
 	void shouldThrowWhenSeriesRowDoesNotExist() {
-		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
+		final AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.empty());
 
@@ -103,8 +103,8 @@ class AllocateDocumentNumberServiceTest {
 	@Test
 	@DisplayName("Rejects allocation when the series is not yet configured")
 	void shouldRejectAllocationWhenSeriesNotYetConfigured() {
-		AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
-		DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
+		final AllocateDocumentNumberService service = new AllocateDocumentNumberService(documentSeriesRepositoryPort);
+		final DocumentSeries placeholder = DocumentSeries.placeholder(COMPANY_ID, FiscalDocumentType.NFE);
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(COMPANY_ID, FiscalDocumentType.NFE))
 				.thenReturn(Optional.of(placeholder));
 

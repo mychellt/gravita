@@ -13,12 +13,12 @@ public class ListChartOfAccountsAdapter implements ListChartOfAccountsPort {
 
 	private final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort;
 
-	public ListChartOfAccountsAdapter(ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
+	public ListChartOfAccountsAdapter(final ChartOfAccountsRepositoryPort chartOfAccountsRepositoryPort) {
 		this.chartOfAccountsRepositoryPort = chartOfAccountsRepositoryPort;
 	}
 
 	@Override
-	public List<ChartOfAccountsDomain> execute(Context context) {
+	public List<ChartOfAccountsDomain> execute(final Context context) {
 		return chartOfAccountsRepositoryPort.findAll();
 	}
 }

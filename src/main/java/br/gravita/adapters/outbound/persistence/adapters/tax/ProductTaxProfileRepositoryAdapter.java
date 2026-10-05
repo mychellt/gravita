@@ -13,16 +13,16 @@ class ProductTaxProfileRepositoryAdapter implements ProductTaxProfileRepositoryP
 
 	private final ProductJpaRepository jpaRepository;
 
-	ProductTaxProfileRepositoryAdapter(ProductJpaRepository jpaRepository) {
+	ProductTaxProfileRepositoryAdapter(final ProductJpaRepository jpaRepository) {
 		this.jpaRepository = jpaRepository;
 	}
 
 	@Override
-	public Optional<ProductTaxProfile> findByProductRef(String productRef) {
-		UUID productId;
+	public Optional<ProductTaxProfile> findByProductRef(final String productRef) {
+		final UUID productId;
 		try {
 			productId = UUID.fromString(productRef);
-		} catch (IllegalArgumentException notAUuid) {
+		} catch (final IllegalArgumentException notAUuid) {
 			return Optional.empty();
 		}
 		return jpaRepository.findById(productId)

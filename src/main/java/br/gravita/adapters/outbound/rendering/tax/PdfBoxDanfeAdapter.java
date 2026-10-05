@@ -51,24 +51,24 @@ public class PdfBoxDanfeAdapter implements GenerateDanfePort {
 		this.httpClient = HttpClient.newBuilder().connectTimeout(LOGO_FETCH_TIMEOUT).build();
 	}
 
-	PdfBoxDanfeAdapter(HttpClient httpClient) {
+	PdfBoxDanfeAdapter(final HttpClient httpClient) {
 		this.httpClient = httpClient;
 	}
 
 	@Override
-	public byte[] generate(NfeDocument document, Company company, DanfeOrientation orientation) {
+	public byte[] generate(final NfeDocument document, final Company company, final DanfeOrientation orientation) {
 		try (PDDocument pdf = new PDDocument()) {
-			PDRectangle pageSize = orientation == DanfeOrientation.LANDSCAPE
+			final PDRectangle pageSize = orientation == DanfeOrientation.LANDSCAPE
 					? new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth())
 					: PDRectangle.A4;
-			PDPage page = new PDPage(pageSize);
+			final PDPage page = new PDPage(pageSize);
 			pdf.addPage(page);
 
-			PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-			PDFont bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+			final PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+			final PDFont bold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
 
 			try (PDPageContentStream content = new PDPageContentStream(pdf, page)) {
-				float width = pageSize.getWidth();
+				final float width = pageSize.getWidth();
 				float y = pageSize.getHeight() - MARGIN;
 
 				y = drawHeader(pdf, content, company, bold, font, width, y);
@@ -85,7 +85,7 @@ public class PdfBoxDanfeAdapter implements GenerateDanfePort {
 				y -= 10;
 
 				y = drawText(content, bold, 10, MARGIN, y, "Itens");
-				for (NfeItem item : document.getItems()) {
+				for (final NfeItem item : document.getItems()) {
 					y = drawText(content, font, 9, MARGIN, y,
 							safe(item.description()) + "  qtd " + item.quantity() + "  unit " + item.unitPrice()
 									+ "  total " + item.lineTotal());
@@ -99,59 +99,59 @@ public class PdfBoxDanfeAdapter implements GenerateDanfePort {
 				drawBarcode(pdf, content, document.getAccessKey(), width, MARGIN);
 			}
 
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			final ByteArrayOutputStream out = new ByteArrayOutputStream();
 			pdf.save(out);
 			return out.toByteArray();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			throw new IllegalStateException("Failed to render DANFE for NfeDocument " + document.getId().value(), e);
 		}
 	}
 
-	private float drawHeader(PDDocument pdf, PDPageContentStream content, Company company, PDFont bold, PDFont font,
-			float pageWidth, float y) throws IOException {
-		PDImageXObject logo = fetchLogo(pdf, company.getLogoUrl());
+	private float drawHeader(final PDDocument pdf, final PDPageContentStream content, final Company company, final PDFont bold, final PDFont font,
+			final float pageWidth, final float y) throws IOException {
+		final PDImageXObject logo = fetchLogo(pdf, company.getLogoUrl());
 		if (logo != null) {
-			float logoHeight = 40f;
-			float logoWidth = logoHeight * logo.getWidth() / logo.getHeight();
+			final float logoHeight = 40f;
+			final float logoWidth = logoHeight * logo.getWidth() / logo.getHeight();
 			content.drawImage(logo, MARGIN, y - logoHeight, logoWidth, logoHeight);
 		}
 		return drawText(content, bold, 12, MARGIN, y, "CNPJ: " + company.getCnpj().number());
 	}
 
-	private PDImageXObject fetchLogo(PDDocument pdf, String logoUrl) {
+	private PDImageXObject fetchLogo(final PDDocument pdf, final String logoUrl) {
 		if (logoUrl == null || logoUrl.isBlank()) {
 			return null;
 		}
 		try {
-			HttpRequest request = HttpRequest.newBuilder(URI.create(logoUrl)).timeout(LOGO_FETCH_TIMEOUT).GET().build();
-			HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+			final HttpRequest request = HttpRequest.newBuilder(URI.create(logoUrl)).timeout(LOGO_FETCH_TIMEOUT).GET().build();
+			final HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
 			if (response.statusCode() != 200) {
 				return null;
 			}
-			BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(response.body()));
+			final BufferedImage image = ImageIO.read(new java.io.ByteArrayInputStream(response.body()));
 			if (image == null) {
 				return null;
 			}
 			return LosslessFactory.createFromImage(pdf, image);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			// Best-effort: a broken/unreachable logo must not block DANFE generation.
 			return null;
 		}
 	}
 
-	private void drawBarcode(PDDocument pdf, PDPageContentStream content, String accessKey, float pageWidth,
-			float margin) throws IOException {
+	private void drawBarcode(final PDDocument pdf, final PDPageContentStream content, final String accessKey, final float pageWidth,
+			final float margin) throws IOException {
 		if (accessKey == null || accessKey.isBlank()) {
 			return;
 		}
-		BitMatrix matrix = new Code128Writer().encode(accessKey, BarcodeFormat.CODE_128, 400, 60);
-		BufferedImage barcodeImage = MatrixToImageWriter.toBufferedImage(matrix);
-		PDImageXObject barcode = LosslessFactory.createFromImage(pdf, barcodeImage);
-		float barcodeWidth = pageWidth - (2 * margin);
+		final BitMatrix matrix = new Code128Writer().encode(accessKey, BarcodeFormat.CODE_128, 400, 60);
+		final BufferedImage barcodeImage = MatrixToImageWriter.toBufferedImage(matrix);
+		final PDImageXObject barcode = LosslessFactory.createFromImage(pdf, barcodeImage);
+		final float barcodeWidth = pageWidth - (2 * margin);
 		content.drawImage(barcode, margin, margin, barcodeWidth, 40f);
 	}
 
-	private float drawText(PDPageContentStream content, PDFont font, float fontSize, float x, float y, String text)
+	private float drawText(final PDPageContentStream content, final PDFont font, final float fontSize, final float x, final float y, final String text)
 			throws IOException {
 		content.beginText();
 		content.setFont(font, fontSize);
@@ -161,7 +161,7 @@ public class PdfBoxDanfeAdapter implements GenerateDanfePort {
 		return y - (fontSize + 6);
 	}
 
-	private String safe(String value) {
+	private String safe(final String value) {
 		return value == null ? "" : value;
 	}
 }

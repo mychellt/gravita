@@ -14,13 +14,13 @@ public class FindPaymentMethodAdapter implements FindPaymentMethodPort {
 
 	private final PaymentMethodRepositoryPort paymentMethodRepositoryPort;
 
-	public FindPaymentMethodAdapter(PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
+	public FindPaymentMethodAdapter(final PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
 		this.paymentMethodRepositoryPort = paymentMethodRepositoryPort;
 	}
 
 	@Override
-	public PaymentMethodDomain execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public PaymentMethodDomain execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		return paymentMethodRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Payment method not found: " + id));
 	}

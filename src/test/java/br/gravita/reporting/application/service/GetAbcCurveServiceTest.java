@@ -54,7 +54,7 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "abc-curve")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(query(stranger, AbcCurveType.PRODUCT)))
@@ -66,15 +66,15 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Ranks products by revenue and classes them by the cumulative share before each")
 	@Test
 	void ranksProductsByRevenueAndClassesThemByTheCumulativeShareBeforeEach() {
-		UUID p1 = UUID.randomUUID();
-		UUID p2 = UUID.randomUUID();
-		UUID p3 = UUID.randomUUID();
-		UUID p4 = UUID.randomUUID();
-		UUID p5 = UUID.randomUUID();
+		final UUID p1 = UUID.randomUUID();
+		final UUID p2 = UUID.randomUUID();
+		final UUID p3 = UUID.randomUUID();
+		final UUID p4 = UUID.randomUUID();
+		final UUID p5 = UUID.randomUUID();
 		when(sales.productSales(FROM, TO, company)).thenReturn(List.of(productSale(p4, "4"), productSale(p1, "50"),
 				productSale(p5, "1"), productSale(p3, "15"), productSale(p2, "30")));
 
-		List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
+		final List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
 
 		assertThat(curve).extracting(AbcCurveEntry::entityId).containsExactly(p1, p2, p3, p4, p5);
 		// Shares of 100: 50, 30 | 15 | 4, 1. Before p2 the curve is at 50 (<80); before p3 at 80; before p4 at 95.
@@ -92,12 +92,12 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Classifies customers when the requested type is customer")
 	@Test
 	void classifiesCustomersWhenTheTypeIsCustomer() {
-		UUID big = UUID.randomUUID();
-		UUID small = UUID.randomUUID();
+		final UUID big = UUID.randomUUID();
+		final UUID small = UUID.randomUUID();
 		when(sales.customerSales(FROM, TO, company))
 				.thenReturn(List.of(new CustomerSales(small, new BigDecimal("10")), new CustomerSales(big, new BigDecimal("990"))));
 
-		List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.CUSTOMER));
+		final List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.CUSTOMER));
 
 		assertThat(curve).extracting(AbcCurveEntry::entityId).containsExactly(big, small);
 		assertThat(curve).extracting(AbcCurveEntry::abcClass).containsExactly(AbcClass.A, AbcClass.C);
@@ -108,10 +108,10 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Keeps the top entry in class A even when it alone exceeds the threshold")
 	@Test
 	void keepsTheTopEntryInClassAEvenWhenItAloneIsAboveTheThreshold() {
-		UUID top = UUID.randomUUID();
+		final UUID top = UUID.randomUUID();
 		when(sales.productSales(any(), any(), any())).thenReturn(List.of(productSale(top, "100")));
 
-		List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
+		final List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
 
 		assertThat(curve).singleElement().satisfies(entry -> {
 			assertThat(entry.abcClass()).isEqualTo(AbcClass.A);
@@ -130,12 +130,12 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Leaves out entries without positive revenue and breaks ties by entity id")
 	@Test
 	void leavesOutEntriesWithoutPositiveRevenueAndBreaksTiesByEntityId() {
-		UUID low = UUID.fromString("00000000-0000-0000-0000-000000000001");
-		UUID high = UUID.fromString("00000000-0000-0000-0000-000000000002");
+		final UUID low = UUID.fromString("00000000-0000-0000-0000-000000000001");
+		final UUID high = UUID.fromString("00000000-0000-0000-0000-000000000002");
 		when(sales.productSales(any(), any(), any())).thenReturn(List.of(productSale(high, "10"),
 				productSale(UUID.randomUUID(), "0"), productSale(UUID.randomUUID(), "-5"), productSale(low, "10")));
 
-		List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
+		final List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
 
 		assertThat(curve).extracting(AbcCurveEntry::entityId).containsExactly(low, high);
 		assertThat(curve.get(0).revenueShare()).isEqualByComparingTo("50");
@@ -144,14 +144,14 @@ class GetAbcCurveServiceTest {
 	@DisplayName("Decides the class on exact amounts, not on rounded shares")
 	@Test
 	void decidesTheClassOnExactAmountsNotRoundedShares() {
-		UUID a = UUID.randomUUID();
-		UUID b = UUID.randomUUID();
-		UUID c = UUID.randomUUID();
+		final UUID a = UUID.randomUUID();
+		final UUID b = UUID.randomUUID();
+		final UUID c = UUID.randomUUID();
 		// The curve reaches 79.996% before c: it displays as 80.00 but is still below the threshold, so c stays A.
 		when(sales.productSales(any(), any(), any())).thenReturn(List.of(productSale(a, "79996"),
 				productSale(b, "10000"), productSale(c, "10004")));
 
-		List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
+		final List<AbcCurveEntry> curve = service.execute(query(user, AbcCurveType.PRODUCT));
 
 		assertThat(curve).extracting(AbcCurveEntry::entityId).containsExactly(a, c, b);
 		assertThat(curve.get(0).cumulativeShare()).isEqualByComparingTo("80.00");
@@ -164,11 +164,11 @@ class GetAbcCurveServiceTest {
 		assertThat(service.execute(query(user, AbcCurveType.PRODUCT))).isEmpty();
 	}
 
-	private AbcCurveQuery query(UserId requester, AbcCurveType type) {
+	private AbcCurveQuery query(final UserId requester, final AbcCurveType type) {
 		return new AbcCurveQuery(requester, type, PERIOD, company);
 	}
 
-	private ProductSales productSale(UUID productId, String value) {
+	private ProductSales productSale(final UUID productId, final String value) {
 		return new ProductSales(productId, BigDecimal.ONE, new BigDecimal(value));
 	}
 }

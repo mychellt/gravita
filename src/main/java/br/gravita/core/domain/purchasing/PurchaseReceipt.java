@@ -15,8 +15,8 @@ public final class PurchaseReceipt {
 	private final PurchaseReceiptStatus status;
 	private final boolean total;
 
-	public PurchaseReceipt(PurchaseReceiptId id, PurchaseOrderId orderId, List<PurchaseReceiptItem> receivedItems,
-			List<InstallmentTerm> installmentTerms, PurchaseReceiptStatus status) {
+	public PurchaseReceipt(final PurchaseReceiptId id, final PurchaseOrderId orderId, final List<PurchaseReceiptItem> receivedItems,
+			final List<InstallmentTerm> installmentTerms, final PurchaseReceiptStatus status) {
 		this.id = Objects.requireNonNull(id, "PurchaseReceiptId is required");
 		this.orderId = Objects.requireNonNull(orderId, "orderId is required");
 		this.receivedItems = requireNonEmptyItems(receivedItems);
@@ -26,22 +26,22 @@ public final class PurchaseReceipt {
 				.allMatch(item -> item.receivedQty().compareTo(item.orderedQty()) >= 0);
 	}
 
-	public static PurchaseReceipt pending(PurchaseReceiptId id, PurchaseOrderId orderId,
-			List<PurchaseReceiptItem> receivedItems) {
+	public static PurchaseReceipt pending(final PurchaseReceiptId id, final PurchaseOrderId orderId,
+			final List<PurchaseReceiptItem> receivedItems) {
 		return new PurchaseReceipt(id, orderId, receivedItems, List.of(), PurchaseReceiptStatus.PENDING_CONFERENCE);
 	}
 
-	public static PurchaseReceipt of(PurchaseReceiptId id, PurchaseOrderId orderId,
-			List<PurchaseReceiptItem> receivedItems, List<InstallmentTerm> installmentTerms,
-			PurchaseReceiptStatus status) {
+	public static PurchaseReceipt of(final PurchaseReceiptId id, final PurchaseOrderId orderId,
+			final List<PurchaseReceiptItem> receivedItems, final List<InstallmentTerm> installmentTerms,
+			final PurchaseReceiptStatus status) {
 		return new PurchaseReceipt(id, orderId, receivedItems, installmentTerms, status);
 	}
 
-	public PurchaseReceipt completeConference(List<InstallmentTerm> installmentTerms) {
+	public PurchaseReceipt completeConference(final List<InstallmentTerm> installmentTerms) {
 		if (status != PurchaseReceiptStatus.PENDING_CONFERENCE) {
 			throw new BusinessRuleException("Only a receipt pending conference can complete it, was " + status);
 		}
-		List<InstallmentTerm> terms = installmentTerms == null ? List.of() : List.copyOf(installmentTerms);
+		final List<InstallmentTerm> terms = installmentTerms == null ? List.of() : List.copyOf(installmentTerms);
 		if (terms.isEmpty()) {
 			throw new BusinessRuleException("At least one installment term is required to complete conference");
 		}
@@ -59,8 +59,8 @@ public final class PurchaseReceipt {
 		return new PurchaseReceipt(id, orderId, receivedItems, installmentTerms, PurchaseReceiptStatus.CONFIRMED);
 	}
 
-	private static List<PurchaseReceiptItem> requireNonEmptyItems(List<PurchaseReceiptItem> items) {
-		List<PurchaseReceiptItem> copy = items == null ? List.of() : List.copyOf(items);
+	private static List<PurchaseReceiptItem> requireNonEmptyItems(final List<PurchaseReceiptItem> items) {
+		final List<PurchaseReceiptItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("A purchase receipt must have at least one received item");
 		}

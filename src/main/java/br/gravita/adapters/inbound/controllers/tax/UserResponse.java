@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record UserResponse(UUID id) {
 
-	public static UserResponse from(UserId id) {
+	public static UserResponse from(final UserId id) {
 		return new UserResponse(id.value());
 	}
 }

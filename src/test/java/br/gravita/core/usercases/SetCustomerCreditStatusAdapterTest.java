@@ -33,23 +33,23 @@ class SetCustomerCreditStatusAdapterTest {
 	@DisplayName("Updates the customer's credit status and balance with the values computed by Finance")
 	@Test
 	void shouldUpdateStatusAndBalanceWithFinanceComputedValues() {
-		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
-		UUID customerId = UUID.randomUUID();
-		CustomerDomain existing = existingCustomer(customerId, CustomerStatus.REGULAR, BigDecimal.ZERO);
+		final SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
+		final UUID customerId = UUID.randomUUID();
+		final CustomerDomain existing = existingCustomer(customerId, CustomerStatus.REGULAR, BigDecimal.ZERO);
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(existing));
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CustomerDomain command = CustomerDomain.builder()
+		final CustomerDomain command = CustomerDomain.builder()
 				.id(customerId)
 				.currentBalance(new BigDecimal("1500.00"))
 				.status(CustomerStatus.BLOCKED)
 				.build();
 
-		CustomerDomain updated = adapter.execute(new Context(command));
+		final CustomerDomain updated = adapter.execute(new Context(command));
 
 		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.BLOCKED);
 		assertThat(updated.getCurrentBalance()).isEqualByComparingTo("1500.00");
-		ArgumentCaptor<CustomerDomain> captor = ArgumentCaptor.forClass(CustomerDomain.class);
+		final ArgumentCaptor<CustomerDomain> captor = ArgumentCaptor.forClass(CustomerDomain.class);
 		verify(customerRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getId()).isEqualTo(customerId);
 	}
@@ -57,19 +57,19 @@ class SetCustomerCreditStatusAdapterTest {
 	@DisplayName("Accepts a delinquent status from Finance as is, without recomputing it")
 	@Test
 	void shouldAcceptDelinquentStatusWithoutRecomputingIt() {
-		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
-		UUID customerId = UUID.randomUUID();
-		CustomerDomain existing = existingCustomer(customerId, CustomerStatus.REGULAR, BigDecimal.ZERO);
+		final SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
+		final UUID customerId = UUID.randomUUID();
+		final CustomerDomain existing = existingCustomer(customerId, CustomerStatus.REGULAR, BigDecimal.ZERO);
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.of(existing));
 		when(customerRepositoryPort.save(any(CustomerDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		CustomerDomain command = CustomerDomain.builder()
+		final CustomerDomain command = CustomerDomain.builder()
 				.id(customerId)
 				.currentBalance(new BigDecimal("300.00"))
 				.status(CustomerStatus.DELINQUENT)
 				.build();
 
-		CustomerDomain updated = adapter.execute(new Context(command));
+		final CustomerDomain updated = adapter.execute(new Context(command));
 
 		assertThat(updated.getStatus()).isEqualTo(CustomerStatus.DELINQUENT);
 	}
@@ -77,11 +77,11 @@ class SetCustomerCreditStatusAdapterTest {
 	@DisplayName("Rejects a credit status update for a customer that does not exist")
 	@Test
 	void shouldRejectWhenCustomerDoesNotExist() {
-		SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
-		UUID customerId = UUID.randomUUID();
+		final SetCustomerCreditStatusAdapter adapter = new SetCustomerCreditStatusAdapter(customerRepositoryPort);
+		final UUID customerId = UUID.randomUUID();
 		when(customerRepositoryPort.get(customerId)).thenReturn(Optional.empty());
 
-		CustomerDomain command = CustomerDomain.builder()
+		final CustomerDomain command = CustomerDomain.builder()
 				.id(customerId)
 				.currentBalance(BigDecimal.TEN)
 				.status(CustomerStatus.BLOCKED)
@@ -92,7 +92,7 @@ class SetCustomerCreditStatusAdapterTest {
 		verify(customerRepositoryPort, never()).save(any());
 	}
 
-	private CustomerDomain existingCustomer(UUID id, CustomerStatus status, BigDecimal currentBalance) {
+	private CustomerDomain existingCustomer(final UUID id, final CustomerStatus status, final BigDecimal currentBalance) {
 		return CustomerDomain.builder()
 				.id(id)
 				.name("Maria Silva")

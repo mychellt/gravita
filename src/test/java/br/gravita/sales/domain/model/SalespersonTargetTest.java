@@ -16,10 +16,10 @@ class SalespersonTargetTest {
 	@Test
 	@DisplayName("Creates a target when all fields are valid")
 	void createsATargetWithValidFields() {
-		UUID salespersonId = UUID.randomUUID();
-		YearMonth month = YearMonth.of(2026, 1);
+		final UUID salespersonId = UUID.randomUUID();
+		final YearMonth month = YearMonth.of(2026, 1);
 
-		SalespersonTarget target = new SalespersonTarget(salespersonId, month, new BigDecimal("10000.00"), 20);
+		final SalespersonTarget target = new SalespersonTarget(salespersonId, month, new BigDecimal("10000.00"), 20);
 
 		assertThat(target.salespersonId()).isEqualTo(salespersonId);
 		assertThat(target.month()).isEqualTo(month);
@@ -30,7 +30,7 @@ class SalespersonTargetTest {
 	@Test
 	@DisplayName("Allows targets whose value and order count are zero")
 	void allowsZeroValuedTargets() {
-		SalespersonTarget target =
+		final SalespersonTarget target =
 				new SalespersonTarget(UUID.randomUUID(), YearMonth.of(2026, 1), BigDecimal.ZERO, 0);
 
 		assertThat(target.valueTarget()).isEqualByComparingTo(BigDecimal.ZERO);

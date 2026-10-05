@@ -16,8 +16,8 @@ public class AdjustReceivableForReturnService implements AdjustReceivableForRetu
 	private final ReceivableRepositoryPort receivableRepositoryPort;
 	private final SettlementRepositoryPort settlementRepositoryPort;
 
-	public AdjustReceivableForReturnService(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort) {
+	public AdjustReceivableForReturnService(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.settlementRepositoryPort = settlementRepositoryPort;
 	}
@@ -29,10 +29,10 @@ public class AdjustReceivableForReturnService implements AdjustReceivableForRetu
 	 */
 	@Override
 	@Transactional
-	public Receivable execute(AdjustReceivableForReturnCommand command) {
-		Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
+	public Receivable execute(final AdjustReceivableForReturnCommand command) {
+		final Receivable receivable = receivableRepositoryPort.findById(ReceivableId.of(command.receivableId()))
 				.orElseThrow(() -> new ResourceNotFoundException("Receivable not found: " + command.receivableId()));
-		Receivable adjusted = receivable.adjustForReturn(command.returnedAmount(),
+		final Receivable adjusted = receivable.adjustForReturn(command.returnedAmount(),
 				settlementRepositoryPort.findByReceivableId(receivable.getId()));
 		return receivableRepositoryPort.save(adjusted);
 	}

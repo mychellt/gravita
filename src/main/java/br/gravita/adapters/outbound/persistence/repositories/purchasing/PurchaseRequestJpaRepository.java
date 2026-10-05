@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PurchaseRequestJpaRepository extends JpaRepository<PurchaseRequestJpaEntity, UUID> {
 
-	boolean existsByOriginAndStatusAndItems_ProductId(PurchaseRequestOrigin origin, PurchaseRequestStatus status,
+	boolean existsByOriginAndStatusAndItemsProductId(PurchaseRequestOrigin origin, PurchaseRequestStatus status,
 			UUID productId);
 }

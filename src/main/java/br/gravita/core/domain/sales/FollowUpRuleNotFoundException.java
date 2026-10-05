@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class FollowUpRuleNotFoundException extends RuntimeException {
 
-	public FollowUpRuleNotFoundException(UUID ruleId) {
+	public FollowUpRuleNotFoundException(final UUID ruleId) {
 		super("Follow-up rule not found: " + ruleId);
 	}
 }

@@ -31,14 +31,14 @@ class LookupPersonByDocumentAdapterTest {
 	@DisplayName("A CNPJ lookup returns the company name and address")
 	@Test
 	void shouldReturnNameAndAddressForCnpjQuery() {
-		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		Document cnpj = Document.cnpj("11444777000161");
-		AddressDomain address = AddressDomain.builder()
+		final LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
+		final Document cnpj = Document.cnpj("11444777000161");
+		final AddressDomain address = AddressDomain.builder()
 				.street("Rua A").number("10").neighborhood("Centro").city("São Paulo").state("SP").zipCode("01000-000")
 				.build();
 		when(cnpjLookupPort.execute(new Context(cnpj))).thenReturn(Optional.of(new PersonLookupResult("Acme LTDA", address)));
 
-		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
+		final PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
 
 		assertThat(result.name()).isEqualTo("Acme LTDA");
 		assertThat(result.address()).isEqualTo(address);
@@ -48,13 +48,13 @@ class LookupPersonByDocumentAdapterTest {
 	@DisplayName("A CEP lookup returns the address only")
 	@Test
 	void shouldReturnAddressOnlyForCepQuery() {
-		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		AddressDomain address = AddressDomain.builder()
+		final LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
+		final AddressDomain address = AddressDomain.builder()
 				.street("Rua B").neighborhood("Bairro").city("Rio de Janeiro").state("RJ").zipCode("20000-000")
 				.build();
 		when(cepLookupPort.execute(new Context("20000000"))).thenReturn(Optional.of(address));
 
-		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("20000000")));
+		final PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("20000000")));
 
 		assertThat(result.name()).isNull();
 		assertThat(result.address()).isEqualTo(address);
@@ -64,11 +64,11 @@ class LookupPersonByDocumentAdapterTest {
 	@DisplayName("Degrades to an empty result when the CNPJ lookup provider fails")
 	@Test
 	void shouldDegradeToEmptyResultWhenCnpjLookupFails() {
-		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
-		Document cnpj = Document.cnpj("11444777000161");
+		final LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
+		final Document cnpj = Document.cnpj("11444777000161");
 		when(cnpjLookupPort.execute(new Context(cnpj))).thenReturn(Optional.empty());
 
-		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
+		final PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byDocument(cnpj)));
 
 		assertThat(result.name()).isNull();
 		assertThat(result.address()).isNull();
@@ -77,10 +77,10 @@ class LookupPersonByDocumentAdapterTest {
 	@DisplayName("Degrades to an empty result when the CEP lookup provider fails")
 	@Test
 	void shouldDegradeToEmptyResultWhenCepLookupFails() {
-		LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
+		final LookupPersonByDocumentAdapter adapter = new LookupPersonByDocumentAdapter(cnpjLookupPort, cepLookupPort);
 		when(cepLookupPort.execute(new Context("99999999"))).thenReturn(Optional.empty());
 
-		PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("99999999")));
+		final PersonLookupResult result = adapter.execute(new Context(LookupPersonByDocumentQuery.byCep("99999999")));
 
 		assertThat(result.name()).isNull();
 		assertThat(result.address()).isNull();

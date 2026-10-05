@@ -21,13 +21,13 @@ public class ActivateAccountService implements ActivateAccountUseCase {
     private final Clock clock;
 
     @Autowired
-    public ActivateAccountService(ActivationTokenRepositoryPort tokenRepositoryPort,
-                                  UserRepositoryPort userRepositoryPort) {
+    public ActivateAccountService(final ActivationTokenRepositoryPort tokenRepositoryPort,
+                                  final UserRepositoryPort userRepositoryPort) {
         this(tokenRepositoryPort, userRepositoryPort, Clock.systemDefaultZone());
     }
 
-    ActivateAccountService(ActivationTokenRepositoryPort tokenRepositoryPort, UserRepositoryPort userRepositoryPort,
-                           Clock clock) {
+    ActivateAccountService(final ActivationTokenRepositoryPort tokenRepositoryPort, final UserRepositoryPort userRepositoryPort,
+                           final Clock clock) {
         this.tokenRepositoryPort = tokenRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
         this.clock = clock;
@@ -52,7 +52,7 @@ public class ActivateAccountService implements ActivateAccountUseCase {
         tokenRepositoryPort.save(token);
     }
 
-    private ActivationToken findToken(String rawToken) {
+    private ActivationToken findToken(final String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
             throw invalidToken();
         }

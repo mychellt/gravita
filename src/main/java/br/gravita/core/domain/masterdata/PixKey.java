@@ -10,11 +10,11 @@ public record PixKey(String value, PixKeyType type) {
 	private static final Pattern RANDOM_KEY =
 			Pattern.compile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
-	public static PixKey of(String rawValue) {
+	public static PixKey of(final String rawValue) {
 		if (rawValue == null || rawValue.isBlank()) {
 			throw new BusinessRuleException("PIX key cannot be empty");
 		}
-		String trimmed = rawValue.trim();
+		final String trimmed = rawValue.trim();
 
 		if (RANDOM_KEY.matcher(trimmed).matches()) {
 			return new PixKey(trimmed, PixKeyType.RANDOM);
@@ -26,7 +26,7 @@ public record PixKey(String value, PixKeyType type) {
 			return new PixKey(trimmed, PixKeyType.EMAIL);
 		}
 
-		String digits = Document.digitsOnly(trimmed);
+		final String digits = Document.digitsOnly(trimmed);
 		if (digits.length() == 11) {
 			return new PixKey(Document.cpf(digits).number(), PixKeyType.CPF);
 		}

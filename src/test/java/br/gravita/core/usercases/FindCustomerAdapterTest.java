@@ -47,8 +47,8 @@ class FindCustomerAdapterTest {
 	@DisplayName("Returns the customer when it exists in the caller's company")
 	@Test
 	void shouldReturnExistingCustomer() {
-		UUID id = UUID.randomUUID();
-		CustomerDomain customer = CustomerDomain.builder().id(id).name("Maria Silva").companyId(companyId).build();
+		final UUID id = UUID.randomUUID();
+		final CustomerDomain customer = CustomerDomain.builder().id(id).name("Maria Silva").companyId(companyId).build();
 		when(userRepositoryPort.findById(callerId)).thenReturn(Optional.of(User.builder().companyId(companyId).build()));
 		when(customerRepositoryPort.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.of(customer));
 
@@ -58,7 +58,7 @@ class FindCustomerAdapterTest {
 	@DisplayName("Throws CustomerNotFoundException when the customer does not exist")
 	@Test
 	void shouldThrowWhenCustomerDoesNotExist() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(userRepositoryPort.findById(callerId)).thenReturn(Optional.of(User.builder().companyId(companyId).build()));
 		when(customerRepositoryPort.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.empty());
 
@@ -70,7 +70,7 @@ class FindCustomerAdapterTest {
 	@DisplayName("Throws CustomerNotFoundException for a customer that belongs to another company")
 	@Test
 	void shouldThrowNotFoundForCustomerOfAnotherCompany() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(userRepositoryPort.findById(callerId)).thenReturn(Optional.of(User.builder().companyId(companyId).build()));
 		when(customerRepositoryPort.findByIdAndCompanyId(id, companyId)).thenReturn(Optional.empty());
 
@@ -82,7 +82,7 @@ class FindCustomerAdapterTest {
 	@DisplayName("Throws CustomerNotFoundException, without touching the repository, when the caller has no company")
 	@Test
 	void shouldThrowNotFoundWhenCallerHasNoCompany() {
-		UUID id = UUID.randomUUID();
+		final UUID id = UUID.randomUUID();
 		when(userRepositoryPort.findById(callerId)).thenReturn(Optional.of(User.builder().companyId(null).build()));
 
 		assertThatThrownBy(() -> adapter.execute(new Context(id).withCaller(callerId)))

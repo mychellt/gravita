@@ -73,22 +73,36 @@ class VoidDocumentNumberRangeServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, "Acme Ltda", Document.cnpj("11.222.333/0001-81"), "123456789", "987654", "6201500",
-				TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
-				"nfe@example.com", "11999999999", null, null);
+		return Company.builder()
+				.id(companyId)
+				.name("Acme Ltda")
+				.cnpj(Document.cnpj("11.222.333/0001-81"))
+				.ie("123456789")
+				.im("987654")
+				.cnae("6201500")
+				.taxRegime(TaxRegime.SIMPLES_NACIONAL)
+				.simplesOptante(true)
+				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
+				.address("Rua Teste, 100")
+				.state("SP")
+				.issuingEmail("nfe@example.com")
+				.phone("11999999999")
+				.logoUrl(null)
+				.parentCompanyId(null)
+				.build();
 	}
 
 	private DocumentSeries configuredSeries() {
 		return DocumentSeries.of(UUID.randomUUID(), companyId, FiscalDocumentType.NFE, "001", 500L, 1L);
 	}
 
-	private VoidNumberRangeCommand command(String justification) {
+	private VoidNumberRangeCommand command(final String justification) {
 		return new VoidNumberRangeCommand(companyId, "001", 100L, 110L, justification);
 	}
 
 	@Test
 	@DisplayName("Requires a justification and rejects the request without it")
-	void ac1_justificationIsMandatoryTheRequestIsRejectedWithoutIt() {
+	void ac1JustificationIsMandatoryTheRequestIsRejectedWithoutIt() {
 		assertThatThrownBy(() -> service.execute(command(null))).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("justification");
 		assertThatThrownBy(() -> service.execute(command("  "))).isInstanceOf(BusinessRuleException.class)
@@ -100,16 +114,16 @@ class VoidDocumentNumberRangeServiceTest {
 
 	@Test
 	@DisplayName("Produces an immutable record with no update or delete operation")
-	void ac2_theResultingRecordIsImmutableNoUpdateOrDeleteOperationExists() {
-		for (Method method : VoidedNumberRangeRepositoryPort.class.getMethods()) {
+	void ac2TheResultingRecordIsImmutableNoUpdateOrDeleteOperationExists() {
+		for (final Method method : VoidedNumberRangeRepositoryPort.class.getMethods()) {
 			assertThat(method.getName().toLowerCase()).doesNotContain("update").doesNotContain("delete");
 		}
 	}
 
 	@Test
 	@DisplayName("Carries what SPED and Livros Fiscais need to explain the numbering gap")
-	void ac3_theVoidedRangeCarriesWhatSpedLivrosFiscaisWillNeedToExplainTheGap() {
-		VoidedNumberRange result = service.execute(command("numbers printed on damaged forms"));
+	void ac3TheVoidedRangeCarriesWhatSpedLivrosFiscaisWillNeedToExplainTheGap() {
+		final VoidedNumberRange result = service.execute(command("numbers printed on damaged forms"));
 
 		assertThat(result.getCompanyId()).isEqualTo(companyId);
 		assertThat(result.getDocumentType()).isEqualTo(FiscalDocumentType.NFE);
@@ -128,7 +142,7 @@ class VoidDocumentNumberRangeServiceTest {
 	void successfulVoidTransmitsToSefazBeforePersistingLocally() {
 		service.execute(command("numbers printed on damaged forms"));
 
-		ArgumentCaptor<SefazVoidNumberRangeRequest> captor = ArgumentCaptor.forClass(SefazVoidNumberRangeRequest.class);
+		final ArgumentCaptor<SefazVoidNumberRangeRequest> captor = ArgumentCaptor.forClass(SefazVoidNumberRangeRequest.class);
 		verify(submitToSefazPort).voidNumberRange(captor.capture());
 		assertThat(captor.getValue().companyId()).isEqualTo(companyId);
 		assertThat(captor.getValue().environment()).isEqualTo(SefazEnvironment.HOMOLOGATION);
@@ -142,7 +156,7 @@ class VoidDocumentNumberRangeServiceTest {
 
 	@Test
 	@DisplayName("Rejects a company that does not exist")
-	void aCompanyThatDoesNotExistIsRejected() {
+	void companyThatDoesNotExistIsRejected() {
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(command("reason"))).isInstanceOf(ResourceNotFoundException.class);
@@ -152,7 +166,7 @@ class VoidDocumentNumberRangeServiceTest {
 
 	@Test
 	@DisplayName("Rejects a series not configured for the company")
-	void aSeriesNotConfiguredForTheCompanyIsRejected() {
+	void seriesNotConfiguredForTheCompanyIsRejected() {
 		when(documentSeriesRepositoryPort.findByCompanyIdAndDocumentType(companyId, FiscalDocumentType.NFE))
 				.thenReturn(Optional.empty());
 
@@ -164,7 +178,7 @@ class VoidDocumentNumberRangeServiceTest {
 
 	@Test
 	@DisplayName("Rejects a series that does not match the configured one")
-	void aSeriesThatDoesNotMatchTheConfiguredOneIsRejected() {
+	void seriesThatDoesNotMatchTheConfiguredOneIsRejected() {
 		assertThatThrownBy(() -> service.execute(new VoidNumberRangeCommand(companyId, "999", 100L, 110L, "reason")))
 				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("999");
 

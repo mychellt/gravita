@@ -10,7 +10,7 @@ public record CustomerStatementResponse(UUID customerId, LocalDate from, LocalDa
 		List<ReceivableResponse> titles, List<SettlementResponse> settlements,
 		List<RenegotiationResponse> renegotiations, BigDecimal openBalance) {
 
-	public static CustomerStatementResponse from(CustomerStatement statement) {
+	public static CustomerStatementResponse from(final CustomerStatement statement) {
 		return new CustomerStatementResponse(statement.customerId(), statement.from(), statement.to(),
 				statement.titles().stream().map(ReceivableResponse::from).toList(),
 				statement.settlements().stream().map(SettlementResponse::from).toList(),

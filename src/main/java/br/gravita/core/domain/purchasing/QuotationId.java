@@ -9,7 +9,7 @@ public record QuotationId(UUID value) {
 		Objects.requireNonNull(value, "QuotationId value is required");
 	}
 
-	public static QuotationId of(UUID value) {
+	public static QuotationId of(final UUID value) {
 		return new QuotationId(value);
 	}
 }

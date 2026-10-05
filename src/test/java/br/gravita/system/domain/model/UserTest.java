@@ -20,7 +20,7 @@ class UserTest {
 	@Test
 	@DisplayName("Registers a user with a generated id and two-factor disabled for a non-admin profile")
 	void shouldRegisterUserWithGeneratedIdAndTwoFactorDisabledForNonAdminProfile() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		assertThat(user.getId()).isNotNull();
 		assertThat(user.getName()).isEqualTo("Jane Doe");
@@ -33,7 +33,7 @@ class UserTest {
 	@Test
 	@DisplayName("Forces two-factor on when the profile is administrator")
 	void shouldForceTwoFactorEnabledWhenProfileIsAdministrator() {
-		User user = User.register("Admin User", "admin@example.com", "s3cret!", ADMINISTRATOR);
+		final User user = User.register("Admin User", "admin@example.com", "s3cret!", ADMINISTRATOR);
 
 		assertThat(user.isTwoFactorEnabled()).isTrue();
 	}
@@ -69,7 +69,7 @@ class UserTest {
 	@Test
 	@DisplayName("Registers the user as active")
 	void shouldRegisterUserAsActive() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		assertThat(user.getStatus()).isEqualTo(UserStatus.ACTIVE);
 	}
@@ -77,7 +77,7 @@ class UserTest {
 	@Test
 	@DisplayName("Applies only non-null fields on update")
 	void shouldApplyOnlyNonNullFieldsOnUpdate() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		user.update("Jane Roe", null, null, null);
 
@@ -90,7 +90,7 @@ class UserTest {
 	@Test
 	@DisplayName("Forces two-factor on when the profile switches to administrator")
 	void shouldForceTwoFactorEnabledWhenProfileSwitchesToAdministrator() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		user.update(null, null, ADMINISTRATOR, null);
 
@@ -101,7 +101,7 @@ class UserTest {
 	@Test
 	@DisplayName("Deactivates the user on update")
 	void shouldDeactivateUserOnUpdate() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		user.update(null, null, null, UserStatus.INACTIVE);
 
@@ -111,7 +111,7 @@ class UserTest {
 	@Test
 	@DisplayName("Rejects a blank name on update")
 	void shouldRejectBlankNameOnUpdate() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		assertThatThrownBy(() -> user.update(" ", null, null, null))
 				.isInstanceOf(BusinessRuleException.class);
@@ -120,7 +120,7 @@ class UserTest {
 	@Test
 	@DisplayName("Rejects an invalid email on update")
 	void shouldRejectInvalidEmailOnUpdate() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		assertThatThrownBy(() -> user.update(null, "not-an-email", null, null))
 				.isInstanceOf(BusinessRuleException.class);
@@ -129,7 +129,7 @@ class UserTest {
 	@Test
 	@DisplayName("A self-service signup starts pending activation, not active")
 	void shouldSignUpPendingActivation() {
-		User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
+		final User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
 
 		assertThat(user.getStatus()).isEqualTo(UserStatus.PENDING_ACTIVATION);
 		assertThat(user.isTwoFactorEnabled()).isTrue();
@@ -145,7 +145,7 @@ class UserTest {
 	@Test
 	@DisplayName("Activating a pending user makes it active")
 	void shouldActivatePendingUser() {
-		User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
+		final User user = User.signUp("Ana Souza", "ana@acme.com", "s3cret!", ADMINISTRATOR, UUID.randomUUID());
 
 		user.activate();
 
@@ -155,9 +155,9 @@ class UserTest {
 	@Test
 	@DisplayName("Activation never reopens an administrator-deactivated or already active user")
 	void shouldRejectActivatingAUserThatIsNotPending() {
-		User inactive = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User inactive = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 		inactive.update(null, null, null, UserStatus.INACTIVE);
-		User active = User.register("John Doe", "john@example.com", "s3cret!", SALESPERSON);
+		final User active = User.register("John Doe", "john@example.com", "s3cret!", SALESPERSON);
 
 		assertThatThrownBy(inactive::activate).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(active::activate).isInstanceOf(BusinessRuleException.class);
@@ -167,7 +167,7 @@ class UserTest {
 	@Test
 	@DisplayName("Changing the password keeps the account as it is and only needs a non-blank password")
 	void shouldChangeThePassword() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		user.changePassword("n3w-pass");
 
@@ -178,7 +178,7 @@ class UserTest {
 	@Test
 	@DisplayName("A blank or missing new password is refused and the old one is kept")
 	void shouldRejectABlankNewPassword() {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SALESPERSON);
 
 		assertThatThrownBy(() -> user.changePassword(" ")).isInstanceOf(BusinessRuleException.class);
 		assertThatThrownBy(() -> user.changePassword(null)).isInstanceOf(BusinessRuleException.class);

@@ -12,7 +12,7 @@ public record DiscriminationTemplateRequest(@NotBlank String serviceCode, @NotBl
 		return new CreateDiscriminationTemplateCommand(serviceCode, templateText);
 	}
 
-	public UpdateDiscriminationTemplateCommand toUpdateCommand(DiscriminationTemplateId id) {
+	public UpdateDiscriminationTemplateCommand toUpdateCommand(final DiscriminationTemplateId id) {
 		return new UpdateDiscriminationTemplateCommand(id, serviceCode, templateText);
 	}
 }

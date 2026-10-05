@@ -8,13 +8,13 @@ public record TargetProgressResponse(BigDecimal valueAchieved, long orderCountAc
 
 	public record PercentCompleteResponse(BigDecimal value, BigDecimal orderCount) {
 
-		static PercentCompleteResponse from(TargetProgressView.PercentComplete percentComplete) {
+		static PercentCompleteResponse from(final TargetProgressView.PercentComplete percentComplete) {
 			return percentComplete == null ? null
 					: new PercentCompleteResponse(percentComplete.value(), percentComplete.orderCount());
 		}
 	}
 
-	public static TargetProgressResponse from(TargetProgressView view) {
+	public static TargetProgressResponse from(final TargetProgressView view) {
 		return new TargetProgressResponse(view.valueAchieved(), view.orderCountAchieved(), view.valueTarget(),
 				view.orderCountTarget(), PercentCompleteResponse.from(view.percentComplete()),
 				view.targetConfigured());

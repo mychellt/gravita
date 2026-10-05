@@ -54,16 +54,16 @@ public class ExportAccountingEntriesService implements ExportAccountingEntriesUs
 	private final Clock clock;
 
 	@Autowired
-	public ExportAccountingEntriesService(CompanyRepositoryPort companyRepositoryPort,
-			NfeRepositoryPort nfeRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			ExportAccountingFilePort exportAccountingFilePort) {
+	public ExportAccountingEntriesService(final CompanyRepositoryPort companyRepositoryPort,
+			final NfeRepositoryPort nfeRepositoryPort, final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final ExportAccountingFilePort exportAccountingFilePort) {
 		this(companyRepositoryPort, nfeRepositoryPort, inboundNfeRepositoryPort, exportAccountingFilePort,
 				Clock.systemDefaultZone());
 	}
 
-	public ExportAccountingEntriesService(CompanyRepositoryPort companyRepositoryPort,
-			NfeRepositoryPort nfeRepositoryPort, InboundNfeRepositoryPort inboundNfeRepositoryPort,
-			ExportAccountingFilePort exportAccountingFilePort, Clock clock) {
+	public ExportAccountingEntriesService(final CompanyRepositoryPort companyRepositoryPort,
+			final NfeRepositoryPort nfeRepositoryPort, final InboundNfeRepositoryPort inboundNfeRepositoryPort,
+			final ExportAccountingFilePort exportAccountingFilePort, final Clock clock) {
 		this.companyRepositoryPort = companyRepositoryPort;
 		this.nfeRepositoryPort = nfeRepositoryPort;
 		this.inboundNfeRepositoryPort = inboundNfeRepositoryPort;
@@ -72,36 +72,36 @@ public class ExportAccountingEntriesService implements ExportAccountingEntriesUs
 	}
 
 	@Override
-	public AccountingExportFile execute(ExportAccountingEntriesCommand command) {
-		CompanyId companyId = command.companyId();
-		Company company = companyRepositoryPort.findById(companyId)
+	public AccountingExportFile execute(final ExportAccountingEntriesCommand command) {
+		final CompanyId companyId = command.companyId();
+		final Company company = companyRepositoryPort.findById(companyId)
 				.orElseThrow(() -> new ResourceNotFoundException("Company not found: " + companyId.value()));
 
-		YearMonth period = command.period();
-		ZoneId zone = clock.getZone();
-		Instant from = period.atDay(1).atStartOfDay(zone).toInstant();
-		Instant to = period.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant();
+		final YearMonth period = command.period();
+		final ZoneId zone = clock.getZone();
+		final Instant from = period.atDay(1).atStartOfDay(zone).toInstant();
+		final Instant to = period.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant();
 
-		List<AccountingEntry> entries = new ArrayList<>();
+		final List<AccountingEntry> entries = new ArrayList<>();
 		nfeRepositoryPort.findAuthorizedByCompanyBetween(companyId, from, to)
 				.forEach(nfe -> entries.add(toEntry(nfe, zone)));
 		inboundNfeRepositoryPort.findConfirmedByCompanyBetween(companyId, from, to)
 				.forEach(nfe -> entries.add(toEntry(nfe, zone)));
 		entries.sort(ENTRY_ORDER);
 
-		byte[] content = exportAccountingFilePort.export(List.copyOf(entries), command.format());
-		String fileName = "accounting-entries-" + company.getCnpj().number() + "-" + period + "."
+		final byte[] content = exportAccountingFilePort.export(List.copyOf(entries), command.format());
+		final String fileName = "accounting-entries-" + company.getCnpj().number() + "-" + period + "."
 				+ command.format().extension();
 		return new AccountingExportFile(fileName, command.format(), content, entries.size());
 	}
 
-	private static AccountingEntry toEntry(NfeDocument nfe, ZoneId zone) {
-		String cfop = nfe.getCfop().code();
-		Flow flow = switch (cfop.charAt(0)) {
+	private static AccountingEntry toEntry(final NfeDocument nfe, final ZoneId zone) {
+		final String cfop = nfe.getCfop().code();
+		final Flow flow = switch (cfop.charAt(0)) {
 			case '1', '2', '3' -> Flow.ENTRY;
 			default -> Flow.EXIT;
 		};
-		Map<TaxType, BigDecimal> taxes = nfe.getTaxTotals().byTaxType();
+		final Map<TaxType, BigDecimal> taxes = nfe.getTaxTotals().byTaxType();
 		return new AccountingEntry(flow, nfe.getAuthorizedAt().atZone(zone).toLocalDate(), nfe.getDocumentSeries(),
 				nfe.getDocumentNumber() == null ? null : String.valueOf(nfe.getDocumentNumber()), nfe.getAccessKey(),
 				nfe.getRecipient().name(), nfe.getRecipient().document().number(), cfop, nfe.getDocumentTotal(),
@@ -109,17 +109,17 @@ public class ExportAccountingEntriesService implements ExportAccountingEntriesUs
 				tax(taxes, TaxType.COFINS));
 	}
 
-	private static AccountingEntry toEntry(InboundNfe nfe, ZoneId zone) {
-		String cfops = nfe.getItems().stream().map(InboundNfeItem::cfop)
+	private static AccountingEntry toEntry(final InboundNfe nfe, final ZoneId zone) {
+		final String cfops = nfe.getItems().stream().map(InboundNfeItem::cfop)
 				.filter(cfop -> cfop != null && !cfop.isBlank()).distinct().sorted().collect(Collectors.joining("/"));
-		InboundNfeTotals totals = nfe.getTotals();
+		final InboundNfeTotals totals = nfe.getTotals();
 		return new AccountingEntry(Flow.ENTRY, nfe.getIssuedAt().atZone(zone).toLocalDate(), nfe.getSeries(),
 				nfe.getNumber(), nfe.getAccessKey(), nfe.getSupplierName(), nfe.getSupplierDocument().number(),
 				cfops.isEmpty() ? null : cfops, totals.totalValue(), totals.icmsValue(), totals.ipiValue(),
 				totals.pisValue(), totals.cofinsValue());
 	}
 
-	private static BigDecimal tax(Map<TaxType, BigDecimal> taxes, TaxType type) {
+	private static BigDecimal tax(final Map<TaxType, BigDecimal> taxes, final TaxType type) {
 		return taxes.getOrDefault(type, BigDecimal.ZERO);
 	}
 }

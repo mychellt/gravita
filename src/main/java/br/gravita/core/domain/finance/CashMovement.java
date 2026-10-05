@@ -21,8 +21,8 @@ public final class CashMovement {
 	private final String justification;
 	private final Instant timestamp;
 
-	public CashMovement(CashMovementId id, InternalCashBoxId cashBoxId, CashMovementDirection direction,
-			BigDecimal amount, String justification, Instant timestamp) {
+	public CashMovement(final CashMovementId id, final InternalCashBoxId cashBoxId, final CashMovementDirection direction,
+			final BigDecimal amount, final String justification, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.cashBoxId = Objects.requireNonNull(cashBoxId, "cashBoxId is required");
 		this.direction = Objects.requireNonNull(direction, "direction is required");
@@ -31,8 +31,8 @@ public final class CashMovement {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	public static CashMovement of(CashMovementId id, InternalCashBoxId cashBoxId, CashMovementDirection direction,
-			BigDecimal amount, String justification, Instant timestamp) {
+	public static CashMovement of(final CashMovementId id, final InternalCashBoxId cashBoxId, final CashMovementDirection direction,
+			final BigDecimal amount, final String justification, final Instant timestamp) {
 		return new CashMovement(id, cashBoxId, direction, amount, justification, timestamp);
 	}
 
@@ -41,7 +41,7 @@ public final class CashMovement {
 		return direction == CashMovementDirection.FROM_BANK ? amount : amount.negate();
 	}
 
-	private static BigDecimal requirePositive(BigDecimal amount) {
+	private static BigDecimal requirePositive(final BigDecimal amount) {
 		if (amount == null) {
 			throw new BusinessRuleException("amount is required");
 		}
@@ -51,7 +51,7 @@ public final class CashMovement {
 		return amount;
 	}
 
-	private static String requireNonBlank(String justification) {
+	private static String requireNonBlank(final String justification) {
 		if (justification == null || justification.isBlank()) {
 			throw new BusinessRuleException("justification is required");
 		}

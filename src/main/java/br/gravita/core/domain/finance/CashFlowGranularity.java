@@ -11,7 +11,7 @@ public enum CashFlowGranularity {
 	MONTHLY;
 
 	/** The first day of the bucket that contains {@code date}. */
-	public LocalDate bucketStart(LocalDate date) {
+	public LocalDate bucketStart(final LocalDate date) {
 		return switch (this) {
 			case DAILY -> date;
 			case WEEKLY -> date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
@@ -20,7 +20,7 @@ public enum CashFlowGranularity {
 	}
 
 	/** The last day of the bucket that starts on {@code bucketStart}. */
-	public LocalDate bucketEnd(LocalDate bucketStart) {
+	public LocalDate bucketEnd(final LocalDate bucketStart) {
 		return switch (this) {
 			case DAILY -> bucketStart;
 			case WEEKLY -> bucketStart.plusDays(6);
@@ -28,7 +28,7 @@ public enum CashFlowGranularity {
 		};
 	}
 
-	public LocalDate nextBucketStart(LocalDate bucketStart) {
+	public LocalDate nextBucketStart(final LocalDate bucketStart) {
 		return bucketEnd(bucketStart).plusDays(1);
 	}
 }

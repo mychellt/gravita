@@ -25,35 +25,35 @@ class TaxEngineTest {
 
 	private final TaxEngine engine = new TaxEngine();
 
-	private static TaxRateRule rule(TaxType taxType, String rate) {
+	private static TaxRateRule rule(final TaxType taxType, final String rate) {
 		return rule(taxType, rate, "0", "0");
 	}
 
-	private static TaxRateRule rule(TaxType taxType, String rate, String reduction, String mva) {
+	private static TaxRateRule rule(final TaxType taxType, final String rate, final String reduction, final String mva) {
 		return new TaxRateRule("85171231", "SP", "RJ", TaxRegime.LUCRO_REAL, "VENDA", taxType,
 				new BigDecimal(rate), new BigDecimal(reduction), new BigDecimal(mva));
 	}
 
-	private static ItemTaxInput item(List<TaxRateRule> rates) {
+	private static ItemTaxInput item(final List<TaxRateRule> rates) {
 		return new ItemTaxInput(0, "PROD-1", new BigDecimal("10"), new BigDecimal("100.00"), rates);
 	}
 
-	private Map<TaxType, TaxLineBreakdown> byType(ItemTaxBreakdown breakdown) {
+	private Map<TaxType, TaxLineBreakdown> byType(final ItemTaxBreakdown breakdown) {
 		return breakdown.taxLines().stream().collect(Collectors.toMap(TaxLineBreakdown::taxType, Function.identity()));
 	}
 
 	@Test
 	@DisplayName("Computes ICMS, IPI, PIS, COFINS and FCP from rate table data")
 	void shouldComputeIcmsIpiPisCofinsAndFcpFromRateTableData() {
-		ItemTaxInput input = item(List.of(
+		final ItemTaxInput input = item(List.of(
 				rule(TaxType.ICMS, "12"),
 				rule(TaxType.IPI, "5"),
 				rule(TaxType.PIS, "1.65"),
 				rule(TaxType.COFINS, "7.6"),
 				rule(TaxType.FCP, "2")));
 
-		ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
-		Map<TaxType, TaxLineBreakdown> lines = byType(breakdown);
+		final ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
+		final Map<TaxType, TaxLineBreakdown> lines = byType(breakdown);
 
 		assertThat(lines.get(TaxType.ICMS).finalAmount()).isEqualByComparingTo("120.00");
 		assertThat(lines.get(TaxType.IPI).finalAmount()).isEqualByComparingTo("50.00");
@@ -66,12 +66,12 @@ class TaxEngineTest {
 	@Test
 	@DisplayName("Computes ICMS-ST as the internal rate over the MVA base minus the ICMS itself")
 	void shouldComputeIcmsStAsInternalRateOverMvaBaseMinusIcmsProprio() {
-		ItemTaxInput input = item(List.of(
+		final ItemTaxInput input = item(List.of(
 				rule(TaxType.ICMS, "12"),
 				rule(TaxType.ICMS_ST, "18", "0", "40")));
 
-		ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
-		Map<TaxType, TaxLineBreakdown> lines = byType(breakdown);
+		final ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
+		final Map<TaxType, TaxLineBreakdown> lines = byType(breakdown);
 
 		assertThat(lines.get(TaxType.ICMS_ST).base()).isEqualByComparingTo("1400.00");
 		assertThat(lines.get(TaxType.ICMS_ST).finalAmount()).isEqualByComparingTo("132.00");
@@ -80,11 +80,11 @@ class TaxEngineTest {
 	@Test
 	@DisplayName("Applies the base reduction before computing the rate")
 	void shouldApplyBaseReductionBeforeComputingRate() {
-		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12", "20", "0")));
+		final ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12", "20", "0")));
 
-		ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
+		final ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
 
-		TaxLineBreakdown icms = byType(breakdown).get(TaxType.ICMS);
+		final TaxLineBreakdown icms = byType(breakdown).get(TaxType.ICMS);
 		assertThat(icms.base()).isEqualByComparingTo("800.00");
 		assertThat(icms.finalAmount()).isEqualByComparingTo("96.00");
 	}
@@ -92,9 +92,9 @@ class TaxEngineTest {
 	@Test
 	@DisplayName("Skips tax types without a matching rate row")
 	void shouldSkipTaxTypesWithoutAMatchingRateRow() {
-		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
+		final ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
 
-		ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
+		final ItemTaxBreakdown breakdown = engine.calculate(input, List.of());
 
 		assertThat(breakdown.taxLines()).hasSize(1);
 		assertThat(byType(breakdown)).containsOnlyKeys(TaxType.ICMS);
@@ -103,12 +103,12 @@ class TaxEngineTest {
 	@Test
 	@DisplayName("Applies a manual override while retaining the computed value for audit")
 	void shouldApplyManualOverrideWhileRetainingComputedValueForAudit() {
-		ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
-		TaxOverrideInput override = new TaxOverrideInput(0, TaxType.ICMS, new BigDecimal("100.00"), "Negotiated with fiscal auditor");
+		final ItemTaxInput input = item(List.of(rule(TaxType.ICMS, "12")));
+		final TaxOverrideInput override = new TaxOverrideInput(0, TaxType.ICMS, new BigDecimal("100.00"), "Negotiated with fiscal auditor");
 
-		ItemTaxBreakdown breakdown = engine.calculate(input, List.of(override));
+		final ItemTaxBreakdown breakdown = engine.calculate(input, List.of(override));
 
-		TaxLineBreakdown icms = byType(breakdown).get(TaxType.ICMS);
+		final TaxLineBreakdown icms = byType(breakdown).get(TaxType.ICMS);
 		assertThat(icms.computedAmount()).isEqualByComparingTo("120.00");
 		assertThat(icms.finalAmount()).isEqualByComparingTo("100.00");
 		assertThat(icms.overridden()).isTrue();
@@ -126,12 +126,12 @@ class TaxEngineTest {
 	@Test
 	@DisplayName("Produces the same result regardless of which regime selected the rows")
 	void shouldProduceTheSameResultRegardlessOfWhichRegimeSelectedTheRows() {
-		ItemTaxInput simplesLikeInput = item(List.of(rule(TaxType.ICMS, "4")));
-		ItemTaxInput lucroRealLikeInput = new ItemTaxInput(0, "PROD-1", new BigDecimal("10"), new BigDecimal("100.00"),
+		final ItemTaxInput simplesLikeInput = item(List.of(rule(TaxType.ICMS, "4")));
+		final ItemTaxInput lucroRealLikeInput = new ItemTaxInput(0, "PROD-1", new BigDecimal("10"), new BigDecimal("100.00"),
 				List.of(rule(TaxType.ICMS, "4")));
 
-		ItemTaxBreakdown simplesLikeResult = engine.calculate(simplesLikeInput, List.of());
-		ItemTaxBreakdown lucroRealLikeResult = engine.calculate(lucroRealLikeInput, List.of());
+		final ItemTaxBreakdown simplesLikeResult = engine.calculate(simplesLikeInput, List.of());
+		final ItemTaxBreakdown lucroRealLikeResult = engine.calculate(lucroRealLikeInput, List.of());
 
 		assertThat(simplesLikeResult.totalAmount()).isEqualByComparingTo(lucroRealLikeResult.totalAmount());
 	}

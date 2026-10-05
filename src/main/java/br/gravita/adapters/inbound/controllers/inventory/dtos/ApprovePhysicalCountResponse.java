@@ -12,7 +12,7 @@ import java.util.UUID;
 public record ApprovePhysicalCountResponse(UUID id, PhysicalCountScope scope, String productGroupId,
 		UUID warehouseId, PhysicalCountStatus status, UUID startedBy, Instant startedAt, List<LineResponse> lines) {
 
-	public static ApprovePhysicalCountResponse from(PhysicalCount physicalCount) {
+	public static ApprovePhysicalCountResponse from(final PhysicalCount physicalCount) {
 		return new ApprovePhysicalCountResponse(
 				physicalCount.getId().value(),
 				physicalCount.getScope(),
@@ -27,7 +27,7 @@ public record ApprovePhysicalCountResponse(UUID id, PhysicalCountScope scope, St
 	public record LineResponse(UUID productId, BigDecimal systemQuantity, BigDecimal countedQuantity,
 			boolean adjustmentGenerated) {
 
-		static LineResponse from(PhysicalCountLine line) {
+		static LineResponse from(final PhysicalCountLine line) {
 			return new LineResponse(line.productId(), line.systemQuantity(), line.countedQuantity(),
 					line.hasDivergence());
 		}

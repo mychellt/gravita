@@ -26,8 +26,8 @@ public final class SalesOrder {
 	private final String cancelReason;
 	private final LocalDate invoicedAt;
 
-	public static SalesOrder createFromQuote(SalesOrderId id, QuoteId originQuoteId, UUID customerId,
-			UUID salespersonId, List<SalesOrderItem> items) {
+	public static SalesOrder createFromQuote(final SalesOrderId id, final QuoteId originQuoteId, final UUID customerId,
+			final UUID salespersonId, final List<SalesOrderItem> items) {
 		Objects.requireNonNull(originQuoteId, "originQuoteId is required");
 		Objects.requireNonNull(customerId, "customerId is required");
 		Objects.requireNonNull(salespersonId, "salespersonId is required");
@@ -35,31 +35,31 @@ public final class SalesOrder {
 				SalesOrderStatus.DRAFT, null, null, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
-			List<SalesOrderItem> items, SalesOrderStatus status) {
+	public static SalesOrder of(final SalesOrderId id, final QuoteId originQuoteId, final UUID customerId, final UUID salespersonId,
+			final List<SalesOrderItem> items, final SalesOrderStatus status) {
 		return of(id, originQuoteId, customerId, salespersonId, items, status, null, null, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
-			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId) {
+	public static SalesOrder of(final SalesOrderId id, final QuoteId originQuoteId, final UUID customerId, final UUID salespersonId,
+			final List<SalesOrderItem> items, final SalesOrderStatus status, final UUID approvedBy, final UUID alcadaId) {
 		return of(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId, null, null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
-			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId,
-			String cancelReason) {
+	public static SalesOrder of(final SalesOrderId id, final QuoteId originQuoteId, final UUID customerId, final UUID salespersonId,
+			final List<SalesOrderItem> items, final SalesOrderStatus status, final UUID approvedBy, final UUID alcadaId,
+			final String cancelReason) {
 		return of(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId, cancelReason,
 				null);
 	}
 
-	public static SalesOrder of(SalesOrderId id, QuoteId originQuoteId, UUID customerId, UUID salespersonId,
-			List<SalesOrderItem> items, SalesOrderStatus status, UUID approvedBy, UUID alcadaId, String cancelReason,
-			LocalDate invoicedAt) {
+	public static SalesOrder of(final SalesOrderId id, final QuoteId originQuoteId, final UUID customerId, final UUID salespersonId,
+			final List<SalesOrderItem> items, final SalesOrderStatus status, final UUID approvedBy, final UUID alcadaId, final String cancelReason,
+			final LocalDate invoicedAt) {
 		return new SalesOrder(id, originQuoteId, customerId, salespersonId, items, status, approvedBy, alcadaId,
 				cancelReason, invoicedAt);
 	}
 
-	public SalesOrder approve(UUID approvedBy, UUID alcadaId) {
+	public SalesOrder approve(final UUID approvedBy, final UUID alcadaId) {
 		Objects.requireNonNull(approvedBy, "approvedBy is required");
 		if (status != SalesOrderStatus.DRAFT) {
 			throw new BusinessRuleException("Only DRAFT orders can be approved, was " + status);
@@ -80,7 +80,7 @@ public final class SalesOrder {
 		return status == SalesOrderStatus.APPROVED || status == SalesOrderStatus.IN_SEPARATION;
 	}
 
-	public SalesOrder cancel(String reason) {
+	public SalesOrder cancel(final String reason) {
 		if (status == SalesOrderStatus.INVOICED) {
 			throw new BusinessRuleException(
 					"Invoiced orders cannot be cancelled through this operation; use the return flow instead");
@@ -101,15 +101,15 @@ public final class SalesOrder {
 	}
 
 	public BigDecimal discountPercent() {
-		BigDecimal subtotal = items.stream().map(SalesOrderItem::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+		final BigDecimal subtotal = items.stream().map(SalesOrderItem::subtotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 		if (subtotal.signum() == 0) {
 			return BigDecimal.ZERO;
 		}
 		return totalDiscount().multiply(BigDecimal.valueOf(100)).divide(subtotal, 4, RoundingMode.HALF_UP);
 	}
 
-	private static List<SalesOrderItem> requireNonEmptyItems(List<SalesOrderItem> items) {
-		List<SalesOrderItem> copy = items == null ? List.of() : List.copyOf(items);
+	private static List<SalesOrderItem> requireNonEmptyItems(final List<SalesOrderItem> items) {
+		final List<SalesOrderItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("A sales order must have at least one item");
 		}

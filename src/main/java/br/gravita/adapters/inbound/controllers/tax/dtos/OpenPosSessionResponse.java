@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record OpenPosSessionResponse(UUID id) {
 
-	public static OpenPosSessionResponse from(PosSessionId id) {
+	public static OpenPosSessionResponse from(final PosSessionId id) {
 		return new OpenPosSessionResponse(id.value());
 	}
 }

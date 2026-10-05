@@ -19,12 +19,12 @@ class SalesOrderTest {
 
 	@Test
 	@DisplayName("A new order starts as DRAFT and references its originating quote")
-	void aNewlyCreatedOrderStartsAsDraftAndReferencesItsOriginQuote() {
-		QuoteId originQuoteId = QuoteId.of(UUID.randomUUID());
-		UUID customerId = UUID.randomUUID();
-		List<SalesOrderItem> items = List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO));
+	void newlyCreatedOrderStartsAsDraftAndReferencesItsOriginQuote() {
+		final QuoteId originQuoteId = QuoteId.of(UUID.randomUUID());
+		final UUID customerId = UUID.randomUUID();
+		final List<SalesOrderItem> items = List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO));
 
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), originQuoteId, customerId,
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()), originQuoteId, customerId,
 				UUID.randomUUID(), items);
 
 		assertThat(order.getStatus()).isEqualTo(SalesOrderStatus.DRAFT);
@@ -45,7 +45,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Total value sums each line's subtotal minus its discount")
 	void totalValueSumsEachLinesSubtotalMinusItsDiscount() {
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(
 						item(BigDecimal.TEN, new BigDecimal("2.00"), new BigDecimal("5.00")),
@@ -57,7 +57,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Discount percent is the total discount divided by the total subtotal")
 	void discountPercentIsTheTotalDiscountOverTheTotalSubtotal() {
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, new BigDecimal("100.00"), new BigDecimal("25.00"))));
 
@@ -67,13 +67,13 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Approving a draft order moves it to APPROVED and records the approval details")
 	void approvingADraftOrderTransitionsItToApprovedAndRecordsTheApprovalDetails() {
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
-		UUID approvedBy = UUID.randomUUID();
-		UUID alcadaId = UUID.randomUUID();
+		final UUID approvedBy = UUID.randomUUID();
+		final UUID alcadaId = UUID.randomUUID();
 
-		SalesOrder approved = order.approve(approvedBy, alcadaId);
+		final SalesOrder approved = order.approve(approvedBy, alcadaId);
 
 		assertThat(approved.getStatus()).isEqualTo(SalesOrderStatus.APPROVED);
 		assertThat(approved.getApprovedBy()).isEqualTo(approvedBy);
@@ -83,7 +83,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Rejects approving an order that is not in DRAFT")
 	void rejectsApprovingAnOrderThatIsNotDraft() {
-		SalesOrder approvedOrder = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+		final SalesOrder approvedOrder = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(),
 				List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO))).approve(UUID.randomUUID(), null);
 
@@ -95,9 +95,9 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Cancelling a draft order stores the reason and does not require an active stock reservation")
 	void cancellingADraftOrderStoresTheReasonAndDoesNotRequireAnActiveStockReservation() {
-		SalesOrder order = draftOrder();
+		final SalesOrder order = draftOrder();
 
-		SalesOrder cancelled = order.cancel("Customer requested cancellation");
+		final SalesOrder cancelled = order.cancel("Customer requested cancellation");
 
 		assertThat(cancelled.getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
 		assertThat(cancelled.getCancelReason()).isEqualTo("Customer requested cancellation");
@@ -107,24 +107,24 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Approved and in-separation orders hold an active stock reservation")
 	void approvedAndInSeparationOrdersHaveAnActiveStockReservation() {
-		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
-		SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
 
 		assertThat(approved.hasActiveStockReservation()).isTrue();
 		assertThat(inSeparation.hasActiveStockReservation()).isTrue();
 
-		SalesOrder cancelled = approved.cancel("Out of stock");
+		final SalesOrder cancelled = approved.cancel("Out of stock");
 		assertThat(cancelled.getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
 	}
 
 	@Test
 	@DisplayName("Rejects cancelling an invoiced order and points to the return flow")
 	void rejectsCancellingAnInvoicedOrderPointingToTheReturnFlow() {
-		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.INVOICED, null, null);
 
@@ -136,7 +136,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Rejects cancelling an order that is already cancelled")
 	void rejectsCancellingAnAlreadyCancelledOrder() {
-		SalesOrder cancelled = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder cancelled = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.CANCELLED, null, null, "Already cancelled");
 
@@ -146,10 +146,10 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Invoicing an approved or in-separation order moves it to INVOICED")
 	void invoicingAnApprovedOrTheInSeparationOrderTransitionsItToInvoiced() {
-		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
-		SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder inSeparation = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.IN_SEPARATION, UUID.randomUUID(), null);
 
@@ -160,7 +160,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Rejects invoicing a draft order")
 	void rejectsInvoicingADraftOrder() {
-		SalesOrder draft = draftOrder();
+		final SalesOrder draft = draftOrder();
 
 		assertThatThrownBy(draft::invoice).isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("Only APPROVED or IN_SEPARATION orders can be invoiced");
@@ -169,7 +169,7 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Rejects invoicing an order that is already invoiced")
 	void rejectsInvoicingAnAlreadyInvoicedOrder() {
-		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.INVOICED, null, null);
 
@@ -179,11 +179,11 @@ class SalesOrderTest {
 	@Test
 	@DisplayName("Invoicing an order records the invoice date")
 	void invoicingAnOrderRecordsTheInvoiceDate() {
-		SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder approved = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)),
 				SalesOrderStatus.APPROVED, UUID.randomUUID(), null);
 
-		SalesOrder invoiced = approved.invoice();
+		final SalesOrder invoiced = approved.invoice();
 
 		assertThat(invoiced.getInvoicedAt()).isEqualTo(java.time.LocalDate.now());
 	}
@@ -193,7 +193,7 @@ class SalesOrderTest {
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item(BigDecimal.ONE, BigDecimal.TEN, BigDecimal.ZERO)));
 	}
 
-	private static SalesOrderItem item(BigDecimal quantity, BigDecimal unitPrice, BigDecimal discount) {
+	private static SalesOrderItem item(final BigDecimal quantity, final BigDecimal unitPrice, final BigDecimal discount) {
 		return new SalesOrderItem(UUID.randomUUID(), quantity, unitPrice, discount);
 	}
 }

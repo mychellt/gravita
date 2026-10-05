@@ -21,7 +21,7 @@ class CustomerDomainTest {
 	@DisplayName("Exposes the data the customer was built with")
 	@Test
 	void shouldExposeCustomerData() {
-		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+		final CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
 
 		assertThat(customer.getStatus()).isEqualTo(CustomerStatus.REGULAR);
 		assertThat(customer.getName()).isEqualTo("Maria Silva");
@@ -31,7 +31,7 @@ class CustomerDomainTest {
 	@DisplayName("Does not allow blocking a customer that is already blocked")
 	@Test
 	void shouldNotAllowBlockingAlreadyBlockedCustomer() {
-		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+		final CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
 		customer.block();
 
 		assertThatThrownBy(customer::block).isInstanceOf(BusinessRuleException.class);
@@ -40,7 +40,7 @@ class CustomerDomainTest {
 	@DisplayName("Reactivates a blocked customer")
 	@Test
 	void shouldReactivateBlockedCustomer() {
-		CustomerDomain customer = customerWithStatus(CustomerStatus.BLOCKED);
+		final CustomerDomain customer = customerWithStatus(CustomerStatus.BLOCKED);
 
 		customer.reactivate();
 
@@ -50,7 +50,7 @@ class CustomerDomainTest {
 	@DisplayName("Applies the credit status and balance computed by Finance")
 	@Test
 	void shouldApplyFinanceComputedCreditStatusAndBalance() {
-		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+		final CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
 
 		customer.applyCreditStatus(new BigDecimal("2500.00"), CustomerStatus.DELINQUENT);
 
@@ -61,7 +61,7 @@ class CustomerDomainTest {
 	@DisplayName("Rejects a credit status update that is missing the balance or the status")
 	@Test
 	void shouldRejectCreditStatusUpdateMissingBalanceOrStatus() {
-		CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
+		final CustomerDomain customer = customerWithStatus(CustomerStatus.REGULAR);
 
 		assertThatThrownBy(() -> customer.applyCreditStatus(null, CustomerStatus.BLOCKED))
 				.isInstanceOf(BusinessRuleException.class);
@@ -72,7 +72,7 @@ class CustomerDomainTest {
 	@DisplayName("Validates a customer that has exactly one default address per type")
 	@Test
 	void shouldValidateSuccessfullyWithOneDefaultAddressPerType() {
-		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true), deliveryAddress(true)));
+		final CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true), deliveryAddress(true)));
 
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
@@ -80,7 +80,7 @@ class CustomerDomainTest {
 	@DisplayName("A company customer requires the IE indicator and the final-consumer flag")
 	@Test
 	void shouldRequireIeIndicatorAndFinalConsumerForCompanyCustomer() {
-		CustomerDomain customer = baseCustomer(cnpj, List.of(billingAddress(true)));
+		final CustomerDomain customer = baseCustomer(cnpj, List.of(billingAddress(true)));
 
 		assertThatThrownBy(customer::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 
@@ -94,7 +94,7 @@ class CustomerDomainTest {
 	@DisplayName("An individual customer does not require the IE indicator")
 	@Test
 	void shouldNotRequireIeIndicatorForIndividualCustomer() {
-		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
+		final CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
 
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
@@ -102,7 +102,7 @@ class CustomerDomainTest {
 	@DisplayName("Requires the customer to have at least one address")
 	@Test
 	void shouldRequireAtLeastOneAddress() {
-		CustomerDomain customer = baseCustomer(cpf, List.of());
+		final CustomerDomain customer = baseCustomer(cpf, List.of());
 
 		assertThatThrownBy(customer::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 	}
@@ -110,17 +110,17 @@ class CustomerDomainTest {
 	@DisplayName("Requires exactly one default address for each address type")
 	@Test
 	void shouldRequireExactlyOneDefaultAddressPerType() {
-		CustomerDomain noDefault = baseCustomer(cpf, List.of(billingAddress(false)));
+		final CustomerDomain noDefault = baseCustomer(cpf, List.of(billingAddress(false)));
 		assertThatThrownBy(noDefault::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 
-		CustomerDomain twoDefaults = baseCustomer(cpf, List.of(billingAddress(true), billingAddress(true)));
+		final CustomerDomain twoDefaults = baseCustomer(cpf, List.of(billingAddress(true), billingAddress(true)));
 		assertThatThrownBy(twoDefaults::validateForRegistration).isInstanceOf(BusinessRuleException.class);
 	}
 
 	@DisplayName("Requires price tables to have unique priorities")
 	@Test
 	void shouldRequireUniquePriceTablePriorities() {
-		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
+		final CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
 		customer.setPriceTables(List.of(
 				CustomerPriceTableLink.builder().priceTableId(UUID.randomUUID()).priority(1).build(),
 				CustomerPriceTableLink.builder().priceTableId(UUID.randomUUID()).priority(1).build()));
@@ -131,7 +131,7 @@ class CustomerDomainTest {
 	@DisplayName("Allows price tables with explicit, distinct priorities")
 	@Test
 	void shouldAllowExplicitlyOrderedPriceTables() {
-		CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
+		final CustomerDomain customer = baseCustomer(cpf, List.of(billingAddress(true)));
 		customer.setPriceTables(List.of(
 				CustomerPriceTableLink.builder().priceTableId(UUID.randomUUID()).priority(1).build(),
 				CustomerPriceTableLink.builder().priceTableId(UUID.randomUUID()).priority(2).build()));
@@ -139,7 +139,7 @@ class CustomerDomainTest {
 		assertThatCode(customer::validateForRegistration).doesNotThrowAnyException();
 	}
 
-	private CustomerDomain customerWithStatus(CustomerStatus status) {
+	private CustomerDomain customerWithStatus(final CustomerStatus status) {
 		return CustomerDomain.builder()
 				.name("Maria Silva")
 				.documentDomain(cpf)
@@ -148,7 +148,7 @@ class CustomerDomainTest {
 				.build();
 	}
 
-	private CustomerDomain baseCustomer(Document document, List<AddressDomain> addresses) {
+	private CustomerDomain baseCustomer(final Document document, final List<AddressDomain> addresses) {
 		return CustomerDomain.builder()
 				.name("Maria Silva")
 				.documentDomain(document)
@@ -156,12 +156,12 @@ class CustomerDomainTest {
 				.build();
 	}
 
-	private AddressDomain billingAddress(boolean isDefault) {
+	private AddressDomain billingAddress(final boolean isDefault) {
 		return AddressDomain.builder().type(AddressType.BILLING).street("Rua A").neighborhood("Centro")
 				.city("São Paulo").state("SP").zipCode("01000-000").isDefault(isDefault).build();
 	}
 
-	private AddressDomain deliveryAddress(boolean isDefault) {
+	private AddressDomain deliveryAddress(final boolean isDefault) {
 		return AddressDomain.builder().type(AddressType.DELIVERY).street("Rua B").neighborhood("Centro")
 				.city("São Paulo").state("SP").zipCode("01000-000").isDefault(isDefault).build();
 	}

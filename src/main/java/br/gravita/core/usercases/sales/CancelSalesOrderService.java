@@ -18,12 +18,12 @@ public class CancelSalesOrderService implements CancelSalesOrderUseCase {
 	private final ReleaseStockReservationPort releaseStockReservationPort;
 
 	@Override
-	public void execute(CancelSalesOrderCommand command) {
-		SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
+	public void execute(final CancelSalesOrderCommand command) {
+		final SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
 				.orElseThrow(() -> new SalesOrderNotFoundException(command.orderId()));
 
-		boolean hadActiveStockReservation = order.hasActiveStockReservation();
-		SalesOrder cancelled = order.cancel(command.reason());
+		final boolean hadActiveStockReservation = order.hasActiveStockReservation();
+		final SalesOrder cancelled = order.cancel(command.reason());
 
 		if (hadActiveStockReservation) {
 			releaseStockReservationPort.releaseByOrderRef(command.orderId());

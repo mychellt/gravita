@@ -43,12 +43,12 @@ class GeneratePayableFromReceiptServiceTest {
 	@Test
 	@DisplayName("Creates one open payable per installment referencing the purchase receipt")
 	void createsOneOpenPurchaseReceiptPayablePerInstallmentReferencingTheReceipt() {
-		UUID supplierId = UUID.randomUUID();
-		UUID receiptId = UUID.randomUUID();
+		final UUID supplierId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of());
 		when(payableRepositoryPort.save(any(Payable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		List<Payable> created = service.execute(new GeneratePayableFromReceiptCommand(supplierId, receiptId,
+		final List<Payable> created = service.execute(new GeneratePayableFromReceiptCommand(supplierId, receiptId,
 				List.of(new Installment(FIRST_DUE, new BigDecimal("100.00")),
 						new Installment(FIRST_DUE.plusDays(30), new BigDecimal("100.00")),
 						new Installment(FIRST_DUE.plusDays(60), new BigDecimal("50.00")))));
@@ -73,13 +73,13 @@ class GeneratePayableFromReceiptServiceTest {
 	@Test
 	@DisplayName("Is idempotent per purchase receipt and returns the payables that already exist")
 	void isIdempotentPerPurchaseReceiptAndReturnsTheExistingPayables() {
-		UUID supplierId = UUID.randomUUID();
-		UUID receiptId = UUID.randomUUID();
-		Payable existing = Payable.createFromPurchaseReceipt(PayableId.of(UUID.randomUUID()), supplierId, receiptId,
+		final UUID supplierId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
+		final Payable existing = Payable.createFromPurchaseReceipt(PayableId.of(UUID.randomUUID()), supplierId, receiptId,
 				BigDecimal.TEN, FIRST_DUE, 1, 1);
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of(existing));
 
-		List<Payable> result = service.execute(new GeneratePayableFromReceiptCommand(supplierId, receiptId,
+		final List<Payable> result = service.execute(new GeneratePayableFromReceiptCommand(supplierId, receiptId,
 				List.of(new Installment(FIRST_DUE, BigDecimal.TEN))));
 
 		assertThat(result).containsExactly(existing);
@@ -89,7 +89,7 @@ class GeneratePayableFromReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects a command without installments and saves nothing")
 	void rejectsACommandWithoutInstallmentsWithoutSavingAnything() {
-		UUID receiptId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
 
 		assertThatThrownBy(() -> service
 				.execute(new GeneratePayableFromReceiptCommand(UUID.randomUUID(), receiptId, List.of())))
@@ -101,7 +101,7 @@ class GeneratePayableFromReceiptServiceTest {
 	@Test
 	@DisplayName("Rejects an installment amount that is zero or negative")
 	void rejectsANonPositiveInstallmentAmount() {
-		UUID receiptId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of());
 
 		assertThatThrownBy(() -> service.execute(new GeneratePayableFromReceiptCommand(UUID.randomUUID(),
@@ -114,14 +114,14 @@ class GeneratePayableFromReceiptServiceTest {
 	@Test
 	@DisplayName("Saves each payable with its own id")
 	void savesEachPayableWithItsOwnId() {
-		UUID receiptId = UUID.randomUUID();
+		final UUID receiptId = UUID.randomUUID();
 		when(payableRepositoryPort.findByPurchaseReceiptRef(receiptId)).thenReturn(List.of());
 		when(payableRepositoryPort.save(any(Payable.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new GeneratePayableFromReceiptCommand(UUID.randomUUID(), receiptId,
 				List.of(new Installment(FIRST_DUE, BigDecimal.ONE), new Installment(FIRST_DUE, BigDecimal.ONE))));
 
-		ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
+		final ArgumentCaptor<Payable> saved = ArgumentCaptor.forClass(Payable.class);
 		verify(payableRepositoryPort, times(2)).save(saved.capture());
 		assertThat(saved.getAllValues()).extracting(Payable::getId).doesNotHaveDuplicates();
 	}

@@ -9,12 +9,12 @@ import java.util.UUID;
 class FinanceUsageQueryAdapter implements FinanceUsageQueryPort {
 
 	@Override
-	public boolean isCostCenterInUse(UUID costCenterId) {
+	public boolean isCostCenterInUse(final UUID costCenterId) {
 		return false;
 	}
 
 	@Override
-	public boolean isChartOfAccountInUse(UUID chartOfAccountId) {
+	public boolean isChartOfAccountInUse(final UUID chartOfAccountId) {
 		return false;
 	}
 }

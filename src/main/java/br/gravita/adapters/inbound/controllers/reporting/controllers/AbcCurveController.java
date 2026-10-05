@@ -29,16 +29,16 @@ public class AbcCurveController {
 
 	/** {@code type} is {@code product} or {@code customer}; {@code period} is a month as {@code yyyy-MM}. */
 	@GetMapping
-	public ResponseEntity<List<AbcCurveEntry>> get(@AuthenticatedUser UserId callerId, @RequestParam String type,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period,
-			@RequestParam(required = false) UUID companyId) {
+	public ResponseEntity<List<AbcCurveEntry>> get(@AuthenticatedUser final UserId callerId, @RequestParam final String type,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period,
+			@RequestParam(required = false) final UUID companyId) {
 		return ResponseEntity.ok(getAbcCurveUseCase.execute(new AbcCurveQuery(callerId, parse(type), period, companyId)));
 	}
 
-	private AbcCurveType parse(String type) {
+	private AbcCurveType parse(final String type) {
 		try {
 			return AbcCurveType.valueOf(type.trim().toUpperCase(Locale.ROOT));
-		} catch (IllegalArgumentException e) {
+		} catch (final IllegalArgumentException e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type must be product or customer");
 		}
 	}

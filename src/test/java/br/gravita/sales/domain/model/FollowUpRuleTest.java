@@ -16,9 +16,9 @@ class FollowUpRuleTest {
 	@Test
 	@DisplayName("Creates a rule when all fields are valid")
 	void createsARuleWithValidFields() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
-		FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
+		final FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
 
 		assertThat(rule.getDaysWithoutContact()).isEqualTo(7);
 		assertThat(rule.getTarget()).isEqualTo(FollowUpTarget.CUSTOMER);
@@ -29,7 +29,7 @@ class FollowUpRuleTest {
 	@Test
 	@DisplayName("Rejects a rule with zero days without contact")
 	void rejectsZeroDaysWithoutContact() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> FollowUpRule.of(id, 0, FollowUpTarget.CUSTOMER, true, true))
 				.isInstanceOf(BusinessRuleException.class)
@@ -39,7 +39,7 @@ class FollowUpRuleTest {
 	@Test
 	@DisplayName("Rejects a rule with negative days without contact")
 	void rejectsNegativeDaysWithoutContact() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> FollowUpRule.of(id, -1, FollowUpTarget.OPPORTUNITY, false, false))
 				.isInstanceOf(BusinessRuleException.class)
@@ -49,10 +49,10 @@ class FollowUpRuleTest {
 	@Test
 	@DisplayName("A partial update keeps the fields that were not specified unchanged")
 	void partialUpdateKeepsUnspecifiedFieldsUnchanged() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
-		FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
 
-		FollowUpRule updated = rule.withUpdatedFields(14, null, null, null);
+		final FollowUpRule updated = rule.withUpdatedFields(14, null, null, null);
 
 		assertThat(updated.getDaysWithoutContact()).isEqualTo(14);
 		assertThat(updated.getTarget()).isEqualTo(FollowUpTarget.CUSTOMER);
@@ -63,10 +63,10 @@ class FollowUpRuleTest {
 	@Test
 	@DisplayName("An update can deactivate a rule")
 	void updateCanDeactivateARule() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
-		FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRule rule = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
 
-		FollowUpRule updated = rule.withUpdatedFields(null, null, null, false);
+		final FollowUpRule updated = rule.withUpdatedFields(null, null, null, false);
 
 		assertThat(updated.isActive()).isFalse();
 	}

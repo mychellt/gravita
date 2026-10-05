@@ -50,13 +50,13 @@ class GetFunnelConversionServiceTest {
 	@Test
 	@DisplayName("Computes the conversion rate per stage transition and the volume per salesperson")
 	void computesConversionRatePerStageTransitionAndVolumePerSalesperson() {
-		UUID salespersonA = UUID.randomUUID();
-		UUID salespersonB = UUID.randomUUID();
-		OpportunityId opp1 = OpportunityId.of(UUID.randomUUID());
-		OpportunityId opp2 = OpportunityId.of(UUID.randomUUID());
-		OpportunityId opp3 = OpportunityId.of(UUID.randomUUID());
+		final UUID salespersonA = UUID.randomUUID();
+		final UUID salespersonB = UUID.randomUUID();
+		final OpportunityId opp1 = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId opp2 = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId opp3 = OpportunityId.of(UUID.randomUUID());
 
-		List<StageTransition> transitions = List.of(
+		final List<StageTransition> transitions = List.of(
 				transition(opp1, OpportunityStage.PROSPECTING, OpportunityStage.PROPOSAL,
 						PERIOD_START.plusSeconds(60)),
 				transition(opp2, OpportunityStage.PROSPECTING, OpportunityStage.PROPOSAL,
@@ -68,7 +68,7 @@ class GetFunnelConversionServiceTest {
 		when(opportunityRepositoryPort.findByIds(Set.of(opp1, opp2, opp3))).thenReturn(List.of(
 				opportunity(opp1, salespersonA), opportunity(opp2, salespersonA), opportunity(opp3, salespersonB)));
 
-		FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
+		final FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
 
 		assertThat(view.conversionRateByStage()).containsExactlyInAnyOrder(
 				new StageConversionRate(OpportunityStage.PROSPECTING, OpportunityStage.PROPOSAL,
@@ -84,12 +84,12 @@ class GetFunnelConversionServiceTest {
 	@Test
 	@DisplayName("Restricts the funnel to the given salesperson when provided")
 	void filtersToTheGivenSalespersonWhenProvided() {
-		UUID salespersonA = UUID.randomUUID();
-		UUID salespersonB = UUID.randomUUID();
-		OpportunityId opp1 = OpportunityId.of(UUID.randomUUID());
-		OpportunityId opp2 = OpportunityId.of(UUID.randomUUID());
+		final UUID salespersonA = UUID.randomUUID();
+		final UUID salespersonB = UUID.randomUUID();
+		final OpportunityId opp1 = OpportunityId.of(UUID.randomUUID());
+		final OpportunityId opp2 = OpportunityId.of(UUID.randomUUID());
 
-		List<StageTransition> transitions = List.of(
+		final List<StageTransition> transitions = List.of(
 				transition(opp1, OpportunityStage.PROSPECTING, OpportunityStage.PROPOSAL,
 						PERIOD_START.plusSeconds(60)),
 				transition(opp2, OpportunityStage.PROSPECTING, OpportunityStage.LOST, PERIOD_START.plusSeconds(120)));
@@ -97,7 +97,7 @@ class GetFunnelConversionServiceTest {
 		when(opportunityRepositoryPort.findByIds(Set.of(opp1, opp2)))
 				.thenReturn(List.of(opportunity(opp1, salespersonA), opportunity(opp2, salespersonB)));
 
-		FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, salespersonA));
+		final FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, salespersonA));
 
 		assertThat(view.volumeBySalesperson()).containsOnly(Map.entry(salespersonA, 1L));
 		assertThat(view.conversionRateByStage()).containsExactly(new StageConversionRate(OpportunityStage.PROSPECTING,
@@ -107,14 +107,14 @@ class GetFunnelConversionServiceTest {
 	@Test
 	@DisplayName("Average cycle time runs from the first stage transition to the closing transition")
 	void averageCycleTimeIsComputedFromTheFirstTransitionToTheClosingTransition() {
-		UUID salesperson = UUID.randomUUID();
-		OpportunityId opportunityId = OpportunityId.of(UUID.randomUUID());
-		Instant firstTransitionAt = PERIOD_START.minusSeconds(3600);
-		Instant closingAt = PERIOD_START.plusSeconds(1800);
+		final UUID salesperson = UUID.randomUUID();
+		final OpportunityId opportunityId = OpportunityId.of(UUID.randomUUID());
+		final Instant firstTransitionAt = PERIOD_START.minusSeconds(3600);
+		final Instant closingAt = PERIOD_START.plusSeconds(1800);
 
-		StageTransition firstTransition = transition(opportunityId, OpportunityStage.PROSPECTING,
+		final StageTransition firstTransition = transition(opportunityId, OpportunityStage.PROSPECTING,
 				OpportunityStage.PROPOSAL, firstTransitionAt);
-		StageTransition closingTransition = transition(opportunityId, OpportunityStage.NEGOTIATION,
+		final StageTransition closingTransition = transition(opportunityId, OpportunityStage.NEGOTIATION,
 				OpportunityStage.CLOSED, closingAt);
 
 		when(stageTransitionRepositoryPort.findByPeriod(PERIOD_START, PERIOD_END))
@@ -124,7 +124,7 @@ class GetFunnelConversionServiceTest {
 		when(opportunityRepositoryPort.findByIds(Set.of(opportunityId)))
 				.thenReturn(List.of(opportunity(opportunityId, salesperson)));
 
-		FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
+		final FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
 
 		assertThat(view.averageCycleTime()).isEqualTo(Duration.between(firstTransitionAt, closingAt));
 	}
@@ -135,19 +135,19 @@ class GetFunnelConversionServiceTest {
 		when(stageTransitionRepositoryPort.findByPeriod(PERIOD_START, PERIOD_END)).thenReturn(List.of());
 		when(opportunityRepositoryPort.findByIds(Set.of())).thenReturn(List.of());
 
-		FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
+		final FunnelConversionView view = service.execute(new GetFunnelConversionQuery(PERIOD, null));
 
 		assertThat(view.conversionRateByStage()).isEmpty();
 		assertThat(view.volumeBySalesperson()).isEmpty();
 		assertThat(view.averageCycleTime()).isEqualTo(Duration.ZERO);
 	}
 
-	private static StageTransition transition(OpportunityId opportunityId, OpportunityStage from,
-			OpportunityStage to, Instant timestamp) {
+	private static StageTransition transition(final OpportunityId opportunityId, final OpportunityStage from,
+			final OpportunityStage to, final Instant timestamp) {
 		return StageTransition.of(StageTransitionId.of(UUID.randomUUID()), opportunityId, from, to, timestamp);
 	}
 
-	private static Opportunity opportunity(OpportunityId id, UUID owner) {
+	private static Opportunity opportunity(final OpportunityId id, final UUID owner) {
 		return Opportunity.of(id, UUID.randomUUID(), BigDecimal.valueOf(1000), 50, LocalDate.now().plusDays(10),
 				owner, OpportunityStage.PROSPECTING);
 	}

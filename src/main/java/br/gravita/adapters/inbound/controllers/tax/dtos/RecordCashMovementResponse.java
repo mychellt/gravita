@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record RecordCashMovementResponse(UUID id) {
 
-	public static RecordCashMovementResponse from(CashMovementId id) {
+	public static RecordCashMovementResponse from(final CashMovementId id) {
 		return new RecordCashMovementResponse(id.value());
 	}
 }

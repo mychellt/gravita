@@ -24,13 +24,13 @@ class PoiExcelReportAdapterTest {
 	@Test
 	@DisplayName("Writes the title, header lines, column headers, rows and footers of each sheet")
 	void writesTheTitleHeaderLinesColumnHeadersRowsAndFootersOfEachSheet() throws IOException {
-		byte[] xlsx = adapter.render(new ExcelWorkbook("Livros Fiscais - 02/2028",
+		final byte[] xlsx = adapter.render(new ExcelWorkbook("Livros Fiscais - 02/2028",
 				List.of("Período: 01/02/2028 a 29/02/2028"),
 				List.of(new Sheet("Livro de Saídas", List.of("Documento", "Valor"),
 						List.of(row("NFE 1/20", new BigDecimal("1000.50"))), List.of("Documentos: 1")))));
 
 		try (Workbook workbook = open(xlsx)) {
-			org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheet("Livro de Saídas");
+			final org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheet("Livro de Saídas");
 			assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("Livros Fiscais - 02/2028");
 			assertThat(sheet.getRow(1).getCell(0).getStringCellValue()).isEqualTo("Período: 01/02/2028 a 29/02/2028");
 			assertThat(sheet.getRow(3).getCell(0).getStringCellValue()).isEqualTo("Documento");
@@ -43,12 +43,12 @@ class PoiExcelReportAdapterTest {
 	@Test
 	@DisplayName("Keeps amounts and dates as real cells so the spreadsheet can be summed")
 	void keepsAmountsAndDatesAsRealCellsSoTheSpreadsheetCanBeSummed() throws IOException {
-		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S",
+		final byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S",
 				List.of("Data", "Valor", "Qtd", "Vazio", "Texto"),
 				List.of(row(LocalDate.of(2028, 2, 29), new BigDecimal("1234.5"), 3, null, "x")), List.of()))));
 
 		try (Workbook workbook = open(xlsx)) {
-			org.apache.poi.ss.usermodel.Row row = workbook.getSheet("S").getRow(3);
+			final org.apache.poi.ss.usermodel.Row row = workbook.getSheet("S").getRow(3);
 			assertThat(row.getCell(0).getLocalDateTimeCellValue().toLocalDate()).isEqualTo(LocalDate.of(2028, 2, 29));
 			assertThat(row.getCell(0).getCellStyle().getDataFormatString()).isEqualTo("dd/mm/yyyy");
 			assertThat(row.getCell(1).getCellType()).isEqualTo(CellType.NUMERIC);
@@ -63,7 +63,7 @@ class PoiExcelReportAdapterTest {
 	@Test
 	@DisplayName("Writes text that looks like a formula as plain text, never evaluating it")
 	void writesTextThatLooksLikeAFormulaAsTextNeverEvaluatingIt() throws IOException {
-		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S", List.of("Nome"),
+		final byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(new Sheet("S", List.of("Nome"),
 				List.of(row("=1+1")), List.of()))));
 
 		try (Workbook workbook = open(xlsx)) {
@@ -75,15 +75,15 @@ class PoiExcelReportAdapterTest {
 	@Test
 	@DisplayName("Makes sheet names valid and unique so no input fails the render")
 	void makesSheetNamesValidAndUniqueSoNoInputFailsTheRender() throws IOException {
-		String longName = "Livro de Apuração do ICMS com um nome muito longo";
-		byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(
+		final String longName = "Livro de Apuração do ICMS com um nome muito longo";
+		final byte[] xlsx = adapter.render(new ExcelWorkbook("T", List.of(), List.of(
 				new Sheet("Entradas/Saídas: [1]", List.of("A"), List.of(), List.of()),
 				new Sheet("entradas/saídas: [1]", List.of("A"), List.of(), List.of()),
 				new Sheet(longName, List.of("A"), List.of(), List.of()),
 				new Sheet("", List.of("A"), List.of(), List.of()))));
 
 		try (Workbook workbook = open(xlsx)) {
-			List<String> names = new ArrayList<>();
+			final List<String> names = new ArrayList<>();
 			for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
 				names.add(workbook.getSheetName(i));
 			}
@@ -97,18 +97,18 @@ class PoiExcelReportAdapterTest {
 	@Test
 	@DisplayName("Renders a workbook without sheets as one empty sheet")
 	void rendersAWorkbookWithoutSheetsAsOneEmptySheet() throws IOException {
-		byte[] xlsx = adapter.render(new ExcelWorkbook("Vazio", List.of(), List.of()));
+		final byte[] xlsx = adapter.render(new ExcelWorkbook("Vazio", List.of(), List.of()));
 
 		try (Workbook workbook = open(xlsx)) {
 			assertThat(workbook.getNumberOfSheets()).isEqualTo(1);
 		}
 	}
 
-	private static Workbook open(byte[] xlsx) throws IOException {
+	private static Workbook open(final byte[] xlsx) throws IOException {
 		return new XSSFWorkbook(new ByteArrayInputStream(xlsx));
 	}
 
-	private static List<Object> row(Object... cells) {
+	private static List<Object> row(final Object... cells) {
 		return Arrays.asList(cells);
 	}
 }

@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Builder
 public record PurchaseRequestId(UUID value) {
-    public static PurchaseRequestId of(UUID value) {
+    public static PurchaseRequestId of(final UUID value) {
         return new PurchaseRequestId(value);
     }
 }

@@ -18,8 +18,8 @@ public class LowStockAlertController {
 	private final SuggestReorderUseCase suggestReorderUseCase;
 
 	@GetMapping("/low-stock")
-	public ResponseEntity<List<ReorderSuggestionResponse>> get(@RequestParam(required = false) UUID warehouseId) {
-		List<ReorderSuggestionResponse> response = suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))
+	public ResponseEntity<List<ReorderSuggestionResponse>> get(@RequestParam(required = false) final UUID warehouseId) {
+		final List<ReorderSuggestionResponse> response = suggestReorderUseCase.execute(new SuggestReorderQuery(warehouseId))
 				.stream()
 				.map(ReorderSuggestionResponse::from)
 				.toList();

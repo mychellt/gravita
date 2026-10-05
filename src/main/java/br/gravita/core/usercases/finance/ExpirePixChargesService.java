@@ -12,14 +12,14 @@ public class ExpirePixChargesService implements ExpirePixChargesUseCase {
 
 	private final PixChargeRepositoryPort pixChargeRepositoryPort;
 
-	public ExpirePixChargesService(PixChargeRepositoryPort pixChargeRepositoryPort) {
+	public ExpirePixChargesService(final PixChargeRepositoryPort pixChargeRepositoryPort) {
 		this.pixChargeRepositoryPort = pixChargeRepositoryPort;
 	}
 
 	@Override
 	public int execute() {
-		Instant now = Instant.now();
-		List<PixCharge> due = pixChargeRepositoryPort.findPendingExpiredBefore(now);
+		final Instant now = Instant.now();
+		final List<PixCharge> due = pixChargeRepositoryPort.findPendingExpiredBefore(now);
 		due.forEach(charge -> pixChargeRepositoryPort.save(charge.expireIfDue(now)));
 		return due.size();
 	}

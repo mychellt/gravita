@@ -25,34 +25,45 @@ public class AdjustInventoryService implements AdjustInventoryUseCase {
 	private final StockMovementRepositoryPort stockMovementRepositoryPort;
 	private final PostAdjustmentAccountingEntryPort postAdjustmentAccountingEntryPort;
 
-	public AdjustInventoryService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockMovementRepositoryPort stockMovementRepositoryPort,
-			PostAdjustmentAccountingEntryPort postAdjustmentAccountingEntryPort) {
+	public AdjustInventoryService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockMovementRepositoryPort stockMovementRepositoryPort,
+			final PostAdjustmentAccountingEntryPort postAdjustmentAccountingEntryPort) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockMovementRepositoryPort = stockMovementRepositoryPort;
 		this.postAdjustmentAccountingEntryPort = postAdjustmentAccountingEntryPort;
 	}
 
 	@Override
-	public StockMovement execute(AdjustInventoryCommand command) {
+	public StockMovement execute(final AdjustInventoryCommand command) {
 		if (command.justification() == null || command.justification().isBlank()) {
 			throw new BusinessRuleException("Adjustment justification is required");
 		}
 
-		StockBalance current = stockBalanceRepositoryPort
+		final StockBalance current = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(command.productId(), command.warehouseId())
 				.orElseGet(() -> StockBalance.of(StockBalanceId.of(UUID.randomUUID()), command.productId(),
 						command.warehouseId(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
-		StockBalance updated = current.applyAdjustment(command.quantityDelta());
+		final StockBalance updated = current.applyAdjustment(command.quantityDelta());
 		stockBalanceRepositoryPort.save(updated);
 
 		postAdjustmentAccountingEntryPort.postAdjustmentEntry(new PostAdjustmentAccountingEntryCommand(
 				command.productId(), command.warehouseId(), command.quantityDelta(), current.getAverageCost(),
 				command.justification(), command.user()));
 
-		StockMovement movement = StockMovement.of(StockMovementId.of(UUID.randomUUID()), StockMovementType.ADJUSTMENT,
-				command.productId(), command.warehouseId(), command.quantityDelta(), current.getAverageCost(), null,
-				null, "MANUAL_ADJUSTMENT", command.justification(), command.user(), Instant.now());
+		final StockMovement movement = StockMovement.builder()
+				.id(StockMovementId.of(UUID.randomUUID()))
+				.type(StockMovementType.ADJUSTMENT)
+				.productId(command.productId())
+				.warehouseId(command.warehouseId())
+				.quantity(command.quantityDelta())
+				.unitCost(current.getAverageCost())
+				.lotCode(null)
+				.serialNumbers(null)
+				.originReference("MANUAL_ADJUSTMENT")
+				.justification(command.justification())
+				.user(command.user())
+				.timestamp(Instant.now())
+				.build();
 		return stockMovementRepositoryPort.save(movement);
 	}
 }

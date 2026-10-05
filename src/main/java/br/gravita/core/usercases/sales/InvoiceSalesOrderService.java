@@ -48,25 +48,25 @@ public class InvoiceSalesOrderService implements InvoiceSalesOrderUseCase {
 
 	@Override
 	@Transactional
-	public SalesInvoiceView execute(InvoiceSalesOrderCommand command) {
-		SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
+	public SalesInvoiceView execute(final InvoiceSalesOrderCommand command) {
+		final SalesOrder order = salesOrderRepositoryPort.findById(SalesOrderId.of(command.orderId()))
 				.orElseThrow(() -> new SalesOrderNotFoundException(command.orderId()));
 
 		// AC1: validated up front, before any fiscal issuance side effect; the
 		// resulting instance is only persisted once issuance below succeeds.
-		SalesOrder invoiced = order.invoice();
+		final SalesOrder invoiced = order.invoice();
 
-		List<Item> productItems = new ArrayList<>();
-		List<Item> serviceItems = new ArrayList<>();
+		final List<Item> productItems = new ArrayList<>();
+		final List<Item> serviceItems = new ArrayList<>();
 		BigDecimal productTotal = BigDecimal.ZERO;
 		BigDecimal serviceTotal = BigDecimal.ZERO;
 
-		for (SalesOrderItem item : order.getItems()) {
-			ProductDomain product = productRepositoryPort.get(item.productOrServiceId())
+		for (final SalesOrderItem item : order.getItems()) {
+			final ProductDomain product = productRepositoryPort.get(item.productOrServiceId())
 					.orElseThrow(
 							() -> new ResourceNotFoundException("Product or service not found: "
 									+ item.productOrServiceId()));
-			Item fiscalItem = new Item(item.productOrServiceId(), product.getInternalCode(), item.quantity(),
+			final Item fiscalItem = new Item(item.productOrServiceId(), product.getInternalCode(), item.quantity(),
 					item.unitPrice(), item.discount());
 			if (product.getType() == ProductType.SERVICE) {
 				serviceItems.add(fiscalItem);
@@ -77,9 +77,9 @@ public class InvoiceSalesOrderService implements InvoiceSalesOrderUseCase {
 			}
 		}
 
-		List<FiscalDocumentRef> issuedDocuments = new ArrayList<>();
+		final List<FiscalDocumentRef> issuedDocuments = new ArrayList<>();
 		if (!productItems.isEmpty()) {
-			FiscalDocumentRef productDocument = issueFiscalDocumentPort
+			final FiscalDocumentRef productDocument = issueFiscalDocumentPort
 					.issueForProducts(new IssueFiscalDocumentCommand(order.getId().value(), order.getCustomerId(),
 							productItems));
 			issuedDocuments.add(productDocument);
@@ -87,7 +87,7 @@ public class InvoiceSalesOrderService implements InvoiceSalesOrderUseCase {
 					productDocument, productTotal, LocalDate.now()));
 		}
 		if (!serviceItems.isEmpty()) {
-			FiscalDocumentRef serviceDocument = issueFiscalDocumentPort
+			final FiscalDocumentRef serviceDocument = issueFiscalDocumentPort
 					.issueForServices(new IssueFiscalDocumentCommand(order.getId().value(), order.getCustomerId(),
 							serviceItems));
 			issuedDocuments.add(serviceDocument);
@@ -96,9 +96,9 @@ public class InvoiceSalesOrderService implements InvoiceSalesOrderUseCase {
 		}
 
 		salesOrderRepositoryPort.save(invoiced);
-		SalesInvoice invoice = SalesInvoice.issue(SalesInvoiceId.of(UUID.randomUUID()), order.getId(),
+		final SalesInvoice invoice = SalesInvoice.issue(SalesInvoiceId.of(UUID.randomUUID()), order.getId(),
 				issuedDocuments);
-		SalesInvoice saved = salesInvoiceRepositoryPort.save(invoice);
+		final SalesInvoice saved = salesInvoiceRepositoryPort.save(invoice);
 
 		return SalesInvoiceView.from(saved);
 	}

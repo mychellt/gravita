@@ -1,5 +1,6 @@
 package br.gravita.core.domain.tax;
 
+import lombok.Builder;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
@@ -30,10 +31,11 @@ public final class InboundNfe {
 	private final Instant importedAt;
 	private final List<InboundNfeConferenceItem> conferenceResult;
 
-	public InboundNfe(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
-			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
-			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
-			List<InboundNfeConferenceItem> conferenceResult) {
+	@Builder
+	public InboundNfe(final InboundNfeId id, final CompanyId companyId, final String accessKey, final String series, final String number,
+			final Document supplierDocument, final String supplierName, final Instant issuedAt, final List<InboundNfeItem> items,
+			final InboundNfeTotals totals, final String xmlStorageRef, final InboundNfeStatus status, final Instant importedAt,
+			final List<InboundNfeConferenceItem> conferenceResult) {
 		this.id = Objects.requireNonNull(id, "InboundNfeId is required");
 		this.companyId = Objects.requireNonNull(companyId, "companyId is required");
 		this.accessKey = requireAccessKey(accessKey);
@@ -50,47 +52,33 @@ public final class InboundNfe {
 		this.conferenceResult = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
 	}
 
-	public static InboundNfe importedFromXml(InboundNfeId id, CompanyId companyId, String accessKey, String series,
-			String number, Document supplierDocument, String supplierName, Instant issuedAt,
-			List<InboundNfeItem> items, InboundNfeTotals totals, String xmlStorageRef) {
-		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
-				items, totals, xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(), List.of());
+	@Builder(builderMethodName = "importedFromXml", builderClassName = "ImportedFromXmlBuilder")
+	private InboundNfe(final InboundNfeId id, final CompanyId companyId, final String accessKey, final String series,
+			final String number, final Document supplierDocument, final String supplierName, final Instant issuedAt,
+			final List<InboundNfeItem> items, final InboundNfeTotals totals, final String xmlStorageRef) {
+		this(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt, items, totals,
+				xmlStorageRef, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(), List.of());
 	}
 
-	public static InboundNfe enteredManually(InboundNfeId id, CompanyId companyId, String accessKey, String series,
-			String number, Document supplierDocument, String supplierName, Instant issuedAt,
-			List<InboundNfeItem> items, InboundNfeTotals totals) {
+	public static InboundNfe enteredManually(final InboundNfeId id, final CompanyId companyId, final String accessKey, final String series,
+			final String number, final Document supplierDocument, final String supplierName, final Instant issuedAt,
+			final List<InboundNfeItem> items, final InboundNfeTotals totals) {
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
 				items, totals, MANUAL_ENTRY_XML_STORAGE_REF, InboundNfeStatus.PENDING_CONFERENCE, Instant.now(),
 				List.of());
 	}
 
-	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
-			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
-			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt) {
-		return of(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt, items, totals,
-				xmlStorageRef, status, importedAt, List.of());
-	}
-
-	public static InboundNfe of(InboundNfeId id, CompanyId companyId, String accessKey, String series, String number,
-			Document supplierDocument, String supplierName, Instant issuedAt, List<InboundNfeItem> items,
-			InboundNfeTotals totals, String xmlStorageRef, InboundNfeStatus status, Instant importedAt,
-			List<InboundNfeConferenceItem> conferenceResult) {
-		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
-				items, totals, xmlStorageRef, status, importedAt, conferenceResult);
-	}
-
-	public InboundNfe confirm(List<InboundNfeConferenceItem> conferenceResult) {
+	public InboundNfe confirm(final List<InboundNfeConferenceItem> conferenceResult) {
 		if (status == InboundNfeStatus.CONFIRMED) {
 			throw new BusinessRuleException("Inbound NFe already confirmed: " + id.value());
 		}
-		List<InboundNfeConferenceItem> result = requireConferenceResult(conferenceResult);
+		final List<InboundNfeConferenceItem> result = requireConferenceResult(conferenceResult);
 		return new InboundNfe(id, companyId, accessKey, series, number, supplierDocument, supplierName, issuedAt,
 				items, totals, xmlStorageRef, InboundNfeStatus.CONFIRMED, importedAt, result);
 	}
 
-	private List<InboundNfeConferenceItem> requireConferenceResult(List<InboundNfeConferenceItem> conferenceResult) {
-		List<InboundNfeConferenceItem> copy = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
+	private List<InboundNfeConferenceItem> requireConferenceResult(final List<InboundNfeConferenceItem> conferenceResult) {
+		final List<InboundNfeConferenceItem> copy = conferenceResult == null ? List.of() : List.copyOf(conferenceResult);
 		if (copy.size() != items.size()) {
 			throw new BusinessRuleException("Conference result must have exactly one entry per NFe item (expected "
 					+ items.size() + ", got " + copy.size() + ")");
@@ -98,22 +86,22 @@ public final class InboundNfe {
 		return copy;
 	}
 
-	private static String requireAccessKey(String accessKey) {
+	private static String requireAccessKey(final String accessKey) {
 		if (accessKey == null || !ACCESS_KEY_PATTERN.matcher(accessKey).matches()) {
 			throw new BusinessRuleException("NFe access key must be 44 digits: " + accessKey);
 		}
 		return accessKey;
 	}
 
-	private static String requireText(String value, String field) {
+	private static String requireText(final String value, final String field) {
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException(field + " is required");
 		}
 		return value;
 	}
 
-	private static List<InboundNfeItem> requireNonEmptyItems(List<InboundNfeItem> items) {
-		List<InboundNfeItem> copy = items == null ? List.of() : List.copyOf(items);
+	private static List<InboundNfeItem> requireNonEmptyItems(final List<InboundNfeItem> items) {
+		final List<InboundNfeItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("An inbound NFe must have at least one item");
 		}

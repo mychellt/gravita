@@ -24,16 +24,16 @@ class ReserveStockAdapterTest {
 	@Test
 	@DisplayName("Delegates to the real use case using the default warehouse")
 	void delegatesToTheRealUseCaseUsingTheDefaultWarehouse() {
-		ReserveStockAdapter adapter = new ReserveStockAdapter(reserveStockUseCase);
-		UUID orderId = UUID.randomUUID();
-		UUID productId = UUID.randomUUID();
+		final ReserveStockAdapter adapter = new ReserveStockAdapter(reserveStockUseCase);
+		final UUID orderId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
 
 		adapter.reserve(new ReserveStockForOrderCommand(orderId, productId, BigDecimal.TEN));
 
-		ArgumentCaptor<ReserveStockCommand> captor = ArgumentCaptor.forClass(ReserveStockCommand.class);
+		final ArgumentCaptor<ReserveStockCommand> captor = ArgumentCaptor.forClass(ReserveStockCommand.class);
 		verify(reserveStockUseCase).execute(captor.capture());
 
-		ReserveStockCommand command = captor.getValue();
+		final ReserveStockCommand command = captor.getValue();
 		assertThat(command.orderRef()).isEqualTo(orderId);
 		assertThat(command.productId()).isEqualTo(productId);
 		assertThat(command.quantity()).isEqualByComparingTo(BigDecimal.TEN);

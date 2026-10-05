@@ -21,8 +21,8 @@ public final class Quote {
 	private final LocalDate validUntil;
 	private final QuoteStatus status;
 
-	public static Quote create(QuoteId id, UUID customerId, UUID salespersonId, List<QuoteItem> items,
-			LocalDate validUntil, LocalDate today) {
+	public static Quote create(final QuoteId id, final UUID customerId, final UUID salespersonId, final List<QuoteItem> items,
+			final LocalDate validUntil, final LocalDate today) {
 		Objects.requireNonNull(customerId, "customerId is required");
 		Objects.requireNonNull(salespersonId, "salespersonId is required");
 		Objects.requireNonNull(validUntil, "validUntil is required");
@@ -32,8 +32,8 @@ public final class Quote {
 		return new Quote(id, customerId, salespersonId, requireNonEmptyItems(items), validUntil, QuoteStatus.DRAFT);
 	}
 
-	public static Quote of(QuoteId id, UUID customerId, UUID salespersonId, List<QuoteItem> items,
-			LocalDate validUntil, QuoteStatus status) {
+	public static Quote of(final QuoteId id, final UUID customerId, final UUID salespersonId, final List<QuoteItem> items,
+			final LocalDate validUntil, final QuoteStatus status) {
 		return new Quote(id, customerId, salespersonId, items, validUntil, status);
 	}
 
@@ -43,7 +43,7 @@ public final class Quote {
 	 * {@code validUntil} has passed; the salesperson must create a new quote
 	 * instead.
 	 */
-	public Quote send(LocalDate today) {
+	public Quote send(final LocalDate today) {
 		if (today.isAfter(validUntil)) {
 			throw new BusinessRuleException(
 					"Quote " + id.value() + " has expired (validUntil: " + validUntil + ")");
@@ -55,7 +55,7 @@ public final class Quote {
 		return items.stream().map(QuoteItem::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 	}
 
-	public Quote convert(LocalDate today) {
+	public Quote convert(final LocalDate today) {
 		if (status == QuoteStatus.CONVERTED) {
 			throw new BusinessRuleException("Quote is already converted: " + id.value());
 		}
@@ -65,8 +65,8 @@ public final class Quote {
 		return new Quote(id, customerId, salespersonId, items, validUntil, QuoteStatus.CONVERTED);
 	}
 
-	private static List<QuoteItem> requireNonEmptyItems(List<QuoteItem> items) {
-		List<QuoteItem> copy = items == null ? List.of() : List.copyOf(items);
+	private static List<QuoteItem> requireNonEmptyItems(final List<QuoteItem> items) {
+		final List<QuoteItem> copy = items == null ? List.of() : List.copyOf(items);
 		if (copy.isEmpty()) {
 			throw new BusinessRuleException("A quote must have at least one item");
 		}

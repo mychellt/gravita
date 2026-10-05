@@ -35,15 +35,15 @@ class RegisterProductAdapterTest {
 	@DisplayName("Registering a product assigns an id and sets its status to active")
 	@Test
 	void shouldAssignIdAndActivateStatusOnRegister() {
-		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
-		ProductDomain product = ProductDomain.builder().type(ProductType.SIMPLE).internalCode("SKU-1").build();
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		final ProductDomain product = ProductDomain.builder().type(ProductType.SIMPLE).internalCode("SKU-1").build();
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ProductDomain created = adapter.execute(new Context(product));
+		final ProductDomain created = adapter.execute(new Context(product));
 
 		assertThat(created.getId()).isNotNull();
 		assertThat(created.getStatus()).isEqualTo(ProductStatus.ACTIVE);
-		ArgumentCaptor<ProductDomain> captor = ArgumentCaptor.forClass(ProductDomain.class);
+		final ArgumentCaptor<ProductDomain> captor = ArgumentCaptor.forClass(ProductDomain.class);
 		verify(productRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getInternalCode()).isEqualTo("SKU-1");
 	}
@@ -51,8 +51,8 @@ class RegisterProductAdapterTest {
 	@DisplayName("Rejects registering a product whose barcode is already taken")
 	@Test
 	void shouldRejectDuplicateBarcode() {
-		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
-		ProductDomain product = ProductDomain.builder()
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		final ProductDomain product = ProductDomain.builder()
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.barcodes(List.of("7891234567895"))
@@ -68,9 +68,9 @@ class RegisterProductAdapterTest {
 	@DisplayName("Rejects a kit that is composed of a product that does not exist")
 	@Test
 	void shouldRejectKitComposingUnknownProduct() {
-		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
-		UUID missingComponentId = UUID.randomUUID();
-		ProductDomain kit = ProductDomain.builder()
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		final UUID missingComponentId = UUID.randomUUID();
+		final ProductDomain kit = ProductDomain.builder()
 				.type(ProductType.KIT)
 				.internalCode("KIT-1")
 				.kitComponents(List.of(new KitComponentDomain(missingComponentId, BigDecimal.ONE)))
@@ -86,9 +86,9 @@ class RegisterProductAdapterTest {
 	@DisplayName("Registers a kit when all of its component products exist")
 	@Test
 	void shouldRegisterKitWhenAllComponentsExist() {
-		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
-		UUID componentId = UUID.randomUUID();
-		ProductDomain kit = ProductDomain.builder()
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		final UUID componentId = UUID.randomUUID();
+		final ProductDomain kit = ProductDomain.builder()
 				.type(ProductType.KIT)
 				.internalCode("KIT-1")
 				.kitComponents(List.of(new KitComponentDomain(componentId, BigDecimal.ONE)))
@@ -97,7 +97,7 @@ class RegisterProductAdapterTest {
 				.thenReturn(Optional.of(ProductDomain.builder().id(componentId).build()));
 		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-		ProductDomain created = adapter.execute(new Context(kit));
+		final ProductDomain created = adapter.execute(new Context(kit));
 
 		assertThat(created.getStatus()).isEqualTo(ProductStatus.ACTIVE);
 		verify(productRepositoryPort).save(any());
@@ -106,8 +106,8 @@ class RegisterProductAdapterTest {
 	@DisplayName("Rejects registering a product with more than five images")
 	@Test
 	void shouldRejectMoreThanFiveImages() {
-		RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
-		ProductDomain product = ProductDomain.builder()
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		final ProductDomain product = ProductDomain.builder()
 				.type(ProductType.SIMPLE)
 				.internalCode("SKU-1")
 				.images(List.of("1", "2", "3", "4", "5", "6"))

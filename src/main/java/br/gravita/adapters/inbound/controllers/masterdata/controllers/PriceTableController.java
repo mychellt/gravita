@@ -23,25 +23,25 @@ public class PriceTableController {
     private final ManagePriceTableUseCase managePriceTableUseCase;
 
     @PostMapping
-    public ResponseEntity<PriceTableResponse> create(@Valid @RequestBody UpsertPriceTableRequest request) {
-        PriceTableId id = managePriceTableUseCase.execute(request.toCommand(null));
+    public ResponseEntity<PriceTableResponse> create(@Valid @RequestBody final UpsertPriceTableRequest request) {
+        final PriceTableId id = managePriceTableUseCase.execute(request.toCommand(null));
         return ResponseEntity.created(URI.create("/api/price-tables/" + id.value())).body(PriceTableResponse.from(id));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PriceTableResponse> update(@PathVariable UUID id,
-                                                     @Valid @RequestBody UpsertPriceTableRequest request) {
-        PriceTableId saved = managePriceTableUseCase.execute(request.toCommand(id));
+    public ResponseEntity<PriceTableResponse> update(@PathVariable final UUID id,
+                                                     @Valid @RequestBody final UpsertPriceTableRequest request) {
+        final PriceTableId saved = managePriceTableUseCase.execute(request.toCommand(id));
         return ResponseEntity.ok(PriceTableResponse.from(saved));
     }
 
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+    public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
         return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(PriceTableNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handlePriceTableNotFoundException(PriceTableNotFoundException exception) {
+    public ResponseEntity<Map<String, String>> handlePriceTableNotFoundException(final PriceTableNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 }

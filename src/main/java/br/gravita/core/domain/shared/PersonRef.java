@@ -10,7 +10,7 @@ import java.util.UUID;
  */
 public record PersonRef(UUID id) {
 
-	public static PersonRef of(UUID id) {
+	public static PersonRef of(final UUID id) {
 		return id == null ? null : new PersonRef(id);
 	}
 }

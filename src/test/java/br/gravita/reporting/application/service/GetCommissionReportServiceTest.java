@@ -36,8 +36,8 @@ class GetCommissionReportServiceTest {
 	private static final UUID BRUNO = UUID.fromString("00000000-0000-0000-0000-00000000000b");
 	private static final UUID RICE = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
 	private static final UUID BEANS = UUID.fromString("00000000-0000-0000-0000-0000000000a2");
-	private static final UUID ORDER_1 = UUID.fromString("00000000-0000-0000-0000-0000000000b1");
-	private static final UUID ORDER_2 = UUID.fromString("00000000-0000-0000-0000-0000000000b2");
+	private static final UUID ORDER_ONE = UUID.fromString("00000000-0000-0000-0000-0000000000b1");
+	private static final UUID ORDER_TWO = UUID.fromString("00000000-0000-0000-0000-0000000000b2");
 
 	private final SalesReadModelPort sales = mock(SalesReadModelPort.class);
 	private final PermissionCheckPort permissions = mock(PermissionCheckPort.class);
@@ -55,7 +55,7 @@ class GetCommissionReportServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the report, without reading any data")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheReportWithoutReadingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "commissions")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new CommissionReportQuery(stranger, null, PERIOD)))
@@ -67,14 +67,14 @@ class GetCommissionReportServiceTest {
 	@DisplayName("Projects the commissions of the whole requested month")
 	@Test
 	void projectsTheCommissionsOfTheWholeRequestedMonth() {
-		when(sales.commissions(FROM, TO, null)).thenReturn(List.of(record(ANA, RICE, ORDER_1, "0.0500", "45.0000")));
+		when(sales.commissions(FROM, TO, null)).thenReturn(List.of(record(ANA, RICE, ORDER_ONE, "0.0500", "45.0000")));
 
-		List<CommissionReportEntry> report = service.execute(new CommissionReportQuery(user, null, PERIOD));
+		final List<CommissionReportEntry> report = service.execute(new CommissionReportQuery(user, null, PERIOD));
 
 		assertThat(report).singleElement().satisfies(entry -> {
 			assertThat(entry.salespersonId()).isEqualTo(ANA);
 			assertThat(entry.productId()).isEqualTo(RICE);
-			assertThat(entry.orderId()).isEqualTo(ORDER_1);
+			assertThat(entry.orderId()).isEqualTo(ORDER_ONE);
 			assertThat(entry.rate()).isEqualByComparingTo("0.05");
 			assertThat(entry.amount()).isEqualByComparingTo("45");
 		});
@@ -91,18 +91,18 @@ class GetCommissionReportServiceTest {
 	@DisplayName("Groups the lines by salesperson, then product, then order")
 	@Test
 	void groupsTheLinesBySalespersonThenProductThenOrder() {
-		when(sales.commissions(any(), any(), any())).thenReturn(List.of(record(BRUNO, RICE, ORDER_1, "0.1", "10"),
-				record(ANA, BEANS, ORDER_2, "0.1", "20"), record(ANA, RICE, ORDER_2, "0.1", "30"),
-				record(ANA, BEANS, ORDER_1, "0.1", "40")));
+		when(sales.commissions(any(), any(), any())).thenReturn(List.of(record(BRUNO, RICE, ORDER_ONE, "0.1", "10"),
+				record(ANA, BEANS, ORDER_TWO, "0.1", "20"), record(ANA, RICE, ORDER_TWO, "0.1", "30"),
+				record(ANA, BEANS, ORDER_ONE, "0.1", "40")));
 
-		List<CommissionReportEntry> report = service.execute(new CommissionReportQuery(user, null, PERIOD));
+		final List<CommissionReportEntry> report = service.execute(new CommissionReportQuery(user, null, PERIOD));
 
 		assertThat(report).extracting(CommissionReportEntry::salespersonId, CommissionReportEntry::productId,
 				CommissionReportEntry::orderId).containsExactly(
-						tuple(ANA, RICE, ORDER_2),
-						tuple(ANA, BEANS, ORDER_1),
-						tuple(ANA, BEANS, ORDER_2),
-						tuple(BRUNO, RICE, ORDER_1));
+						tuple(ANA, RICE, ORDER_TWO),
+						tuple(ANA, BEANS, ORDER_ONE),
+						tuple(ANA, BEANS, ORDER_TWO),
+						tuple(BRUNO, RICE, ORDER_ONE));
 	}
 
 	@DisplayName("Returns an empty report when nothing was commissioned in the period")
@@ -111,7 +111,7 @@ class GetCommissionReportServiceTest {
 		assertThat(service.execute(new CommissionReportQuery(user, null, PERIOD))).isEmpty();
 	}
 
-	private CommissionRecord record(UUID salesperson, UUID product, UUID order, String rate, String amount) {
+	private CommissionRecord record(final UUID salesperson, final UUID product, final UUID order, final String rate, final String amount) {
 		return new CommissionRecord(salesperson, product, order, new BigDecimal(rate), new BigDecimal(amount));
 	}
 }

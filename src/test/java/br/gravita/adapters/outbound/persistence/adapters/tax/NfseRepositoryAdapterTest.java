@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -184,9 +183,23 @@ class NfseRepositoryAdapterTest {
 	private NfseDocument buildRps() {
 		final NfseTomador tomador = NfseTomador.of(null, "52998224725", PersonType.INDIVIDUAL, "Pessoa Fisica", null,
 				null);
-		return NfseDocument.issueRps(NfseId.of(UUID.randomUUID()), CompanyId.of(UUID.randomUUID()), "3550308",
-				tomador, ServiceCode.of("1.05"), PlaceOfProvision.RECIPIENT, "3304557", new BigDecimal("1000.00"),
-				new BigDecimal("5.0000"), new BigDecimal("50.00"), null, List.of(),
-				"Desenvolvimento de software sob demanda", "RPS1", 42L, Instant.parse("2026-10-01T10:00:00Z"));
+		return NfseDocument.issueRps()
+				.id(NfseId.of(UUID.randomUUID()))
+				.providerCompanyId(CompanyId.of(UUID.randomUUID()))
+				.providerMunicipalityIbgeCode("3550308")
+				.tomador(tomador)
+				.serviceCode(ServiceCode.of("1.05"))
+				.placeOfProvision(PlaceOfProvision.RECIPIENT)
+				.issMunicipalityIbgeCode("3304557")
+				.serviceAmount(new BigDecimal("1000.00"))
+				.issRate(new BigDecimal("5.0000"))
+				.issAmount(new BigDecimal("50.00"))
+				.issRateOverrideJustification(null)
+				.withholdings(List.of())
+				.discrimination("Desenvolvimento de software sob demanda")
+				.rpsSeries("RPS1")
+				.rpsNumber(42L)
+				.createdAt(Instant.parse("2026-10-01T10:00:00Z"))
+				.build();
 	}
 }

@@ -10,7 +10,7 @@ public record ManifestInboundNfeRequest(String accessKey, String type) {
 		return new ManifestInboundNfeCommand(accessKey, parseType(type));
 	}
 
-	private static ManifestationType parseType(String type) {
+	private static ManifestationType parseType(final String type) {
 		try {
 			return ManifestationType.valueOf(type == null ? null : type.toUpperCase());
 		} catch (IllegalArgumentException | NullPointerException exception) {

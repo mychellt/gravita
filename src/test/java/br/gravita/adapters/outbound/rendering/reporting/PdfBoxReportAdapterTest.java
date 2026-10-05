@@ -24,11 +24,11 @@ class PdfBoxReportAdapterTest {
 	@Test
 	@DisplayName("Renders the title, header lines, sections and footers of a report")
 	void rendersTheTitleHeaderLinesSectionsAndFootersOfAReport() throws IOException {
-		byte[] pdf = adapter.render(new PdfReport("Livros Fiscais - 02/2028", List.of("Período: 01/02/2028 a 29/02/2028"),
+		final byte[] pdf = adapter.render(new PdfReport("Livros Fiscais - 02/2028", List.of("Período: 01/02/2028 a 29/02/2028"),
 				List.of(new Section("Livro de Saídas", COLUMNS, List.of(List.of("NFE 1/20", "1.000,00")),
 						List.of("Documentos: 1")))));
 
-		String text = textOf(pdf);
+		final String text = textOf(pdf);
 		assertThat(text).containsSubsequence("Livros Fiscais - 02/2028", "Período: 01/02/2028 a 29/02/2028",
 				"Livro de Saídas", "Documento", "Valor", "NFE 1/20", "1.000,00", "Documentos: 1");
 		assertThat(pdf).startsWith("%PDF".getBytes());
@@ -37,18 +37,18 @@ class PdfBoxReportAdapterTest {
 	@Test
 	@DisplayName("Runs a long table over several pages, repeating its headers and numbering the pages")
 	void runsALongTableOverSeveralPagesRepeatingItsHeadersAndNumberingThePages() throws IOException {
-		List<List<String>> rows = new ArrayList<>();
+		final List<List<String>> rows = new ArrayList<>();
 		for (int i = 1; i <= 150; i++) {
 			rows.add(List.of("NFE 1/" + i, "10,00"));
 		}
 
-		byte[] pdf = adapter.render(new PdfReport("Livro", List.of(), List.of(new Section("Entradas", COLUMNS, rows,
+		final byte[] pdf = adapter.render(new PdfReport("Livro", List.of(), List.of(new Section("Entradas", COLUMNS, rows,
 				List.of("Documentos: 150")))));
 
 		try (PDDocument document = Loader.loadPDF(pdf)) {
-			int pages = document.getNumberOfPages();
+			final int pages = document.getNumberOfPages();
 			assertThat(pages).isGreaterThan(2);
-			String text = new PDFTextStripper().getText(document);
+			final String text = new PDFTextStripper().getText(document);
 			assertThat(text).contains("NFE 1/1", "NFE 1/150", "Documentos: 150", "Página 1 de " + pages,
 					"Página " + pages + " de " + pages);
 			assertThat(text.split("Documento\\s", -1).length - 1).isEqualTo(pages);
@@ -58,7 +58,7 @@ class PdfBoxReportAdapterTest {
 	@Test
 	@DisplayName("States that a section has no rows when it is empty")
 	void saysSoWhenASectionHasNoRows() throws IOException {
-		byte[] pdf = adapter.render(new PdfReport("Livro", List.of(),
+		final byte[] pdf = adapter.render(new PdfReport("Livro", List.of(),
 				List.of(new Section("Entradas", COLUMNS, List.of(), List.of("Documentos: 0")))));
 
 		assertThat(textOf(pdf)).contains("Sem documentos no período.", "Documentos: 0");
@@ -67,12 +67,12 @@ class PdfBoxReportAdapterTest {
 	@Test
 	@DisplayName("Cuts a text that does not fit its column with an ellipsis")
 	void cutsATextThatDoesNotFitItsColumnWithAnEllipsis() throws IOException {
-		String longText = "Razao Social Muito Longa ".repeat(20);
+		final String longText = "Razao Social Muito Longa ".repeat(20);
 
-		byte[] pdf = adapter.render(new PdfReport("Livro", List.of(),
+		final byte[] pdf = adapter.render(new PdfReport("Livro", List.of(),
 				List.of(new Section("Entradas", COLUMNS, List.of(List.of(longText, "1,00")), List.of()))));
 
-		String text = textOf(pdf);
+		final String text = textOf(pdf);
 		assertThat(text).contains("Razao Social").contains("...");
 		assertThat(text).doesNotContain(longText.strip());
 	}
@@ -80,14 +80,14 @@ class PdfBoxReportAdapterTest {
 	@Test
 	@DisplayName("Prints characters the font cannot encode as question marks instead of failing")
 	void printsCharactersTheFontCannotEncodeAsQuestionMarksInsteadOfFailing() throws IOException {
-		byte[] pdf = adapter.render(new PdfReport("Livro ☃", List.of("linha\ncom quebra"),
+		final byte[] pdf = adapter.render(new PdfReport("Livro ☃", List.of("linha\ncom quebra"),
 				List.of(new Section("Entradas 中", COLUMNS, List.of(List.of("Açúcar ☃ União", "1,00")),
 						List.of()))));
 
 		assertThat(textOf(pdf)).contains("Livro ?", "linha com quebra", "Entradas ?", "Açúcar ? União");
 	}
 
-	private String textOf(byte[] pdf) throws IOException {
+	private String textOf(final byte[] pdf) throws IOException {
 		try (PDDocument document = Loader.loadPDF(pdf)) {
 			return new PDFTextStripper().getText(document);
 		}

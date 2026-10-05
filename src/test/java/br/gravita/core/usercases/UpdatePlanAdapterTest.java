@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,8 +40,8 @@ class UpdatePlanAdapterTest {
 		lenient().when(planRepositoryPort.save(any(PlanDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 	}
 
-	private PlanDomain givenStoredPlan(PlanDomain... otherPlans) {
-		PlanDomain stored = aPlan().name("Silver").build();
+	private PlanDomain givenStoredPlan(final PlanDomain... otherPlans) {
+		final PlanDomain stored = plan().name("Silver").build();
 		when(planRepositoryPort.findById(stored.getId())).thenReturn(Optional.of(stored));
 		when(planRepositoryPort.findAll()).thenReturn(Stream.concat(Stream.of(stored), Stream.of(otherPlans)).toList());
 		return stored;
@@ -50,10 +50,10 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Saves the changes when the plan exists")
 	@Test
 	void shouldSaveWhenPlanExists() {
-		PlanDomain stored = givenStoredPlan();
-		PlanDomain updated = aPlan().id(stored.getId()).name("Silver Plus").build();
+		final PlanDomain stored = givenStoredPlan();
+		final PlanDomain updated = plan().id(stored.getId()).name("Silver Plus").build();
 
-		PlanDomain result = adapter.execute(new Context(updated));
+		final PlanDomain result = adapter.execute(new Context(updated));
 
 		assertThat(result.getName()).isEqualTo("Silver Plus");
 		verify(planRepositoryPort).save(updated);
@@ -62,7 +62,7 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Fails with not found when the plan to update does not exist")
 	@Test
 	void shouldFailWhenPlanNotFound() {
-		PlanDomain updated = aPlan().build();
+		final PlanDomain updated = plan().build();
 		when(planRepositoryPort.findById(updated.getId())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> adapter.execute(new Context(updated))).isInstanceOf(BusinessRuleException.class);
@@ -72,9 +72,9 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Keeping a plan's own name is not a duplicate")
 	@Test
 	void shouldAcceptUnchangedName() {
-		PlanDomain stored = givenStoredPlan();
+		final PlanDomain stored = givenStoredPlan();
 
-		PlanDomain result = adapter.execute(new Context(aPlan().id(stored.getId()).name("silver").build()));
+		final PlanDomain result = adapter.execute(new Context(plan().id(stored.getId()).name("silver").build()));
 
 		assertThat(result.getName()).isEqualTo("silver");
 	}
@@ -82,9 +82,9 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Renaming a plan to another plan's name is rejected, ignoring case")
 	@Test
 	void shouldRejectRenameToExistingName() {
-		PlanDomain stored = givenStoredPlan(aPlan().name("Gold").build());
+		final PlanDomain stored = givenStoredPlan(plan().name("Gold").build());
 
-		assertThatThrownBy(() -> adapter.execute(new Context(aPlan().id(stored.getId()).name("GOLD").build())))
+		assertThatThrownBy(() -> adapter.execute(new Context(plan().id(stored.getId()).name("GOLD").build())))
 				.isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());
 	}
@@ -92,9 +92,9 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Featuring a plan clears the featured flag of the plan that had it")
 	@Test
 	void shouldClearFeaturedOnOtherPlans() {
-		PlanDomain previouslyFeatured = aPlan().name("Gold").featured(true).build();
-		PlanDomain stored = givenStoredPlan(previouslyFeatured);
-		PlanDomain updated = aPlan().id(stored.getId()).name("Silver").featured(true).build();
+		final PlanDomain previouslyFeatured = plan().name("Gold").featured(true).build();
+		final PlanDomain stored = givenStoredPlan(previouslyFeatured);
+		final PlanDomain updated = plan().id(stored.getId()).name("Silver").featured(true).build();
 
 		adapter.execute(new Context(updated));
 
@@ -106,9 +106,9 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Saving a plan that stays featured does not rewrite the other plans")
 	@Test
 	void shouldNotRewriteOtherPlansWhenNothingToClear() {
-		PlanDomain stored = givenStoredPlan(aPlan().name("Gold").build());
+		final PlanDomain stored = givenStoredPlan(plan().name("Gold").build());
 
-		adapter.execute(new Context(aPlan().id(stored.getId()).name("Silver").featured(true).build()));
+		adapter.execute(new Context(plan().id(stored.getId()).name("Silver").featured(true).build()));
 
 		verify(planRepositoryPort, times(1)).save(any());
 	}
@@ -116,9 +116,9 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Deactivating the only active plan is rejected")
 	@Test
 	void shouldRejectDeactivatingTheLastActivePlan() {
-		PlanDomain stored = givenStoredPlan(aPlan().name("Gold").active(false).build());
+		final PlanDomain stored = givenStoredPlan(plan().name("Gold").active(false).build());
 
-		assertThatThrownBy(() -> adapter.execute(new Context(aPlan().id(stored.getId()).name("Silver").active(false).build())))
+		assertThatThrownBy(() -> adapter.execute(new Context(plan().id(stored.getId()).name("Silver").active(false).build())))
 				.isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());
 	}
@@ -126,17 +126,17 @@ class UpdatePlanAdapterTest {
 	@DisplayName("Deactivating a plan is allowed while another plan stays active")
 	@Test
 	void shouldAllowDeactivatingWhenAnotherPlanIsActive() {
-		PlanDomain stored = givenStoredPlan(aPlan().name("Gold").build());
+		final PlanDomain stored = givenStoredPlan(plan().name("Gold").build());
 
-		PlanDomain result = adapter.execute(new Context(aPlan().id(stored.getId()).name("Silver").active(false).build()));
+		final PlanDomain result = adapter.execute(new Context(plan().id(stored.getId()).name("Silver").active(false).build()));
 
 		assertThat(result.isActivePlan()).isFalse();
 	}
 
 	@ParameterizedTest(name = "rejects {0}")
 	@MethodSource("br.gravita.core.domain.PlanFixtures#invalidPlans")
-	void shouldRejectInvalidPlan(String ignoredRule, PlanDomain invalid) {
-		when(planRepositoryPort.findById(invalid.getId())).thenReturn(Optional.of(aPlan().id(invalid.getId()).build()));
+	void shouldRejectInvalidPlan(final String ignoredRule, final PlanDomain invalid) {
+		when(planRepositoryPort.findById(invalid.getId())).thenReturn(Optional.of(plan().id(invalid.getId()).build()));
 
 		assertThatThrownBy(() -> adapter.execute(new Context(invalid))).isInstanceOf(BusinessRuleException.class);
 		verify(planRepositoryPort, never()).save(any());

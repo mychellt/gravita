@@ -15,22 +15,22 @@ class CashClosingReportRepositoryAdapter implements CashClosingReportRepositoryP
 	private final CashClosingReportJpaRepository jpaRepository;
 	private final CashClosingReportPersistenceMapper mapper;
 
-	CashClosingReportRepositoryAdapter(CashClosingReportJpaRepository jpaRepository,
-			CashClosingReportPersistenceMapper mapper) {
+	CashClosingReportRepositoryAdapter(final CashClosingReportJpaRepository jpaRepository,
+			final CashClosingReportPersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public CashClosingReport save(CashClosingReport report) {
-		CashClosingReportJpaEntity entity = mapper.map(report);
+	public CashClosingReport save(final CashClosingReport report) {
+		final CashClosingReportJpaEntity entity = mapper.map(report);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		CashClosingReportJpaEntity saved = jpaRepository.save(entity);
+		final CashClosingReportJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<CashClosingReport> findBySessionId(PosSessionId sessionId) {
+	public Optional<CashClosingReport> findBySessionId(final PosSessionId sessionId) {
 		return jpaRepository.findBySessionId(sessionId.value()).map(mapper::map);
 	}
 }

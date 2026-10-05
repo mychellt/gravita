@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record UpdateUserRequest(String name, @Email String email, UUID profileId, UserStatus status) {
 
-	public UpdateUserCommand toCommand(UUID userId) {
+	public UpdateUserCommand toCommand(final UUID userId) {
 		return new UpdateUserCommand(userId, name, email, profileId, status);
 	}
 }

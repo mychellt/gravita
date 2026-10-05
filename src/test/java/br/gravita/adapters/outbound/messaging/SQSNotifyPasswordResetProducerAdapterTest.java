@@ -49,14 +49,14 @@ class SQSNotifyPasswordResetProducerAdapterTest {
     void shouldPublishToThePasswordResetQueue() {
         adapter().execute(reset());
 
-        ArgumentCaptor<GetQueueUrlRequest> lookup = ArgumentCaptor.forClass(GetQueueUrlRequest.class);
+        final ArgumentCaptor<GetQueueUrlRequest> lookup = ArgumentCaptor.forClass(GetQueueUrlRequest.class);
         verify(sqsClient).getQueueUrl(lookup.capture());
         assertThat(lookup.getValue().queueName()).isEqualTo(QUEUE_NAME);
 
-        ArgumentCaptor<SendMessageRequest> sent = ArgumentCaptor.forClass(SendMessageRequest.class);
+        final ArgumentCaptor<SendMessageRequest> sent = ArgumentCaptor.forClass(SendMessageRequest.class);
         verify(sqsClient).sendMessage(sent.capture());
         assertThat(sent.getValue().queueUrl()).isEqualTo(QUEUE_URL);
-        JsonNode body = objectMapper.readTree(sent.getValue().messageBody());
+        final JsonNode body = objectMapper.readTree(sent.getValue().messageBody());
         assertThat(body.get("token").asString()).isEqualTo("tok-123");
         assertThat(body.get("username").asString()).isEqualTo("ana");
         assertThat(body.get("recipient").asString()).isEqualTo("ana@acme.com");
@@ -65,7 +65,7 @@ class SQSNotifyPasswordResetProducerAdapterTest {
     @Test
     @DisplayName("Looks the queue URL up only once across several messages")
     void shouldCacheTheQueueUrl() {
-        var adapter = adapter();
+        final var adapter = adapter();
 
         adapter.execute(reset());
         adapter.execute(reset());

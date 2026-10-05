@@ -17,7 +17,7 @@ class IntegrationCredentialTest {
 	@Test
 	@DisplayName("Registers a credential for a non-SEFAZ integration without an environment")
 	void shouldRegisterCredentialForNonSefazIntegrationWithoutEnvironment() {
-		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.BANK, null,
+		final IntegrationCredential credential = IntegrationCredential.register(IntegrationName.BANK, null,
 				"https://bank.example.com/api", "secret-key");
 
 		assertThat(credential.getId()).isNotNull();
@@ -39,7 +39,7 @@ class IntegrationCredentialTest {
 	@Test
 	@DisplayName("Registers a SEFAZ credential when the environment is given")
 	void shouldRegisterSefazCredentialWhenEnvironmentIsGiven() {
-		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
+		final IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.HOMOLOGATION, "https://homologacao.sefaz.example.com", "cert");
 
 		assertThat(credential.getEnvironment()).isEqualTo(IntegrationEnvironment.HOMOLOGATION);
@@ -57,10 +57,10 @@ class IntegrationCredentialTest {
 	@Test
 	@DisplayName("Rotates endpoint and payload in place without changing id or environment")
 	void shouldRotateEndpointAndPayloadInPlaceWithoutChangingIdOrEnvironment() {
-		IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
+		final IntegrationCredential credential = IntegrationCredential.register(IntegrationName.SEFAZ,
 				IntegrationEnvironment.PRODUCTION, "https://sefaz.example.com", "old-cert");
-		var originalId = credential.getId();
-		Instant originalRotatedAt = credential.getRotatedAt();
+		final var originalId = credential.getId();
+		final Instant originalRotatedAt = credential.getRotatedAt();
 
 		credential.rotate("https://sefaz-v2.example.com", "new-cert");
 

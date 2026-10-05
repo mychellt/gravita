@@ -14,9 +14,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Bridges {@code finance} to M1's {@link SetCustomerCreditStatusPort}. The
@@ -30,18 +29,17 @@ import org.springframework.stereotype.Component;
  * customer's titles recomputes the whole position anyway.
  */
 @Component
+@Slf4j
 class UpdateCustomerCreditStatusAdapter implements UpdateCustomerCreditStatusPort {
-
-	private static final Logger log = LoggerFactory.getLogger(UpdateCustomerCreditStatusAdapter.class);
 
 	private final ReceivableRepositoryPort receivableRepositoryPort;
 	private final SettlementRepositoryPort settlementRepositoryPort;
 	private final CustomerRepositoryPort customerRepositoryPort;
 	private final SetCustomerCreditStatusPort setCustomerCreditStatusPort;
 
-	UpdateCustomerCreditStatusAdapter(ReceivableRepositoryPort receivableRepositoryPort,
-			SettlementRepositoryPort settlementRepositoryPort, CustomerRepositoryPort customerRepositoryPort,
-			SetCustomerCreditStatusPort setCustomerCreditStatusPort) {
+	UpdateCustomerCreditStatusAdapter(final ReceivableRepositoryPort receivableRepositoryPort,
+			final SettlementRepositoryPort settlementRepositoryPort, final CustomerRepositoryPort customerRepositoryPort,
+			final SetCustomerCreditStatusPort setCustomerCreditStatusPort) {
 		this.receivableRepositoryPort = receivableRepositoryPort;
 		this.settlementRepositoryPort = settlementRepositoryPort;
 		this.customerRepositoryPort = customerRepositoryPort;
@@ -49,30 +47,30 @@ class UpdateCustomerCreditStatusAdapter implements UpdateCustomerCreditStatusPor
 	}
 
 	@Override
-	public void update(UUID customerId) {
+	public void update(final UUID customerId) {
 		try {
-			Optional<CustomerDomain> customer = customerRepositoryPort.get(customerId);
+			final Optional<CustomerDomain> customer = customerRepositoryPort.get(customerId);
 			if (customer.isEmpty()) {
 				log.warn("Customer {} not found; credit status not updated", customerId);
 				return;
 			}
-			List<Receivable> unsettled = receivableRepositoryPort.findUnsettledByCustomerId(customerId);
-			BigDecimal balance = unsettled.stream()
+			final List<Receivable> unsettled = receivableRepositoryPort.findUnsettledByCustomerId(customerId);
+			final BigDecimal balance = unsettled.stream()
 					.map(receivable -> receivable
 							.remainingBalance(settlementRepositoryPort.findByReceivableId(receivable.getId())))
 					.reduce(BigDecimal.ZERO, BigDecimal::add);
-			LocalDate today = LocalDate.now();
-			boolean overdue = unsettled.stream().anyMatch(receivable -> receivable.getDueDate().isBefore(today));
+			final LocalDate today = LocalDate.now();
+			final boolean overdue = unsettled.stream().anyMatch(receivable -> receivable.getDueDate().isBefore(today));
 
-			CustomerDomain position = CustomerDomain.builder().id(customerId).currentBalance(balance)
+			final CustomerDomain position = CustomerDomain.builder().id(customerId).currentBalance(balance)
 					.status(statusFor(customer.get().getCreditLimit(), balance, overdue)).build();
 			setCustomerCreditStatusPort.execute(new Context(position));
-		} catch (RuntimeException e) {
+		} catch (final RuntimeException e) {
 			log.error("Failed to update credit status of customer {}; needs retry", customerId, e);
 		}
 	}
 
-	private static CustomerStatus statusFor(BigDecimal creditLimit, BigDecimal balance, boolean overdue) {
+	private static CustomerStatus statusFor(final BigDecimal creditLimit, final BigDecimal balance, final boolean overdue) {
 		if (creditLimit != null && creditLimit.signum() > 0 && balance.compareTo(creditLimit) > 0) {
 			return CustomerStatus.BLOCKED;
 		}

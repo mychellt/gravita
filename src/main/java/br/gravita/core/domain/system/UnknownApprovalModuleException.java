@@ -4,7 +4,7 @@ import br.gravita.core.domain.shared.BusinessRuleException;
 
 public class UnknownApprovalModuleException extends BusinessRuleException {
 
-	public UnknownApprovalModuleException(String module) {
+	public UnknownApprovalModuleException(final String module) {
 		super("Unknown approval module '" + module + "'. Valid modules: purchasing, sales, finance.");
 	}
 }

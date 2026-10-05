@@ -55,7 +55,7 @@ public interface QuotationPersistenceMapper {
 		if (lines == null || lines.isEmpty()) {
 			return List.of();
 		}
-		Map<UUID, List<QuotationResponseLineEmbeddable>> linesBySupplier = lines.stream()
+		final Map<UUID, List<QuotationResponseLineEmbeddable>> linesBySupplier = lines.stream()
 				.collect(Collectors.groupingBy(QuotationResponseLineEmbeddable::getSupplierId, LinkedHashMap::new,
 						Collectors.toList()));
 		return linesBySupplier.entrySet().stream()

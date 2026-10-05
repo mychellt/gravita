@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record TwoFactorVerifyRequest(@NotBlank String email, @NotBlank String password, @NotBlank String totpCode) {
 
-	public AuthenticateCommand toCommand(String ip, String device) {
+	public AuthenticateCommand toCommand(final String ip, final String device) {
 		return new AuthenticateCommand(email, password, totpCode, ip, device);
 	}
 }

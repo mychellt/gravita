@@ -12,8 +12,8 @@ import java.util.UUID;
 public record LivrosFiscaisResponse(UUID companyId, YearMonth period, Book entryBook, Book exitBook,
 		IcmsAssessment icmsAssessmentBook, TaxSummary taxSummary, byte[] pdf, byte[] txt) {
 
-	public static LivrosFiscaisResponse from(LivrosFiscaisReport report) {
-		LivrosFiscaisBooks books = report.books();
+	public static LivrosFiscaisResponse from(final LivrosFiscaisReport report) {
+		final LivrosFiscaisBooks books = report.books();
 		return new LivrosFiscaisResponse(books.companyId().value(), books.period(), books.entryBook(),
 				books.exitBook(), books.icmsAssessmentBook(), books.taxSummary(), report.pdf(), report.txt());
 	}

@@ -21,42 +21,42 @@ import org.xml.sax.InputSource;
 
 public class NfeXmlParser {
 
-	public ParsedSupplierNfe parse(byte[] xmlContent) {
+	public ParsedSupplierNfe parse(final byte[] xmlContent) {
 		try {
-			org.w3c.dom.Document document = parseDocument(xmlContent);
-			XPath xpath = XPathFactory.newInstance().newXPath();
+			final org.w3c.dom.Document document = parseDocument(xmlContent);
+			final XPath xpath = XPathFactory.newInstance().newXPath();
 
-			Node ide = node(xpath, document, "//*[local-name()='ide']");
-			Node emit = node(xpath, document, "//*[local-name()='emit']");
-			Node icmsTot = node(xpath, document, "//*[local-name()='total']/*[local-name()='ICMSTot']");
-			NodeList detNodes = nodeList(xpath, document, "//*[local-name()='det']");
+			final Node ide = node(xpath, document, "//*[local-name()='ide']");
+			final Node emit = node(xpath, document, "//*[local-name()='emit']");
+			final Node icmsTot = node(xpath, document, "//*[local-name()='total']/*[local-name()='ICMSTot']");
+			final NodeList detNodes = nodeList(xpath, document, "//*[local-name()='det']");
 
 			if (ide == null || emit == null || icmsTot == null || detNodes.getLength() == 0) {
 				throw new BusinessRuleException("Supplier NFe XML is missing required sections (ide/emit/total/det)");
 			}
 
-			String accessKey = extractAccessKey(xpath, document);
-			String series = text(xpath, ide, "*[local-name()='serie']");
-			String number = text(xpath, ide, "*[local-name()='nNF']");
-			Instant issuedAt = extractIssuedAt(xpath, ide);
+			final String accessKey = extractAccessKey(xpath, document);
+			final String series = text(xpath, ide, "*[local-name()='serie']");
+			final String number = text(xpath, ide, "*[local-name()='nNF']");
+			final Instant issuedAt = extractIssuedAt(xpath, ide);
 
-			String supplierCnpj = text(xpath, emit, "*[local-name()='CNPJ']");
-			String supplierName = text(xpath, emit, "*[local-name()='xNome']");
+			final String supplierCnpj = text(xpath, emit, "*[local-name()='CNPJ']");
+			final String supplierName = text(xpath, emit, "*[local-name()='xNome']");
 
-			List<InboundNfeItem> items = extractItems(xpath, detNodes);
-			InboundNfeTotals totals = extractTotals(xpath, icmsTot);
+			final List<InboundNfeItem> items = extractItems(xpath, detNodes);
+			final InboundNfeTotals totals = extractTotals(xpath, icmsTot);
 
 			return new ParsedSupplierNfe(accessKey, series, number, supplierCnpj, supplierName, issuedAt, items,
 					totals);
-		} catch (BusinessRuleException e) {
+		} catch (final BusinessRuleException e) {
 			throw e;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new BusinessRuleException("Unable to parse supplier NFe XML: " + e.getMessage(), e);
 		}
 	}
 
-	private org.w3c.dom.Document parseDocument(byte[] xmlContent) throws Exception {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	private org.w3c.dom.Document parseDocument(final byte[] xmlContent) throws Exception {
+		final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
 		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
@@ -65,42 +65,42 @@ public class NfeXmlParser {
 		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 		factory.setNamespaceAware(true);
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		org.w3c.dom.Document document = builder.parse(new InputSource(new ByteArrayInputStream(xmlContent)));
+		final DocumentBuilder builder = factory.newDocumentBuilder();
+		final org.w3c.dom.Document document = builder.parse(new InputSource(new ByteArrayInputStream(xmlContent)));
 		document.getDocumentElement().normalize();
 		return document;
 	}
 
-	private String extractAccessKey(XPath xpath, org.w3c.dom.Document document) throws Exception {
-		String fromProtocol = textOrNull(xpath, document, "//*[local-name()='protNFe']//*[local-name()='chNFe']");
+	private String extractAccessKey(final XPath xpath, final org.w3c.dom.Document document) throws Exception {
+		final String fromProtocol = textOrNull(xpath, document, "//*[local-name()='protNFe']//*[local-name()='chNFe']");
 		if (fromProtocol != null && !fromProtocol.isBlank()) {
 			return fromProtocol.trim();
 		}
-		String infNFeId = textOrNull(xpath, document, "//*[local-name()='infNFe']/@Id");
+		final String infNFeId = textOrNull(xpath, document, "//*[local-name()='infNFe']/@Id");
 		if (infNFeId != null && infNFeId.length() >= 44) {
 			return infNFeId.replaceFirst("^NFe", "").trim();
 		}
 		throw new BusinessRuleException("Supplier NFe XML has no access key (chNFe/infNFe@Id)");
 	}
 
-	private Instant extractIssuedAt(XPath xpath, Node ide) throws Exception {
-		String dhEmi = textOrNull(xpath, ide, "*[local-name()='dhEmi']");
+	private Instant extractIssuedAt(final XPath xpath, final Node ide) throws Exception {
+		final String dhEmi = textOrNull(xpath, ide, "*[local-name()='dhEmi']");
 		if (dhEmi != null && !dhEmi.isBlank()) {
 			return OffsetDateTime.parse(dhEmi).toInstant();
 		}
-		String dEmi = textOrNull(xpath, ide, "*[local-name()='dEmi']");
-		if (dEmi != null && !dEmi.isBlank()) {
-			return java.time.LocalDate.parse(dEmi).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
+		final String issueDateText = textOrNull(xpath, ide, "*[local-name()='issueDateText']");
+		if (issueDateText != null && !issueDateText.isBlank()) {
+			return java.time.LocalDate.parse(issueDateText).atStartOfDay(java.time.ZoneOffset.UTC).toInstant();
 		}
-		throw new BusinessRuleException("Supplier NFe XML has no emission date (dhEmi/dEmi)");
+		throw new BusinessRuleException("Supplier NFe XML has no emission date (dhEmi/issueDateText)");
 	}
 
-	private List<InboundNfeItem> extractItems(XPath xpath, NodeList detNodes) throws Exception {
-		List<InboundNfeItem> items = new ArrayList<>();
+	private List<InboundNfeItem> extractItems(final XPath xpath, final NodeList detNodes) throws Exception {
+		final List<InboundNfeItem> items = new ArrayList<>();
 		for (int i = 0; i < detNodes.getLength(); i++) {
-			Node det = detNodes.item(i);
-			Node prod = node(xpath, det, "*[local-name()='prod']");
-			Node taxNode = node(xpath, det, "*[local-name()='imposto']");
+			final Node det = detNodes.item(i);
+			final Node prod = node(xpath, det, "*[local-name()='prod']");
+			final Node taxNode = node(xpath, det, "*[local-name()='imposto']");
 			if (prod == null) {
 				throw new BusinessRuleException("Supplier NFe XML item #" + (i + 1) + " is missing <prod>");
 			}
@@ -122,7 +122,7 @@ public class NfeXmlParser {
 		return items;
 	}
 
-	private InboundNfeTotals extractTotals(XPath xpath, Node icmsTot) throws Exception {
+	private InboundNfeTotals extractTotals(final XPath xpath, final Node icmsTot) throws Exception {
 		return new InboundNfeTotals(
 				decimal(xpath, icmsTot, "*[local-name()='vProd']"),
 				decimalOrZero(xpath, icmsTot, "*[local-name()='vFrete']"),
@@ -136,36 +136,36 @@ public class NfeXmlParser {
 				decimal(xpath, icmsTot, "*[local-name()='vNF']"));
 	}
 
-	private Node node(XPath xpath, Object context, String expression) throws Exception {
+	private Node node(final XPath xpath, final Object context, final String expression) throws Exception {
 		return (Node) xpath.evaluate(expression, context, XPathConstants.NODE);
 	}
 
-	private NodeList nodeList(XPath xpath, Object context, String expression) throws Exception {
+	private NodeList nodeList(final XPath xpath, final Object context, final String expression) throws Exception {
 		return (NodeList) xpath.evaluate(expression, context, XPathConstants.NODESET);
 	}
 
-	private String text(XPath xpath, Object context, String expression) throws Exception {
-		String value = textOrNull(xpath, context, expression);
+	private String text(final XPath xpath, final Object context, final String expression) throws Exception {
+		final String value = textOrNull(xpath, context, expression);
 		if (value == null || value.isBlank()) {
 			throw new BusinessRuleException("Supplier NFe XML is missing required field: " + expression);
 		}
 		return value;
 	}
 
-	private String textOrNull(XPath xpath, Object context, String expression) throws Exception {
-		String value = (String) xpath.evaluate(expression, context, XPathConstants.STRING);
+	private String textOrNull(final XPath xpath, final Object context, final String expression) throws Exception {
+		final String value = (String) xpath.evaluate(expression, context, XPathConstants.STRING);
 		return value == null || value.isEmpty() ? null : value;
 	}
 
-	private BigDecimal decimal(XPath xpath, Object context, String expression) throws Exception {
+	private BigDecimal decimal(final XPath xpath, final Object context, final String expression) throws Exception {
 		return new BigDecimal(text(xpath, context, expression));
 	}
 
-	private BigDecimal decimalOrZero(XPath xpath, Object context, String expression) throws Exception {
+	private BigDecimal decimalOrZero(final XPath xpath, final Object context, final String expression) throws Exception {
 		if (context == null) {
 			return BigDecimal.ZERO;
 		}
-		String value = textOrNull(xpath, context, expression);
+		final String value = textOrNull(xpath, context, expression);
 		return value == null ? BigDecimal.ZERO : new BigDecimal(value);
 	}
 }

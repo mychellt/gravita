@@ -40,14 +40,14 @@ public class SendQuoteService implements SendQuoteUseCase {
     private final SendQuoteByWhatsAppPort sendQuoteByWhatsAppPort;
 
     @Override
-    public void execute(SendQuoteCommand command) {
-        Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
+    public void execute(final SendQuoteCommand command) {
+        final Quote quote = quoteRepositoryPort.findById(QuoteId.of(command.quoteId()))
                 .orElseThrow(() -> new QuoteNotFoundException(command.quoteId()));
 
-        Quote sent = quote.send(LocalDate.now());
+        final Quote sent = quote.send(LocalDate.now());
 
         if (command.channel() == QuoteDeliveryChannel.WHATSAPP) {
-            String phoneNumber = resolveWhatsAppContact(quote.getCustomerId());
+            final String phoneNumber = resolveWhatsAppContact(quote.getCustomerId());
             sendQuoteByWhatsAppPort.send(new SendQuoteByWhatsAppRequest(phoneNumber, quote.getId().value(),
                     quote.totalValue(), quote.getValidUntil()));
         }
@@ -55,10 +55,10 @@ public class SendQuoteService implements SendQuoteUseCase {
         quoteRepositoryPort.save(sent);
     }
 
-    private String resolveWhatsAppContact(UUID customerId) {
-        CustomerDomain customer = customerRepositoryPort.get(customerId)
+    private String resolveWhatsAppContact(final UUID customerId) {
+        final CustomerDomain customer = customerRepositoryPort.get(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found: " + customerId));
-        List<ContactDomain> contacts = customer.getContacts();
+        final List<ContactDomain> contacts = customer.getContacts();
         return (contacts == null ? List.<ContactDomain>of() : contacts).stream()
                 .filter(contact -> contact.getType() == ContactType.WHATSAPP)
                 .map(ContactDomain::getValue)

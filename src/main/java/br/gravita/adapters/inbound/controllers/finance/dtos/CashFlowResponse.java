@@ -14,14 +14,14 @@ public record CashFlowResponse(CashFlowGranularity granularity, LocalDate from, 
 			BigDecimal realizedOutflow, BigDecimal projectedInflow, BigDecimal projectedOutflow, BigDecimal net,
 			BigDecimal balance) {
 
-		static BucketResponse from(CashFlowBucket bucket) {
+		static BucketResponse from(final CashFlowBucket bucket) {
 			return new BucketResponse(bucket.periodStart(), bucket.periodEnd(), bucket.realizedInflow(),
 					bucket.realizedOutflow(), bucket.projectedInflow(), bucket.projectedOutflow(), bucket.net(),
 					bucket.balance());
 		}
 	}
 
-	public static CashFlowResponse from(CashFlowProjection projection) {
+	public static CashFlowResponse from(final CashFlowProjection projection) {
 		return new CashFlowResponse(projection.getGranularity(), projection.getFrom(), projection.getTo(),
 				projection.getOpeningBalance(), projection.getClosingBalance(),
 				projection.getBuckets().stream().map(BucketResponse::from).toList());

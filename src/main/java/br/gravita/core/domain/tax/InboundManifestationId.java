@@ -9,7 +9,7 @@ public record InboundManifestationId(UUID value) {
 		Objects.requireNonNull(value, "InboundManifestationId value is required");
 	}
 
-	public static InboundManifestationId of(UUID value) {
+	public static InboundManifestationId of(final UUID value) {
 		return new InboundManifestationId(value);
 	}
 }

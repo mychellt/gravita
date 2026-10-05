@@ -15,21 +15,21 @@ class PermissionCheckAdapter implements PermissionCheckPort {
 
 	private final CheckPermissionUseCase checkPermissionUseCase;
 
-	PermissionCheckAdapter(CheckPermissionUseCase checkPermissionUseCase) {
+	PermissionCheckAdapter(final CheckPermissionUseCase checkPermissionUseCase) {
 		this.checkPermissionUseCase = checkPermissionUseCase;
 	}
 
 	@Override
-	public boolean canView(UserId userId, String screen) {
+	public boolean canView(final UserId userId, final String screen) {
 		return can(userId, screen, PermissionAction.VIEW);
 	}
 
 	@Override
-	public boolean canExport(UserId userId, String screen) {
+	public boolean canExport(final UserId userId, final String screen) {
 		return can(userId, screen, PermissionAction.EXPORT);
 	}
 
-	private boolean can(UserId userId, String screen, PermissionAction action) {
+	private boolean can(final UserId userId, final String screen, final PermissionAction action) {
 		return checkPermissionUseCase.execute(new CheckPermissionQuery(userId, MODULE, screen, action));
 	}
 }

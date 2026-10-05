@@ -33,14 +33,14 @@ class PasswordResetControllerTest {
 	@MockitoBean
 	private ConfirmPasswordResetUseCase confirmPasswordResetUseCase;
 
-	private String request(String email) throws Exception {
+	private String request(final String email) throws Exception {
 		return mockMvc.perform(post("/api/auth/password-reset").contentType(MediaType.APPLICATION_JSON)
 						.content("{\"email\":\"" + email + "\"}"))
 				.andExpect(status().isAccepted())
 				.andReturn().getResponse().getContentAsString();
 	}
 
-	private org.springframework.test.web.servlet.ResultActions confirm(String token, String password) throws Exception {
+	private org.springframework.test.web.servlet.ResultActions confirm(final String token, final String password) throws Exception {
 		return mockMvc.perform(post("/api/auth/password-reset/confirm").contentType(MediaType.APPLICATION_JSON)
 				.content("{\"token\":" + (token == null ? "null" : "\"" + token + "\"")
 						+ ",\"newPassword\":\"" + password + "\"}"));
@@ -59,9 +59,9 @@ class PasswordResetControllerTest {
 	void shouldAnswerIdenticallyForEveryOutcome() throws Exception {
 		// The use case returns nothing and never throws for unknown/pending/inactive/cooldown, so these calls model
 		// "active user", "no such user" and "pending user"; the body must not depend on any of them.
-		String active = request("active@acme.com");
-		String unknown = request("ghost@acme.com");
-		String pending = request("pending@acme.com");
+		final String active = request("active@acme.com");
+		final String unknown = request("ghost@acme.com");
+		final String pending = request("pending@acme.com");
 
 		assertThat(unknown).isEqualTo(active).isEqualTo(pending);
 		assertThat(active).contains("Se este e-mail tiver uma conta, enviaremos um link de redefinição em instantes.");

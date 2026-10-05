@@ -57,7 +57,7 @@ class GetFiscalBooksServiceTest {
 	@DisplayName("Refuses a user whose profile cannot view the books, without reading or rendering anything")
 	@Test
 	void refusesAUserWhoseProfileCannotViewTheBooksWithoutReadingOrRenderingAnything() {
-		UserId stranger = UserId.generate();
+		final UserId stranger = UserId.generate();
 		when(permissions.canView(stranger, "fiscal-books")).thenReturn(false);
 
 		assertThatThrownBy(() -> service.execute(new FiscalBooksQuery(stranger, PERIOD)))
@@ -83,7 +83,7 @@ class GetFiscalBooksServiceTest {
 				document("NFE", 5, "1", "90", "Alfa SA", "1102", "100.00", "12.00"),
 				document("NFE", 20, "1", "150", "Gama ME", "1102", "50.00", "0")));
 
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
 		assertThat(books.entries()).extracting(FiscalBookEntry::flow, FiscalBookEntry::date, FiscalBookEntry::number)
 				.containsExactly(
@@ -103,7 +103,7 @@ class GetFiscalBooksServiceTest {
 				document("NFCE", 10, "1", "7", null, null, "40.00", null),
 				document("NFE", 10, "1", "3", "Cliente SA", "5102", "1000.00", "180.00")));
 
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
 		assertThat(books.exits()).extracting(FiscalBookEntry::flow, FiscalBookEntry::documentModel)
 				.containsExactly(tuple(FiscalBookFlow.EXIT, "NFCE"), tuple(FiscalBookFlow.EXIT, "NFE"));
@@ -121,7 +121,7 @@ class GetFiscalBooksServiceTest {
 				document("NFE", 8, "1", "20", "Cliente SA", "5102", "1000.00", "180.00"),
 				document("NFCE", 9, "1", "21", null, null, "40.00", null)));
 
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
 		assertThat(books.icmsDebit()).isEqualByComparingTo("180");
 		assertThat(books.icmsCredit()).isEqualByComparingTo("60");
@@ -137,7 +137,7 @@ class GetFiscalBooksServiceTest {
 		when(tax.entryDocuments(any(), any()))
 				.thenReturn(List.of(document("NFE", 3, "1", "10", "Alfa SA", "1102", "500.00", "60.00")));
 
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
 		assertThat(books.icmsBalance()).isEqualByComparingTo("-60");
 	}
@@ -150,9 +150,9 @@ class GetFiscalBooksServiceTest {
 		when(tax.exitDocuments(any(), any()))
 				.thenReturn(List.of(document("NFE", 8, "1", "20", "Cliente SA", "5102", "1000.00", "180.00")));
 
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
-		ArgumentCaptor<PdfReport> rendered = ArgumentCaptor.forClass(PdfReport.class);
+		final ArgumentCaptor<PdfReport> rendered = ArgumentCaptor.forClass(PdfReport.class);
 		verify(pdf).render(rendered.capture());
 		assertThat(books.pdf()).isEqualTo(PDF);
 		assertThat(rendered.getValue().title()).isEqualTo("Livros Fiscais - 02/2028");
@@ -175,7 +175,7 @@ class GetFiscalBooksServiceTest {
 		when(tax.exitDocuments(any(), any()))
 				.thenReturn(List.of(document("NFE", 8, "1", "20", "Cliente SA", "5102", "1000.00", "180.00")));
 
-		String txt = new String(service.execute(new FiscalBooksQuery(user, PERIOD)).txt(), StandardCharsets.UTF_8);
+		final String txt = new String(service.execute(new FiscalBooksQuery(user, PERIOD)).txt(), StandardCharsets.UTF_8);
 
 		assertThat(txt).startsWith("LIVROS FISCAIS - 02/2028\nPeríodo: 01/02/2028 a 29/02/2028\n");
 		assertThat(txt).containsSubsequence("LIVRO DE ENTRADAS", "Alfa SA", "Documentos: 1 | Valor total: 1.500,50 | ICMS: 60,00",
@@ -186,7 +186,7 @@ class GetFiscalBooksServiceTest {
 	@DisplayName("Returns empty books with zero totals for a period without documents")
 	@Test
 	void answersEmptyBooksWithZeroTotalsForAPeriodWithoutDocuments() {
-		FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
+		final FiscalBooks books = service.execute(new FiscalBooksQuery(user, PERIOD));
 
 		assertThat(books.entries()).isEmpty();
 		assertThat(books.exits()).isEmpty();
@@ -196,8 +196,8 @@ class GetFiscalBooksServiceTest {
 		assertThat(new String(books.txt(), StandardCharsets.UTF_8)).contains("Documentos: 0 | Valor total: 0,00");
 	}
 
-	private FiscalDocumentRecord document(String model, int day, String series, String number, String counterpart,
-			String cfop, String total, String icms) {
+	private FiscalDocumentRecord document(final String model, final int day, final String series, final String number, final String counterpart,
+			final String cfop, final String total, final String icms) {
 		return new FiscalDocumentRecord(model, LocalDate.of(2028, 2, day), series, number,
 				"3528" + "0".repeat(40), counterpart, counterpart == null ? null : "12345678000190", cfop,
 				new BigDecimal(total), icms == null ? null : new BigDecimal(icms));

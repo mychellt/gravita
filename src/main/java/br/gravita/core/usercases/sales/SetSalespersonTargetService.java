@@ -14,8 +14,8 @@ public class SetSalespersonTargetService implements SetSalespersonTargetUseCase 
 	private final SalespersonTargetRepositoryPort salespersonTargetRepositoryPort;
 
 	@Override
-	public void execute(SetSalespersonTargetCommand command) {
-		SalespersonTarget target = new SalespersonTarget(command.salesperson(), command.month(),
+	public void execute(final SetSalespersonTargetCommand command) {
+		final SalespersonTarget target = new SalespersonTarget(command.salesperson(), command.month(),
 				command.valueTarget(), command.orderCountTarget());
 
 		salespersonTargetRepositoryPort.save(target);

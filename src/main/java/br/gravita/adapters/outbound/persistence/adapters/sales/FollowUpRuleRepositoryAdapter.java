@@ -16,21 +16,21 @@ class FollowUpRuleRepositoryAdapter implements FollowUpRuleRepositoryPort {
 	private final FollowUpRuleJpaRepository jpaRepository;
 	private final FollowUpRulePersistenceMapper mapper;
 
-	FollowUpRuleRepositoryAdapter(FollowUpRuleJpaRepository jpaRepository, FollowUpRulePersistenceMapper mapper) {
+	FollowUpRuleRepositoryAdapter(final FollowUpRuleJpaRepository jpaRepository, final FollowUpRulePersistenceMapper mapper) {
 		this.jpaRepository = jpaRepository;
 		this.mapper = mapper;
 	}
 
 	@Override
-	public FollowUpRule save(FollowUpRule rule) {
-		FollowUpRuleJpaEntity entity = mapper.map(rule);
+	public FollowUpRule save(final FollowUpRule rule) {
+		final FollowUpRuleJpaEntity entity = mapper.map(rule);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
-		FollowUpRuleJpaEntity saved = jpaRepository.save(entity);
+		final FollowUpRuleJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
 	}
 
 	@Override
-	public Optional<FollowUpRule> findById(FollowUpRuleId id) {
+	public Optional<FollowUpRule> findById(final FollowUpRuleId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
@@ -45,7 +45,7 @@ class FollowUpRuleRepositoryAdapter implements FollowUpRuleRepositoryPort {
 	}
 
 	@Override
-	public void deleteById(FollowUpRuleId id) {
+	public void deleteById(final FollowUpRuleId id) {
 		jpaRepository.deleteById(id.value());
 	}
 }

@@ -71,19 +71,19 @@ class RegisterStockExitServiceTest {
 				lotRepositoryPort, serialUnitRepositoryPort, stockReservationRepositoryPort, lowStockReorderTrigger);
 	}
 
-	private RegisterStockExitCommand exitCommand(BigDecimal quantity) {
+	private RegisterStockExitCommand exitCommand(final BigDecimal quantity) {
 		return new RegisterStockExitCommand(productId, warehouseId, quantity, null, List.of(), null, false,
 				"SALE:1", userId);
 	}
 
-	private StockBalance balance(BigDecimal onHand, BigDecimal reserved) {
+	private StockBalance balance(final BigDecimal onHand, final BigDecimal reserved) {
 		return StockBalance.of(StockBalanceId.of(UUID.randomUUID()), productId, warehouseId, onHand, reserved,
 				BigDecimal.ZERO, new BigDecimal("10.00"));
 	}
 
 	@Test
 	@DisplayName("AC2: Blocks the exit when available stock is insufficient and negative stock is not allowed")
-	void ac2_blocksTheExitWhenAvailableIsInsufficientAndNegativeStockIsNotAllowed() {
+	void ac2BlocksTheExitWhenAvailableIsInsufficientAndNegativeStockIsNotAllowed() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("10"), BigDecimal.ZERO)));
 
@@ -96,31 +96,31 @@ class RegisterStockExitServiceTest {
 
 	@Test
 	@DisplayName("AC2: Allows stock to go negative when explicitly permitted")
-	void ac2_allowsGoingNegativeWhenExplicitlyPermitted() {
+	void ac2AllowsGoingNegativeWhenExplicitlyPermitted() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("10"), BigDecimal.ZERO)));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId,
+		final RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId,
 				new BigDecimal("20"), null, List.of(), null, true, "SALE:1", userId);
 		service.execute(command);
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("-10");
 	}
 
 	@Test
 	@DisplayName("AC1: Rejects allocating stock from an expired lot")
-	void ac1_rejectsAllocationFromAnExpiredLot() {
+	void ac1RejectsAllocationFromAnExpiredLot() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
-		Lot expiredLot = Lot.of(LotId.of(UUID.randomUUID()), productId, warehouseId, "LOT-1",
+		final Lot expiredLot = Lot.of(LotId.of(UUID.randomUUID()), productId, warehouseId, "LOT-1",
 				LocalDate.now().minusDays(1), new BigDecimal("50"));
 		when(lotRepositoryPort.findByProductIdAndWarehouseIdAndCode(productId, warehouseId, "LOT-1"))
 				.thenReturn(Optional.of(expiredLot));
 
-		RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("10"),
+		final RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("10"),
 				new RegisterStockExitCommand.LotRef("LOT-1"), List.of(), null, false, "SALE:1", userId);
 
 		assertThatThrownBy(() -> service.execute(command))
@@ -131,27 +131,27 @@ class RegisterStockExitServiceTest {
 
 	@Test
 	@DisplayName("AC4: Fulfilling a reservation consumes it and leaves available stock unchanged")
-	void ac4_fulfillingAReservationConsumesItAndLeavesAvailableUnchanged() {
-		StockBalance current = balance(new BigDecimal("100"), new BigDecimal("30"));
+	void ac4FulfillingAReservationConsumesItAndLeavesAvailableUnchanged() {
+		final StockBalance current = balance(new BigDecimal("100"), new BigDecimal("30"));
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(current));
-		StockReservationId reservationId = StockReservationId.of(UUID.randomUUID());
-		StockReservation reservation = StockReservation.of(reservationId, UUID.randomUUID(), productId, warehouseId,
+		final StockReservationId reservationId = StockReservationId.of(UUID.randomUUID());
+		final StockReservation reservation = StockReservation.of(reservationId, UUID.randomUUID(), productId, warehouseId,
 				new BigDecimal("30"), StockReservationStatus.ACTIVE);
 		when(stockReservationRepositoryPort.findById(reservationId)).thenReturn(Optional.of(reservation));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("30"),
+		final RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("30"),
 				null, List.of(), reservationId.value(), false, "SALE:1", userId);
-		StockMovement movement = service.execute(command);
+		final StockMovement movement = service.execute(command);
 
-		ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
+		final ArgumentCaptor<StockBalance> savedBalance = ArgumentCaptor.forClass(StockBalance.class);
 		verify(stockBalanceRepositoryPort).save(savedBalance.capture());
 		assertThat(savedBalance.getValue().getOnHand()).isEqualByComparingTo("70");
 		assertThat(savedBalance.getValue().getReserved()).isEqualByComparingTo("0");
 		assertThat(savedBalance.getValue().available()).isEqualByComparingTo(current.available());
 
-		ArgumentCaptor<StockReservation> savedReservation = ArgumentCaptor.forClass(StockReservation.class);
+		final ArgumentCaptor<StockReservation> savedReservation = ArgumentCaptor.forClass(StockReservation.class);
 		verify(stockReservationRepositoryPort).save(savedReservation.capture());
 		assertThat(savedReservation.getValue().getStatus()).isEqualTo(StockReservationStatus.CONSUMED);
 		assertThat(movement.getQuantity()).isEqualByComparingTo("30");
@@ -162,11 +162,11 @@ class RegisterStockExitServiceTest {
 	void anUnknownReservationIsRejected() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
-		UUID reservationId = UUID.randomUUID();
+		final UUID reservationId = UUID.randomUUID();
 		when(stockReservationRepositoryPort.findById(StockReservationId.of(reservationId)))
 				.thenReturn(Optional.empty());
 
-		RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("10"),
+		final RegisterStockExitCommand command = new RegisterStockExitCommand(productId, warehouseId, new BigDecimal("10"),
 				null, List.of(), reservationId, false, "SALE:1", userId);
 
 		assertThatThrownBy(() -> service.execute(command)).isInstanceOf(ResourceNotFoundException.class);
@@ -174,12 +174,12 @@ class RegisterStockExitServiceTest {
 
 	@Test
 	@DisplayName("AC3: The resulting movement is for exactly the exited quantity")
-	void ac3_theResultingMovementIsForTheExactExitedQuantity() {
+	void ac3TheResultingMovementIsForTheExactExitedQuantity() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		StockMovement movement = service.execute(exitCommand(new BigDecimal("25")));
+		final StockMovement movement = service.execute(exitCommand(new BigDecimal("25")));
 
 		assertThat(movement.getQuantity()).isEqualByComparingTo("25");
 		assertThat(movement.getType().name()).isEqualTo("EXIT");
@@ -187,7 +187,7 @@ class RegisterStockExitServiceTest {
 
 	@Test
 	@DisplayName("AC5: Evaluates low-stock reorder for the affected warehouse after a successful exit")
-	void ac5_evaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulExit() {
+	void ac5EvaluatesLowStockReorderForTheAffectedWarehouseAfterASuccessfulExit() {
 		when(stockBalanceRepositoryPort.findByProductIdAndWarehouseId(productId, warehouseId))
 				.thenReturn(Optional.of(balance(new BigDecimal("100"), BigDecimal.ZERO)));
 		when(stockMovementRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));

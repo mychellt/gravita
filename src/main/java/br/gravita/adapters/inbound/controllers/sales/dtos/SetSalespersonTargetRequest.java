@@ -10,7 +10,7 @@ import java.util.UUID;
 public record SetSalespersonTargetRequest(@NotNull @PositiveOrZero BigDecimal valueTarget,
 		@NotNull @PositiveOrZero Integer orderCountTarget) {
 
-	public SetSalespersonTargetCommand toCommand(UUID salesperson, YearMonth month) {
+	public SetSalespersonTargetCommand toCommand(final UUID salesperson, final YearMonth month) {
 		return new SetSalespersonTargetCommand(salesperson, month, valueTarget, orderCountTarget);
 	}
 }

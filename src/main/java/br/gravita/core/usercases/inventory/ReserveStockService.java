@@ -19,28 +19,28 @@ public class ReserveStockService implements ReserveStockUseCase {
 	private final StockReservationRepositoryPort stockReservationRepositoryPort;
 	private final LowStockReorderTrigger lowStockReorderTrigger;
 
-	public ReserveStockService(StockBalanceRepositoryPort stockBalanceRepositoryPort,
-			StockReservationRepositoryPort stockReservationRepositoryPort,
-			LowStockReorderTrigger lowStockReorderTrigger) {
+	public ReserveStockService(final StockBalanceRepositoryPort stockBalanceRepositoryPort,
+			final StockReservationRepositoryPort stockReservationRepositoryPort,
+			final LowStockReorderTrigger lowStockReorderTrigger) {
 		this.stockBalanceRepositoryPort = stockBalanceRepositoryPort;
 		this.stockReservationRepositoryPort = stockReservationRepositoryPort;
 		this.lowStockReorderTrigger = lowStockReorderTrigger;
 	}
 
 	@Override
-	public StockReservation execute(ReserveStockCommand command) {
-		StockBalance balance = stockBalanceRepositoryPort
+	public StockReservation execute(final ReserveStockCommand command) {
+		final StockBalance balance = stockBalanceRepositoryPort
 				.findByProductIdAndWarehouseId(command.productId(), command.warehouseId())
 				.orElseThrow(() -> new BusinessRuleException(
 						"Insufficient available stock to reserve: requested " + command.quantity()
 								+ ", available 0"));
 
-		StockBalance reserved = balance.reserve(command.quantity());
+		final StockBalance reserved = balance.reserve(command.quantity());
 		stockBalanceRepositoryPort.save(reserved);
 
-		StockReservation reservation = StockReservation.create(StockReservationId.of(UUID.randomUUID()),
+		final StockReservation reservation = StockReservation.create(StockReservationId.of(UUID.randomUUID()),
 				command.orderRef(), command.productId(), command.warehouseId(), command.quantity());
-		StockReservation saved = stockReservationRepositoryPort.save(reservation);
+		final StockReservation saved = stockReservationRepositoryPort.save(reservation);
 		lowStockReorderTrigger.evaluate(command.warehouseId());
 		return saved;
 	}

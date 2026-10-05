@@ -28,29 +28,29 @@ public class PasswordResetController {
 	private final RequestPasswordResetUseCase requestPasswordResetUseCase;
 	private final ConfirmPasswordResetUseCase confirmPasswordResetUseCase;
 
-	public PasswordResetController(RequestPasswordResetUseCase requestPasswordResetUseCase,
-			ConfirmPasswordResetUseCase confirmPasswordResetUseCase) {
+	public PasswordResetController(final RequestPasswordResetUseCase requestPasswordResetUseCase,
+			final ConfirmPasswordResetUseCase confirmPasswordResetUseCase) {
 		this.requestPasswordResetUseCase = requestPasswordResetUseCase;
 		this.confirmPasswordResetUseCase = confirmPasswordResetUseCase;
 	}
 
 	@PostMapping
-	public ResponseEntity<Map<String, String>> request(@Valid @RequestBody PasswordResetRequest request) {
+	public ResponseEntity<Map<String, String>> request(@Valid @RequestBody final PasswordResetRequest request) {
 		requestPasswordResetUseCase.execute(request.email());
 		return ResponseEntity.accepted().body(REQUEST_ACCEPTED);
 	}
 
 	/** The token travels in the body, not the URL, so it stays out of access logs and browser history. */
 	@PostMapping("/confirm")
-	public ResponseEntity<Map<String, String>> confirm(@Valid @RequestBody PasswordResetConfirmRequest request) {
+	public ResponseEntity<Map<String, String>> confirm(@Valid @RequestBody final PasswordResetConfirmRequest request) {
 		confirmPasswordResetUseCase.execute(request.token(), request.newPassword());
 		return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso. Você já pode entrar."));
 	}
 
 	/** An unknown token is a bad request; one that was real but is spent or stale is gone for good. */
 	@ExceptionHandler(PasswordResetRejectedException.class)
-	public ResponseEntity<Map<String, String>> handleRejected(PasswordResetRejectedException exception) {
-		HttpStatus status = exception.getReason() == PasswordResetRejectedException.Reason.INVALID
+	public ResponseEntity<Map<String, String>> handleRejected(final PasswordResetRejectedException exception) {
+		final HttpStatus status = exception.getReason() == PasswordResetRejectedException.Reason.INVALID
 				? HttpStatus.BAD_REQUEST
 				: HttpStatus.GONE;
 		return ResponseEntity.status(status)
@@ -66,7 +66,7 @@ public class PasswordResetController {
 	}
 
 	@ExceptionHandler(BusinessRuleException.class)
-	public ResponseEntity<Map<String, String>> handleBusinessRuleException(BusinessRuleException exception) {
+	public ResponseEntity<Map<String, String>> handleBusinessRuleException(final BusinessRuleException exception) {
 		return ResponseEntity.badRequest().body(Map.of("message", exception.getMessage()));
 	}
 }

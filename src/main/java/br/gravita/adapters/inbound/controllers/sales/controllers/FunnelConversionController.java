@@ -22,9 +22,9 @@ public class FunnelConversionController {
 
 	@GetMapping("/conversion")
 	public ResponseEntity<FunnelConversionResponse> getConversion(
-			@RequestParam(required = false) UUID salesperson,
-			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") YearMonth period) {
-		FunnelConversionResponse response = FunnelConversionResponse
+			@RequestParam(required = false) final UUID salesperson,
+			@RequestParam @DateTimeFormat(pattern = "yyyy-MM") final YearMonth period) {
+		final FunnelConversionResponse response = FunnelConversionResponse
 				.from(getFunnelConversionUseCase.execute(new GetFunnelConversionQuery(period, salesperson)));
 		return ResponseEntity.ok(response);
 	}

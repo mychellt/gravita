@@ -13,7 +13,7 @@ public record InternalCashBoxId(UUID value) {
 		Objects.requireNonNull(value, "InternalCashBoxId value is required");
 	}
 
-	public static InternalCashBoxId of(UUID value) {
+	public static InternalCashBoxId of(final UUID value) {
 		return new InternalCashBoxId(value);
 	}
 }

@@ -17,11 +17,11 @@ class FollowUpTaskTest {
 	@Test
 	@DisplayName("Schedules a task linked to an opportunity")
 	void schedulesATaskLinkedToAnOpportunity() {
-		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
-		UUID opportunityId = UUID.randomUUID();
-		UUID owner = UUID.randomUUID();
+		final FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
+		final UUID opportunityId = UUID.randomUUID();
+		final UUID owner = UUID.randomUUID();
 
-		FollowUpTask task = FollowUpTask.schedule(id, opportunityId, null, LocalDate.now().plusDays(3), owner,
+		final FollowUpTask task = FollowUpTask.schedule(id, opportunityId, null, LocalDate.now().plusDays(3), owner,
 				AlertChannel.EMAIL);
 
 		assertThat(task.getOpportunityId()).isEqualTo(opportunityId);
@@ -33,10 +33,10 @@ class FollowUpTaskTest {
 	@Test
 	@DisplayName("Schedules a task linked to a customer")
 	void schedulesATaskLinkedToACustomer() {
-		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
-		UUID customerId = UUID.randomUUID();
+		final FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
+		final UUID customerId = UUID.randomUUID();
 
-		FollowUpTask task = FollowUpTask.schedule(id, null, customerId, LocalDate.now(), UUID.randomUUID(),
+		final FollowUpTask task = FollowUpTask.schedule(id, null, customerId, LocalDate.now(), UUID.randomUUID(),
 				AlertChannel.APP);
 
 		assertThat(task.getCustomerId()).isEqualTo(customerId);
@@ -46,7 +46,7 @@ class FollowUpTaskTest {
 	@Test
 	@DisplayName("Rejects a task linked to neither an opportunity nor a customer")
 	void rejectsATaskWithNeitherOpportunityNorCustomer() {
-		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
+		final FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> FollowUpTask.schedule(id, null, null, LocalDate.now(), UUID.randomUUID(),
 				AlertChannel.APP))
@@ -57,7 +57,7 @@ class FollowUpTaskTest {
 	@Test
 	@DisplayName("Rejects a task with a due date in the past")
 	void rejectsAPastDueDate() {
-		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
+		final FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 
 		assertThatThrownBy(() -> FollowUpTask.schedule(id, UUID.randomUUID(), null, LocalDate.now().minusDays(1),
 				UUID.randomUUID(), AlertChannel.EMAIL))
@@ -68,9 +68,9 @@ class FollowUpTaskTest {
 	@Test
 	@DisplayName("Reconstituting from persistence does not re-reject a due date that has since become overdue")
 	void reconstitutingFromPersistenceDoesNotReRejectAPastDueDateThatIsNowOverdue() {
-		FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
+		final FollowUpTaskId id = FollowUpTaskId.of(UUID.randomUUID());
 
-		FollowUpTask task = FollowUpTask.of(id, UUID.randomUUID(), null, LocalDate.now().minusDays(5),
+		final FollowUpTask task = FollowUpTask.of(id, UUID.randomUUID(), null, LocalDate.now().minusDays(5),
 				UUID.randomUUID(), AlertChannel.EMAIL);
 
 		assertThat(task.getDueDate()).isEqualTo(LocalDate.now().minusDays(5));

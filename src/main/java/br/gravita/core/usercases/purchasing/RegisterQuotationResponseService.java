@@ -12,16 +12,16 @@ public class RegisterQuotationResponseService implements RegisterQuotationRespon
 
 	private final QuotationRepositoryPort quotationRepositoryPort;
 
-	public RegisterQuotationResponseService(QuotationRepositoryPort quotationRepositoryPort) {
+	public RegisterQuotationResponseService(final QuotationRepositoryPort quotationRepositoryPort) {
 		this.quotationRepositoryPort = quotationRepositoryPort;
 	}
 
 	@Override
-	public void execute(RegisterQuotationResponseCommand command) {
-		Quotation quotation = quotationRepositoryPort.findById(command.quotationId())
+	public void execute(final RegisterQuotationResponseCommand command) {
+		final Quotation quotation = quotationRepositoryPort.findById(command.quotationId())
 				.orElseThrow(() -> new QuotationNotFoundException(command.quotationId().value()));
 
-		Quotation updated = quotation.registerResponse(command.supplierId(), command.itemPrices(), command.deadline());
+		final Quotation updated = quotation.registerResponse(command.supplierId(), command.itemPrices(), command.deadline());
 
 		quotationRepositoryPort.save(updated);
 	}

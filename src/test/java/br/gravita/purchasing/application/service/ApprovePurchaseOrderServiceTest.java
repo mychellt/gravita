@@ -48,15 +48,15 @@ class ApprovePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Approving an order pending approval clears the approval flag and notifies")
 	void approvingAnOrderPendingApprovalClearsTheFlagAndNotifies() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
-		UUID approvedBy = UUID.randomUUID();
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final UUID approvedBy = UUID.randomUUID();
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.of(pendingApprovalOrder(orderId)));
 		when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new ApprovePurchaseOrderCommand(orderId, approvedBy, ApprovalDecision.APPROVE));
 
-		ArgumentCaptor<PurchaseOrder> saved = ArgumentCaptor.forClass(PurchaseOrder.class);
+		final ArgumentCaptor<PurchaseOrder> saved = ArgumentCaptor.forClass(PurchaseOrder.class);
 		verify(purchaseOrderRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().isApprovalRequired()).isFalse();
 		assertThat(saved.getValue().getApprovedBy()).isEqualTo(approvedBy);
@@ -67,14 +67,14 @@ class ApprovePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejecting an order pending approval cancels it and notifies")
 	void rejectingAnOrderPendingApprovalCancelsItAndNotifies() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.of(pendingApprovalOrder(orderId)));
 		when(purchaseOrderRepositoryPort.save(any(PurchaseOrder.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new ApprovePurchaseOrderCommand(orderId, UUID.randomUUID(), ApprovalDecision.REJECT));
 
-		ArgumentCaptor<PurchaseOrder> saved = ArgumentCaptor.forClass(PurchaseOrder.class);
+		final ArgumentCaptor<PurchaseOrder> saved = ArgumentCaptor.forClass(PurchaseOrder.class);
 		verify(purchaseOrderRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(PurchaseOrderStatus.CANCELLED);
 		verify(notifyApprovalWorkflowPort).notifyDecision(saved.getValue(), ApprovalDecision.REJECT);
@@ -83,7 +83,7 @@ class ApprovePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects an approval decision for an order that does not exist")
 	void rejectsAnOrderThatDoesNotExist() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(
@@ -95,7 +95,7 @@ class ApprovePurchaseOrderServiceTest {
 	@Test
 	@DisplayName("Rejects approving an order that does not require approval")
 	void rejectsApprovingAnOrderThatDoesNotRequireApproval() {
-		PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
+		final PurchaseOrderId orderId = PurchaseOrderId.of(UUID.randomUUID());
 		when(purchaseOrderRepositoryPort.findById(orderId)).thenReturn(Optional.of(create(orderId, false)));
 
 		assertThatThrownBy(() -> service.execute(
@@ -105,11 +105,11 @@ class ApprovePurchaseOrderServiceTest {
 		verify(purchaseOrderRepositoryPort, never()).save(any());
 	}
 
-	private PurchaseOrder pendingApprovalOrder(PurchaseOrderId id) {
+	private PurchaseOrder pendingApprovalOrder(final PurchaseOrderId id) {
 		return create(id, true);
 	}
 
-	private PurchaseOrder create(PurchaseOrderId id, boolean approvalRequired) {
+	private PurchaseOrder create(final PurchaseOrderId id, final boolean approvalRequired) {
 		return PurchaseOrder.create(id, PurchaseRequestId.of(UUID.randomUUID()), null,
 				SupplierId.of(UUID.randomUUID()),
 				List.of(new PurchaseOrderItem(UUID.randomUUID(), BigDecimal.TEN, new BigDecimal("5.00"))),

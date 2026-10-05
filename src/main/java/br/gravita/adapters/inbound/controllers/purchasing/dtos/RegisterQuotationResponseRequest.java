@@ -18,7 +18,7 @@ public record RegisterQuotationResponseRequest(
 		@NotEmpty List<@Valid ItemPriceRequest> itemPrices,
 		@NotNull LocalDate deadline) {
 
-	public RegisterQuotationResponseCommand toCommand(UUID quotationId) {
+	public RegisterQuotationResponseCommand toCommand(final UUID quotationId) {
 		return new RegisterQuotationResponseCommand(
 				QuotationId.of(quotationId),
 				SupplierId.of(supplierId),

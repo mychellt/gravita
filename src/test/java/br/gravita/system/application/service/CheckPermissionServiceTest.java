@@ -39,8 +39,8 @@ class CheckPermissionServiceTest {
 
 	private static final ProfileReference SOME_PROFILE = new ProfileReference(UUID.randomUUID(), "Salesperson");
 
-	private User userWithProfile(UUID profileId) {
-		User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SOME_PROFILE);
+	private User userWithProfile(final UUID profileId) {
+		final User user = User.register("Jane Doe", "jane@example.com", "s3cret!", SOME_PROFILE);
 		user.update(null, null, new ProfileReference(profileId, "Salesperson"), null);
 		return user;
 	}
@@ -48,10 +48,10 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access when the user does not exist")
 	void shouldDenyWhenUserDoesNotExist() {
-		UserId userId = UserId.generate();
+		final UserId userId = UserId.generate();
 		when(userRepositoryPort.findById(userId)).thenReturn(Optional.empty());
 
-		boolean result = service().execute(new CheckPermissionQuery(userId, "finance", "invoices", PermissionAction.VIEW));
+		final boolean result = service().execute(new CheckPermissionQuery(userId, "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isFalse();
 	}
@@ -59,12 +59,12 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access when the user is inactive")
 	void shouldDenyWhenUserIsInactive() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
 		user.update(null, null, null, UserStatus.INACTIVE);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isFalse();
 	}
@@ -72,12 +72,12 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access when the user's profile no longer exists")
 	void shouldDenyWhenProfileNoLongerExists() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(profileId)).thenReturn(Optional.empty());
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isFalse();
 	}
@@ -85,9 +85,9 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access when the profile lacks the exact module, screen and action permission")
 	void shouldDenyWhenProfileLacksTheExactModuleScreenActionTriple() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
-		ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Salesperson")
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
+		final ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Salesperson")
 				.permissions(List.of(
 						PermissionDomain.builder().module("finance").screen("invoices").action(PermissionAction.VIEW).build(),
 						PermissionDomain.builder().module("finance").screen("invoices").action(PermissionAction.EDIT).build()))
@@ -95,7 +95,7 @@ class CheckPermissionServiceTest {
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(profileId)).thenReturn(Optional.of(profile));
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.DELETE));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.DELETE));
 
 		assertThat(result).isFalse();
 	}
@@ -103,15 +103,15 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Allows access when a standard profile grants the exact module, screen and action")
 	void shouldAllowWhenStandardProfileGrantsTheExactTriple() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
-		ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Salesperson")
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
+		final ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Salesperson")
 				.permissions(List.of(PermissionDomain.builder().module("finance").screen("invoices").action(PermissionAction.VIEW).build()))
 				.build();
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(profileId)).thenReturn(Optional.of(profile));
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isTrue();
 	}
@@ -119,15 +119,15 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Allows access when a custom profile grants the exact module, screen and action")
 	void shouldAllowWhenCustomProfileGrantsTheExactTriple() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
-		ProfileDomain customProfile = ProfileDomain.builder().id(profileId).name("Regional Approver")
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
+		final ProfileDomain customProfile = ProfileDomain.builder().id(profileId).name("Regional Approver")
 				.permissions(List.of(PermissionDomain.builder().module("sales").screen("orders").action(PermissionAction.APPROVE).build()))
 				.build();
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(profileId)).thenReturn(Optional.of(customProfile));
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "sales", "orders", PermissionAction.APPROVE));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "sales", "orders", PermissionAction.APPROVE));
 
 		assertThat(result).isTrue();
 	}
@@ -135,13 +135,13 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access when the profile has no permissions at all")
 	void shouldDenyWhenProfileHasNoPermissionsAtAll() {
-		UUID profileId = UUID.randomUUID();
-		User user = userWithProfile(profileId);
-		ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Empty").permissions(null).build();
+		final UUID profileId = UUID.randomUUID();
+		final User user = userWithProfile(profileId);
+		final ProfileDomain profile = ProfileDomain.builder().id(profileId).name("Empty").permissions(null).build();
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 		when(profileRepositoryPort.findById(profileId)).thenReturn(Optional.of(profile));
 
-		boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
+		final boolean result = service().execute(new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isFalse();
 	}
@@ -149,10 +149,10 @@ class CheckPermissionServiceTest {
 	@Test
 	@DisplayName("Denies access to a user pending activation (no change to the service needed)")
 	void shouldDenyWhenUserIsPendingActivation() {
-		User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SOME_PROFILE, UUID.randomUUID());
+		final User user = User.signUp("Jane Doe", "jane@example.com", "s3cret!", SOME_PROFILE, UUID.randomUUID());
 		when(userRepositoryPort.findById(user.getId())).thenReturn(Optional.of(user));
 
-		boolean result = service().execute(
+		final boolean result = service().execute(
 				new CheckPermissionQuery(user.getId(), "finance", "invoices", PermissionAction.VIEW));
 
 		assertThat(result).isFalse();

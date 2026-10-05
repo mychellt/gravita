@@ -22,7 +22,7 @@ public record UpdateSupplierRequest(
 		@Positive Integer averageLeadTimeDays,
 		String defaultPurchaseCfop) {
 
-	public UpdateSupplierCommand toCommand(SupplierId supplierId) {
+	public UpdateSupplierCommand toCommand(final SupplierId supplierId) {
 		return new UpdateSupplierCommand(
 				supplierId,
 				toDocument(),

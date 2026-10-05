@@ -35,22 +35,22 @@ final class ExportLayouts {
 	private ExportLayouts() {
 	}
 
-	static ExportLayout dashboard(ExecutiveDashboardView view) {
-		List<Table> tables = new ArrayList<>();
-		ExecutiveDashboardView.Revenue revenue = view.revenue();
+	static ExportLayout dashboard(final ExecutiveDashboardView view) {
+		final List<Table> tables = new ArrayList<>();
+		final ExecutiveDashboardView.Revenue revenue = view.revenue();
 		tables.add(new Table("Faturamento",
 				cols(new Col("Período", 10, false), new Col("Atual", 12, true), new Col("Anterior", 12, true),
 						new Col("Variação (%)", 10, true)),
 				List.of(row("Dia", revenue.day()), row("Semana", revenue.week()), row("Mês", revenue.month())),
 				List.of("Total faturado (fiscal): " + ExportLayout.money(revenue.invoicedTotal())
 						+ " | Diferença de conciliação: " + ExportLayout.money(revenue.reconciliationDifference()))));
-		ExecutiveDashboardView.Margin margin = view.margin();
+		final ExecutiveDashboardView.Margin margin = view.margin();
 		tables.add(new Table("CMV e Margem",
 				cols(new Col("Receita", 12, true), new Col("CMV", 12, true), new Col("Margem bruta", 12, true),
 						new Col("Margem bruta (%)", 12, true)),
 				List.of(cells(margin.revenue(), margin.cmv(), margin.grossMargin(), margin.grossMarginPercent())),
 				List.of()));
-		ExecutiveDashboardView.Delinquency delinquency = view.delinquency();
+		final ExecutiveDashboardView.Delinquency delinquency = view.delinquency();
 		tables.add(new Table("Inadimplência",
 				cols(new Col("Total em atraso", 12, true), new Col("Títulos", 8, true),
 						new Col("Até 30 dias", 12, true), new Col("31 a 60 dias", 12, true),
@@ -69,15 +69,15 @@ final class ExportLayouts {
 				List.of()));
 		tables.add(topProducts("Top produtos por quantidade", view.topProducts().byQuantity()));
 		tables.add(topProducts("Top produtos por valor", view.topProducts().byValue()));
-		ExecutiveDashboardView.TargetProgress targets = view.targets();
-		List<List<Object>> targetRows = new ArrayList<>();
+		final ExecutiveDashboardView.TargetProgress targets = view.targets();
+		final List<List<Object>> targetRows = new ArrayList<>();
 		targetRows.add(targetRow("Empresa", targets.company()));
 		targets.salespeople().forEach(salesperson -> targetRows.add(targetRow(salesperson.salespersonId(), salesperson.target())));
 		tables.add(new Table("Metas de vendas - " + targets.month().format(MONTH),
 				cols(new Col("Vendedor", 24, false), new Col("Meta", 12, true), new Col("Realizado", 12, true),
 						new Col("Atingido (%)", 10, true)),
 				targetRows, List.of()));
-		String period = switch (view.period()) {
+		final String period = switch (view.period()) {
 			case DAY -> "Dia";
 			case WEEK -> "Semana";
 			case MONTH -> "Mês";
@@ -88,11 +88,11 @@ final class ExportLayouts {
 				tables);
 	}
 
-	static ExportLayout abcCurve(AbcCurveType type, YearMonth period, List<AbcCurveEntry> curve) {
-		String subject = type == AbcCurveType.PRODUCT ? "Produtos" : "Clientes";
-		List<List<Object>> rows = new ArrayList<>();
+	static ExportLayout abcCurve(final AbcCurveType type, final YearMonth period, final List<AbcCurveEntry> curve) {
+		final String subject = type == AbcCurveType.PRODUCT ? "Produtos" : "Clientes";
+		final List<List<Object>> rows = new ArrayList<>();
 		int rank = 1;
-		for (AbcCurveEntry entry : curve) {
+		for (final AbcCurveEntry entry : curve) {
 			rows.add(cells(rank++, entry.entityId(), entry.revenue(), entry.revenueShare(), entry.cumulativeShare(),
 					entry.abcClass().name()));
 		}
@@ -104,8 +104,8 @@ final class ExportLayouts {
 						rows, List.of("Itens: " + curve.size()))));
 	}
 
-	static ExportLayout stockTurnover(YearMonth period, List<StockTurnoverEntry> turnover) {
-		long stalled = turnover.stream().filter(StockTurnoverEntry::stalledFlag).count();
+	static ExportLayout stockTurnover(final YearMonth period, final List<StockTurnoverEntry> turnover) {
+		final long stalled = turnover.stream().filter(StockTurnoverEntry::stalledFlag).count();
 		return new ExportLayout("Giro de Estoque - " + period.format(MONTH), List.of(periodLine(period)),
 				List.of(new Table("Giro de Estoque",
 						cols(new Col("Produto", 30, false), new Col("Giro", 10, true),
@@ -115,8 +115,8 @@ final class ExportLayouts {
 						List.of("Produtos: " + turnover.size() + " | Parados: " + stalled))));
 	}
 
-	static ExportLayout commissions(YearMonth period, List<CommissionReportEntry> commissions) {
-		BigDecimal total = commissions.stream().map(CommissionReportEntry::amount).reduce(BigDecimal.ZERO,
+	static ExportLayout commissions(final YearMonth period, final List<CommissionReportEntry> commissions) {
+		final BigDecimal total = commissions.stream().map(CommissionReportEntry::amount).reduce(BigDecimal.ZERO,
 				BigDecimal::add);
 		return new ExportLayout("Comissões - " + period.format(MONTH), List.of(periodLine(period)),
 				List.of(new Table("Comissões",
@@ -129,7 +129,7 @@ final class ExportLayouts {
 								+ ExportLayout.money(total)))));
 	}
 
-	static ExportLayout assessedTaxes(AssessedTaxSummary summary) {
+	static ExportLayout assessedTaxes(final AssessedTaxSummary summary) {
 		return new ExportLayout("Tributos Apurados - " + summary.period().format(MONTH),
 				List.of(periodLine(summary.period())),
 				List.of(new Table("Tributos Apurados", cols(new Col("Tributo", 20, false), new Col("Valor", 14, true)),
@@ -140,12 +140,12 @@ final class ExportLayouts {
 	}
 
 	/** Only the Excel is laid out here; the PDF of the books is the statutory one {@code GetFiscalBooksUseCase} renders. */
-	static ExportLayout fiscalBooks(FiscalBooks books) {
-		List<Col> documentColumns = cols(new Col("Data", 8, false), new Col("Modelo", 6, false),
+	static ExportLayout fiscalBooks(final FiscalBooks books) {
+		final List<Col> documentColumns = cols(new Col("Data", 8, false), new Col("Modelo", 6, false),
 				new Col("Série", 5, false), new Col("Número", 8, false), new Col("Chave de acesso", 24, false),
 				new Col("Participante", 20, false), new Col("CNPJ/CPF", 12, false), new Col("CFOP", 6, false),
 				new Col("Valor total", 10, true), new Col("ICMS", 9, true));
-		List<Col> assessmentColumns = cols(new Col("Natureza", 8, false), new Col("Data", 8, false),
+		final List<Col> assessmentColumns = cols(new Col("Natureza", 8, false), new Col("Data", 8, false),
 				new Col("Modelo", 6, false), new Col("Série", 5, false), new Col("Número", 8, false),
 				new Col("Participante", 22, false), new Col("CFOP", 6, false), new Col("Valor total", 10, true),
 				new Col("ICMS", 9, true));
@@ -164,7 +164,7 @@ final class ExportLayouts {
 										"Saldo (débitos - créditos): " + ExportLayout.money(books.icmsBalance())))));
 	}
 
-	private static Table topProducts(String heading, List<TopProduct> products) {
+	private static Table topProducts(final String heading, final List<TopProduct> products) {
 		return new Table(heading, cols(new Col("Produto", 30, false), new Col("Quantidade", 12, true),
 				new Col("Valor", 12, true)),
 				products.stream().map(product -> cells(product.productId(), product.quantity(), product.value()))
@@ -172,45 +172,46 @@ final class ExportLayouts {
 				List.of());
 	}
 
-	private static List<Object> row(String label, PeriodComparison comparison) {
+	private static List<Object> row(final String label, final PeriodComparison comparison) {
 		return cells(label, comparison.current(), comparison.previous(), comparison.variationPercent());
 	}
 
-	private static List<Object> targetRow(Object who, Target target) {
+	private static List<Object> targetRow(final Object who, final Target target) {
 		return cells(who, target.valueTarget(), target.valueAchieved(), target.percentComplete());
 	}
 
-	private static List<Object> documentRow(FiscalBookEntry entry) {
+	private static List<Object> documentRow(final FiscalBookEntry entry) {
 		return cells(entry.date(), entry.documentModel(), entry.series(), entry.number(), entry.accessKey(),
 				entry.counterpartName(), entry.counterpartDocument(), entry.cfop(), entry.totalValue(),
 				entry.icmsValue());
 	}
 
-	private static List<Object> assessmentRow(FiscalBookEntry entry) {
-		return cells(switch (entry.flow()) {
+	private static List<Object> assessmentRow(final FiscalBookEntry entry) {
+		final String flow = switch (entry.flow()) {
 			case EXIT -> "Débito";
 			case ENTRY -> "Crédito";
-		}, entry.date(), entry.documentModel(), entry.series(), entry.number(), entry.counterpartName(), entry.cfop(),
+		};
+		return cells(flow, entry.date(), entry.documentModel(), entry.series(), entry.number(), entry.counterpartName(), entry.cfop(),
 				entry.totalValue(), entry.icmsValue());
 	}
 
-	private static String documentTotals(List<FiscalBookEntry> book, BigDecimal icms) {
-		BigDecimal total = book.stream().map(FiscalBookEntry::totalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+	private static String documentTotals(final List<FiscalBookEntry> book, final BigDecimal icms) {
+		final BigDecimal total = book.stream().map(FiscalBookEntry::totalValue).reduce(BigDecimal.ZERO, BigDecimal::add);
 		return "Documentos: " + book.size() + " | Valor total: " + ExportLayout.money(total) + " | ICMS: "
 				+ ExportLayout.money(icms);
 	}
 
-	private static String periodLine(YearMonth period) {
-		LocalDate from = period.atDay(1);
+	private static String periodLine(final YearMonth period) {
+		final LocalDate from = period.atDay(1);
 		return "Período: " + from.format(DATE) + " a " + period.atEndOfMonth().format(DATE);
 	}
 
-	private static List<Col> cols(Col... columns) {
+	private static List<Col> cols(final Col... columns) {
 		return List.of(columns);
 	}
 
 	/** {@code List.of} refuses the null cells of an empty value. */
-	private static List<Object> cells(Object... values) {
+	private static List<Object> cells(final Object... values) {
 		return Collections.unmodifiableList(Arrays.asList(values));
 	}
 }

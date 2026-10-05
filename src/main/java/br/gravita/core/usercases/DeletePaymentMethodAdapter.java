@@ -13,13 +13,13 @@ public class DeletePaymentMethodAdapter implements DeletePaymentMethodPort {
 
 	private final PaymentMethodRepositoryPort paymentMethodRepositoryPort;
 
-	public DeletePaymentMethodAdapter(PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
+	public DeletePaymentMethodAdapter(final PaymentMethodRepositoryPort paymentMethodRepositoryPort) {
 		this.paymentMethodRepositoryPort = paymentMethodRepositoryPort;
 	}
 
 	@Override
-	public Void execute(Context context) {
-		UUID id = context.getData(UUID.class);
+	public Void execute(final Context context) {
+		final UUID id = context.getData(UUID.class);
 		paymentMethodRepositoryPort.get(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Payment method not found: " + id));
 		paymentMethodRepositoryPort.deleteById(id);

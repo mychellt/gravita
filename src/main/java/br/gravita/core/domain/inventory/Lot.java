@@ -17,7 +17,7 @@ public final class Lot {
 	private final LocalDate expiryDate;
 	private final BigDecimal quantity;
 
-	public Lot(LotId id, UUID productId, UUID warehouseId, String code, LocalDate expiryDate, BigDecimal quantity) {
+	public Lot(final LotId id, final UUID productId, final UUID warehouseId, final String code, final LocalDate expiryDate, final BigDecimal quantity) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
 		this.warehouseId = Objects.requireNonNull(warehouseId, "warehouseId is required");
@@ -26,20 +26,20 @@ public final class Lot {
 		this.quantity = Objects.requireNonNull(quantity, "quantity is required");
 	}
 
-	public static Lot of(LotId id, UUID productId, UUID warehouseId, String code, LocalDate expiryDate,
-			BigDecimal quantity) {
+	public static Lot of(final LotId id, final UUID productId, final UUID warehouseId, final String code, final LocalDate expiryDate,
+			final BigDecimal quantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, quantity);
 	}
 
-	public Lot receive(BigDecimal additionalQuantity) {
+	public Lot receive(final BigDecimal additionalQuantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, quantity.add(additionalQuantity));
 	}
 
-	public boolean isExpired(LocalDate asOf) {
+	public boolean isExpired(final LocalDate asOf) {
 		return expiryDate.isBefore(asOf);
 	}
 
-	public Lot issue(BigDecimal quantity) {
+	public Lot issue(final BigDecimal quantity) {
 		return new Lot(id, productId, warehouseId, code, expiryDate, this.quantity.subtract(quantity));
 	}
 }

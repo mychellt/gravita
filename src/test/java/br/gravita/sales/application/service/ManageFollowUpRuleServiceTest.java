@@ -39,14 +39,14 @@ class ManageFollowUpRuleServiceTest {
 		when(followUpRuleRepositoryPort.save(any(FollowUpRule.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		CreateFollowUpRuleCommand command = CreateFollowUpRuleCommand.builder()
+		final CreateFollowUpRuleCommand command = CreateFollowUpRuleCommand.builder()
 				.daysWithoutContact(7)
 				.target(FollowUpTarget.CUSTOMER)
 				.notifyOwner(true)
 				.active(true)
 				.build();
 
-		FollowUpRuleView view = service.create(command);
+		final FollowUpRuleView view = service.create(command);
 
 		assertThat(view.daysWithoutContact()).isEqualTo(7);
 		assertThat(view.target()).isEqualTo(FollowUpTarget.CUSTOMER);
@@ -57,7 +57,7 @@ class ManageFollowUpRuleServiceTest {
 	@Test
 	@DisplayName("Rejects creating a rule whose days without contact is not positive")
 	void rejectsNonPositiveDaysWithoutContactOnCreate() {
-		CreateFollowUpRuleCommand command = CreateFollowUpRuleCommand.builder()
+		final CreateFollowUpRuleCommand command = CreateFollowUpRuleCommand.builder()
 				.daysWithoutContact(0)
 				.target(FollowUpTarget.CUSTOMER)
 				.notifyOwner(true)
@@ -70,15 +70,15 @@ class ManageFollowUpRuleServiceTest {
 	@Test
 	@DisplayName("A partial update keeps the fields that were not specified unchanged")
 	void partialUpdateKeepsUnspecifiedFieldsUnchanged() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
-		FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.of(existing));
 		when(followUpRuleRepositoryPort.save(any(FollowUpRule.class)))
 				.thenAnswer(invocation -> invocation.getArgument(0));
 
-		UpdateFollowUpRuleCommand command = UpdateFollowUpRuleCommand.builder().ruleId(id).active(false).build();
+		final UpdateFollowUpRuleCommand command = UpdateFollowUpRuleCommand.builder().ruleId(id).active(false).build();
 
-		FollowUpRuleView view = service.update(command);
+		final FollowUpRuleView view = service.update(command);
 
 		assertThat(view.active()).isFalse();
 		assertThat(view.daysWithoutContact()).isEqualTo(7);
@@ -88,10 +88,10 @@ class ManageFollowUpRuleServiceTest {
 	@Test
 	@DisplayName("Updating a rule that does not exist throws not-found")
 	void updatingAnUnknownRuleThrows() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
-		UpdateFollowUpRuleCommand command = UpdateFollowUpRuleCommand.builder().ruleId(id).active(false).build();
+		final UpdateFollowUpRuleCommand command = UpdateFollowUpRuleCommand.builder().ruleId(id).active(false).build();
 
 		assertThatThrownBy(() -> service.update(command)).isInstanceOf(FollowUpRuleNotFoundException.class);
 	}
@@ -99,8 +99,8 @@ class ManageFollowUpRuleServiceTest {
 	@Test
 	@DisplayName("Deleting a rule removes it from the repository")
 	void deletingARuleRemovesItFromTheRepository() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
-		FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRule existing = FollowUpRule.of(id, 7, FollowUpTarget.CUSTOMER, true, true);
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.of(existing));
 
 		service.delete(id);
@@ -111,7 +111,7 @@ class ManageFollowUpRuleServiceTest {
 	@Test
 	@DisplayName("Deleting a rule that does not exist throws not-found")
 	void deletingAnUnknownRuleThrows() {
-		FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
+		final FollowUpRuleId id = FollowUpRuleId.of(UUID.randomUUID());
 		when(followUpRuleRepositoryPort.findById(id)).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.delete(id)).isInstanceOf(FollowUpRuleNotFoundException.class);

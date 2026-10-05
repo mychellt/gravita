@@ -45,14 +45,14 @@ class CancelSalesOrderServiceTest {
 	@Test
 	@DisplayName("Cancels a draft order without releasing any stock reservation")
 	void cancelsADraftOrderWithoutReleasingAnyStockReservation() {
-		SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.createFromQuote(SalesOrderId.of(UUID.randomUUID()),
 				QuoteId.of(UUID.randomUUID()), UUID.randomUUID(), UUID.randomUUID(), List.of(item()));
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
 		when(salesOrderRepositoryPort.save(any(SalesOrder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		service.execute(new CancelSalesOrderCommand(order.getId().value(), "Customer requested cancellation"));
 
-		ArgumentCaptor<SalesOrder> saved = ArgumentCaptor.forClass(SalesOrder.class);
+		final ArgumentCaptor<SalesOrder> saved = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
 		assertThat(saved.getValue().getCancelReason()).isEqualTo("Customer requested cancellation");
@@ -62,7 +62,7 @@ class CancelSalesOrderServiceTest {
 	@Test
 	@DisplayName("Cancelling an approved order releases its stock reservations")
 	void cancellingAnApprovedOrderReleasesTheOrdersStockReservations() {
-		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.APPROVED, UUID.randomUUID(),
 				null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -72,7 +72,7 @@ class CancelSalesOrderServiceTest {
 
 		verify(releaseStockReservationPort).releaseByOrderRef(order.getId().value());
 
-		ArgumentCaptor<SalesOrder> saved = ArgumentCaptor.forClass(SalesOrder.class);
+		final ArgumentCaptor<SalesOrder> saved = ArgumentCaptor.forClass(SalesOrder.class);
 		verify(salesOrderRepositoryPort).save(saved.capture());
 		assertThat(saved.getValue().getStatus()).isEqualTo(SalesOrderStatus.CANCELLED);
 	}
@@ -80,7 +80,7 @@ class CancelSalesOrderServiceTest {
 	@Test
 	@DisplayName("Cancelling an order in separation releases its stock reservations")
 	void cancellingAnInSeparationOrderReleasesItsStockReservations() {
-		SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder order = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.IN_SEPARATION,
 				UUID.randomUUID(), null);
 		when(salesOrderRepositoryPort.findById(order.getId())).thenReturn(Optional.of(order));
@@ -94,7 +94,7 @@ class CancelSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects cancelling an invoiced order, releasing no stock and saving nothing")
 	void rejectsCancellingAnInvoicedOrderWithoutReleasingStockOrSaving() {
-		SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
+		final SalesOrder invoiced = SalesOrder.of(SalesOrderId.of(UUID.randomUUID()), QuoteId.of(UUID.randomUUID()),
 				UUID.randomUUID(), UUID.randomUUID(), List.of(item()), SalesOrderStatus.INVOICED, UUID.randomUUID(),
 				null);
 		when(salesOrderRepositoryPort.findById(invoiced.getId())).thenReturn(Optional.of(invoiced));
@@ -111,7 +111,7 @@ class CancelSalesOrderServiceTest {
 	@Test
 	@DisplayName("Rejects cancelling an order that does not exist")
 	void rejectsCancellingAnOrderThatDoesNotExist() {
-		UUID orderId = UUID.randomUUID();
+		final UUID orderId = UUID.randomUUID();
 		when(salesOrderRepositoryPort.findById(any())).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> service.execute(new CancelSalesOrderCommand(orderId, "Any reason")))

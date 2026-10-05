@@ -17,14 +17,14 @@ class BankStatementLineTest {
 
 	private static final LocalDate DAY = LocalDate.of(2026, 9, 25);
 
-	private BankStatementLine line(String amount) {
+	private BankStatementLine line(final String amount) {
 		return BankStatementLine.unmatched(3, DAY, new BigDecimal(amount), "PIX RECEBIDO", "FIT-1");
 	}
 
 	@Test
 	@DisplayName("Starts a statement line as unmatched")
 	void startsUnmatched() {
-		BankStatementLine line = line("10.00");
+		final BankStatementLine line = line("10.00");
 
 		assertThat(line.isMatched()).isFalse();
 		assertThat(line.getSettlementId()).isNull();
@@ -34,12 +34,12 @@ class BankStatementLineTest {
 	@Test
 	@DisplayName("Returns a copy pointing at the settlement or the movement when matched")
 	void matchingReturnsACopyPointingAtTheSettlementOrTheMovement() {
-		BankStatementLine line = line("10.00");
-		SettlementId settlementId = SettlementId.of(UUID.randomUUID());
-		CashMovementId movementId = CashMovementId.of(UUID.randomUUID());
+		final BankStatementLine line = line("10.00");
+		final SettlementId settlementId = SettlementId.of(UUID.randomUUID());
+		final CashMovementId movementId = CashMovementId.of(UUID.randomUUID());
 
-		BankStatementLine toSettlement = line.matchedTo(settlementId);
-		BankStatementLine toMovement = line.matchedTo(movementId);
+		final BankStatementLine toSettlement = line.matchedTo(settlementId);
+		final BankStatementLine toMovement = line.matchedTo(movementId);
 
 		assertThat(toSettlement.isMatched()).isTrue();
 		assertThat(toSettlement.getSettlementId()).isEqualTo(settlementId);
@@ -63,7 +63,7 @@ class BankStatementLineTest {
 
 	@Test
 	@DisplayName("Turns a missing description into an empty one")
-	void aMissingDescriptionBecomesEmpty() {
+	void missingDescriptionBecomesEmpty() {
 		assertThat(BankStatementLine.unmatched(1, DAY, BigDecimal.ONE, null, null).getDescription()).isEmpty();
 	}
 

@@ -28,40 +28,40 @@ public class GetStockTurnoverService implements GetStockTurnoverUseCase {
 	private final InventoryReadModelPort inventoryReadModelPort;
 	private final PermissionCheckPort permissionCheckPort;
 
-	public GetStockTurnoverService(InventoryReadModelPort inventoryReadModelPort,
-			PermissionCheckPort permissionCheckPort) {
+	public GetStockTurnoverService(final InventoryReadModelPort inventoryReadModelPort,
+			final PermissionCheckPort permissionCheckPort) {
 		this.inventoryReadModelPort = inventoryReadModelPort;
 		this.permissionCheckPort = permissionCheckPort;
 	}
 
 	@Override
-	public List<StockTurnoverEntry> execute(StockTurnoverQuery query) {
+	public List<StockTurnoverEntry> execute(final StockTurnoverQuery query) {
 		if (!permissionCheckPort.canView(query.requesterId(), SCREEN)) {
 			throw new ForbiddenException("The user's profile cannot view the stock turnover report");
 		}
-		List<StockFlow> flows = inventoryReadModelPort.stockFlows(query.period().atDay(1),
+		final List<StockFlow> flows = inventoryReadModelPort.stockFlows(query.period().atDay(1),
 				query.period().atEndOfMonth(), query.companyId());
-		Comparator<StockTurnoverEntry> order = Comparator
+		final Comparator<StockTurnoverEntry> order = Comparator
 				.comparing(StockTurnoverEntry::turnoverRate, Comparator.nullsLast(Comparator.reverseOrder()))
 				.thenComparing(StockTurnoverEntry::product);
 		return flows.stream().filter(flow -> held(flow) || issued(flow)).map(this::entry).sorted(order).toList();
 	}
 
-	private StockTurnoverEntry entry(StockFlow flow) {
-		BigDecimal average = averageStock(flow);
-		BigDecimal rate = average.signum() > 0 ? flow.issued().divide(average, 4, RoundingMode.HALF_UP) : null;
+	private StockTurnoverEntry entry(final StockFlow flow) {
+		final BigDecimal average = averageStock(flow);
+		final BigDecimal rate = average.signum() > 0 ? flow.issued().divide(average, 4, RoundingMode.HALF_UP) : null;
 		return new StockTurnoverEntry(flow.productId(), rate, !issued(flow));
 	}
 
-	private BigDecimal averageStock(StockFlow flow) {
+	private BigDecimal averageStock(final StockFlow flow) {
 		return flow.openingOnHand().add(flow.closingOnHand()).divide(TWO, 4, RoundingMode.HALF_UP);
 	}
 
-	private boolean held(StockFlow flow) {
+	private boolean held(final StockFlow flow) {
 		return flow.openingOnHand().signum() > 0 || flow.closingOnHand().signum() > 0;
 	}
 
-	private boolean issued(StockFlow flow) {
+	private boolean issued(final StockFlow flow) {
 		return flow.issued().signum() > 0;
 	}
 }

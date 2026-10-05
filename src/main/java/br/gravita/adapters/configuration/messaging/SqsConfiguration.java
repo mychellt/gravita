@@ -16,11 +16,11 @@ public class SqsConfiguration {
 
 	@Bean
 	public SqsClient sqsClient(
-			@Value("${aws.region}") String region,
-			@Value("${aws.sqs.endpoint:}") String endpoint,
-			@Value("${aws.access-key:test}") String accessKey,
-			@Value("${aws.secret-key:test}") String secretKey) {
-		SqsClientBuilder builder = SqsClient.builder().region(Region.of(region));
+			@Value("${aws.region}") final String region,
+			@Value("${aws.sqs.endpoint:}") final String endpoint,
+			@Value("${aws.access-key:test}") final String accessKey,
+			@Value("${aws.secret-key:test}") final String secretKey) {
+		final SqsClientBuilder builder = SqsClient.builder().region(Region.of(region));
 
 		if (!endpoint.isBlank()) {
 			builder.endpointOverride(URI.create(endpoint))

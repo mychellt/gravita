@@ -11,7 +11,7 @@ public class PasswordResetRejectedException extends BusinessRuleException {
 
 	private final Reason reason;
 
-	public PasswordResetRejectedException(Reason reason, String message) {
+	public PasswordResetRejectedException(final Reason reason, final String message) {
 		super(message);
 		this.reason = reason;
 	}

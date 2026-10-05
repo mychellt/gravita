@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static br.gravita.core.domain.PlanFixtures.aPlan;
+import static br.gravita.core.domain.PlanFixtures.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -23,13 +23,13 @@ class PlanPersistenceMapperTest {
 	@Test
 	@DisplayName("Maps every plan field to the entity and back")
 	void shouldRoundTripPlan() {
-		PlanDomain plan = aPlan()
+		final PlanDomain plan = plan()
 				.featured(true)
 				.limits(new PlanLimits(2, null, 5, null))
 				.support(new PlanSupport(true, true, false, 12, false, true))
 				.build();
 
-		PlanDomain roundTripped = mapper.map(mapper.map(plan));
+		final PlanDomain roundTripped = mapper.map(mapper.map(plan));
 
 		assertThat(roundTripped).usingRecursiveComparison().isEqualTo(plan);
 	}
@@ -37,11 +37,11 @@ class PlanPersistenceMapperTest {
 	@Test
 	@DisplayName("Maps feature rows with their label, included flag and display order")
 	void shouldMapFeatureRows() {
-		PlanDomain plan = aPlan()
+		final PlanDomain plan = plan()
 				.features(List.of(new PlanFeature("API", false, 1), new PlanFeature("1 CNPJ", true, 0)))
 				.build();
 
-		PlanJpaEntity entity = mapper.map(plan);
+		final PlanJpaEntity entity = mapper.map(plan);
 
 		assertThat(entity.getFeatures())
 				.extracting(PlanFeatureEmbeddable::getLabel, PlanFeatureEmbeddable::isIncluded, PlanFeatureEmbeddable::getDisplayOrder)
@@ -51,10 +51,10 @@ class PlanPersistenceMapperTest {
 	@Test
 	@DisplayName("Reads an entity whose limits are all unlimited as four null limits, not as missing limits")
 	void shouldMapUnlimitedLimitsWhenHibernateLeavesEmbeddableNull() {
-		PlanJpaEntity entity = mapper.map(aPlan().limits(new PlanLimits(null, null, null, null)).build());
+		final PlanJpaEntity entity = mapper.map(plan().limits(new PlanLimits(null, null, null, null)).build());
 		entity.setLimits(null);
 
-		PlanDomain plan = mapper.map(entity);
+		final PlanDomain plan = mapper.map(entity);
 
 		assertThat(plan.getLimits()).isEqualTo(new PlanLimits(null, null, null, null));
 		assertThat(entity.getLimits()).isInstanceOf(PlanLimitsEmbeddable.class);

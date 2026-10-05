@@ -20,8 +20,8 @@ public final class StageTransition {
 	private final OpportunityStage toStage;
 	private final Instant timestamp;
 
-	public StageTransition(StageTransitionId id, OpportunityId opportunityId, OpportunityStage fromStage,
-			OpportunityStage toStage, Instant timestamp) {
+	public StageTransition(final StageTransitionId id, final OpportunityId opportunityId, final OpportunityStage fromStage,
+			final OpportunityStage toStage, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.opportunityId = Objects.requireNonNull(opportunityId, "opportunityId is required");
 		this.fromStage = Objects.requireNonNull(fromStage, "fromStage is required");
@@ -32,14 +32,14 @@ public final class StageTransition {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	public static StageTransition append(OpportunityId opportunityId, OpportunityStage fromStage,
-			OpportunityStage toStage) {
+	public static StageTransition append(final OpportunityId opportunityId, final OpportunityStage fromStage,
+			final OpportunityStage toStage) {
 		return new StageTransition(StageTransitionId.of(UUID.randomUUID()), opportunityId, fromStage, toStage,
 				Instant.now());
 	}
 
-	public static StageTransition of(StageTransitionId id, OpportunityId opportunityId, OpportunityStage fromStage,
-			OpportunityStage toStage, Instant timestamp) {
+	public static StageTransition of(final StageTransitionId id, final OpportunityId opportunityId, final OpportunityStage fromStage,
+			final OpportunityStage toStage, final Instant timestamp) {
 		return new StageTransition(id, opportunityId, fromStage, toStage, timestamp);
 	}
 }

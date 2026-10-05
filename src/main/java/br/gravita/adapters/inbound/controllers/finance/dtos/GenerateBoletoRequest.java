@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record GenerateBoletoRequest(@NotNull BankIntegration bankIntegration) {
 
-	public GenerateBoletoCommand toCommand(UUID receivableId) {
+	public GenerateBoletoCommand toCommand(final UUID receivableId) {
 		return new GenerateBoletoCommand(receivableId, bankIntegration);
 	}
 }

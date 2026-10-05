@@ -40,12 +40,12 @@ class AuthenticatedUserArgumentResolverTest {
 	}
 
 	private MethodParameter annotatedParameter() throws NoSuchMethodException {
-		Method method = Dummy.class.getDeclaredMethod("handle", UserId.class);
+		final Method method = Dummy.class.getDeclaredMethod("handle", UserId.class);
 		return new MethodParameter(method, 0);
 	}
 
 	private static class Dummy {
-		void handle(@AuthenticatedUser UserId userId) {
+		void handle(@AuthenticatedUser final UserId userId) {
 		}
 	}
 
@@ -58,12 +58,12 @@ class AuthenticatedUserArgumentResolverTest {
 	@Test
 	@DisplayName("Resolves the user id bound to the bearer token")
 	void shouldResolveTheUserIdBoundToTheBearerToken() {
-		UserId userId = UserId.generate();
+		final UserId userId = UserId.generate();
 		when(sessionStorePortProvider.getObject()).thenReturn(sessionStorePort);
 		when(webRequest.getHeader("Authorization")).thenReturn("Bearer abc-123");
 		when(sessionStorePort.resolve("abc-123")).thenReturn(Optional.of(userId));
 
-		Object resolved = resolver.resolveArgument(null, null, webRequest, null);
+		final Object resolved = resolver.resolveArgument(null, null, webRequest, null);
 
 		assertThat(resolved).isEqualTo(userId);
 	}

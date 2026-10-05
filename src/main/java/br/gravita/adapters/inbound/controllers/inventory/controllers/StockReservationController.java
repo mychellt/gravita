@@ -21,14 +21,14 @@ public class StockReservationController {
 	private final ReleaseStockReservationUseCase releaseStockReservationUseCase;
 
 	@PostMapping
-	public ResponseEntity<StockReservationResponse> reserve(@Valid @RequestBody ReserveStockRequest request) {
-		StockReservationResponse response = StockReservationResponse.from(
+	public ResponseEntity<StockReservationResponse> reserve(@Valid @RequestBody final ReserveStockRequest request) {
+		final StockReservationResponse response = StockReservationResponse.from(
 				reserveStockUseCase.execute(request.toCommand()));
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> release(@PathVariable UUID id) {
+	public ResponseEntity<Void> release(@PathVariable final UUID id) {
 		releaseStockReservationUseCase.execute(new ReleaseStockReservationCommand(id));
 		return ResponseEntity.noContent().build();
 	}

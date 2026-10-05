@@ -49,12 +49,12 @@ class SubmitPhysicalCountServiceTest {
 	@Test
 	@DisplayName("Submitting counts for every line moves the count to PENDING_APPROVAL")
 	void submittingCountsForEveryLineMovesTheCountToPendingApproval() {
-		UUID product = UUID.randomUUID();
-		PhysicalCount inProgress = physicalCount(List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
+		final UUID product = UUID.randomUUID();
+		final PhysicalCount inProgress = physicalCount(List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(inProgress));
 		when(physicalCountRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-		PhysicalCount result = service.execute(
+		final PhysicalCount result = service.execute(
 				new SubmitPhysicalCountCommand(physicalCountId, Map.of(product, new BigDecimal("9")), submittedBy));
 
 		assertThat(result.getStatus()).isEqualTo(PhysicalCountStatus.PENDING_APPROVAL);
@@ -73,8 +73,8 @@ class SubmitPhysicalCountServiceTest {
 	@Test
 	@DisplayName("Rejects submitting counts for a count that is not in progress")
 	void rejectsSubmittingCountsForACountThatIsNotInProgress() {
-		UUID product = UUID.randomUUID();
-		PhysicalCount pending = PhysicalCount.of(physicalCountId, PhysicalCountScope.TOTAL, null, warehouseId,
+		final UUID product = UUID.randomUUID();
+		final PhysicalCount pending = PhysicalCount.of(physicalCountId, PhysicalCountScope.TOTAL, null, warehouseId,
 				PhysicalCountStatus.PENDING_APPROVAL, startedBy, Instant.now(),
 				List.of(new PhysicalCountLine(product, new BigDecimal("10"))));
 		when(physicalCountRepositoryPort.findById(physicalCountId)).thenReturn(Optional.of(pending));
@@ -84,7 +84,7 @@ class SubmitPhysicalCountServiceTest {
 				.isInstanceOf(BusinessRuleException.class);
 	}
 
-	private PhysicalCount physicalCount(List<PhysicalCountLine> lines) {
+	private PhysicalCount physicalCount(final List<PhysicalCountLine> lines) {
 		return PhysicalCount.of(physicalCountId, PhysicalCountScope.TOTAL, null, warehouseId,
 				PhysicalCountStatus.IN_PROGRESS, startedBy, Instant.now(), lines);
 	}

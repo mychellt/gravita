@@ -1,5 +1,6 @@
 package br.gravita.core.domain.inventory;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -24,9 +25,10 @@ public final class StockMovement {
 	private final UUID user;
 	private final Instant timestamp;
 
-	public StockMovement(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
-			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
-			String originReference, String justification, UUID user, Instant timestamp) {
+	@Builder
+	public StockMovement(final StockMovementId id, final StockMovementType type, final UUID productId, final UUID warehouseId,
+			final BigDecimal quantity, final BigDecimal unitCost, final String lotCode, final List<String> serialNumbers,
+			final String originReference, final String justification, final UUID user, final Instant timestamp) {
 		this.id = Objects.requireNonNull(id, "id is required");
 		this.type = Objects.requireNonNull(type, "type is required");
 		this.productId = Objects.requireNonNull(productId, "productId is required");
@@ -41,10 +43,4 @@ public final class StockMovement {
 		this.timestamp = Objects.requireNonNull(timestamp, "timestamp is required");
 	}
 
-	public static StockMovement of(StockMovementId id, StockMovementType type, UUID productId, UUID warehouseId,
-			BigDecimal quantity, BigDecimal unitCost, String lotCode, List<String> serialNumbers,
-			String originReference, String justification, UUID user, Instant timestamp) {
-		return new StockMovement(id, type, productId, warehouseId, quantity, unitCost, lotCode, serialNumbers,
-				originReference, justification, user, timestamp);
-	}
 }
