@@ -40,13 +40,17 @@
   </nav>
 
   <div class="sidebar-footer">
-    <div class="user-pill">
-      <div class="user-avatar">RL</div>
-      <div>
-        <div class="user-name">Ricardo Lima</div>
-        <div class="user-role">Administrador</div>
+    @if (user(); as user) {
+      <div class="user-pill">
+        <div class="user-avatar">{{ user.initials }}</div>
+        <div>
+          <div class="user-name">{{ user.name }}</div>
+          @if (user.role) {
+            <div class="user-role">{{ user.role }}</div>
+          }
+        </div>
       </div>
-    </div>
+    }
   </div>
 
 </aside>

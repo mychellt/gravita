@@ -16,6 +16,13 @@ interface AuthResponse {
   sessionToken?: string | null;
 }
 
+/** Quem está logado, como devolvido por GET /api/auth/me. `profile` é o nome do perfil de acesso. */
+export interface CurrentUser {
+  name: string;
+  email: string;
+  profile: string | null;
+}
+
 /** Fonte única de "existe sessão?" para o guard e para a tela de login. */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -24,6 +31,29 @@ export class AuthService {
 
   private readonly token = signal<string | null>(this.readStoredToken());
   readonly isAuthenticated = computed(() => !!this.token());
+
+  private readonly user = signal<CurrentUser | null>(null);
+  /** O usuário da sessão atual; `null` até {@link loadCurrentUser} concluir ou sem sessão. */
+  readonly currentUser = this.user.asReadonly();
+
+  /**
+   * GET /api/auth/me — carrega quem está logado. Sessão que o servidor não reconhece (401) é encerrada;
+   * qualquer outra falha mantém a sessão e apenas deixa o usuário sem identificação na tela.
+   */
+  async loadCurrentUser(): Promise<void> {
+    const token = this.token();
+    if (!token) {
+      this.user.set(null);
+      return;
+    }
+    try {
+      const user = await firstValueFrom(
+        this.http.get<CurrentUser>(`${this.baseUrl}/me`, { headers: { Authorization: `Bearer ${token}` } }));
+      this.user.set(user);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 401) this.clearSession();
+    }
+  }
 
   /** POST /api/auth/login */
   login(email: string, password: string): Promise<LoginOutcome> {
@@ -58,6 +88,12 @@ export class AuthService {
   private storeToken(token: string) {
     this.token.set(token);
     try { sessionStorage.setItem(SESSION_TOKEN_KEY, token); } catch { /* armazenamento bloqueado: a sessão vale só em memória */ }
+  }
+
+  private clearSession() {
+    this.token.set(null);
+    this.user.set(null);
+    try { sessionStorage.removeItem(SESSION_TOKEN_KEY); } catch { /* armazenamento bloqueado: nada a limpar */ }
   }
 
   private readStoredToken(): string | null {

@@ -83,4 +83,48 @@ describe('AuthService', () => {
     expect(await result).toBe('unavailable');
     expect(service.isAuthenticated()).toBeFalse();
   });
+  describe('current user', () => {
+    it('loads the logged user with the session token as a bearer credential', async () => {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, 'abc');
+      create();
+      const loading = service.loadCurrentUser();
+      const req = http.expectOne('/api/auth/me');
+      expect(req.request.headers.get('Authorization')).toBe('Bearer abc');
+      req.flush({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator' });
+      await loading;
+
+      expect(service.currentUser()).toEqual({ name: 'Ana Souza', email: 'ana@acme.com', profile: 'Administrator' });
+    });
+
+    it('has no user and makes no request without a session', async () => {
+      create();
+      await service.loadCurrentUser();
+
+      expect(service.currentUser()).toBeNull();
+      http.expectNone('/api/auth/me');
+    });
+
+    it('ends a session the server no longer recognises', async () => {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, 'stale');
+      create();
+      const loading = service.loadCurrentUser();
+      http.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+      await loading;
+
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(service.currentUser()).toBeNull();
+      expect(sessionStorage.getItem(SESSION_TOKEN_KEY)).toBeNull();
+    });
+
+    it('keeps the session when the server is merely unavailable', async () => {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, 'abc');
+      create();
+      const loading = service.loadCurrentUser();
+      http.expectOne('/api/auth/me').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      await loading;
+
+      expect(service.isAuthenticated()).toBeTrue();
+      expect(service.currentUser()).toBeNull();
+    });
+  });
 });

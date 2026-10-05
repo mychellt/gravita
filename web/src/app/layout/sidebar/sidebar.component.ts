@@ -1,6 +1,9 @@
-import { Component, computed } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, OnInit, computed, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AUTH_PATHS } from '../../modules/auth/auth-paths';
+import { AuthService } from '../../core/services/auth.service';
 import { DataService } from '../../core/services/data.service';
+import { initialsOf, profileLabel } from '../../core/user-display';
 
 interface NavItem {
   label: string;
@@ -24,8 +27,23 @@ interface NavSection {
   styleUrl: './sidebar.component.scss',
   templateUrl: './sidebar.component.html'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   constructor(private data: DataService) {}
+
+  /** O usuário logado, no rodapé da barra lateral (nada é mostrado até a sessão ser confirmada). */
+  readonly user = computed(() => {
+    const current = this.auth.currentUser();
+    return current ? { name: current.name, initials: initialsOf(current.name), role: profileLabel(current.profile) } : null;
+  });
+
+  async ngOnInit() {
+    await this.auth.loadCurrentUser();
+    // Uma sessão que o servidor não reconhece mais volta para o login.
+    if (!this.auth.isAuthenticated()) await this.router.navigateByUrl(AUTH_PATHS.login);
+  }
 
   readonly criticalCount = computed(() => this.data.produtosCriticos().length);
 
