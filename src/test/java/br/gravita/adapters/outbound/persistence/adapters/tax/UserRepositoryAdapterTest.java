@@ -80,6 +80,33 @@ class UserRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Updating the password stores only the hash of the new raw password")
+	void shouldStoreOnlyTheHashOfTheNewPassword() {
+		final User user = buildUser();
+		user.changePassword("n3w-pass");
+		final UserJpaEntity entity = buildEntity(user.getId().value());
+		entity.setPasswordHash("original-hash");
+		when(repository.findById(user.getId().value())).thenReturn(Optional.of(entity));
+		when(passwordHasher.hash("n3w-pass")).thenReturn("$2a$10$new-hash");
+
+		adapter.updatePassword(user);
+
+		assertThat(entity.getPasswordHash()).isEqualTo("$2a$10$new-hash");
+		assertThat(entity.getName()).isEqualTo("Old Name");
+		verify(repository).save(entity);
+	}
+
+	@Test
+	@DisplayName("Fails to update the password of an unknown user")
+	void shouldFailToUpdateThePasswordOfAnUnknownUser() {
+		final User user = buildUser();
+		when(repository.findById(user.getId().value())).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> adapter.updatePassword(user)).isInstanceOf(UserNotFoundException.class);
+		verify(repository, never()).save(any());
+	}
+
+	@Test
 	@DisplayName("Fails to update an unknown user")
 	void shouldFailToUpdateAnUnknownUser() {
 		final User user = buildUser();

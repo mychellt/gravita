@@ -27,6 +27,15 @@ export const routes: Routes = [
       },
     ]
   },
+  // Telas públicas de recuperação de senha: fora do shell do app, sem sessão.
+  {
+    path: 'forgot-password',
+    loadComponent: () => import('./modules/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () => import('./modules/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
   {
     path: '',
     loadComponent: () => import('./layout/shell/shell.component').then(m => m.ShellComponent),
