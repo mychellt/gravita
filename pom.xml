@@ -20,6 +20,7 @@
         <spring-cloud-aws.version>4.2.0</spring-cloud-aws.version>
         <org.mapstruct.version>1.5.5.Final</org.mapstruct.version>
         <datafaker.version>2.2.2</datafaker.version>
+        <jacoco-plugin.version>0.8.15</jacoco-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +150,60 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                            <excludes>
+                                <exclude>**/configuration/**</exclude>
+                                <exclude>**/command/**</exclude>
+                                <exclude>**/exceptions/**</exclude>
+                                <exclude>**/handler/**</exclude>
+                                <exclude>**/Application.java</exclude>
+                                <exclude>**/model/**</exclude>
+                                <exclude>**/repository/**</exclude>
+                                <exclude>**/jdbc/**</exclude>
+                                <exclude>**/mappers/**</exclude>
+                                <exclude>**/vos/**</exclude>
+                                <exclude>**/fixtures/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
