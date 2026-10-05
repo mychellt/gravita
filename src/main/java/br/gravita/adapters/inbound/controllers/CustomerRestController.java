@@ -5,14 +5,20 @@ import br.gravita.adapters.dtos.request.UpdateCustomerRequest;
 import br.gravita.adapters.dtos.response.CustomerResponse;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
+import br.gravita.core.domain.exceptions.CustomerNotFoundException;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
+import br.gravita.core.ports.business.FindCustomerPort;
+import br.gravita.core.ports.business.ListCustomersPort;
 import br.gravita.core.ports.inbound.masterdata.UpdateCustomerUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -22,6 +28,8 @@ public class CustomerRestController {
 
     private final CustomerRegistrationPort customerRegistrationPort;
     private final UpdateCustomerUseCase updateCustomerUseCase;
+    private final FindCustomerPort findCustomerPort;
+    private final ListCustomersPort listCustomersPort;
 
     @PostMapping
     public ResponseEntity<CustomerResponse> register(@Valid @RequestBody RegisterCustomerRequest request) {
@@ -35,8 +43,18 @@ public class CustomerRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping
+    public ResponseEntity<List<CustomerResponse>> findAll() {
+        return ResponseEntity.ok(listCustomersPort.execute(new Context()).stream().map(CustomerResponse::from).toList());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(CustomerResponse.from(findCustomerPort.execute(new Context(id))));
+    }
+
+    @ExceptionHandler(CustomerNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleCustomerNotFoundException(CustomerNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 }
