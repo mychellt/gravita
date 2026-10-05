@@ -43,6 +43,21 @@ class CompanyTest {
 	}
 
 	@Test
+	@DisplayName("Keeps the trimmed name")
+	void shouldKeepTrimmedName() {
+		assertThat(build(b -> b.name("  Acme Ltda  ")).getName()).isEqualTo("Acme Ltda");
+	}
+
+	@Test
+	@DisplayName("Rejects a missing or blank name")
+	void shouldRejectMissingName() {
+		assertThatThrownBy(() -> build(b -> b.name(null))).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Name");
+		assertThatThrownBy(() -> build(b -> b.name("  "))).isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("Name");
+	}
+
+	@Test
 	@DisplayName("Rejects a null CNPJ")
 	void shouldRejectNullCnpj() {
 		assertThatThrownBy(() -> build(b -> b.cnpj(null)))
@@ -140,6 +155,7 @@ class CompanyTest {
 
 	private static final class Builder {
 		private CompanyId id = CompanyId.of(UUID.randomUUID());
+		private String name = "Acme Ltda";
 		private Document cnpj = VALID_CNPJ;
 		private String ie = "123456789";
 		private String im = "987654";
@@ -153,6 +169,11 @@ class CompanyTest {
 		private String phone = "11999999999";
 		private String logoUrl = null;
 		private CompanyId parentCompanyId = null;
+
+		Builder name(String name) {
+			this.name = name;
+			return this;
+		}
 
 		Builder cnpj(Document cnpj) {
 			this.cnpj = cnpj;
@@ -190,7 +211,7 @@ class CompanyTest {
 		}
 
 		Company build() {
-			return Company.of(id, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
+			return Company.of(id, name, cnpj, ie, im, cnae, taxRegime, simplesOptante, sefazEnvironment, address, state,
 					issuingEmail, phone, logoUrl, parentCompanyId);
 		}
 	}

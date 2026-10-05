@@ -188,7 +188,7 @@ class IssueNfceConcurrentIntegrationTest {
 	}
 
 	private br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort fakeCompanyRepositoryPort(CompanyId companyId) {
-		Company company = Company.of(companyId, br.gravita.core.domain.shared.Document.cnpj("11222333000181"),
+		Company company = Company.of(companyId, "Acme Ltda", br.gravita.core.domain.shared.Document.cnpj("11222333000181"),
 				"123456789", "987654", "6201500", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION,
 				"Rua Teste, 100", "SP", "nfce@example.com", "11999999999", null, null);
 		return new br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort() {
@@ -229,6 +229,7 @@ class IssueNfceConcurrentIntegrationTest {
 		UUID id = UUID.randomUUID();
 		entityManager.persist(CompanyJpaEntity.builder()
 				.id(id)
+				.name("Acme Ltda")
 				.cnpj(UUID.randomUUID().toString().substring(0, 14))
 				.ie("123456789")
 				.im("987654")

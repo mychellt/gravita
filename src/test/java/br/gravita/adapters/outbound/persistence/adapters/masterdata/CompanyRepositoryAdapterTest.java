@@ -95,7 +95,7 @@ class CompanyRepositoryAdapterTest {
 	}
 
 	private Company buildCompany() {
-		return Company.of(CompanyId.of(UUID.randomUUID()), Document.cnpj("11222333000181"), "123456789", "987654",
+		return Company.of(CompanyId.of(UUID.randomUUID()), "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654",
 				"6201-5/01", TaxRegime.SIMPLES_NACIONAL, true, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"fiscal@empresa.com", "11999999999", null, null);
 	}

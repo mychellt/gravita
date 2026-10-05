@@ -209,7 +209,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	private Company company() {
-		return Company.of(companyId, Document.cnpj("11444777000161"), "123456789", "12345", "4711301",
+		return Company.of(companyId, "Acme Ltda", Document.cnpj("11444777000161"), "123456789", "12345", "4711301",
 				TaxRegime.LUCRO_PRESUMIDO, false, SefazEnvironment.HOMOLOGATION, "Rua Exemplo, 100", "SP",
 				"fiscal@exemplo.com", "11999999999", null, null);
 	}

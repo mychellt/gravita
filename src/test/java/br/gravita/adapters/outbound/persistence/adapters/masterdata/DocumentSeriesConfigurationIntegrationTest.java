@@ -127,6 +127,7 @@ class DocumentSeriesConfigurationIntegrationTest {
 	private CompanyId registerCompany() {
 		RegisterCompanyCommand command = new RegisterCompanyCommand(
 				null,
+				"Acme Ltda",
 				Document.cnpj("11222333000181"),
 				"123456789",
 				"987654",

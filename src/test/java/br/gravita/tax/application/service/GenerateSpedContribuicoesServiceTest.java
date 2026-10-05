@@ -430,7 +430,7 @@ class GenerateSpedContribuicoesServiceTest {
 	}
 
 	private void company(TaxRegime regime, String cnae) {
-		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, Document.cnpj(SUPPLIER),
+		when(companies.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda", Document.cnpj(SUPPLIER),
 				"123456789", "987654", cnae, regime, regime == TaxRegime.SIMPLES_NACIONAL,
 				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfe@example.com", "11999999999", null, null)));
 	}

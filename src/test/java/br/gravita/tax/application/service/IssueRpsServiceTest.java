@@ -85,7 +85,7 @@ class IssueRpsServiceTest {
 	}
 
 	private Company company(br.gravita.core.domain.masterdata.TaxRegime regime) {
-		return Company.of(companyId, Document.cnpj(CNPJ), "123456789",
+		return Company.of(companyId, "Acme Ltda", Document.cnpj(CNPJ), "123456789",
 				"987654", "6201500", regime, false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfse@example.com", "11999999999", null, null);
 	}

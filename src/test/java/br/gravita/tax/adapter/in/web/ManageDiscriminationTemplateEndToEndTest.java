@@ -106,7 +106,7 @@ class ManageDiscriminationTemplateEndToEndTest {
 	void ac3_deletingATemplateLeavesDiscriminationOfIssuedRpsUntouched() throws Exception {
 		String id = create("01.05", "Desenvolvimento de software sob demanda");
 		CompanyId companyId = CompanyId.of(UUID.randomUUID());
-		companyRepositoryPort.save(Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654",
+		companyRepositoryPort.save(Company.of(companyId, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654",
 				"6201500", TaxRegime.LUCRO_PRESUMIDO, false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfse@example.com", "11999999999", null, null));
 		NfseTomador tomador = NfseTomador.of(PersonRef.of(UUID.randomUUID()), "11222333000181", PersonType.COMPANY,

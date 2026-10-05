@@ -50,7 +50,7 @@ class GuidedManualUploadAdapterTest {
 	@BeforeEach
 	void setUp() {
 		adapter = new GuidedManualUploadAdapter(companyRepositoryPort);
-		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(Company.of(companyId,
+		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(Company.of(companyId, "Acme Ltda",
 				Document.cnpj("11222333000181"), "123456789", "987654", "6201500", TaxRegime.SIMPLES_NACIONAL, true,
 				SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP", "nfse@example.com", "11999999999", null,
 				null)));

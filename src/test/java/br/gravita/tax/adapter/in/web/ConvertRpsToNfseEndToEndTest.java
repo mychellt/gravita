@@ -63,7 +63,7 @@ class ConvertRpsToNfseEndToEndTest {
 	@BeforeEach
 	void seed() {
 		companyId = CompanyId.of(UUID.randomUUID());
-		companyRepositoryPort.save(Company.of(companyId, Document.cnpj("11222333000181"), "123456789", "987654",
+		companyRepositoryPort.save(Company.of(companyId, "Acme Ltda", Document.cnpj("11222333000181"), "123456789", "987654",
 				"6201500", TaxRegime.LUCRO_PRESUMIDO, false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfse@example.com", "11999999999", null, null));
 		documentSeriesRepositoryPort

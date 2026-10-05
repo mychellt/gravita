@@ -35,7 +35,7 @@ class SwitchSefazEnvironmentServiceTest {
 	private CompanyRepositoryPort companyRepositoryPort;
 
 	private Company existingCompany(CompanyId id, SefazEnvironment environment) {
-		return Company.of(id, VALID_CNPJ, "123456789", "987654", "6201-5/01", TaxRegime.SIMPLES_NACIONAL, true,
+		return Company.of(id, "Acme Ltda", VALID_CNPJ, "123456789", "987654", "6201-5/01", TaxRegime.SIMPLES_NACIONAL, true,
 				environment, "Rua Teste, 100", "SP", "fiscal@empresa.com", "11999999999", null, null);
 	}
 

@@ -42,7 +42,7 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 
 	private Company registerNewCompany(RegisterCompanyCommand command) {
 		CompanyId id = CompanyId.of(UUID.randomUUID());
-		return Company.of(id, command.cnpj(), command.ie(), command.im(), command.cnae(), command.taxRegime(),
+		return Company.of(id, command.name(), command.cnpj(), command.ie(), command.im(), command.cnae(), command.taxRegime(),
 				command.simplesOptante(), SefazEnvironment.HOMOLOGATION, command.address(), command.state(),
 				command.issuingEmail(), command.phone(), command.logoUrl(), command.parentCompanyId());
 	}
@@ -50,10 +50,19 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 	private Company updateExistingCompany(RegisterCompanyCommand command) {
 		Company existing = companyRepositoryPort.findById(command.id())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.id().value()));
-		return Company.of(existing.getId(), command.cnpj(), command.ie(), command.im(), command.cnae(),
-				command.taxRegime(), command.simplesOptante(), existing.getSefazEnvironment(), command.address(),
+		rejectCnpjChange(existing, command);
+		return Company.of(existing.getId(), command.name(), existing.getCnpj(), command.ie(), command.im(),
+				command.cnae(), command.taxRegime(), command.simplesOptante(), existing.getSefazEnvironment(), command.address(),
 				command.state(), command.issuingEmail(), command.phone(), command.logoUrl(),
 				command.parentCompanyId());
+	}
+
+	/** The CNPJ identifies the legal entity: a different one is a new company, not an edit. Omitting it is fine. */
+	private void rejectCnpjChange(Company existing, RegisterCompanyCommand command) {
+		if (command.cnpj() != null && !command.cnpj().equals(existing.getCnpj())) {
+			throw new BusinessRuleException(
+					"CNPJ cannot be changed: it identifies the legal entity, register a new company instead");
+		}
 	}
 
 	private void validateParentCompany(CompanyId parentCompanyId) {

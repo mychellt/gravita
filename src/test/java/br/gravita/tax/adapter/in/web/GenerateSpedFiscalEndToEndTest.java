@@ -250,7 +250,7 @@ class GenerateSpedFiscalEndToEndTest {
 	}
 
 	private void saveCompany(CompanyId id, String cnpj) {
-		companyRepositoryPort.save(Company.of(id, Document.cnpj(cnpj), "123456789", "987654", "6201500",
+		companyRepositoryPort.save(Company.of(id, "Acme Ltda", Document.cnpj(cnpj), "123456789", "987654", "6201500",
 				TaxRegime.LUCRO_PRESUMIDO, false, SefazEnvironment.HOMOLOGATION, "Rua Teste, 100", "SP",
 				"nfe@example.com", "11999999999", null, null));
 	}

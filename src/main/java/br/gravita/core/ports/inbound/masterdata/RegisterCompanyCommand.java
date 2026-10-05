@@ -6,6 +6,7 @@ import br.gravita.core.domain.shared.Document;
 
 public record RegisterCompanyCommand(
 		CompanyId id,
+		String name,
 		Document cnpj,
 		String ie,
 		String im,
