@@ -23,6 +23,7 @@ public record CustomerResponse(
 		BigDecimal creditLimit,
 		BigDecimal currentBalance,
 		CustomerStatus status,
+		UUID companyId,
 		List<AddressResponse> addresses,
 		List<ContactResponse> contacts,
 		List<PriceTableLinkResponse> priceTables) {
@@ -39,6 +40,7 @@ public record CustomerResponse(
 				domain.getCreditLimit(),
 				domain.getCurrentBalance(),
 				domain.getStatus(),
+				domain.getCompanyId(),
 				domain.getAddresses() == null ? List.of() : domain.getAddresses().stream().map(AddressResponse::from).toList(),
 				domain.getContacts() == null ? List.of() : domain.getContacts().stream().map(ContactResponse::from).toList(),
 				domain.getPriceTables() == null ? List.of() : domain.getPriceTables().stream().map(PriceTableLinkResponse::from).toList());

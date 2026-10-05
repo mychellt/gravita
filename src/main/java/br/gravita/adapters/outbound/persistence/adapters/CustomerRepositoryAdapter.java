@@ -30,6 +30,16 @@ class CustomerRepositoryAdapter implements CustomerRepositoryPort {
     }
 
     @Override
+    public List<CustomerDomain> findAllByCompanyId(UUID companyId) {
+        return jpaRepository.findAllByCompanyId(companyId).stream().map(mapper::map).toList();
+    }
+
+    @Override
+    public Optional<CustomerDomain> findByIdAndCompanyId(UUID id, UUID companyId) {
+        return jpaRepository.findByIdAndCompanyId(id, companyId).map(mapper::map);
+    }
+
+    @Override
     public CustomerDomain save(CustomerDomain model) {
         CustomerJpaEntity entity = mapper.map(model);
         entity.setNew(!jpaRepository.existsById(entity.getId()));

@@ -3,9 +3,11 @@ package br.gravita.adapters.inbound.controllers;
 import br.gravita.adapters.dtos.request.RegisterCustomerRequest;
 import br.gravita.adapters.dtos.request.UpdateCustomerRequest;
 import br.gravita.adapters.dtos.response.CustomerResponse;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
 import br.gravita.core.domain.Context;
 import br.gravita.core.domain.CustomerDomain;
 import br.gravita.core.domain.exceptions.CustomerNotFoundException;
+import br.gravita.core.domain.system.UserId;
 import br.gravita.core.ports.business.CustomerRegistrationPort;
 import br.gravita.core.ports.business.FindCustomerPort;
 import br.gravita.core.ports.business.ListCustomersPort;
@@ -32,8 +34,9 @@ public class CustomerRestController {
     private final ListCustomersPort listCustomersPort;
 
     @PostMapping
-    public ResponseEntity<CustomerResponse> register(@Valid @RequestBody RegisterCustomerRequest request) {
-        CustomerDomain created = customerRegistrationPort.execute(new Context(request.toDomain()));
+    public ResponseEntity<CustomerResponse> register(@AuthenticatedUser UserId callerId,
+            @Valid @RequestBody RegisterCustomerRequest request) {
+        CustomerDomain created = customerRegistrationPort.execute(new Context(request.toDomain()).withCaller(callerId));
         return ResponseEntity.created(URI.create("/api/customers/" + created.getId())).body(CustomerResponse.from(created));
     }
 
@@ -44,13 +47,13 @@ public class CustomerRestController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerResponse>> findAll() {
-        return ResponseEntity.ok(listCustomersPort.execute(new Context()).stream().map(CustomerResponse::from).toList());
+    public ResponseEntity<List<CustomerResponse>> findAll(@AuthenticatedUser UserId callerId) {
+        return ResponseEntity.ok(listCustomersPort.execute(new Context().withCaller(callerId)).stream().map(CustomerResponse::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(CustomerResponse.from(findCustomerPort.execute(new Context(id))));
+    public ResponseEntity<CustomerResponse> findById(@AuthenticatedUser UserId callerId, @PathVariable UUID id) {
+        return ResponseEntity.ok(CustomerResponse.from(findCustomerPort.execute(new Context(id).withCaller(callerId))));
     }
 
     @ExceptionHandler(CustomerNotFoundException.class)

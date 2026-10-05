@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -29,6 +30,7 @@ public class CustomerDomain extends AbstractDomain {
 	private BigDecimal currentBalance;
 	private CustomerStatus status;
 	private Long version;
+	private UUID companyId;
 	private List<AddressDomain> addresses;
 	private List<ContactDomain> contacts;
 	private List<CustomerPriceTableLink> priceTables;
