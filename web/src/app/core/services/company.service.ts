@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export type SefazEnvironment = 'PRODUCTION' | 'HOMOLOGATION';
+
 export type TaxRegime = 'SIMPLES_NACIONAL' | 'LUCRO_PRESUMIDO' | 'LUCRO_REAL';
 
 /** Cadastro da empresa, como devolvido por GET/PATCH /api/companies/{id}. */
@@ -15,6 +17,7 @@ export interface Company {
   cnae: string | null;
   taxRegime: TaxRegime;
   simplesOptante: boolean;
+  sefazEnvironment: SefazEnvironment;
   address: string | null;
   state: string | null;
   issuingEmail: string | null;
@@ -23,7 +26,7 @@ export interface Company {
 }
 
 /** Corpo do PATCH: o backend exige todos os campos do cadastro; o CNPJ não muda e por isso não é enviado. */
-export type CompanyUpdate = Omit<Company, 'id' | 'cnpj'>;
+export type CompanyUpdate = Omit<Company, 'id' | 'cnpj' | 'sefazEnvironment'>;
 
 /** Mensagem do backend para uma falha (`{message}` em regras de negócio, texto puro em outros casos), se houver. */
 export function failureDetail(error: unknown): string {
@@ -44,5 +47,9 @@ export class CompanyService {
 
   update(id: string, changes: CompanyUpdate): Promise<Company> {
     return firstValueFrom(this.http.patch<Company>(`${this.baseUrl}/${id}`, changes));
+  }
+
+  switchSefazEnvironment(id: string, environment: SefazEnvironment): Promise<Company> {
+    return firstValueFrom(this.http.patch<Company>(`${this.baseUrl}/${id}/sefaz-environment`, { environment }));
   }
 }

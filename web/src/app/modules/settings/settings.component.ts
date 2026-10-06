@@ -111,6 +111,7 @@ export class SettingsComponent implements OnInit {
     this.regime.set(company.taxRegime);
     this.cnae.set(company.cnae ?? '');
     this.ie.set(company.ie ?? '');
+    this.ambienteProd.set(company.sefazEnvironment === 'PRODUCTION');
   }
 
   cancel() {
@@ -129,10 +130,12 @@ export class SettingsComponent implements OnInit {
     if (!company || !this.canEdit() || this.saving()) return;
     this.saving.set(true);
     try {
-      const { id, cnpj, ...current } = company;
-      const saved = await this.companies.update(id, {
+      const { id, cnpj, sefazEnvironment, ...current } = company;
+      let saved = await this.companies.update(id, {
         ...current, name: this.razaoSocial(), taxRegime: this.regime(), cnae: this.cnae(), ie: this.ie(),
       });
+      const wanted = this.ambienteProd() ? 'PRODUCTION' : 'HOMOLOGATION';
+      if (wanted !== saved.sefazEnvironment) saved = await this.companies.switchSefazEnvironment(id, wanted);
       this.company.set(saved);
       this.fillForm(saved);
       this.toast.success('Configurações salvas com sucesso!');

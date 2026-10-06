@@ -11,7 +11,7 @@ const COMPANY_ID = '7c1b2d9e-0000-4000-8000-000000000001';
 
 const company: Company = {
   id: COMPANY_ID, name: 'Mercado Moderno Ltda', cnpj: '12345678000190', ie: '123456789112', im: '98765',
-  cnae: '4711-3/02', taxRegime: 'SIMPLES_NACIONAL', simplesOptante: true, address: 'Rua A, 1', state: 'SP',
+  cnae: '4711-3/02', taxRegime: 'SIMPLES_NACIONAL', simplesOptante: true, sefazEnvironment: 'PRODUCTION', address: 'Rua A, 1', state: 'SP',
   issuingEmail: 'nfe@mercado.com.br', phone: '1130001000', logoUrl: null,
 };
 
@@ -90,6 +90,22 @@ describe('SettingsComponent — Empresa', () => {
       logoUrl: null,
     });
     req.flush({ ...company, name: 'Mercado Novo Ltda', cnae: '4712-1/00' });
+    await settle();
+
+    expect(toast.toasts().map(t => t.type)).toEqual(['success']);
+  });
+
+  it('also saves the SEFAZ environment when the toggle was changed', async () => {
+    await open();
+    (el().querySelector('.setting-row .toggle') as HTMLButtonElement).click();
+
+    clickButton('Salvar');
+    http.expectOne(`/api/companies/${COMPANY_ID}`).flush(company);
+    await settle();
+    const switchReq = http.expectOne(`/api/companies/${COMPANY_ID}/sefaz-environment`);
+    expect(switchReq.request.method).toBe('PATCH');
+    expect(switchReq.request.body).toEqual({ environment: 'HOMOLOGATION' });
+    switchReq.flush({ ...company, sefazEnvironment: 'HOMOLOGATION' });
     await settle();
 
     expect(toast.toasts().map(t => t.type)).toEqual(['success']);
