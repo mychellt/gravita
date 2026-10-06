@@ -101,6 +101,12 @@ export interface Produto {
   marca?: string;
   status: 'ativo' | 'inativo';
   imagem?: string;
+  /** Saldo em que a reposição é sugerida; sem valor, vale o estoque mínimo. */
+  pontoReposicao?: number;
+  controlaLote?: boolean;
+  controlaSerie?: boolean;
+  /** Quando falso, saída/ajuste/transferência sem saldo disponível é bloqueada. */
+  permiteEstoqueNegativo?: boolean;
 }
 
 export interface ItemNfe {
@@ -177,6 +183,9 @@ export interface MovimentoEstoque {
   usuario: string;
   lote?: string;
   serie?: string;
+  depositoId?: string;
+  custoUnitario?: number;
+  justificativa?: string;
 }
 
 export interface ItemPedidoCompra {
@@ -400,4 +409,100 @@ export interface PlatformConfig {
   institucional: InstitucionalSettings;
   siteStats: SiteStat[];
   faq: FaqItem[];
+}
+
+export interface Deposito {
+  id: string;
+  nome: string;
+}
+
+/** Saldo de um produto num depósito; o disponível é `fisico - reservado`. */
+export interface SaldoEstoque {
+  produtoId: string;
+  depositoId: string;
+  fisico: number;
+  reservado: number;
+  emTransito: number;
+  custoMedio: number;
+}
+
+export interface LoteEstoque {
+  produtoId: string;
+  depositoId: string;
+  codigo: string;
+  validade: Date;
+  quantidade: number;
+}
+
+export type SerieStatus = 'em_estoque' | 'emitida';
+
+export interface SerieEstoque {
+  numero: string;
+  produtoId: string;
+  depositoId: string;
+  status: SerieStatus;
+}
+
+export type TransferenciaStatus = 'pendente' | 'confirmada';
+
+export interface TransferenciaEstoque {
+  id: string;
+  produtoId: string;
+  produtoNome: string;
+  origemId: string;
+  destinoId: string;
+  quantidade: number;
+  lote?: string;
+  status: TransferenciaStatus;
+  criadaEm: Date;
+  confirmadaEm?: Date;
+}
+
+export type ReservaStatus = 'ativa' | 'consumida' | 'liberada';
+
+export interface ReservaEstoque {
+  id: string;
+  pedidoRef: string;
+  produtoId: string;
+  produtoNome: string;
+  depositoId: string;
+  quantidade: number;
+  status: ReservaStatus;
+}
+
+export type ContagemEscopo = 'parcial' | 'total';
+export type ContagemStatus = 'em_andamento' | 'aguardando_aprovacao' | 'aprovada';
+
+export interface LinhaContagem {
+  produtoId: string;
+  produtoNome: string;
+  /** Saldo do sistema no momento em que a contagem foi aberta. */
+  qtdSistema: number;
+  qtdContada?: number;
+}
+
+export interface Contagem {
+  id: string;
+  escopo: ContagemEscopo;
+  grupo?: string;
+  depositoId: string;
+  status: ContagemStatus;
+  iniciadaEm: Date;
+  iniciadaPor: string;
+  linhas: LinhaContagem[];
+}
+
+export interface SugestaoReposicao {
+  produtoId: string;
+  produtoNome: string;
+  /** Available balance summed over all warehouses. */
+  disponivel: number;
+  pontoReposicao: number;
+  quantidadeSugerida: number;
+}
+
+export interface CustoHistorico {
+  produtoId: string;
+  data: Date;
+  custoMedio: number;
 }

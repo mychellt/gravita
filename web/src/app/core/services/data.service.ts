@@ -26,6 +26,9 @@ export class DataService {
     { id:'p7', codigo:'007', codigoBarras:'7891234560007', descricao:'Café Pilão 500g', tipo:'simples', ncm:'0901.21', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:13.90, custoMedio:8.80, margem:36.7, estoque:8, estoqueMinimo:20, estoqueMaximo:200, grupo:'Bebidas', marca:'Pilão', status:'ativo' },
     { id:'p8', codigo:'008', codigoBarras:'7891234560008', descricao:'Sabão em Pó 1kg', tipo:'simples', ncm:'3401.20', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:8.49, custoMedio:5.60, margem:34.0, estoque:28, estoqueMinimo:30, estoqueMaximo:200, grupo:'Limpeza', marca:'Omo', status:'ativo' },
     { id:'p9', codigo:'009', codigoBarras:'7891234560009', descricao:'Detergente 500ml', tipo:'simples', ncm:'3402.20', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:2.49, custoMedio:1.50, margem:39.8, estoque:55, estoqueMinimo:40, estoqueMaximo:300, grupo:'Limpeza', marca:'Ypê', status:'ativo' },
+    { id:'p10', codigo:'010', codigoBarras:'7891234560010', descricao:'Queijo Mussarela kg', tipo:'simples', ncm:'0406.10', cest:'', cfopPadrao:'5102', unidade:'KG', precoVenda:42.90, custoMedio:29.00, margem:32.4, estoque:45, estoqueMinimo:15, estoqueMaximo:120, grupo:'Laticínios', marca:'Tirolez', status:'ativo', controlaLote:true },
+    { id:'p11', codigo:'011', codigoBarras:'7891234560011', descricao:'Iogurte Natural 170g', tipo:'simples', ncm:'0403.10', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:2.99, custoMedio:1.80, margem:39.8, estoque:120, estoqueMinimo:50, estoqueMaximo:400, grupo:'Laticínios', marca:'Danone', status:'ativo', controlaLote:true },
+    { id:'p12', codigo:'012', codigoBarras:'7891234560012', descricao:'Smartphone Galaxy A15', tipo:'simples', ncm:'8517.13', cest:'', cfopPadrao:'5102', unidade:'UN', precoVenda:1299.00, custoMedio:890.00, margem:31.5, estoque:6, estoqueMinimo:3, estoqueMaximo:20, grupo:'Eletrônicos', marca:'Samsung', status:'ativo', controlaSerie:true },
   ]);
 
   readonly clientes = signal<Cliente[]>([
@@ -62,11 +65,11 @@ export class DataService {
   ]);
 
   readonly movimentos = signal<MovimentoEstoque[]>([
-    { id:'m1', dataHora:new Date('2026-05-29T14:32'), produtoId:'p1', produtoNome:'Arroz Camil 5kg', tipo:'saida', quantidade:-100, saldoApos:48, origem:'NF-e #000234', usuario:'Ricardo L.' },
-    { id:'m2', dataHora:new Date('2026-05-29T10:15'), produtoId:'p2', produtoNome:'Feijão Carioca 1kg', tipo:'entrada', quantidade:500, saldoApos:620, origem:'Compra #089', usuario:'Ana P.' },
-    { id:'m3', dataHora:new Date('2026-05-28T16:40'), produtoId:'p7', produtoNome:'Café Pilão 500g', tipo:'saida', quantidade:-24, saldoApos:8, origem:'PDV Caixa 01', usuario:'Operador' },
-    { id:'m4', dataHora:new Date('2026-05-28T09:00'), produtoId:'p3', produtoNome:'Leite Integral 1L', tipo:'ajuste', quantidade:-3, saldoApos:72, origem:'Inventário', usuario:'Gerente' },
-    { id:'m5', dataHora:new Date('2026-05-27T14:00'), produtoId:'p8', produtoNome:'Sabão em Pó 1kg', tipo:'saida', quantidade:-18, saldoApos:28, origem:'PDV Caixa 02', usuario:'Operador' },
+    { id:'m1', depositoId:'d1', dataHora:new Date('2026-05-29T14:32'), produtoId:'p1', produtoNome:'Arroz Camil 5kg', tipo:'saida', quantidade:-100, saldoApos:48, origem:'NF-e #000234', usuario:'Ricardo L.' },
+    { id:'m2', depositoId:'d1', dataHora:new Date('2026-05-29T10:15'), produtoId:'p2', produtoNome:'Feijão Carioca 1kg', tipo:'entrada', quantidade:500, saldoApos:620, origem:'Compra #089', usuario:'Ana P.' },
+    { id:'m3', depositoId:'d1', dataHora:new Date('2026-05-28T16:40'), produtoId:'p7', produtoNome:'Café Pilão 500g', tipo:'saida', quantidade:-24, saldoApos:8, origem:'PDV Caixa 01', usuario:'Operador' },
+    { id:'m4', depositoId:'d1', dataHora:new Date('2026-05-28T09:00'), produtoId:'p3', produtoNome:'Leite Integral 1L', tipo:'ajuste', quantidade:-3, saldoApos:72, origem:'Inventário', usuario:'Gerente' },
+    { id:'m5', depositoId:'d1', dataHora:new Date('2026-05-27T14:00'), produtoId:'p8', produtoNome:'Sabão em Pó 1kg', tipo:'saida', quantidade:-18, saldoApos:28, origem:'PDV Caixa 02', usuario:'Operador' },
   ]);
 
   readonly pedidosCompra = signal<PedidoCompra[]>([

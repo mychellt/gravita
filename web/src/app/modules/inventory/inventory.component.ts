@@ -1,37 +1,51 @@
-import { Component, computed, signal } from '@angular/core';
-import { NgClass, DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { DataService } from '../../core/services/data.service';
-import { ToastService } from '../../core/services/toast.service';
-import { BadgeComponent } from '../../shared/components/badge/badge.component';
+import { InventoryService } from '../../core/services/inventory.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
+import { AdjustModalComponent } from './adjust-modal.component';
+import { AlertsPanelComponent } from './alerts-panel.component';
+import { BalancesTabComponent } from './balances-tab.component';
+import { CountsTabComponent } from './counts-tab.component';
+import { LotsTabComponent } from './lots-tab.component';
+import { MovementsTabComponent } from './movements-tab.component';
+import { ReorderTabComponent } from './reorder-tab.component';
+import { ReservationsTabComponent } from './reservations-tab.component';
+import { TransfersTabComponent } from './transfers-tab.component';
+
+type AbaEstoque = 'movimentos' | 'saldos' | 'lotes' | 'transferencias' | 'reservas' | 'inventario' | 'reposicao';
 
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [NgClass, DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe],
+  imports: [
+    PageHeaderComponent, BrlPipe, AdjustModalComponent, AlertsPanelComponent, BalancesTabComponent,
+    CountsTabComponent, LotsTabComponent, MovementsTabComponent, ReorderTabComponent,
+    ReservationsTabComponent, TransfersTabComponent
+  ],
   styleUrl: './inventory.component.scss',
   templateUrl: './inventory.component.html'
 })
 export class InventoryComponent {
-  constructor(public data: DataService, private toast: ToastService) {}
+  private readonly data = inject(DataService);
+  readonly inventory = inject(InventoryService);
 
-  filterType = signal<string>('');
-  searchQuery = signal('');
+  readonly aba = signal<AbaEstoque>('movimentos');
+  readonly ajusteAberto = signal(false);
 
-  readonly movements = computed(() => {
-    const q = this.searchQuery().toLowerCase();
-    const t = this.filterType();
-    return this.data.movimentos().filter(m =>
-      (!t || m.tipo === t) &&
-      (!q || m.produtoNome.toLowerCase().includes(q))
-    );
-  });
-
-  readonly criticalProducts = computed(() => this.data.produtosCriticos());
   readonly totalSKUs = computed(() => this.data.produtos().filter(p => p.status === 'ativo').length);
+  readonly abaixoDoMinimo = computed(() => this.data.produtosCriticos().length);
+  readonly abas = computed<{ id: AbaEstoque; rotulo: string; contador?: number }[]>(() => [
+    { id: 'movimentos', rotulo: 'Movimentações' },
+    { id: 'saldos', rotulo: 'Saldos' },
+    { id: 'lotes', rotulo: 'Lotes e séries' },
+    { id: 'transferencias', rotulo: 'Transferências', contador: this.inventory.transferenciasPendentes().length },
+    { id: 'reservas', rotulo: 'Reservas' },
+    { id: 'inventario', rotulo: 'Inventário' },
+    { id: 'reposicao', rotulo: 'Reposição', contador: this.inventory.sugestoesReposicao().length },
+  ]);
 
-  requestPurchase(nome: string) {
-    this.toast.success(`Solicitação de compra criada para "${nome}"`);
+  abrirInventario(): void {
+    this.aba.set('inventario');
   }
 }
