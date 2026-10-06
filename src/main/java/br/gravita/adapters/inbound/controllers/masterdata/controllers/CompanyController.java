@@ -3,6 +3,7 @@ package br.gravita.adapters.inbound.controllers.masterdata.controllers;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.CompanyResponse;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.ConfigureDocumentSeriesRequest;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.RegisterCompanyRequest;
+import br.gravita.adapters.inbound.controllers.masterdata.dtos.UpdateCompanyRequest;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.SwitchSefazEnvironmentRequest;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.CompanyNotFoundException;
@@ -47,7 +48,7 @@ public class CompanyController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<CompanyResponse> update(@PathVariable final UUID id, @Valid @RequestBody final RegisterCompanyRequest request) {
+    public ResponseEntity<CompanyResponse> update(@PathVariable final UUID id, @Valid @RequestBody final UpdateCompanyRequest request) {
         final CompanyId updatedId = registerCompanyUseCase.execute(request.toCommand(CompanyId.of(id)));
         return ResponseEntity.ok(companyResponse(updatedId));
     }

@@ -65,7 +65,8 @@ public class RegisterCompanyService implements RegisterCompanyUseCase {
 		final Company existing = companyRepositoryPort.findById(command.id())
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.id().value()));
 		rejectCnpjChange(existing, command);
-		return Company.builder()
+		// rehydrate: a company created at signup may still have an incomplete fiscal profile, which an edit must not reject.
+		return Company.rehydrate()
 				.id(existing.getId())
 				.name(command.name())
 				.cnpj(existing.getCnpj())

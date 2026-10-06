@@ -149,6 +149,24 @@ class RegisterCompanyServiceTest {
 	}
 
 	@Test
+	@DisplayName("Updates a company created at signup whose fiscal profile (IE, IM, address, state) is still empty")
+	void shouldUpdateCompanyWithIncompleteFiscalProfile() {
+		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
+		final CompanyId existingId = CompanyId.of(UUID.randomUUID());
+		when(companyRepositoryPort.findById(existingId)).thenReturn(Optional.of(existingCompany(existingId)));
+		when(companyRepositoryPort.save(any(Company.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(new RegisterCompanyCommand(existingId, "Novo Nome Ltda", null, null, null, null,
+				TaxRegime.LUCRO_PRESUMIDO, false, null, null, null, null, null, null));
+
+		final ArgumentCaptor<Company> saved = ArgumentCaptor.forClass(Company.class);
+		verify(companyRepositoryPort).save(saved.capture());
+		assertThat(saved.getValue().getName()).isEqualTo("Novo Nome Ltda");
+		assertThat(saved.getValue().getTaxRegime()).isEqualTo(TaxRegime.LUCRO_PRESUMIDO);
+		assertThat(saved.getValue().getIe()).isNull();
+	}
+
+	@Test
 	@DisplayName("Updates the other fields and keeps the stored CNPJ when the command omits it")
 	void shouldKeepStoredCnpjWhenCommandOmitsIt() {
 		final RegisterCompanyService service = new RegisterCompanyService(companyRepositoryPort, documentSeriesRepositoryPort);
