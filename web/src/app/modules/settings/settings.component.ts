@@ -11,9 +11,6 @@ import { PlatformConfigService } from '../../core/services/platform-config.servi
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { UsersPanelComponent } from './users/users-panel.component';
 
-const CUSTOMERS_MENU = 'clientes';
-const CUSTOMERS_ROUTE = '/settings/customers';
-
 interface SettingsMenu { key: string; label: string; icon: string; route?: string; adminOnly?: boolean; }
 
 @Component({
@@ -28,17 +25,24 @@ export class SettingsComponent implements OnInit {
   private readonly companies = inject(CompanyService);
 
   constructor(private toast: ToastService, private platform: PlatformConfigService, private router: Router) {
-    // Clientes é uma rota filha: o menu acompanha a URL (inclusive voltar/avançar do navegador).
+    // Clientes e Modalidades de frete são rotas filhas: o menu acompanha a URL (inclusive voltar/avançar do navegador).
     effect(() => {
-      if (this.inCustomers()) this.activeMenu.set(CUSTOMERS_MENU);
-      else if (this.activeMenu() === CUSTOMERS_MENU) this.activeMenu.set('empresa');
+      const routed = this.routedMenu();
+      if (routed) this.activeMenu.set(routed.key);
+      else if (this.menus.some(m => m.route && m.key === this.activeMenu())) this.activeMenu.set('empresa');
     }, { allowSignalWrites: true });
   }
 
   private readonly url = toSignal(
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), map(() => this.router.url)),
     { initialValue: this.router.url });
-  private readonly inCustomers = computed(() => this.url().split('?')[0].startsWith(CUSTOMERS_ROUTE));
+  /** O item de menu cuja rota filha está aberta, se houver. */
+  private readonly routedMenu = computed(() => {
+    const path = this.url().split('?')[0];
+    return this.menus.find(m => m.route && path.startsWith(m.route));
+  });
+  /** O painel do item ativo é a rota filha (`<router-outlet>`), não um bloco deste template. */
+  readonly activeIsRouted = computed(() => this.menus.some(m => m.route && m.key === this.activeMenu()));
 
   readonly compliance = computed(() => this.platform.config().compliance);
 
@@ -48,6 +52,7 @@ export class SettingsComponent implements OnInit {
     { key: 'empresa',     label: 'Empresa',       icon: 'ti-building' },
     { key: 'usuarios',    label: 'Usuários',       icon: 'ti-users', adminOnly: true },
     { key: 'clientes',    label: 'Clientes',       icon: 'ti-address-book', route: '/settings/customers' },
+    { key: 'modalidades-frete', label: 'Modalidades de frete', icon: 'ti-truck', route: '/settings/transport-modalities' },
     { key: 'permissoes',  label: 'Permissões',     icon: 'ti-shield-lock' },
     { key: 'certificado', label: 'Cert. Digital',  icon: 'ti-certificate' },
     { key: 'integracoes', label: 'Integrações',    icon: 'ti-plug' },
@@ -64,7 +69,7 @@ export class SettingsComponent implements OnInit {
       return;
     }
     this.activeMenu.set(m.key);
-    if (this.inCustomers()) this.router.navigateByUrl('/settings');
+    if (this.routedMenu()) this.router.navigateByUrl('/settings');
   }
 
   activeMenuLabel() {

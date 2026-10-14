@@ -8,6 +8,7 @@ import { Customer } from '../../../core/services/customer.service';
 import { PaymentMethod } from '../../../core/services/payment-method.service';
 import { IssueNfeRequest } from '../../../core/services/nfe.service';
 import { ProductSearchResult } from '../../../core/services/product-search.service';
+import { TransportModalityOption } from '../../../core/services/transport-modality.service';
 import { NfeFormComponent } from './nfe-form.component';
 
 const customer = (over: Partial<Customer> = {}): Customer => ({
@@ -33,12 +34,18 @@ const paymentMethods = (): PaymentMethod[] => [
   { id: 'pm-boleto', name: 'Boleto bancário', type: 'BOLETO' },
 ];
 
+const transportModalities = (): TransportModalityOption[] => [
+  { id: 'tm-cif', name: 'CIF — Por conta do emitente', code: 'CIF', active: true },
+  { id: 'tm-fob', name: 'FOB — Por conta do destinatário', code: 'FOB', active: true },
+  { id: 'tm-none', name: 'Sem transporte', code: 'NONE', active: true },
+];
+
 const ACCESS_KEY = '35240111222333000181550010000012345123456789';
 
 describe('NfeFormComponent', () => {
   let http: HttpTestingController;
 
-  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers, GET /api/auxiliary/cfop-registry e GET /api/auxiliary/payment-methods. */
+  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers, GET /api/auxiliary/cfop-registry GET /api/auxiliary/payment-methods e GET /api/auxiliary/transport-modalities. */
   async function setup(customers: Customer[] = [customer()]) {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
@@ -48,6 +55,7 @@ describe('NfeFormComponent', () => {
     http.expectOne('/api/customers').flush(customers);
     http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
     http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
+    http.expectOne('/api/auxiliary/transport-modalities').flush(transportModalities());
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture;
@@ -93,6 +101,7 @@ describe('NfeFormComponent', () => {
       http.expectOne('/api/customers').flush([]);
       http.expectOne('/api/auxiliary/cfop-registry').flush(null, { status: 500, statusText: 'Server Error' });
       http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
+      http.expectOne('/api/auxiliary/transport-modalities').flush(transportModalities());
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -346,6 +355,7 @@ describe('NfeFormComponent', () => {
       http.expectOne('/api/customers').flush([]);
       http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
       http.expectOne('/api/auxiliary/payment-methods').flush(null, { status: 500, statusText: 'Server Error' });
+      http.expectOne('/api/auxiliary/transport-modalities').flush(transportModalities());
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -356,6 +366,95 @@ describe('NfeFormComponent', () => {
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('[data-testid="payment-methods-error"]')).toBeNull();
       expect(fixture.componentInstance.paymentMethods().length).toBe(2);
+    });
+  });
+
+  describe('transporte', () => {
+    it('populates the Modalidade select from the transport-modalities endpoint, including "Sem transporte"', async () => {
+      const fixture = await setup([]);
+
+      const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="modalidade-select"] option') as NodeListOf<HTMLOptionElement>);
+      expect(options.map(o => o.value)).toEqual(['', 'CIF', 'FOB', 'NONE']);
+      expect(options.map(o => o.textContent?.trim())).toEqual(
+        ['Selecione...', 'CIF — Por conta do emitente', 'FOB — Por conta do destinatário', 'Sem transporte']);
+    });
+
+    it('shows only what the registry returns: a deactivated modality is not offered', async () => {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(NfeFormComponent);
+      fixture.detectChanges();
+      http.expectOne('/api/customers').flush([]);
+      http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
+      http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
+      http.expectOne('/api/auxiliary/transport-modalities').flush(transportModalities().filter(m => m.code !== 'FOB'));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="modalidade-select"] option') as NodeListOf<HTMLOptionElement>);
+      expect(options.map(o => o.value)).toEqual(['', 'CIF', 'NONE']);
+    });
+
+    it('selecting an option in the DOM sets the registry code as the modalidade', async () => {
+      const fixture = await setup([]);
+      const select: HTMLSelectElement = fixture.nativeElement.querySelector('[data-testid="modalidade-select"]');
+
+      select.value = 'FOB';
+      select.dispatchEvent(new Event('change'));
+
+      expect(fixture.componentInstance.modalidade()).toBe('FOB');
+    });
+
+    it('offers a retry when the modalities cannot be loaded', async () => {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(NfeFormComponent);
+      fixture.detectChanges();
+      http.expectOne('/api/customers').flush([]);
+      http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
+      http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
+      http.expectOne('/api/auxiliary/transport-modalities').flush(null, { status: 500, statusText: 'Server Error' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="modalidades-error"]')).not.toBeNull();
+      fixture.componentInstance.reloadTransportModalities();
+      http.expectOne('/api/auxiliary/transport-modalities').flush(transportModalities());
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="modalidades-error"]')).toBeNull();
+      expect(fixture.componentInstance.modalidadeOptions().length).toBe(3);
+    });
+
+    it('maps the selected CIF/FOB code to transport.modality, with freight and weight', async () => {
+      const c = await create();
+      await fillAll(c);
+      c.modalidade.set('FOB');
+      c.freight.set(15);
+      c.grossWeight.set(8.5);
+
+      const emitting = c.emit();
+      const req = http.expectOne('/api/nfe');
+      expect(req.request.body.transport).toEqual({ modality: 'FOB', grossWeight: 8.5 });
+      expect(req.request.body.freight).toBe(15);
+      req.flush({ id: 'n1', accessKey: null, documentSeries: null, documentNumber: null, status: 'QUEUED' });
+      await emitting;
+    });
+
+    it('"Sem transporte" does not require freight or weight and leaves the form emittable', async () => {
+      const fixture = await setup();
+      const c = fixture.componentInstance;
+      await fillAll(c);
+      c.modalidade.set('NONE');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(c.freight()).toBeNull();
+      expect(c.grossWeight()).toBeNull();
+      expect(c.canEmit()).toBeTrue();
+      expect(fixture.nativeElement.querySelector('input[name="freight"]').disabled).toBeTrue();
+      expect(fixture.nativeElement.querySelector('input[name="grossWeight"]').disabled).toBeTrue();
     });
   });
 

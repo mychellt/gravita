@@ -10,6 +10,7 @@ import {
 } from '../../../core/services/nfe.service';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ProductSearchResult, ProductSearchService } from '../../../core/services/product-search.service';
+import { TransportModalityCode, TransportModalityService } from '../../../core/services/transport-modality.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../../shared/pipes/brl.pipe';
@@ -26,8 +27,8 @@ export interface FormItem {
   cfop: string;
 }
 
-/** "NONE" = sem transporte: nada de transporte é enviado. */
-export type ModalidadeChoice = '' | TransportModality | 'NONE';
+/** Código da modalidade escolhida no cadastro (''= nenhuma). "NONE" = sem transporte: nada de transporte é enviado. */
+export type ModalidadeChoice = '' | TransportModalityCode;
 
 export type NfeStepNumber = 1 | 2 | 3 | 4 | 5;
 
@@ -55,6 +56,7 @@ export class NfeFormComponent implements OnInit {
   private readonly nfeService = inject(NfeService);
   private readonly cfopRegistry = inject(CfopRegistryService);
   private readonly paymentMethodService = inject(PaymentMethodService);
+  private readonly transportModalityService = inject(TransportModalityService);
 
   readonly steps = [
     { n: 1, label: 'Natureza' },
@@ -111,7 +113,9 @@ export class NfeFormComponent implements OnInit {
   productSearchStatus = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
   private productSearchSeq = 0;
 
-  // Transporte
+  // Transporte (as opções vêm de GET /api/auxiliary/transport-modalities; o valor escolhido é o código da linha)
+  readonly modalidadeOptions = this.transportModalityService.modalities;
+  readonly modalidadesStatus = this.transportModalityService.status;
   modalidade = signal<ModalidadeChoice>('');
   freight = signal<number | null>(null);
   grossWeight = signal<number | null>(null);
@@ -156,6 +160,7 @@ export class NfeFormComponent implements OnInit {
     void this.customerService.load();
     void this.cfopRegistry.load();
     void this.paymentMethodService.load();
+    void this.transportModalityService.load();
   }
 
   reloadRegistry() {
@@ -164,6 +169,10 @@ export class NfeFormComponent implements OnInit {
 
   reloadPaymentMethods() {
     void this.paymentMethodService.load();
+  }
+
+  reloadTransportModalities() {
+    void this.transportModalityService.load();
   }
 
   reloadCustomers() {

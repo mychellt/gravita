@@ -230,12 +230,19 @@
         <div class="form-row cols-3">
           <div class="form-field">
             <label class="form-label">Modalidade</label>
-            <select class="form-select" [ngModel]="modalidade()" (ngModelChange)="modalidade.set($event)" name="modalidade">
+            <select class="form-select" data-testid="modalidade-select"
+                    [ngModel]="modalidade()" (ngModelChange)="modalidade.set($event)" name="modalidade">
               <option value="" disabled>Selecione...</option>
-              <option value="CIF">CIF — Por conta do emitente</option>
-              <option value="FOB">FOB — Por conta do destinatário</option>
-              <option value="NONE">Sem transporte</option>
+              @for (m of modalidadeOptions(); track m.id) {
+                <option [value]="m.code">{{ m.name }}</option>
+              }
             </select>
+            @if (modalidadesStatus() === 'error') {
+              <div class="alert danger" style="margin-top:8px" data-testid="modalidades-error">
+                <i class="ti ti-alert-circle"></i>
+                <span>Não foi possível carregar as modalidades de transporte. <a href="#" (click)="$event.preventDefault(); reloadTransportModalities()">Tentar de novo</a></span>
+              </div>
+            }
           </div>
           <div class="form-field">
             <label class="form-label">Frete (R$)</label>
