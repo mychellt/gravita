@@ -27,6 +27,16 @@ const LABELS: Record<string, string> = {
   liquidado:         'Liquidado',
   renegociado:       'Renegociado',
   cancelado:         'Cancelado',
+  // NF-e emitida (NfeDocumentStatus) e de entrada (InboundNfeStatus), como vêm do backend
+  DRAFT:              'Rascunho',
+  QUEUED:             'Em fila',
+  SENT:               'Enviada',
+  AUTHORIZED:         'Autorizada',
+  REJECTED:           'Rejeitada',
+  CANCELLED:          'Cancelada',
+  VOIDED:             'Inutilizada',
+  PENDING_CONFERENCE: 'Aguardando conferência',
+  CONFIRMED:          'Confirmada',
 };
 
 const CLASSES: Record<string, BadgeType> = {
@@ -53,6 +63,15 @@ const CLASSES: Record<string, BadgeType> = {
   rascunho:          'rascunho',
   em_envio:          'proc',
   em_transito:       'proc',
+  DRAFT:              'rascunho',
+  QUEUED:             'pend',
+  SENT:               'proc',
+  AUTHORIZED:         'auth',
+  REJECTED:           'canc',
+  CANCELLED:          'canc',
+  VOIDED:             'inativo',
+  PENDING_CONFERENCE: 'pend',
+  CONFIRMED:          'auth',
 };
 
 @Component({

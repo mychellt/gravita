@@ -10,6 +10,7 @@ import br.gravita.core.domain.tax.NfeDocumentId;
 import br.gravita.core.domain.tax.NfeDocumentStatus;
 import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,16 @@ class NfeRepositoryAdapter implements NfeRepositoryPort {
 	@Override
 	public Optional<NfeDocument> findById(final NfeDocumentId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
+	}
+
+	@Override
+	public List<NfeDocument> findAllByCompany(final CompanyId companyId) {
+		return jpaRepository.findByIssuerCompanyId(companyId.value()).stream().map(mapper::map)
+				.sorted(Comparator.comparing(NfeRepositoryAdapter::emittedAt).reversed()).toList();
+	}
+
+	private static Instant emittedAt(final NfeDocument document) {
+		return document.getAuthorizedAt() != null ? document.getAuthorizedAt() : document.getCreatedAt();
 	}
 
 	@Override

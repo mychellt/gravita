@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -143,11 +144,51 @@ class NfeRepositoryAdapterTest {
 		assertThat(result).containsExactly(document);
 	}
 
+	@Test
+	@DisplayName("Lists every NF-e of the company newest first, ordering by authorization and falling back to creation")
+	void shouldFindAllByCompanyNewestFirst() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final NfeDocument oldDraft = buildDocument(companyId, Instant.parse("2028-01-01T00:00:00Z"));
+		final NfeDocument recentDraft = buildDocument(companyId, Instant.parse("2028-02-10T00:00:00Z"));
+		final NfeDocument authorized = authorizedAt(buildDocument(companyId, Instant.parse("2028-01-02T00:00:00Z")),
+				Instant.parse("2028-02-20T00:00:00Z"));
+		final List<NfeJpaEntity> entities = List.of(buildEntity(oldDraft.getId()), buildEntity(authorized.getId()),
+				buildEntity(recentDraft.getId()));
+		when(repository.findByIssuerCompanyId(companyId.value())).thenReturn(entities);
+		when(mapper.map(same(entities.get(0)))).thenReturn(oldDraft);
+		when(mapper.map(same(entities.get(1)))).thenReturn(authorized);
+		when(mapper.map(same(entities.get(2)))).thenReturn(recentDraft);
+
+		assertThat(adapter.findAllByCompany(companyId)).containsExactly(authorized, recentDraft, oldDraft);
+	}
+
+	@Test
+	@DisplayName("Lists nothing for a company without NF-e")
+	void shouldFindNothingForCompanyWithoutNfe() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		when(repository.findByIssuerCompanyId(companyId.value())).thenReturn(List.of());
+
+		assertThat(adapter.findAllByCompany(companyId)).isEmpty();
+	}
+
+	private NfeDocument authorizedAt(final NfeDocument draft, final Instant authorizedAt) {
+		return NfeDocument.builder().id(draft.getId()).issuerCompanyId(draft.getIssuerCompanyId())
+				.naturezaOperacao(draft.getNaturezaOperacao()).cfop(draft.getCfop()).recipient(draft.getRecipient())
+				.items(draft.getItems()).freight(draft.getFreight()).insurance(draft.getInsurance())
+				.otherExpenses(draft.getOtherExpenses()).taxTotals(draft.getTaxTotals())
+				.status(NfeDocumentStatus.AUTHORIZED).createdAt(draft.getCreatedAt()).documentSeries("1")
+				.documentNumber(1L).authorizedAt(authorizedAt).build();
+	}
+
 	private NfeJpaEntity buildEntity(final NfeDocumentId id) {
 		return NfeJpaEntity.builder().id(id.value()).build();
 	}
 
 	private NfeDocument buildDocument(final CompanyId companyId) {
+		return buildDocument(companyId, Instant.now());
+	}
+
+	private NfeDocument buildDocument(final CompanyId companyId, final Instant createdAt) {
 		final UUID productId = UUID.randomUUID();
 		final TaxLineBreakdown icmsLine = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"),
 				new BigDecimal("18"), new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
@@ -173,7 +214,7 @@ class NfeRepositoryAdapterTest {
 				.referencedAccessKey(null)
 				.additionalInfo("Informação adicional de teste")
 				.taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
-				.createdAt(Instant.now())
+				.createdAt(createdAt)
 				.build();
 	}
 }

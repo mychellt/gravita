@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NfeJpaRepository extends JpaRepository<NfeJpaEntity, UUID> {
 
+	List<NfeJpaEntity> findByIssuerCompanyId(UUID issuerCompanyId);
+
 	List<NfeJpaEntity> findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 			NfeDocumentStatus status, Instant from, Instant to);
 
