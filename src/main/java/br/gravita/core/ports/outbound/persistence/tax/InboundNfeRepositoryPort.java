@@ -19,6 +19,9 @@ public interface InboundNfeRepositoryPort {
 	 */
 	Optional<InboundNfe> findByAccessKey(String accessKey);
 
+	/** Every NFe {@code companyId} received, at any status, by most recent supplier issuance first. */
+	List<InboundNfe> findAllByCompany(CompanyId companyId);
+
 	/** The received NFe that their suppliers issued over {@code [from, to)}, oldest first. */
 	List<InboundNfe> findIssuedBetween(Instant from, Instant to);
 

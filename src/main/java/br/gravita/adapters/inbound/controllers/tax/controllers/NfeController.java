@@ -6,6 +6,11 @@ import br.gravita.adapters.inbound.controllers.tax.dtos.CorrectionLetterResponse
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueCorrectionLetterRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueNfeRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueNfeResponse;
+import br.gravita.adapters.inbound.controllers.tax.dtos.NfeListItemResponse;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
+import br.gravita.core.domain.Context;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.tax.ListNfeUseCase;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.masterdata.Company;
@@ -28,6 +33,7 @@ import br.gravita.core.ports.outbound.tax.DanfeOrientation;
 import br.gravita.core.ports.outbound.tax.GenerateDanfePort;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -53,10 +59,17 @@ public class NfeController {
 	private final ResendNfeEmailUseCase resendNfeEmailUseCase;
 	private final IssueCorrectionLetterUseCase issueCorrectionLetterUseCase;
 	private final CancelNfeUseCase cancelNfeUseCase;
+	private final ListNfeUseCase listNfeUseCase;
 	private final NfeRepositoryPort nfeRepositoryPort;
 	private final CompanyRepositoryPort companyRepositoryPort;
 	private final XmlObjectStoragePort xmlObjectStoragePort;
 	private final GenerateDanfePort generateDanfePort;
+
+	/** All NF-e of the caller's company, any status, newest first; the UI splits issued from cancelled by status. */
+	@GetMapping
+	public List<NfeListItemResponse> findAll(@AuthenticatedUser final UserId callerId) {
+		return listNfeUseCase.execute(new Context().withCaller(callerId)).stream().map(NfeListItemResponse::from).toList();
+	}
 
 	@PostMapping
 	public ResponseEntity<IssueNfeResponse> issue(@Valid @RequestBody final IssueNfeRequest request) {

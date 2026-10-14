@@ -58,6 +58,11 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
+	public List<InboundNfe> findAllByCompany(final CompanyId companyId) {
+		return jpaRepository.findByCompanyIdOrderByIssuedAtDesc(companyId.value()).stream().map(mapper::map).toList();
+	}
+
+	@Override
 	public List<InboundNfe> findIssuedBetween(final Instant from, final Instant to) {
 		return jpaRepository.findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(from, to).stream()
 				.map(mapper::map).toList();

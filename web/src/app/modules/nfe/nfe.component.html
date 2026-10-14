@@ -7,26 +7,26 @@
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-file-check"></i></div>
     <div class="kpi-label">Autorizadas hoje</div>
-    <div class="kpi-value">9</div>
-    <div class="kpi-sub">R$ 26.742 em valor</div>
+    <div class="kpi-value">{{ kpis().authorizedToday.count }}</div>
+    <div class="kpi-sub">{{ kpis().authorizedToday.total | brl }} em valor</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon amber"><i class="ti ti-clock"></i></div>
     <div class="kpi-label">Em fila / pendentes</div>
-    <div class="kpi-value">1</div>
+    <div class="kpi-value">{{ kpis().pending.count }}</div>
     <div class="kpi-sub">aguardando SEFAZ</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon red"><i class="ti ti-file-x"></i></div>
     <div class="kpi-label">Canceladas no mês</div>
-    <div class="kpi-value">2</div>
-    <div class="kpi-sub">dentro do prazo legal</div>
+    <div class="kpi-value">{{ kpis().cancelledThisMonth.count }}</div>
+    <div class="kpi-sub">{{ kpis().cancelledThisMonth.total | brl }} em valor</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon blue"><i class="ti ti-file-invoice"></i></div>
     <div class="kpi-label">Total do mês</div>
-    <div class="kpi-value">234</div>
-    <div class="kpi-sub">R$ 482.300 em NF-e</div>
+    <div class="kpi-value">{{ kpis().issuedThisMonth.count }}</div>
+    <div class="kpi-sub">{{ kpis().issuedThisMonth.total | brl }} em NF-e</div>
   </div>
 </div>
 
@@ -41,14 +41,14 @@
   <div class="card-head">
     <span class="card-title">NF-e {{ activeTab() }}</span>
     <div class="card-head-filters">
-      <input class="filter-input" type="text" placeholder="Buscar destinatário, nº..."
+      <input class="filter-input" type="text" [placeholder]="activeTab() === 'entradas' ? 'Buscar fornecedor, nº...' : 'Buscar destinatário, nº, CFOP...'"
              [value]="searchQuery()"
              (input)="searchQuery.set($any($event.target).value)" />
       <select class="filter-select">
         <option value="">Todos os status</option>
-        <option value="autorizada">Autorizada</option>
-        <option value="em_fila">Em fila</option>
-        <option value="cancelada">Cancelada</option>
+        <option value="AUTHORIZED">Autorizada</option>
+        <option value="QUEUED">Em fila</option>
+        <option value="CANCELLED">Cancelada</option>
       </select>
     </div>
   </div>
@@ -80,6 +80,45 @@
         <button class="btn btn-ghost"><i class="ti ti-download"></i> Gerar</button>
       </div>
     </div>
+  } @else if (loadStatus() === 'loading') {
+    <div class="nfe-state">Carregando NF-e…</div>
+  } @else if (loadStatus() === 'error') {
+    <div class="nfe-state nfe-state-error" role="alert">
+      Não foi possível carregar as NF-e.
+      <button class="action-btn" (click)="reload()">Tentar novamente</button>
+    </div>
+  } @else if (activeTab() === 'entradas') {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Série</th>
+          <th>Fornecedor</th>
+          <th>Emissão</th>
+          <th class="td-right">Valor Total</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (nf of filteredInbound(); track nf.id) {
+          <tr>
+            <td class="td-mono">#{{ nf.number }}</td>
+            <td class="td-mono">{{ nf.series }}</td>
+            <td class="td-name">{{ nf.supplierName }}</td>
+            <td style="font-size:12px;color:var(--text3)">{{ nf.issuedAt | date:'dd/MM/yy HH:mm' }}</td>
+            <td class="td-amount">{{ nf.totalValue | brl }}</td>
+            <td><app-badge [value]="nf.status" /></td>
+          </tr>
+        }
+        @empty {
+          <tr>
+            <td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">
+              Nenhuma NF-e encontrada
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   } @else {
     <table class="data-table">
       <thead>
@@ -98,21 +137,21 @@
       <tbody>
         @for (nf of filtered(); track nf.id) {
           <tr>
-            <td class="td-mono">#{{ nf.numero }}</td>
-            <td class="td-mono">{{ nf.serie }}</td>
-            <td class="td-name">{{ nf.clienteNome }}</td>
+            <td class="td-mono">#{{ nf.documentNumber }}</td>
+            <td class="td-mono">{{ nf.documentSeries }}</td>
+            <td class="td-name">{{ nf.recipientName }}</td>
             <td class="td-mono">{{ nf.cfop }}</td>
-            <td style="font-size:12px;color:var(--text3)">{{ nf.dataEmissao | date:'dd/MM/yy HH:mm' }}</td>
-            <td class="td-amount">{{ nf.valorTotal | brl }}</td>
+            <td style="font-size:12px;color:var(--text3)">{{ nf.emittedAt | date:'dd/MM/yy HH:mm' }}</td>
+            <td class="td-amount">{{ nf.totalValue | brl }}</td>
             <td class="td-right" style="font-size:11px;color:var(--text3)">
-              {{ nf.valorIcms > 0 ? (nf.valorIcms | brl) : '—' }}
+              {{ nf.icmsValue > 0 ? (nf.icmsValue | brl) : '—' }}
             </td>
             <td><app-badge [value]="nf.status" /></td>
             <td class="td-actions">
-              @if (nf.status === 'autorizada') {
-                <button class="action-btn" (click)="downloadDanfe(nf)">DANFE</button>
-                <button class="action-btn" (click)="downloadXml(nf)">XML</button>
-                <button class="action-btn danger" (click)="cancelNfe(nf.id)">Cancelar</button>
+              @if (nf.status === 'AUTHORIZED') {
+                <button class="action-btn" [disabled]="busyId() === nf.id" (click)="downloadDanfe(nf)">DANFE</button>
+                <button class="action-btn" [disabled]="busyId() === nf.id" (click)="downloadXml(nf)">XML</button>
+                <button class="action-btn danger" [disabled]="busyId() === nf.id" (click)="cancelNfe(nf)">Cancelar</button>
               } @else {
                 <button class="action-btn">Ver</button>
               }

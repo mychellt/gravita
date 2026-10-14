@@ -11,3 +11,5 @@
 .sped-info { flex: 1; }
 .sped-title { font-size: 13px; font-weight: 500; }
 .sped-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.nfe-state { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 32px; color: var(--text3); }
+.nfe-state-error { color: var(--danger); }

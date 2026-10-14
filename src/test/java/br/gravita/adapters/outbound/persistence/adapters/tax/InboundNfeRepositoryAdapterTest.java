@@ -155,6 +155,18 @@ class InboundNfeRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Lists every NF-e the company received, most recently issued first")
+	void shouldFindAllByCompany() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final InboundNfe inboundNfe = buildInboundNfe(companyId);
+		final InboundNfeJpaEntity entity = buildEntity(inboundNfe.getId());
+		when(repository.findByCompanyIdOrderByIssuedAtDesc(companyId.value())).thenReturn(List.of(entity));
+		when(mapper.map(entity)).thenReturn(inboundNfe);
+
+		assertThat(adapter.findAllByCompany(companyId)).containsExactly(inboundNfe);
+	}
+
+	@Test
 	@DisplayName("Finds only the company's confirmed NF-e issued within the window")
 	void shouldFindConfirmedByCompanyBetween() {
 		final CompanyId companyId = CompanyId.of(UUID.randomUUID());

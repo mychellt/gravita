@@ -13,6 +13,9 @@ public interface NfeRepositoryPort {
 
 	Optional<NfeDocument> findById(NfeDocumentId id);
 
+	/** Every NFe {@code companyId} issued, at any status, newest first (by authorization, else by creation). */
+	List<NfeDocument> findAllByCompany(CompanyId companyId);
+
 	/** The NFe authorized over {@code [from, to)}, oldest authorization first. */
 	List<NfeDocument> findAuthorizedBetween(Instant from, Instant to);
 
