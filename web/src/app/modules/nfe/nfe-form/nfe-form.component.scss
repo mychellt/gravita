@@ -33,3 +33,5 @@
 .review-tributos { margin-top: 10px; }
 .tag-estimate-inline { margin-left: 4px; font-size: 10px; color: #92400E; text-transform: uppercase; }
 .review-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, .45); }
+.modal-panel { width: min(720px, 100%); max-height: calc(100vh - 48px); overflow-y: auto; margin: 0; background: var(--surface); }

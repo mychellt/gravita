@@ -192,8 +192,16 @@ export class NfeFormComponent implements OnInit, OnDestroy {
   /** Leva ao painel do passo e o destaca; nunca depende de o passo estar "feito". */
   goToStep(step: NfeStepNumber) {
     this.currentStep.set(step);
-    if (step === 5) this.reviewing.set(true);
+    if (step === 5) {
+      // A revisão é um popup com o estado atual; "Confirmar" só habilita com o formulário completo.
+      this.reviewing.set(true);
+      return;
+    }
     this.focusPanel(STEP_PANEL_IDS[step]);
+  }
+
+  closeReview() {
+    this.reviewing.set(false);
   }
 
   /** "Emitir NF-e": só leva à revisão; o POST acontece em "Confirmar emissão" (`emit`). */
@@ -287,6 +295,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
     this.errorMessage.set(null);
     try {
       this.issued.set(await this.nfeService.issue(request));
+      this.reviewing.set(false);
       this.issuedPaymentMethodName.set(this.paymentMethods().find(m => m.id === request.paymentMethodId)?.name ?? null);
     } catch (error) {
       this.errorMessage.set((await nfeFailureDetail(error)) || GENERIC_FAILURE);

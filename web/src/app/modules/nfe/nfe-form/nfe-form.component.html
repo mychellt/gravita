@@ -259,76 +259,6 @@
       </div>
     </div>
 
-    <div class="form-section" [id]="panelIds[5]" [class.panel-highlight]="highlightedPanel() === panelIds[5]" data-testid="review-panel">
-      <div class="form-section-head">
-        <span class="form-section-icon ti ti-clipboard-check"></span>
-        <span class="form-section-title">Revisão</span>
-        <span style="margin-left:auto;font-size:12px;color:var(--text3)">Somente leitura</span>
-      </div>
-      <div class="form-body">
-        <dl class="review-facts">
-          <div><dt>Natureza da operação</dt>
-            <dd data-testid="review-natureza">{{ naturezaEntry() ? naturezaEntry()!.cfop + ' — ' + naturezaEntry()!.description : '—' }}</dd></div>
-          @if (requiresReferencedAccessKey()) {
-            <div><dt>Chave de acesso referenciada</dt>
-              <dd class="td-mono" data-testid="review-access-key">{{ referencedAccessKey().trim() || '—' }}</dd></div>
-          }
-          <div><dt>Destinatário</dt>
-            <dd data-testid="review-recipient">{{ customer() ? customer()!.name + ' · ' + customer()!.document : '—' }}</dd></div>
-          <div><dt>UF</dt><dd data-testid="review-recipient-state">{{ recipientState() ?? '—' }}</dd></div>
-          <div><dt>Endereço</dt>
-            <dd data-testid="review-recipient-address">{{ recipientAddress() ? addressText(recipientAddress()!) : '—' }}</dd></div>
-          <div><dt>Transporte</dt><dd data-testid="review-modalidade">{{ modalidadeName() ?? '—' }}</dd></div>
-          <div><dt>Pagamento</dt><dd data-testid="review-payment">{{ paymentMethodName() ?? 'Não informada' }}</dd></div>
-        </dl>
-
-        <div class="items-table-wrap">
-          <table class="items-table">
-            <thead><tr><th>#</th><th>Produto</th><th>Qtd</th><th>Vl. Unit.</th><th>Total</th></tr></thead>
-            <tbody>
-              @for (item of items(); track item.productId; let i = $index) {
-                <tr data-testid="review-item">
-                  <td>{{ i + 1 }}</td>
-                  <td class="td-name">{{ item.descricao }}</td>
-                  <td class="td-mono">{{ item.quantidade }}</td>
-                  <td class="td-mono">{{ item.valorUnitario | brl }}</td>
-                  <td class="td-mono" style="font-weight:700">{{ lineTotal(item) | brl }}</td>
-                </tr>
-              }
-              @empty {
-                <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Nenhum item adicionado</td></tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <div class="tributo-row total" data-testid="review-grand-total"><span>Total da nota</span><span>{{ totalNota() | brl }}</span></div>
-
-        <div class="review-tributos">
-          <div class="tributo-row"><span>Base ICMS <span class="tag-estimate-inline">estimativa</span></span><span>{{ baseCalculo() | brl }}</span></div>
-          <div class="tributo-row"><span>ICMS (18%)</span><span>{{ icms() | brl }}</span></div>
-          <div class="tributo-row"><span>PIS (0,65%)</span><span>{{ pis() | brl }}</span></div>
-          <div class="tributo-row"><span>COFINS (3%)</span><span>{{ cofins() | brl }}</span></div>
-        </div>
-
-        @if (reviewing() && issued() === null) {
-          @if (errorMessage(); as message) {
-            <div class="alert danger" role="alert" data-testid="review-emit-error">
-              <i class="ti ti-alert-circle"></i><span>{{ message }}</span>
-            </div>
-          }
-          @if (!canEmit() && !submitting()) {
-            <div class="field-hint" data-testid="review-incomplete">Complete os passos pendentes para poder confirmar a emissão.</div>
-          }
-          <div class="review-actions">
-            <button class="btn btn-primary" data-testid="confirm-emit" [disabled]="!canEmit()" (click)="emit()">
-              <i class="ti ti-send"></i> {{ submitting() ? 'Emitindo…' : 'Confirmar emissão' }}
-            </button>
-          </div>
-        }
-      </div>
-    </div>
-
   </div>
 
   <div class="nfe-sidebar">
@@ -406,3 +336,79 @@
     </div>
   </div>
 </div>
+
+@if (reviewing()) {
+  <div class="modal-overlay" data-testid="review-overlay" (click)="closeReview()" (keydown.escape)="closeReview()">
+  <div (click)="$event.stopPropagation()">
+    <div class="form-section modal-panel" role="dialog" aria-modal="true" aria-labelledby="nfe-review-title" data-testid="review-panel">
+      <div class="form-section-head">
+        <span class="form-section-icon ti ti-clipboard-check"></span>
+        <span class="form-section-title" id="nfe-review-title">Revisão</span>
+        <button class="btn btn-ghost" style="margin-left:auto" data-testid="close-review" aria-label="Fechar revisão" (click)="closeReview()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="form-body">
+        <dl class="review-facts">
+          <div><dt>Natureza da operação</dt>
+            <dd data-testid="review-natureza">{{ naturezaEntry() ? naturezaEntry()!.cfop + ' — ' + naturezaEntry()!.description : '—' }}</dd></div>
+          @if (requiresReferencedAccessKey()) {
+            <div><dt>Chave de acesso referenciada</dt>
+              <dd class="td-mono" data-testid="review-access-key">{{ referencedAccessKey().trim() || '—' }}</dd></div>
+          }
+          <div><dt>Destinatário</dt>
+            <dd data-testid="review-recipient">{{ customer() ? customer()!.name + ' · ' + customer()!.document : '—' }}</dd></div>
+          <div><dt>UF</dt><dd data-testid="review-recipient-state">{{ recipientState() ?? '—' }}</dd></div>
+          <div><dt>Endereço</dt>
+            <dd data-testid="review-recipient-address">{{ recipientAddress() ? addressText(recipientAddress()!) : '—' }}</dd></div>
+          <div><dt>Transporte</dt><dd data-testid="review-modalidade">{{ modalidadeName() ?? '—' }}</dd></div>
+          <div><dt>Pagamento</dt><dd data-testid="review-payment">{{ paymentMethodName() ?? 'Não informada' }}</dd></div>
+        </dl>
+
+        <div class="items-table-wrap">
+          <table class="items-table">
+            <thead><tr><th>#</th><th>Produto</th><th>Qtd</th><th>Vl. Unit.</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (item of items(); track item.productId; let i = $index) {
+                <tr data-testid="review-item">
+                  <td>{{ i + 1 }}</td>
+                  <td class="td-name">{{ item.descricao }}</td>
+                  <td class="td-mono">{{ item.quantidade }}</td>
+                  <td class="td-mono">{{ item.valorUnitario | brl }}</td>
+                  <td class="td-mono" style="font-weight:700">{{ lineTotal(item) | brl }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Nenhum item adicionado</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tributo-row total" data-testid="review-grand-total"><span>Total da nota</span><span>{{ totalNota() | brl }}</span></div>
+
+        <div class="review-tributos">
+          <div class="tributo-row"><span>Base ICMS <span class="tag-estimate-inline">estimativa</span></span><span>{{ baseCalculo() | brl }}</span></div>
+          <div class="tributo-row"><span>ICMS (18%)</span><span>{{ icms() | brl }}</span></div>
+          <div class="tributo-row"><span>PIS (0,65%)</span><span>{{ pis() | brl }}</span></div>
+          <div class="tributo-row"><span>COFINS (3%)</span><span>{{ cofins() | brl }}</span></div>
+        </div>
+
+        @if (issued() === null) {
+          @if (errorMessage(); as message) {
+            <div class="alert danger" role="alert" data-testid="review-emit-error">
+              <i class="ti ti-alert-circle"></i><span>{{ message }}</span>
+            </div>
+          }
+          @if (!canEmit() && !submitting()) {
+            <div class="field-hint" data-testid="review-incomplete">Complete os passos pendentes para poder confirmar a emissão.</div>
+          }
+          <div class="review-actions">
+            <button class="btn btn-primary" data-testid="confirm-emit" [disabled]="!canEmit()" (click)="emit()">
+              <i class="ti ti-send"></i> {{ submitting() ? 'Emitindo…' : 'Confirmar emissão' }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  </div>
+}

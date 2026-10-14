@@ -332,7 +332,7 @@ describe('NfeFormComponent', () => {
       expect(Object.entries(STEP_PANEL_IDS).map(([n, id]) => [+n, id])).toEqual(PANEL_BY_STEP);
     });
 
-    for (const [step, panelId] of PANEL_BY_STEP) {
+    for (const [step, panelId] of PANEL_BY_STEP.filter(([step]) => step !== 5)) {
       it(`clicking step ${step} scrolls to #${panelId} and highlights it`, async () => {
         const fixture = await setup();
         stepButtons(fixture.nativeElement)[step - 1].click();
@@ -384,19 +384,46 @@ describe('NfeFormComponent', () => {
     });
 
     describe('revisão', () => {
-      it('is always rendered, after Transporte, and shows no confirm control until reached', async () => {
+      it('is not part of the page flow and stays hidden until the form is complete and reached', async () => {
         const fixture = await setup();
+        const c = fixture.componentInstance;
         const el: HTMLElement = fixture.nativeElement;
         const ids = Array.from(el.querySelectorAll('.nfe-form-area .form-section')).map(n => n.id);
 
-        expect(ids).toEqual(['nfe-panel-destinatario', 'nfe-panel-itens', 'nfe-panel-transporte', 'nfe-panel-revisao']);
-        expect(q(el, 'confirm-emit')).toBeNull();
+        expect(ids).toEqual(['nfe-panel-destinatario', 'nfe-panel-itens', 'nfe-panel-transporte']);
+        expect(q(el, 'review-panel')).toBeNull();
+
+        await fillAll(c);
+        fixture.detectChanges();
+        expect(q(el, 'review-panel')).toBeNull();
+
+        c.goToStep(5);
+        fixture.detectChanges();
+        expect(q(el, 'review-panel')).not.toBeNull();
+        expect(q(el, 'review-overlay')!.contains(q(el, 'review-panel'))).toBeTrue();
+        expect(q(el, 'review-panel')!.getAttribute('role')).toBe('dialog');
+      });
+
+      it('closes the popup with the close button, keeping the form intact', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.goToStep(5);
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+
+        q(el, 'close-review')!.click();
+        fixture.detectChanges();
+
+        expect(q(el, 'review-panel')).toBeNull();
+        expect(c.stepDone()[5]).toBeTrue();
       });
 
       it('summarizes natureza, recipient, items, totals, transport, payment and tributos', async () => {
         const fixture = await setup();
         const c = fixture.componentInstance;
         await fillAll(c);
+        c.goToStep(5);
         c.addProduct(product({ productId: 'p2', description: 'SKU-FEIJAO', unitPrice: 7.5 }));
         c.updateItem(0, { quantidade: 10, desconto: 5 });
         c.updateItem(1, { quantidade: 2 });
@@ -424,20 +451,42 @@ describe('NfeFormComponent', () => {
       it('shows the referenced access key when the natureza requires it', async () => {
         const fixture = await setup();
         const c = fixture.componentInstance;
+        await fillAll(c);
         c.naturezaSel.set('DEVOLUCAO');
         c.referencedAccessKey.set(ACCESS_KEY);
+        c.goToStep(5);
         fixture.detectChanges();
 
         expect(q(fixture.nativeElement, 'review-access-key')!.textContent).toContain(ACCESS_KEY);
       });
 
-      it('shows placeholders for an empty form instead of failing', async () => {
+      it('opens for an incomplete form showing current data, with Confirmar disabled', async () => {
         const fixture = await setup();
         const el: HTMLElement = fixture.nativeElement;
 
+        stepButtons(el)[4].click();
+        fixture.detectChanges();
+
+        expect(q(el, 'review-panel')).not.toBeNull();
         expect(q(el, 'review-recipient')!.textContent!.trim()).toBe('—');
         expect(q(el, 'review-payment')!.textContent!.trim()).toBe('Não informada');
         expect(el.querySelectorAll('[data-testid="review-item"]').length).toBe(0);
+        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeTrue();
+        expect(q(el, 'review-incomplete')).not.toBeNull();
+        expect(scrolled).not.toHaveBeenCalled();
+      });
+
+      it('enables Confirmar once the form is complete while the popup is open', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        const el: HTMLElement = fixture.nativeElement;
+        stepButtons(el)[4].click();
+        fixture.detectChanges();
+        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeTrue();
+
+        await fillAll(c);
+        fixture.detectChanges();
+        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeFalse();
       });
 
       it('updates the summary live when an earlier field is edited after reaching it', async () => {
@@ -453,6 +502,7 @@ describe('NfeFormComponent', () => {
         c.modalidade.set('FOB');
         c.selectCustomer(customer({ name: 'Beta Ltda' }));
         c.naturezaSel.set('DEVOLUCAO');
+        c.referencedAccessKey.set(ACCESS_KEY);
         c.paymentMethodId.set('pm-boleto');
         fixture.detectChanges();
 
@@ -474,8 +524,7 @@ describe('NfeFormComponent', () => {
         fixture.detectChanges();
 
         http.expectNone('/api/nfe');
-        expect(scrolled.calls.mostRecent().object).toBe(el.querySelector('#nfe-panel-revisao') as Element);
-        expect(el.querySelector('#nfe-panel-revisao')!.classList).toContain('panel-highlight');
+        expect(q(el, 'review-panel')).not.toBeNull();
         expect(c.submitting()).toBeFalse();
         expect(q(el, 'confirm-emit')).not.toBeNull();
       });
@@ -529,23 +578,21 @@ describe('NfeFormComponent', () => {
         expect(q(el, 'confirm-emit')).toBeNull();
       });
 
-      it('clicking the Revisão step directly reaches the same state, with confirm disabled until the form is complete', async () => {
+      it('clicking the Revisão step opens the popup once the form is complete', async () => {
         const fixture = await setup();
         const c = fixture.componentInstance;
         const el: HTMLElement = fixture.nativeElement;
+        await fillAll(c);
+        fixture.detectChanges();
 
         stepButtons(el)[4].click();
         fixture.detectChanges();
-        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeTrue();
-        expect(q(el, 'review-incomplete')).not.toBeNull();
-
-        await fillAll(c);
-        fixture.detectChanges();
-        expect(scrolled.calls.mostRecent().object).toBe(el.querySelector('#nfe-panel-revisao') as Element);
         expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeFalse();
         q(el, 'confirm-emit')!.click();
         http.expectOne('/api/nfe').flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
         await fixture.whenStable();
+        fixture.detectChanges();
+        expect(q(el, 'review-panel')).toBeNull();
       });
 
       it('shows a failed confirmation inside the review panel and keeps the confirm control for a retry', async () => {
