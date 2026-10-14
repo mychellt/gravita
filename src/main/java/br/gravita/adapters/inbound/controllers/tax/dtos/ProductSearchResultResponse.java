@@ -5,11 +5,11 @@ import br.gravita.core.ports.inbound.tax.ProductSearchResult;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-public record ProductSearchResultResponse(UUID productId, String description, BigDecimal unitPrice,
+public record ProductSearchResultResponse(UUID productId, String description, String ncm, BigDecimal unitPrice,
 		boolean availableForSale) {
 
 	public static ProductSearchResultResponse from(final ProductSearchResult result) {
-		return new ProductSearchResultResponse(result.productId(), result.description(), result.unitPrice(),
-				result.availableForSale());
+		return new ProductSearchResultResponse(result.productId(), result.description(), result.ncm(),
+				result.unitPrice(), result.availableForSale());
 	}
 }

@@ -70,8 +70,8 @@ public class SearchProductForSaleService implements SearchProductForSaleUseCase 
 
 	private ProductSearchResult toResult(final ProductDomain product, final List<CustomerPriceTableLink> customerPriceTables) {
 		final BigDecimal price = resolvePrice(product, customerPriceTables);
-		return new ProductSearchResult(product.getId(), product.getInternalCode(), price,
-				product.getStatus() == ProductStatus.ACTIVE);
+		return new ProductSearchResult(product.getId(), product.getInternalCode(), product.getNcm(),
+				price, product.getStatus() == ProductStatus.ACTIVE);
 	}
 
 	private BigDecimal resolvePrice(final ProductDomain product, final List<CustomerPriceTableLink> customerPriceTables) {
