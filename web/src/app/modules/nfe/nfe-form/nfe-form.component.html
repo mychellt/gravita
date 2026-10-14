@@ -36,6 +36,7 @@
         <span>Série: <b>{{ nfe.documentSeries ?? '—' }}</b></span>
         <span>Número: <b>{{ nfe.documentNumber ?? '—' }}</b></span>
         <span>Situação: <app-badge [value]="nfe.status" /></span>
+        <span>Pagamento: <b data-testid="issued-payment-method">{{ issuedPaymentMethodName() ?? 'Não informada' }}</b></span>
       </div>
       <div class="issued-facts"><span>Chave de acesso: <b class="td-mono">{{ nfe.accessKey ?? '—' }}</b></span></div>
       <button class="btn btn-ghost" style="margin-top:8px" (click)="goToList()">Ver NF-e emitidas</button>

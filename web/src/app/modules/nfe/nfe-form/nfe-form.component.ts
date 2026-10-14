@@ -130,6 +130,8 @@ export class NfeFormComponent implements OnInit {
   submitting = signal(false);
   errorMessage = signal<string | null>(null);
   issued = signal<IssueNfeResponse | null>(null);
+  /** Nome da forma de pagamento escolhida na emissão (o response do POST não a devolve); nulo quando não informada. */
+  issuedPaymentMethodName = signal<string | null>(null);
 
   readonly baseCalculo = computed(() => round2(this.items().reduce((sum, i) => sum + lineTotal(i), 0)));
   readonly icms        = computed(() => this.baseCalculo() * 0.18);
@@ -241,6 +243,7 @@ export class NfeFormComponent implements OnInit {
     this.errorMessage.set(null);
     try {
       this.issued.set(await this.nfeService.issue(request));
+      this.issuedPaymentMethodName.set(this.paymentMethods().find(m => m.id === request.paymentMethodId)?.name ?? null);
     } catch (error) {
       this.errorMessage.set((await nfeFailureDetail(error)) || GENERIC_FAILURE);
     } finally {

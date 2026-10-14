@@ -488,6 +488,21 @@ describe('NfeFormComponent', () => {
       expect(c.canEmit()).toBeFalse();
     });
 
+    it('shows the chosen payment method name on the issued panel', async () => {
+      const fixture = await setup();
+      const c = fixture.componentInstance;
+      await fillAll(c);
+      c.paymentMethodId.set('pm-pix');
+
+      const emitting = c.emit();
+      http.expectOne('/api/nfe').flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 77, status: 'QUEUED' });
+      await emitting;
+      fixture.detectChanges();
+
+      const shown = fixture.nativeElement.querySelector('[data-testid="issued-payment-method"]') as HTMLElement;
+      expect(shown.textContent?.trim()).toBe(paymentMethods().find(m => m.id === 'pm-pix')!.name);
+    });
+
     it('omits transport and freight when the modality is "sem transporte"', async () => {
       const c = await create();
       await fillAll(c);
