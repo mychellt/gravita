@@ -58,6 +58,8 @@ export interface IssueNfeRequest {
   items: { productId: string; description: string; quantity: number; unitPrice: number; discount: number }[];
   freight?: number;
   transport?: { modality: TransportModality; grossWeight?: number };
+  /** Chave de acesso (44 dígitos) da nota original; obrigatória em devolução e nota complementar. */
+  referencedAccessKey?: string;
   additionalInfo?: string;
 }
 

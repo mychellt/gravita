@@ -151,7 +151,7 @@
             <thead>
               <tr>
                 <th>#</th><th>Produto</th><th>NCM</th>
-                <th>Qtd</th><th>Vl. Unit.</th><th>Desc.%</th><th>Total</th><th></th>
+                <th>CFOP</th><th>Qtd</th><th>Vl. Unit.</th><th>Desc.%</th><th>Total</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -160,6 +160,8 @@
                   <td>{{ i + 1 }}</td>
                   <td class="td-name">{{ item.descricao }}</td>
                   <td class="td-mono">{{ item.ncm ?? '—' }}</td>
+                  <td><input class="form-input cell-input" type="text" inputmode="numeric" maxlength="4" aria-label="CFOP" data-testid="item-cfop"
+                             [ngModel]="item.cfop" (ngModelChange)="updateItem(i, { cfop: $event })" [name]="'cfop' + i" /></td>
                   <td><input class="form-input cell-input" type="number" min="0" step="any" aria-label="Quantidade"
                              [ngModel]="item.quantidade" (ngModelChange)="updateItem(i, { quantidade: +$event || 0 })" [name]="'qtd' + i" /></td>
                   <td><input class="form-input cell-input" type="number" min="0" step="0.01" aria-label="Valor unitário"
@@ -176,7 +178,7 @@
               }
               @empty {
                 <tr>
-                  <td colspan="8" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">
+                  <td colspan="9" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">
                     Nenhum item adicionado
                   </td>
                 </tr>
@@ -255,13 +257,31 @@
     <div class="card" style="margin-bottom:12px">
       <div class="card-head"><span class="card-title">Natureza da operação</span></div>
       <div class="card-body">
-        <select class="form-select" style="width:100%;margin-bottom:10px" [ngModel]="cfopSel()" (ngModelChange)="cfopSel.set($event)" name="cfopSel">
+        <select class="form-select" style="width:100%;margin-bottom:10px" data-testid="natureza-select"
+                [ngModel]="naturezaSel()" (ngModelChange)="naturezaSel.set($event)" name="naturezaSel">
           <option value="" disabled>Selecione...</option>
-          <option value="5102">5102 — Venda de mercadoria</option>
-          <option value="5403">5403 — Venda c/ substituição tributária</option>
-          <option value="6102">6102 — Venda p/ outra UF</option>
-          <option value="5201">5201 — Devolução de compra</option>
+          @for (o of naturezaOptions(); track o.naturezaOperacao) {
+            <option [value]="o.naturezaOperacao">{{ o.cfop }} — {{ o.description }}</option>
+          }
         </select>
+        @if (registryStatus() === 'error') {
+          <div class="alert danger" data-testid="registry-error">
+            <i class="ti ti-alert-circle"></i>
+            <span>Não foi possível carregar as naturezas de operação. <a href="#" (click)="$event.preventDefault(); reloadRegistry()">Tentar de novo</a></span>
+          </div>
+        }
+        @if (requiresReferencedAccessKey()) {
+          <div class="form-field" style="margin-bottom:10px">
+            <label class="form-label">Chave de acesso da NF-e referenciada</label>
+            <input class="form-input td-mono" type="text" inputmode="numeric" placeholder="44 dígitos" data-testid="referenced-access-key"
+                   [ngModel]="referencedAccessKey()" (ngModelChange)="referencedAccessKey.set($event)" name="referencedAccessKey" />
+            @if (referencedAccessKeyInvalid()) {
+              <div class="field-error" data-testid="referenced-access-key-error">
+                Obrigatória nesta natureza: informe a chave de 44 dígitos da nota original.
+              </div>
+            }
+          </div>
+        }
         <div style="display:flex;gap:6px;align-items:center">
           <span class="env-badge prod">Produção</span>
           <span style="font-size:11px;color:var(--text3)">Série e nº atribuídos na emissão</span>

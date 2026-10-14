@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IE_INDICATOR_LABELS, formatAddress } from '../../../core/customer-display';
 import { AuthService } from '../../../core/services/auth.service';
+import { CfopRegistryService } from '../../../core/services/cfop-registry.service';
 import { Customer, CustomerAddress, CustomerService } from '../../../core/services/customer.service';
 import {
   IssueNfeRequest, IssueNfeResponse, NaturezaOperacao, NfeService, TransportModality, nfeFailureDetail,
@@ -20,15 +21,9 @@ export interface FormItem {
   valorUnitario: number;
   /** Percentual, 0-100. */
   desconto: number;
+  /** Nasce com o CFOP do registro para a natureza escolhida; editável por linha. */
+  cfop: string;
 }
-
-/** A tela ainda oferece só estas 4 opções fixas (registro de CFOP no banco é um follow-up); cada uma vale uma natureza do backend. */
-export const NATUREZA_BY_CFOP: Record<string, NaturezaOperacao> = {
-  '5102': 'VENDA',
-  '5403': 'VENDA',
-  '6102': 'VENDA',
-  '5201': 'DEVOLUCAO',
-};
 
 /** "NONE" = sem transporte: nada de transporte é enviado. */
 export type ModalidadeChoice = '' | TransportModality | 'NONE';
@@ -37,6 +32,8 @@ export type NfeStepNumber = 1 | 2 | 3 | 4 | 5;
 
 const GENERIC_FAILURE = 'Não foi possível emitir a NF-e. Tente novamente.';
 const MAX_CUSTOMER_MATCHES = 8;
+const ACCESS_KEY_LENGTH = 44;
+const digitsOnly = (value: string) => value.replace(/\D/g, '');
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 const subtotal = (item: FormItem) => item.quantidade * item.valorUnitario;
@@ -55,6 +52,7 @@ export class NfeFormComponent implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly productSearch = inject(ProductSearchService);
   private readonly nfeService = inject(NfeService);
+  private readonly cfopRegistry = inject(CfopRegistryService);
 
   readonly steps = [
     { n: 1, label: 'Natureza' },
@@ -69,8 +67,18 @@ export class NfeFormComponent implements OnInit {
   /** Só destaca o passo clicado; o "feito" de cada passo vem do estado do formulário (`stepDone`). */
   currentStep = signal<NfeStepNumber>(1);
 
-  // Natureza
-  cfopSel = signal('');
+  // Natureza (as opções e o CFOP de cada uma vêm do registro de CFOP do backend)
+  readonly naturezaOptions = this.cfopRegistry.entries;
+  readonly registryStatus = this.cfopRegistry.status;
+  naturezaSel = signal<NaturezaOperacao | ''>('');
+  referencedAccessKey = signal('');
+
+  readonly naturezaEntry = computed(() => this.naturezaOptions().find(e => e.naturezaOperacao === this.naturezaSel()) ?? null);
+  /** CFOP que as linhas novas recebem; vazio enquanto nenhuma natureza foi escolhida. */
+  readonly naturezaCfop = computed(() => this.naturezaEntry()?.cfop ?? '');
+  readonly requiresReferencedAccessKey = computed(() => this.naturezaEntry()?.requiresReferencedAccessKey ?? false);
+  readonly referencedAccessKeyInvalid = computed(() =>
+    this.requiresReferencedAccessKey() && digitsOnly(this.referencedAccessKey()).length !== ACCESS_KEY_LENGTH);
 
   // Destinatário
   readonly customerStatus = this.customerService.status;
@@ -124,7 +132,7 @@ export class NfeFormComponent implements OnInit {
   /** Estado de cada passo, derivado do formulário e nunca da navegação. */
   readonly stepDone = computed<Record<NfeStepNumber, boolean>>(() => {
     const done = {
-      1: this.cfopSel() !== '',
+      1: this.naturezaSel() !== '' && !this.referencedAccessKeyInvalid(),
       2: this.customer() !== null,
       3: this.items().length > 0,
       4: this.modalidade() !== '',
@@ -142,6 +150,11 @@ export class NfeFormComponent implements OnInit {
 
   ngOnInit() {
     void this.customerService.load();
+    void this.cfopRegistry.load();
+  }
+
+  reloadRegistry() {
+    void this.cfopRegistry.load();
   }
 
   reloadCustomers() {
@@ -184,12 +197,12 @@ export class NfeFormComponent implements OnInit {
       }
       return [...list, {
         productId: product.productId, descricao: product.description, ncm: product.ncm,
-        quantidade: 1, valorUnitario: product.unitPrice, desconto: 0,
+        quantidade: 1, valorUnitario: product.unitPrice, desconto: 0, cfop: this.naturezaCfop(),
       }];
     });
   }
 
-  updateItem(index: number, patch: Partial<Pick<FormItem, 'quantidade' | 'valorUnitario' | 'desconto'>>) {
+  updateItem(index: number, patch: Partial<Pick<FormItem, 'quantidade' | 'valorUnitario' | 'desconto' | 'cfop'>>) {
     const clean = { ...patch };
     if (clean.desconto !== undefined) clean.desconto = Math.min(100, Math.max(0, clean.desconto));
     this.items.update(list => list.map((item, idx) => (idx === index ? { ...item, ...clean } : item)));
@@ -225,7 +238,7 @@ export class NfeFormComponent implements OnInit {
     const issuerCompanyId = this.auth.currentUser()?.companyId;
     const customer = this.customer();
     const state = this.recipientState();
-    const natureza = NATUREZA_BY_CFOP[this.cfopSel()];
+    const natureza = this.naturezaSel();
     if (!issuerCompanyId || !customer || !state || !natureza) return null;
 
     const modalidade = this.modalidade();
@@ -251,6 +264,7 @@ export class NfeFormComponent implements OnInit {
         discount: round2(subtotal(i) * i.desconto / 100),
       })),
       ...(modalidade === 'CIF' || modalidade === 'FOB' ? this.transportFields(modalidade) : {}),
+      ...(this.requiresReferencedAccessKey() ? { referencedAccessKey: digitsOnly(this.referencedAccessKey()) } : {}),
       ...(additionalInfo ? { additionalInfo } : {}),
     };
   }
