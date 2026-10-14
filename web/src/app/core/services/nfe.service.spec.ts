@@ -99,4 +99,19 @@ describe('NfeService', () => {
     expect(await nfeFailureDetail(blob)).toBe('NF-e não autorizada');
     expect(await nfeFailureDetail(new Error('x'))).toBe('');
   });
+
+  it('POSTs the issuance to /api/nfe and resolves with the response', async () => {
+    const request = {
+      issuerCompanyId: 'co', naturezaOperacao: 'VENDA' as const,
+      recipient: { personId: 'c1', document: '1', personType: 'COMPANY' as const, name: 'X', state: 'SP' },
+      items: [{ productId: 'p1', description: 'D', quantity: 1, unitPrice: 2, discount: 0 }],
+    };
+    const issuing = service.issue(request);
+    const req = http.expectOne('/api/nfe');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush({ id: 'n1', accessKey: 'k', documentSeries: '1', documentNumber: 5, status: 'QUEUED' });
+
+    expect((await issuing).documentNumber).toBe(5);
+  });
 });

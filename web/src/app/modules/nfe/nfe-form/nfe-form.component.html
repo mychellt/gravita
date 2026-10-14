@@ -1,28 +1,52 @@
-<app-page-header title="Nova NF-e" subtitle="Emissão manual · Série 001 · Próximo nº 000235">
+<app-page-header title="Nova NF-e" subtitle="Emissão manual · O número e a série são atribuídos na emissão">
   <button class="btn btn-ghost" (click)="cancel()">Cancelar</button>
   <button class="btn btn-ghost"><i class="ti ti-device-floppy"></i> Rascunho</button>
-  <button class="btn btn-primary" (click)="emit()"><i class="ti ti-send"></i> Emitir NF-e</button>
+  <button class="btn btn-primary" [disabled]="!canEmit()" (click)="emit()">
+    <i class="ti ti-send"></i> {{ submitting() ? 'Emitindo…' : 'Emitir NF-e' }}
+  </button>
 </app-page-header>
 
 <div class="steps-bar">
   @for (s of steps; track s.n; let last = $last) {
     <div class="step-item"
-         [class.done]="currentStep() > s.n"
+         [class.done]="stepDone()[s.n]"
          [class.active]="currentStep() === s.n"
          (click)="currentStep.set(s.n)" style="cursor:pointer">
       <div class="step-dot"
-           [class.done]="currentStep() > s.n"
+           [class.done]="stepDone()[s.n]"
            [class.active]="currentStep() === s.n">
-        @if (currentStep() > s.n) { <i class="ti ti-check" style="font-size:10px"></i> }
+        @if (stepDone()[s.n]) { <i class="ti ti-check" style="font-size:10px"></i> }
         @else { {{ s.n }} }
       </div>
       {{ s.label }}
     </div>
     @if (!last) {
-      <div class="step-line" [class.done]="currentStep() > s.n"></div>
+      <div class="step-line" [class.done]="stepDone()[s.n]"></div>
     }
   }
 </div>
+
+@if (issued(); as nfe) {
+  <div class="alert success" data-testid="issued">
+    <i class="ti ti-circle-check"></i>
+    <div>
+      <strong>NF-e emitida e enviada à fila de transmissão.</strong>
+      A autorização pela SEFAZ acontece depois — acompanhe na lista de NF-e.
+      <div class="issued-facts">
+        <span>Série: <b>{{ nfe.documentSeries ?? '—' }}</b></span>
+        <span>Número: <b>{{ nfe.documentNumber ?? '—' }}</b></span>
+        <span>Situação: <app-badge [value]="nfe.status" /></span>
+      </div>
+      <div class="issued-facts"><span>Chave de acesso: <b class="td-mono">{{ nfe.accessKey ?? '—' }}</b></span></div>
+      <button class="btn btn-ghost" style="margin-top:8px" (click)="goToList()">Ver NF-e emitidas</button>
+    </div>
+  </div>
+}
+@if (errorMessage(); as message) {
+  <div class="alert danger" role="alert" data-testid="emit-error">
+    <i class="ti ti-alert-circle"></i><span>{{ message }}</span>
+  </div>
+}
 
 <div class="nfe-layout">
   <div class="nfe-form-area">
@@ -33,63 +57,85 @@
         <span class="form-section-title">Destinatário</span>
       </div>
       <div class="form-body">
-        <div class="form-row cols-2">
+        @if (customer(); as c) {
+          <div class="customer-picked">
+            <span>Cliente selecionado — dados do cadastro, somente leitura.</span>
+            <button class="btn btn-ghost" (click)="clearCustomer()">Trocar cliente</button>
+          </div>
+          <div class="form-row cols-2">
+            <div class="form-field">
+              <label class="form-label">{{ c.type === 'INDIVIDUAL' ? 'CPF' : 'CNPJ' }}</label>
+              <input class="form-input" type="text" readonly [value]="c.document" data-testid="recipient-document" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">{{ c.type === 'INDIVIDUAL' ? 'Nome' : 'Razão Social' }}</label>
+              <input class="form-input" type="text" readonly [value]="c.name" data-testid="recipient-name" />
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-field">
+              <label class="form-label">Indicador IE</label>
+              <input class="form-input" type="text" readonly [value]="c.ieIndicator ? ieLabels[c.ieIndicator] : '—'" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">Consumidor Final</label>
+              <input class="form-input" type="text" readonly [value]="c.finalConsumer === null ? '—' : c.finalConsumer ? 'Sim' : 'Não'" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">E-mail NF-e</label>
+              <input class="form-input" type="text" readonly [value]="c.email ?? '—'" />
+            </div>
+          </div>
+          <div class="form-row cols-3">
+            <div class="form-field" style="grid-column:span 2">
+              <label class="form-label">Endereço</label>
+              <input class="form-input" type="text" readonly data-testid="recipient-address"
+                     [value]="recipientAddress() ? addressText(recipientAddress()!) : '—'" />
+            </div>
+            <div class="form-field">
+              <label class="form-label">UF</label>
+              <input class="form-input" type="text" readonly [value]="recipientState() ?? '—'" />
+            </div>
+          </div>
+          @if (recipientIncomplete()) {
+            <div class="alert warn" data-testid="recipient-incomplete">
+              <i class="ti ti-alert-triangle"></i>
+              <span>Este cliente não tem endereço (UF) cadastrado. Complete o cadastro em
+                <a routerLink="/settings/customers">Configurações › Clientes</a> para emitir a nota.</span>
+            </div>
+          }
+        } @else {
           <div class="form-field">
-            <label class="form-label">CNPJ / CPF</label>
-            <input class="form-input" type="text" [(ngModel)]="cnpj" name="cnpj" />
+            <label class="form-label">Buscar cliente por nome ou CPF/CNPJ</label>
+            <input class="form-input" type="text" placeholder="Digite o nome ou o documento do cliente..."
+                   [ngModel]="customerQuery()" (ngModelChange)="customerQuery.set($event)" name="customerQuery"
+                   data-testid="customer-search" />
           </div>
-          <div class="form-field">
-            <label class="form-label">Razão Social</label>
-            <input class="form-input" type="text" [(ngModel)]="razaoSocial" name="razaoSocial" />
-          </div>
-        </div>
-        <div class="form-row cols-3">
-          <div class="form-field">
-            <label class="form-label">Inscrição Estadual</label>
-            <input class="form-input" type="text" [(ngModel)]="ie" name="ie" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">Indicador IE</label>
-            <select class="form-select" [(ngModel)]="indicadorIe" name="indicadorIe">
-              <option value="contribuinte">Contribuinte</option>
-              <option value="isento">Isento</option>
-              <option value="nao_contribuinte">Não contribuinte</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Consumidor Final</label>
-            <select class="form-select" [(ngModel)]="consumidorFinal" name="consumidorFinal">
-              <option value="nao">Não</option>
-              <option value="sim">Sim</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row cols-3">
-          <div class="form-field">
-            <label class="form-label">CEP</label>
-            <input class="form-input" type="text" [(ngModel)]="cep" name="cep" />
-          </div>
-          <div class="form-field" style="grid-column:span 2">
-            <label class="form-label">Logradouro</label>
-            <input class="form-input" type="text" [(ngModel)]="logradouro" name="logradouro" />
-          </div>
-        </div>
-        <div class="form-row cols-3">
-          <div class="form-field">
-            <label class="form-label">Município</label>
-            <input class="form-input" type="text" [(ngModel)]="municipio" name="municipio" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">UF</label>
-            <select class="form-select" [(ngModel)]="uf" name="uf">
-              <option>SP</option><option>RJ</option><option>MG</option><option>RS</option><option>PR</option><option>SC</option><option>BA</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">E-mail NF-e</label>
-            <input class="form-input" type="email" [(ngModel)]="email" name="email" />
-          </div>
-        </div>
+          @if (customerStatus() === 'error') {
+            <div class="alert danger">
+              <i class="ti ti-alert-circle"></i>
+              <span>Não foi possível carregar os clientes. <a href="#" (click)="$event.preventDefault(); reloadCustomers()">Tentar de novo</a></span>
+            </div>
+          } @else if (customerQuery().trim() && customerMatches().length === 0 && customerStatus() === 'ready') {
+            <div class="field-hint" data-testid="customer-none">
+              Nenhum cliente encontrado. Cadastre o cliente em
+              <a routerLink="/settings/customers">Configurações › Clientes</a> antes de emitir a nota.
+            </div>
+          }
+          @if (customerMatches().length) {
+            <ul class="pick-list" data-testid="customer-matches">
+              @for (m of customerMatches(); track m.id) {
+                <li>
+                  <button type="button" class="pick-option" (click)="selectCustomer(m)">
+                    <span>{{ m.name }}</span><span class="td-mono">{{ m.document }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (!customerQuery().trim()) {
+            <div class="field-hint">Selecione um cliente já cadastrado — o destinatário não é digitado nesta tela.</div>
+          }
+        }
       </div>
     </div>
 
@@ -104,23 +150,25 @@
           <table class="items-table">
             <thead>
               <tr>
-                <th>#</th><th>Produto</th><th>NCM</th><th>CFOP</th>
+                <th>#</th><th>Produto</th><th>NCM</th>
                 <th>Qtd</th><th>Vl. Unit.</th><th>Desc.%</th><th>Total</th><th></th>
               </tr>
             </thead>
             <tbody>
-              @for (item of items(); track item.produtoId; let i = $index) {
-                <tr>
+              @for (item of items(); track item.productId; let i = $index) {
+                <tr data-testid="item-row">
                   <td>{{ i + 1 }}</td>
                   <td class="td-name">{{ item.descricao }}</td>
-                  <td class="td-mono">{{ item.ncm }}</td>
-                  <td class="td-mono">{{ item.cfop }}</td>
-                  <td class="td-mono">{{ item.quantidade }}</td>
-                  <td class="td-mono">{{ item.valorUnitario | brl }}</td>
-                  <td class="td-mono" style="color:var(--success)">{{ item.desconto }}%</td>
-                  <td class="td-mono" style="font-weight:700">{{ item.total | brl }}</td>
+                  <td class="td-mono">{{ item.ncm ?? '—' }}</td>
+                  <td><input class="form-input cell-input" type="number" min="0" step="any" aria-label="Quantidade"
+                             [ngModel]="item.quantidade" (ngModelChange)="updateItem(i, { quantidade: +$event || 0 })" [name]="'qtd' + i" /></td>
+                  <td><input class="form-input cell-input" type="number" min="0" step="0.01" aria-label="Valor unitário"
+                             [ngModel]="item.valorUnitario" (ngModelChange)="updateItem(i, { valorUnitario: +$event || 0 })" [name]="'vu' + i" /></td>
+                  <td><input class="form-input cell-input" type="number" min="0" max="100" step="any" aria-label="Desconto %"
+                             [ngModel]="item.desconto" (ngModelChange)="updateItem(i, { desconto: +$event || 0 })" [name]="'desc' + i" /></td>
+                  <td class="td-mono" style="font-weight:700">{{ lineTotal(item) | brl }}</td>
                   <td>
-                    <button class="action-btn danger" (click)="removeItem(i)">
+                    <button class="action-btn danger" aria-label="Remover item" (click)="removeItem(i)">
                       <i class="ti ti-trash"></i>
                     </button>
                   </td>
@@ -128,7 +176,7 @@
               }
               @empty {
                 <tr>
-                  <td colspan="9" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">
+                  <td colspan="8" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">
                     Nenhum item adicionado
                   </td>
                 </tr>
@@ -136,13 +184,38 @@
             </tbody>
           </table>
         </div>
+        @if (!itemsValid()) {
+          <div class="field-error">Informe quantidade maior que zero em todos os itens.</div>
+        }
         <div class="add-item-row">
           <input class="form-input" style="flex:1" type="text"
-                 placeholder="Buscar produto por código ou descrição..." />
-          <button class="btn btn-ghost" (click)="addItem()">
-            <i class="ti ti-plus"></i> Adicionar item
+                 placeholder="Buscar produto por código ou descrição..."
+                 [ngModel]="productQuery()" (ngModelChange)="productQuery.set($event)" name="productQuery"
+                 (keydown.enter)="searchProducts()" data-testid="product-search" />
+          <button class="btn btn-ghost" [disabled]="!productQuery().trim() || productSearchStatus() === 'loading'"
+                  (click)="searchProducts()">
+            <i class="ti ti-search"></i> Buscar
           </button>
         </div>
+        @if (productSearchStatus() === 'error') {
+          <div class="field-error">Não foi possível buscar produtos. Tente novamente.</div>
+        } @else if (productSearchStatus() === 'ready' && productResults().length === 0) {
+          <div class="field-hint">Nenhum produto encontrado.</div>
+        }
+        @if (productResults().length) {
+          <ul class="pick-list" data-testid="product-results">
+            @for (p of productResults(); track p.productId) {
+              <li>
+                <button type="button" class="pick-option" [disabled]="!p.availableForSale" (click)="addProduct(p)">
+                  <span>{{ p.description }}
+                    @if (!p.availableForSale) { <span class="tag-unavailable">Indisponível para venda</span> }
+                  </span>
+                  <span class="td-mono">{{ p.unitPrice | brl }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
       </div>
     </div>
 
@@ -155,19 +228,22 @@
         <div class="form-row cols-3">
           <div class="form-field">
             <label class="form-label">Modalidade</label>
-            <select class="form-select">
-              <option>CIF — Por conta do emitente</option>
-              <option>FOB — Por conta do destinatário</option>
-              <option>Sem transporte</option>
+            <select class="form-select" [ngModel]="modalidade()" (ngModelChange)="modalidade.set($event)" name="modalidade">
+              <option value="" disabled>Selecione...</option>
+              <option value="CIF">CIF — Por conta do emitente</option>
+              <option value="FOB">FOB — Por conta do destinatário</option>
+              <option value="NONE">Sem transporte</option>
             </select>
           </div>
           <div class="form-field">
             <label class="form-label">Frete (R$)</label>
-            <input class="form-input" type="number" value="0" />
+            <input class="form-input" type="number" min="0" step="0.01" [disabled]="modalidade() === 'NONE'"
+                   [ngModel]="freight()" (ngModelChange)="freight.set($event)" name="freight" />
           </div>
           <div class="form-field">
             <label class="form-label">Peso bruto (kg)</label>
-            <input class="form-input" type="number" value="0" />
+            <input class="form-input" type="number" min="0" step="any" [disabled]="modalidade() === 'NONE'"
+                   [ngModel]="grossWeight()" (ngModelChange)="grossWeight.set($event)" name="grossWeight" />
           </div>
         </div>
       </div>
@@ -179,7 +255,8 @@
     <div class="card" style="margin-bottom:12px">
       <div class="card-head"><span class="card-title">Natureza da operação</span></div>
       <div class="card-body">
-        <select class="form-select" style="width:100%;margin-bottom:10px" [(ngModel)]="cfopSel" name="cfopSel">
+        <select class="form-select" style="width:100%;margin-bottom:10px" [ngModel]="cfopSel()" (ngModelChange)="cfopSel.set($event)" name="cfopSel">
+          <option value="" disabled>Selecione...</option>
           <option value="5102">5102 — Venda de mercadoria</option>
           <option value="5403">5403 — Venda c/ substituição tributária</option>
           <option value="6102">6102 — Venda p/ outra UF</option>
@@ -187,13 +264,13 @@
         </select>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="env-badge prod">Produção</span>
-          <span style="font-size:11px;color:var(--text3)">Série 001 · Nº 000235</span>
+          <span style="font-size:11px;color:var(--text3)">Série e nº atribuídos na emissão</span>
         </div>
       </div>
     </div>
 
     <div class="card" style="margin-bottom:12px">
-      <div class="card-head"><span class="card-title">Resumo de tributos</span></div>
+      <div class="card-head"><span class="card-title">Resumo de tributos</span><span class="tag-estimate" data-testid="tax-estimate-tag">Estimativa</span></div>
       <div class="card-body">
         <div class="tributo-row"><span>Base ICMS</span><span>{{ baseCalculo() | brl }}</span></div>
         <div class="tributo-row"><span>ICMS (18%)</span><span>{{ icms() | brl }}</span></div>
@@ -204,6 +281,7 @@
           <span>Total NF</span>
           <span>{{ totalNota() | brl }}</span>
         </div>
+        <div class="field-hint">Valores estimados. Os tributos definitivos são calculados pelo servidor na emissão.</div>
       </div>
     </div>
 
@@ -218,7 +296,7 @@
         </select>
         <textarea class="form-textarea" rows="3" style="width:100%"
                   placeholder="Informações adicionais..."
-                  [(ngModel)]="infoAdicionais" name="infoAdicionais"></textarea>
+                  [ngModel]="infoAdicionais()" (ngModelChange)="infoAdicionais.set($event)" name="infoAdicionais"></textarea>
       </div>
     </div>
   </div>

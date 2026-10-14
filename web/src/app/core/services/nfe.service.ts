@@ -37,6 +37,39 @@ export interface InboundNfeListItem {
   status: InboundNfeStatus;
 }
 
+/** Natureza da operação aceita pelo backend (enum `NaturezaOperacao`). */
+export type NaturezaOperacao = 'VENDA' | 'DEVOLUCAO' | 'NOTA_COMPLEMENTAR' | 'TRANSFERENCIA' | 'REMESSA' | 'OUTRA';
+
+/** Modalidade do frete aceita pelo backend (enum `TransportModality`). */
+export type TransportModality = 'CIF' | 'FOB';
+
+/** Corpo de POST /api/nfe (IssueNfeRequest), só com os campos que a tela de emissão manual envia. */
+export interface IssueNfeRequest {
+  issuerCompanyId: string;
+  naturezaOperacao: NaturezaOperacao;
+  recipient: {
+    personId: string;
+    document: string;
+    personType: 'INDIVIDUAL' | 'COMPANY';
+    name: string;
+    stateRegistration?: string;
+    state: string;
+  };
+  items: { productId: string; description: string; quantity: number; unitPrice: number; discount: number }[];
+  freight?: number;
+  transport?: { modality: TransportModality; grossWeight?: number };
+  additionalInfo?: string;
+}
+
+/** Corpo de resposta de POST /api/nfe (IssueNfeResponse): a nota nasce enfileirada, sem autorização ainda. */
+export interface IssueNfeResponse {
+  id: string;
+  accessKey: string | null;
+  documentSeries: string | null;
+  documentNumber: number | null;
+  status: NfeDocumentStatus;
+}
+
 /** Corpo de resposta de POST /api/nfe/{id}/cancel (CancelNfeResponse). */
 interface CancelNfeResult {
   id: string;
@@ -99,6 +132,11 @@ export class NfeService {
     } catch {
       this.inboundStatus.set('error');
     }
+  }
+
+  /** POST /api/nfe — emite a NF-e. Rejeita se o backend recusa (400 com `{message}`; ver {@link nfeFailureDetail}). */
+  issue(request: IssueNfeRequest): Promise<IssueNfeResponse> {
+    return firstValueFrom(this.http.post<IssueNfeResponse>(this.baseUrl, request));
   }
 
   /** POST /api/nfe/{id}/cancel — a linha cancelada passa a refletir a resposta, sem recarregar a lista. Rejeita se o backend recusa. */

@@ -73,6 +73,18 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("Returns the product's NCM so the NF-e item table can show it")
+	void returnsTheProductNcm() {
+		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+		product.setNcm("1006.30");
+		when(productRepositoryPort.findAll()).thenReturn(List.of(product));
+
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("SKU-1", null));
+
+		assertThat(results).extracting(ProductSearchResult::ncm).containsExactly("1006.30");
+	}
+
+	@Test
 	@DisplayName("Returns an empty list when nothing matches")
 	void ac1NoMatchReturnsEmptyList() {
 		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
