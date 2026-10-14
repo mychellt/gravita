@@ -100,6 +100,9 @@ public class NfeJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "additional_info")
 	private String additionalInfo;
 
+	@Column(name = "payment_method_id")
+	private UUID paymentMethodId;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private NfeDocumentStatus status;

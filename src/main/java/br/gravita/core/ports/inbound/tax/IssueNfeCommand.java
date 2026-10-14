@@ -32,7 +32,8 @@ public record IssueNfeCommand(
 		BigDecimal otherExpenses,
 		TransportCommand transport,
 		String referencedAccessKey,
-		String additionalInfo) {
+		String additionalInfo,
+		UUID paymentMethodId) {
 
 	public IssueNfeCommand {
 		Objects.requireNonNull(issuerCompanyId, "issuerCompanyId");

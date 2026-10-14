@@ -8,6 +8,7 @@ import { Customer, CustomerAddress, CustomerService } from '../../../core/servic
 import {
   IssueNfeRequest, IssueNfeResponse, NaturezaOperacao, NfeService, TransportModality, nfeFailureDetail,
 } from '../../../core/services/nfe.service';
+import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ProductSearchResult, ProductSearchService } from '../../../core/services/product-search.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -53,6 +54,7 @@ export class NfeFormComponent implements OnInit {
   private readonly productSearch = inject(ProductSearchService);
   private readonly nfeService = inject(NfeService);
   private readonly cfopRegistry = inject(CfopRegistryService);
+  private readonly paymentMethodService = inject(PaymentMethodService);
 
   readonly steps = [
     { n: 1, label: 'Natureza' },
@@ -114,8 +116,10 @@ export class NfeFormComponent implements OnInit {
   freight = signal<number | null>(null);
   grossWeight = signal<number | null>(null);
 
-  /** Pagamento ainda não vai na emissão (campo do backend depende de decisão em aberto). */
-  formaPagamento = 'boleto30';
+  // Pagamento (as opções vêm de GET /api/auxiliary/payment-methods; escolher uma é opcional)
+  readonly paymentMethods = this.paymentMethodService.paymentMethods;
+  readonly paymentMethodsStatus = this.paymentMethodService.status;
+  paymentMethodId = signal('');
   infoAdicionais = signal('');
 
   // Emissão
@@ -151,10 +155,15 @@ export class NfeFormComponent implements OnInit {
   ngOnInit() {
     void this.customerService.load();
     void this.cfopRegistry.load();
+    void this.paymentMethodService.load();
   }
 
   reloadRegistry() {
     void this.cfopRegistry.load();
+  }
+
+  reloadPaymentMethods() {
+    void this.paymentMethodService.load();
   }
 
   reloadCustomers() {
@@ -243,6 +252,7 @@ export class NfeFormComponent implements OnInit {
 
     const modalidade = this.modalidade();
     const additionalInfo = this.infoAdicionais().trim();
+    const paymentMethodId = this.paymentMethodId();
     return {
       issuerCompanyId,
       naturezaOperacao: natureza,
@@ -266,6 +276,7 @@ export class NfeFormComponent implements OnInit {
       ...(modalidade === 'CIF' || modalidade === 'FOB' ? this.transportFields(modalidade) : {}),
       ...(this.requiresReferencedAccessKey() ? { referencedAccessKey: digitsOnly(this.referencedAccessKey()) } : {}),
       ...(additionalInfo ? { additionalInfo } : {}),
+      ...(paymentMethodId ? { paymentMethodId } : {}),
     };
   }
 

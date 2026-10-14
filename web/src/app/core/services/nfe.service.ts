@@ -24,6 +24,8 @@ export interface NfeListItem {
   status: NfeDocumentStatus;
   cancellationJustification: string | null;
   cancelledAt: string | null;
+  /** Forma de pagamento escolhida na emissão (id de GET /api/auxiliary/payment-methods); nula quando não informada. */
+  paymentMethodId: string | null;
 }
 
 /** NF-e de entrada, como devolvida por GET /api/nfe/inbound (InboundNfeListItemResponse). */
@@ -61,6 +63,8 @@ export interface IssueNfeRequest {
   /** Chave de acesso (44 dígitos) da nota original; obrigatória em devolução e nota complementar. */
   referencedAccessKey?: string;
   additionalInfo?: string;
+  /** Forma de pagamento escolhida (id de GET /api/auxiliary/payment-methods); só informativa, não vai no XML. */
+  paymentMethodId?: string;
 }
 
 /** Corpo de resposta de POST /api/nfe (IssueNfeResponse): a nota nasce enfileirada, sem autorização ainda. */
