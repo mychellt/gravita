@@ -6,7 +6,7 @@ import { InboundNfeListItem, NfeListItem, NfeService, nfeFailureDetail } from '.
 const nfe = (over: Partial<NfeListItem>): NfeListItem => ({
   id: 'n1', documentNumber: 1, documentSeries: '1', recipientName: 'Cliente A', cfop: '5102',
   emittedAt: '2026-10-14T10:00:00Z', totalValue: 100, icmsValue: 18, status: 'AUTHORIZED',
-  cancellationJustification: null, cancelledAt: null, ...over,
+  cancellationJustification: null, cancelledAt: null, paymentMethodId: null, ...over,
 });
 
 const inbound = (over: Partial<InboundNfeListItem>): InboundNfeListItem => ({

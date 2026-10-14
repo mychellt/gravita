@@ -144,7 +144,7 @@ class IssueNfeServiceTest {
 			final List<TaxOverrideCommand> taxOverrides, final String referencedAccessKey) {
 		return new IssueNfeCommand(companyId.value(), originSalesOrderId, naturezaOperacao, recipient,
 				List.of(item(BigDecimal.ZERO)), priceTableId, discountOverrideJustification, taxOverrides,
-				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, referencedAccessKey, null);
+				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, referencedAccessKey, null, null);
 	}
 
 	private IssueNfeCommand defaultCommand() {
@@ -160,6 +160,26 @@ class IssueNfeServiceTest {
 				null, null, null));
 
 		assertThat(document.getOriginSalesOrderId()).isEqualTo(orderId);
+	}
+
+	@Test
+	@DisplayName("Carries the chosen payment method id onto the document")
+	void paymentMethodIdIsCarriedOntoTheDocument() {
+		final UUID paymentMethodId = UUID.randomUUID();
+
+		final NfeDocument document = service.execute(new IssueNfeCommand(companyId.value(), null,
+				NaturezaOperacao.VENDA, companyRecipient(), List.of(item(BigDecimal.ZERO)), null, null, null,
+				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, paymentMethodId));
+
+		assertThat(document.getPaymentMethodId()).isEqualTo(paymentMethodId);
+	}
+
+	@Test
+	@DisplayName("Leaves the payment method id null when none is chosen")
+	void paymentMethodIdIsNullWhenNoneIsChosen() {
+		final NfeDocument document = service.execute(defaultCommand());
+
+		assertThat(document.getPaymentMethodId()).isNull();
 	}
 
 	@Test
@@ -255,7 +275,7 @@ class IssueNfeServiceTest {
 				.thenReturn(Optional.of(blockingPriceTable()));
 		final IssueNfeCommand withExcessiveDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
 				companyRecipient(), List.of(item(new BigDecimal("50.00"))), priceTableId, null, null, BigDecimal.ZERO,
-				BigDecimal.ZERO, BigDecimal.ZERO, null, null, null);
+				BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, null);
 
 		assertThatThrownBy(() -> service.execute(withExcessiveDiscount))
 				.isInstanceOf(br.gravita.core.domain.shared.BusinessRuleException.class);
@@ -272,7 +292,7 @@ class IssueNfeServiceTest {
 		final IssueNfeCommand withJustifiedDiscount = new IssueNfeCommand(companyId.value(), null, NaturezaOperacao.VENDA,
 				companyRecipient(), List.of(item(new BigDecimal("50.00"))), priceTableId,
 				"Desconto aprovado pela gerência", null, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null,
-				null, null);
+				null, null, null);
 
 		final NfeDocument document = service.execute(withJustifiedDiscount);
 

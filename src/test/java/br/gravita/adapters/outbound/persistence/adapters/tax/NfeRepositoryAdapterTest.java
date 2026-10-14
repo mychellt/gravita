@@ -213,6 +213,7 @@ class NfeRepositoryAdapterTest {
 				.transport(transport)
 				.referencedAccessKey(null)
 				.additionalInfo("Informação adicional de teste")
+				.paymentMethodId(UUID.randomUUID())
 				.taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
 				.createdAt(createdAt)
 				.build();

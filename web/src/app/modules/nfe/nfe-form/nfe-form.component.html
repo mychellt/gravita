@@ -308,12 +308,19 @@
     <div class="card">
       <div class="card-head"><span class="card-title">Pagamento</span></div>
       <div class="card-body">
-        <select class="form-select" style="width:100%;margin-bottom:8px" [(ngModel)]="formaPagamento" name="formaPagamento">
-          <option value="boleto30">Boleto bancário 30dd</option>
-          <option value="boleto306090">Boleto 30/60/90dd</option>
-          <option value="pix">PIX à vista</option>
-          <option value="avista">À vista</option>
+        <select class="form-select" style="width:100%;margin-bottom:8px" data-testid="payment-method-select"
+                [ngModel]="paymentMethodId()" (ngModelChange)="paymentMethodId.set($event)" name="paymentMethodId">
+          <option value="">Não informada</option>
+          @for (m of paymentMethods(); track m.id) {
+            <option [value]="m.id">{{ m.name }}</option>
+          }
         </select>
+        @if (paymentMethodsStatus() === 'error') {
+          <div class="alert danger" style="margin-bottom:8px" data-testid="payment-methods-error">
+            <i class="ti ti-alert-circle"></i>
+            <span>Não foi possível carregar as formas de pagamento. <a href="#" (click)="$event.preventDefault(); reloadPaymentMethods()">Tentar de novo</a></span>
+          </div>
+        }
         <textarea class="form-textarea" rows="3" style="width:100%"
                   placeholder="Informações adicionais..."
                   [ngModel]="infoAdicionais()" (ngModelChange)="infoAdicionais.set($event)" name="infoAdicionais"></textarea>

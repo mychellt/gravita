@@ -27,14 +27,15 @@ public record IssueNfeRequest(
 		BigDecimal otherExpenses,
 		@Valid TransportRequest transport,
 		String referencedAccessKey,
-		String additionalInfo) {
+		String additionalInfo,
+		UUID paymentMethodId) {
 
 	public IssueNfeCommand toCommand() {
 		return new IssueNfeCommand(issuerCompanyId, originSalesOrderId, naturezaOperacao, recipient.toCommand(),
 				items.stream().map(ItemRequest::toCommand).toList(), priceTableId, discountOverrideJustification,
 				taxOverrides == null ? List.of() : taxOverrides.stream().map(TaxOverrideRequest::toCommand).toList(),
 				freight, insurance, otherExpenses, transport == null ? null : transport.toCommand(),
-				referencedAccessKey, additionalInfo);
+				referencedAccessKey, additionalInfo, paymentMethodId);
 	}
 
 	public record RecipientRequest(UUID personId, @NotNull String document, @NotNull PersonType personType,

@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { AuthService, CurrentUser } from '../../../core/services/auth.service';
 import { CfopRegistryEntry } from '../../../core/services/cfop-registry.service';
 import { Customer } from '../../../core/services/customer.service';
+import { PaymentMethod } from '../../../core/services/payment-method.service';
 import { IssueNfeRequest } from '../../../core/services/nfe.service';
 import { ProductSearchResult } from '../../../core/services/product-search.service';
 import { NfeFormComponent } from './nfe-form.component';
@@ -27,12 +28,17 @@ const registry = (): CfopRegistryEntry[] => [
   { naturezaOperacao: 'NOTA_COMPLEMENTAR', cfop: '5124', description: 'Nota complementar', requiresReferencedAccessKey: true },
 ];
 
+const paymentMethods = (): PaymentMethod[] => [
+  { id: 'pm-pix', name: 'PIX', type: 'PIX' },
+  { id: 'pm-boleto', name: 'Boleto bancário', type: 'BOLETO' },
+];
+
 const ACCESS_KEY = '35240111222333000181550010000012345123456789';
 
 describe('NfeFormComponent', () => {
   let http: HttpTestingController;
 
-  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers e GET /api/auxiliary/cfop-registry. */
+  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers, GET /api/auxiliary/cfop-registry e GET /api/auxiliary/payment-methods. */
   async function setup(customers: Customer[] = [customer()]) {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
@@ -41,6 +47,7 @@ describe('NfeFormComponent', () => {
     fixture.detectChanges();
     http.expectOne('/api/customers').flush(customers);
     http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
+    http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture;
@@ -85,6 +92,7 @@ describe('NfeFormComponent', () => {
       fixture.detectChanges();
       http.expectOne('/api/customers').flush([]);
       http.expectOne('/api/auxiliary/cfop-registry').flush(null, { status: 500, statusText: 'Server Error' });
+      http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -295,6 +303,59 @@ describe('NfeFormComponent', () => {
       expect(c.canEmit()).toBeTrue();
       c.clearCustomer();
       expect(c.canEmit()).toBeFalse();
+    });
+  });
+
+  describe('forma de pagamento', () => {
+    it('populates the select from the payment-methods endpoint, not from a hard-coded list', async () => {
+      const fixture = await setup([]);
+
+      const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="payment-method-select"] option') as NodeListOf<HTMLOptionElement>);
+      expect(options.map(o => o.value)).toEqual(['', 'pm-pix', 'pm-boleto']);
+      expect(options.map(o => o.textContent?.trim())).toEqual(['Não informada', 'PIX', 'Boleto bancário']);
+    });
+
+    it('sends paymentMethodId in the POST /api/nfe payload when a method is selected', async () => {
+      const c = await create();
+      await fillAll(c);
+      c.paymentMethodId.set('pm-pix');
+
+      const emitting = c.emit();
+      const req = http.expectOne('/api/nfe');
+      expect((req.request.body as IssueNfeRequest).paymentMethodId).toBe('pm-pix');
+      req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
+      await emitting;
+    });
+
+    it('omits paymentMethodId when no method is selected', async () => {
+      const c = await create();
+      await fillAll(c);
+
+      const emitting = c.emit();
+      const req = http.expectOne('/api/nfe');
+      expect('paymentMethodId' in req.request.body).toBeFalse();
+      req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
+      await emitting;
+    });
+
+    it('offers a retry when the payment methods cannot be loaded', async () => {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(NfeFormComponent);
+      fixture.detectChanges();
+      http.expectOne('/api/customers').flush([]);
+      http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
+      http.expectOne('/api/auxiliary/payment-methods').flush(null, { status: 500, statusText: 'Server Error' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="payment-methods-error"]')).not.toBeNull();
+      fixture.componentInstance.reloadPaymentMethods();
+      http.expectOne('/api/auxiliary/payment-methods').flush(paymentMethods());
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="payment-methods-error"]')).toBeNull();
+      expect(fixture.componentInstance.paymentMethods().length).toBe(2);
     });
   });
 

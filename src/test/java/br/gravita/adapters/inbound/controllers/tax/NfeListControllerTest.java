@@ -63,6 +63,7 @@ class NfeListControllerTest {
 
 	private static final String SESSION_TOKEN = "session-token";
 	private static final String BEARER = "Bearer " + SESSION_TOKEN;
+	private static final UUID PAYMENT_METHOD_ID = UUID.randomUUID();
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -117,7 +118,8 @@ class NfeListControllerTest {
 				.andExpect(jsonPath("$[0].status").value("DRAFT"))
 				.andExpect(jsonPath("$[0].totalValue").value(115.00))
 				.andExpect(jsonPath("$[0].icmsValue").value(18.00))
-				.andExpect(jsonPath("$[0].emittedAt").exists());
+				.andExpect(jsonPath("$[0].emittedAt").exists())
+				.andExpect(jsonPath("$[0].paymentMethodId").value(PAYMENT_METHOD_ID.toString()));
 	}
 
 	@Test
@@ -157,7 +159,7 @@ class NfeListControllerTest {
 				.recipient(NfeRecipient.of(PersonRef.of(UUID.randomUUID()), "11.222.333/0001-81", PersonType.COMPANY,
 						"Cliente PJ Teste", "123456789", "RJ"))
 				.items(List.of(item)).freight(new BigDecimal("15.00")).insurance(BigDecimal.ZERO)
-				.otherExpenses(BigDecimal.ZERO).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
+				.otherExpenses(BigDecimal.ZERO).paymentMethodId(PAYMENT_METHOD_ID).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
 				.createdAt(Instant.parse("2028-02-01T10:00:00Z")).build();
 	}
 

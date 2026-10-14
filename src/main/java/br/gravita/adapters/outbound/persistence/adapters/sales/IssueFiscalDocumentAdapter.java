@@ -54,7 +54,7 @@ class IssueFiscalDocumentAdapter implements IssueFiscalDocumentPort {
 
 		final IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
 				NaturezaOperacao.VENDA, recipient, items, null, null, List.of(), BigDecimal.ZERO, BigDecimal.ZERO,
-				BigDecimal.ZERO, null, null, null);
+				BigDecimal.ZERO, null, null, null, null);
 
 		final NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
 		return new FiscalDocumentRef(FiscalDocumentType.NFE, issued.getId().value());
@@ -83,7 +83,7 @@ class IssueFiscalDocumentAdapter implements IssueFiscalDocumentPort {
 
 		final IssueNfeCommand nfeCommand = new IssueNfeCommand(DEFAULT_ISSUER_COMPANY_ID, command.orderId(),
 				NaturezaOperacao.DEVOLUCAO, recipient, items, null, null, List.of(), BigDecimal.ZERO, BigDecimal.ZERO,
-				BigDecimal.ZERO, null, original.getAccessKey(), null);
+				BigDecimal.ZERO, null, original.getAccessKey(), null, null);
 
 		final NfeDocument issued = issueNfeUseCase.execute(nfeCommand);
 		return new FiscalDocumentRef(FiscalDocumentType.NFE, issued.getId().value());
