@@ -9,7 +9,7 @@ import { PaymentMethod } from '../../../core/services/payment-method.service';
 import { IssueNfeRequest } from '../../../core/services/nfe.service';
 import { ProductSearchResult } from '../../../core/services/product-search.service';
 import { TransportModalityOption } from '../../../core/services/transport-modality.service';
-import { NfeFormComponent } from './nfe-form.component';
+import { NfeFormComponent, NfeStepNumber, STEP_PANEL_IDS } from './nfe-form.component';
 
 const customer = (over: Partial<Customer> = {}): Customer => ({
   id: 'c1', name: 'Atacadão SP Ltda', type: 'COMPANY', document: '11.222.333/0001-81', email: 'nfe@atacadao.com.br',
@@ -312,6 +312,257 @@ describe('NfeFormComponent', () => {
       expect(c.canEmit()).toBeTrue();
       c.clearCustomer();
       expect(c.canEmit()).toBeFalse();
+    });
+  });
+
+  describe('trilha → painéis', () => {
+    const PANEL_BY_STEP: [NfeStepNumber, string][] = [
+      [1, 'nfe-panel-natureza'], [2, 'nfe-panel-destinatario'], [3, 'nfe-panel-itens'],
+      [4, 'nfe-panel-transporte'], [5, 'nfe-panel-revisao'],
+    ];
+    const stepButtons = (el: HTMLElement) => Array.from(el.querySelectorAll<HTMLElement>('.steps-bar .step-item'));
+    const q = (el: HTMLElement, testId: string) => el.querySelector<HTMLElement>(`[data-testid="${testId}"]`);
+    const emitButton = (el: HTMLElement) => Array.from(el.querySelectorAll<HTMLButtonElement>('app-page-header button'))
+      .find(b => b.textContent?.includes('Emitir NF-e'))!;
+
+    let scrolled: jasmine.Spy;
+    beforeEach(() => { scrolled = spyOn(Element.prototype, 'scrollIntoView'); });
+
+    it('maps each step to a fixed panel id, regardless of its column', () => {
+      expect(Object.entries(STEP_PANEL_IDS).map(([n, id]) => [+n, id])).toEqual(PANEL_BY_STEP);
+    });
+
+    for (const [step, panelId] of PANEL_BY_STEP) {
+      it(`clicking step ${step} scrolls to #${panelId} and highlights it`, async () => {
+        const fixture = await setup();
+        stepButtons(fixture.nativeElement)[step - 1].click();
+        fixture.detectChanges();
+
+        const panel = fixture.nativeElement.querySelector(`#${panelId}`) as HTMLElement;
+        expect(panel).not.toBeNull();
+        expect(scrolled).toHaveBeenCalledTimes(1);
+        expect(scrolled.calls.mostRecent().object).toBe(panel);
+        expect(panel.classList).toContain('panel-highlight');
+        expect(fixture.nativeElement.querySelectorAll('.panel-highlight').length).toBe(1);
+        expect(fixture.componentInstance.currentStep()).toBe(step);
+      });
+    }
+
+    it('navigates even when the step is not done (no guard)', async () => {
+      const fixture = await setup();
+      expect(fixture.componentInstance.stepDone()[3]).toBeFalse();
+
+      stepButtons(fixture.nativeElement)[2].click();
+      fixture.detectChanges();
+
+      expect(scrolled).toHaveBeenCalledTimes(1);
+      expect(fixture.nativeElement.querySelector('#nfe-panel-itens').classList).toContain('panel-highlight');
+    });
+
+    it('drops the highlight after about 2 seconds', async () => {
+      const fixture = await setup();
+      jasmine.clock().install();
+      try {
+        fixture.componentInstance.goToStep(2);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.panel-highlight')).not.toBeNull();
+
+        jasmine.clock().tick(2001);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.panel-highlight')).toBeNull();
+      } finally {
+        jasmine.clock().uninstall();
+      }
+    });
+
+    it('does not change the done state of the steps', async () => {
+      const c = await create();
+      c.modalidade.set('FOB');
+      c.goToStep(1);
+      c.goToStep(5);
+      expect(c.stepDone()).toEqual({ 1: false, 2: false, 3: false, 4: true, 5: false });
+    });
+
+    describe('revisão', () => {
+      it('is always rendered, after Transporte, and shows no confirm control until reached', async () => {
+        const fixture = await setup();
+        const el: HTMLElement = fixture.nativeElement;
+        const ids = Array.from(el.querySelectorAll('.nfe-form-area .form-section')).map(n => n.id);
+
+        expect(ids).toEqual(['nfe-panel-destinatario', 'nfe-panel-itens', 'nfe-panel-transporte', 'nfe-panel-revisao']);
+        expect(q(el, 'confirm-emit')).toBeNull();
+      });
+
+      it('summarizes natureza, recipient, items, totals, transport, payment and tributos', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.addProduct(product({ productId: 'p2', description: 'SKU-FEIJAO', unitPrice: 7.5 }));
+        c.updateItem(0, { quantidade: 10, desconto: 5 });
+        c.updateItem(1, { quantidade: 2 });
+        c.paymentMethodId.set('pm-pix');
+        fixture.detectChanges();
+
+        const el: HTMLElement = fixture.nativeElement;
+        const text = (id: string) => q(el, id)!.textContent!.trim();
+        expect(text('review-natureza')).toBe('5102 — Venda de mercadoria');
+        expect(text('review-recipient')).toBe('Atacadão SP Ltda · 11.222.333/0001-81');
+        expect(text('review-recipient-state')).toBe('SP');
+        expect(text('review-recipient-address')).toContain('São Paulo/SP');
+        expect(text('review-modalidade')).toBe('CIF — Por conta do emitente');
+        expect(text('review-payment')).toBe('PIX');
+        const rows = Array.from(el.querySelectorAll('[data-testid="review-item"]')).map(r => r.textContent!.replace(/\s+/g, ' '));
+        expect(rows.length).toBe(2);
+        expect(rows[0]).toContain('SKU-ARROZ');
+        expect(rows[0]).toContain('10');
+        expect(rows[0]).toMatch(/20,00.*190,00/);
+        expect(rows[1]).toMatch(/SKU-FEIJAO.*2.*7,50.*15,00/);
+        expect(text('review-grand-total')).toContain('205,00');
+        expect(el.querySelector('.review-tributos')!.textContent).toContain('ICMS (18%)');
+      });
+
+      it('shows the referenced access key when the natureza requires it', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        c.naturezaSel.set('DEVOLUCAO');
+        c.referencedAccessKey.set(ACCESS_KEY);
+        fixture.detectChanges();
+
+        expect(q(fixture.nativeElement, 'review-access-key')!.textContent).toContain(ACCESS_KEY);
+      });
+
+      it('shows placeholders for an empty form instead of failing', async () => {
+        const fixture = await setup();
+        const el: HTMLElement = fixture.nativeElement;
+
+        expect(q(el, 'review-recipient')!.textContent!.trim()).toBe('—');
+        expect(q(el, 'review-payment')!.textContent!.trim()).toBe('Não informada');
+        expect(el.querySelectorAll('[data-testid="review-item"]').length).toBe(0);
+      });
+
+      it('updates the summary live when an earlier field is edited after reaching it', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.goToStep(5);
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+        expect(q(el, 'review-grand-total')!.textContent).toContain('20,00');
+
+        c.updateItem(0, { quantidade: 3 });
+        c.modalidade.set('FOB');
+        c.selectCustomer(customer({ name: 'Beta Ltda' }));
+        c.naturezaSel.set('DEVOLUCAO');
+        c.paymentMethodId.set('pm-boleto');
+        fixture.detectChanges();
+
+        expect(q(el, 'review-grand-total')!.textContent).toContain('60,00');
+        expect(q(el, 'review-modalidade')!.textContent).toContain('FOB');
+        expect(q(el, 'review-recipient')!.textContent).toContain('Beta Ltda');
+        expect(q(el, 'review-natureza')!.textContent).toContain('5202');
+        expect(q(el, 'review-payment')!.textContent).toContain('Boleto');
+      });
+
+      it('"Emitir NF-e" goes to the review panel and does not post until "Confirmar emissão"', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+
+        emitButton(el).click();
+        fixture.detectChanges();
+
+        http.expectNone('/api/nfe');
+        expect(scrolled.calls.mostRecent().object).toBe(el.querySelector('#nfe-panel-revisao') as Element);
+        expect(el.querySelector('#nfe-panel-revisao')!.classList).toContain('panel-highlight');
+        expect(c.submitting()).toBeFalse();
+        expect(q(el, 'confirm-emit')).not.toBeNull();
+      });
+
+      it('"Emitir NF-e" stays gated by canEmit()', async () => {
+        const fixture = await setup();
+        fixture.componentInstance.requestEmit();
+        fixture.detectChanges();
+
+        expect(emitButton(fixture.nativeElement).disabled).toBeTrue();
+        expect(scrolled).not.toHaveBeenCalled();
+        expect(q(fixture.nativeElement, 'confirm-emit')).toBeNull();
+      });
+
+      it('"Confirmar emissão" posts the same payload as before', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.updateItem(0, { quantidade: 10, desconto: 5 });
+        c.freight.set(15);
+        c.grossWeight.set(42);
+        c.infoAdicionais.set('  Entregar pela manhã  ');
+        c.paymentMethodId.set('pm-pix');
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+
+        emitButton(el).click();
+        fixture.detectChanges();
+        http.expectNone('/api/nfe');
+        q(el, 'confirm-emit')!.click();
+
+        const req = http.expectOne('/api/nfe');
+        expect(req.request.method).toBe('POST');
+        expect(req.request.body as IssueNfeRequest).toEqual({
+          issuerCompanyId: 'company-1',
+          naturezaOperacao: 'VENDA',
+          recipient: { personId: 'c1', document: '11.222.333/0001-81', personType: 'COMPANY', name: 'Atacadão SP Ltda',
+            stateRegistration: 'ISENTO', state: 'SP' },
+          items: [{ productId: 'p1', description: 'SKU-ARROZ', quantity: 10, unitPrice: 20, discount: 10 }],
+          freight: 15,
+          transport: { modality: 'CIF', grossWeight: 42 },
+          additionalInfo: 'Entregar pela manhã',
+          paymentMethodId: 'pm-pix',
+        });
+        req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 77, status: 'QUEUED' });
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(c.issued()).not.toBeNull();
+        expect(q(el, 'issued')).not.toBeNull();
+        expect(q(el, 'confirm-emit')).toBeNull();
+      });
+
+      it('clicking the Revisão step directly reaches the same state, with confirm disabled until the form is complete', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        const el: HTMLElement = fixture.nativeElement;
+
+        stepButtons(el)[4].click();
+        fixture.detectChanges();
+        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeTrue();
+        expect(q(el, 'review-incomplete')).not.toBeNull();
+
+        await fillAll(c);
+        fixture.detectChanges();
+        expect(scrolled.calls.mostRecent().object).toBe(el.querySelector('#nfe-panel-revisao') as Element);
+        expect(q(el, 'confirm-emit')!.hasAttribute('disabled')).toBeFalse();
+        q(el, 'confirm-emit')!.click();
+        http.expectOne('/api/nfe').flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
+        await fixture.whenStable();
+      });
+
+      it('shows a failed confirmation inside the review panel and keeps the confirm control for a retry', async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.requestEmit();
+        fixture.detectChanges();
+
+        const emitting = c.emit();
+        http.expectOne('/api/nfe').flush({ message: 'Recipient IE is required' }, { status: 400, statusText: 'Bad Request' });
+        await emitting;
+        fixture.detectChanges();
+
+        expect(q(fixture.nativeElement, 'review-emit-error')!.textContent).toContain('Recipient IE is required');
+        expect(q(fixture.nativeElement, 'confirm-emit')).not.toBeNull();
+      });
     });
   });
 
