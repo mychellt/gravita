@@ -13,6 +13,7 @@ public record CfopRegistryEntryResponse(NaturezaOperacao naturezaOperacao, Strin
                 .naturezaOperacao(entry.naturezaOperacao())
                 .cfop(entry.cfop().code())
                 .description(entry.description())
+                .requiresReferencedAccessKey(entry.naturezaOperacao().requiresReferencedAccessKey())
                 .build();
     }
 }
