@@ -1,7 +1,7 @@
 <app-page-header title="Nova NF-e" subtitle="Emissão manual · O número e a série são atribuídos na emissão">
   <button class="btn btn-ghost" (click)="cancel()">Cancelar</button>
   <button class="btn btn-ghost"><i class="ti ti-device-floppy"></i> Rascunho</button>
-  <button class="btn btn-primary" [disabled]="!canEmit()" (click)="emit()">
+  <button class="btn btn-primary" [disabled]="!canEmit()" (click)="requestEmit()">
     <i class="ti ti-send"></i> {{ submitting() ? 'Emitindo…' : 'Emitir NF-e' }}
   </button>
 </app-page-header>
@@ -11,7 +11,7 @@
     <div class="step-item"
          [class.done]="stepDone()[s.n]"
          [class.active]="currentStep() === s.n"
-         (click)="currentStep.set(s.n)" style="cursor:pointer">
+         (click)="goToStep(s.n)" style="cursor:pointer">
       <div class="step-dot"
            [class.done]="stepDone()[s.n]"
            [class.active]="currentStep() === s.n">
@@ -52,7 +52,7 @@
 <div class="nfe-layout">
   <div class="nfe-form-area">
 
-    <div class="form-section">
+    <div class="form-section" [id]="panelIds[2]" [class.panel-highlight]="highlightedPanel() === panelIds[2]">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-building"></span>
         <span class="form-section-title">Destinatário</span>
@@ -140,7 +140,7 @@
       </div>
     </div>
 
-    <div class="form-section">
+    <div class="form-section" [id]="panelIds[3]" [class.panel-highlight]="highlightedPanel() === panelIds[3]">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-list"></span>
         <span class="form-section-title">Itens da nota</span>
@@ -222,7 +222,7 @@
       </div>
     </div>
 
-    <div class="form-section">
+    <div class="form-section" [id]="panelIds[4]" [class.panel-highlight]="highlightedPanel() === panelIds[4]">
       <div class="form-section-head">
         <span class="form-section-icon ti ti-truck"></span>
         <span class="form-section-title">Transporte</span>
@@ -259,10 +259,80 @@
       </div>
     </div>
 
+    <div class="form-section" [id]="panelIds[5]" [class.panel-highlight]="highlightedPanel() === panelIds[5]" data-testid="review-panel">
+      <div class="form-section-head">
+        <span class="form-section-icon ti ti-clipboard-check"></span>
+        <span class="form-section-title">Revisão</span>
+        <span style="margin-left:auto;font-size:12px;color:var(--text3)">Somente leitura</span>
+      </div>
+      <div class="form-body">
+        <dl class="review-facts">
+          <div><dt>Natureza da operação</dt>
+            <dd data-testid="review-natureza">{{ naturezaEntry() ? naturezaEntry()!.cfop + ' — ' + naturezaEntry()!.description : '—' }}</dd></div>
+          @if (requiresReferencedAccessKey()) {
+            <div><dt>Chave de acesso referenciada</dt>
+              <dd class="td-mono" data-testid="review-access-key">{{ referencedAccessKey().trim() || '—' }}</dd></div>
+          }
+          <div><dt>Destinatário</dt>
+            <dd data-testid="review-recipient">{{ customer() ? customer()!.name + ' · ' + customer()!.document : '—' }}</dd></div>
+          <div><dt>UF</dt><dd data-testid="review-recipient-state">{{ recipientState() ?? '—' }}</dd></div>
+          <div><dt>Endereço</dt>
+            <dd data-testid="review-recipient-address">{{ recipientAddress() ? addressText(recipientAddress()!) : '—' }}</dd></div>
+          <div><dt>Transporte</dt><dd data-testid="review-modalidade">{{ modalidadeName() ?? '—' }}</dd></div>
+          <div><dt>Pagamento</dt><dd data-testid="review-payment">{{ paymentMethodName() ?? 'Não informada' }}</dd></div>
+        </dl>
+
+        <div class="items-table-wrap">
+          <table class="items-table">
+            <thead><tr><th>#</th><th>Produto</th><th>Qtd</th><th>Vl. Unit.</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (item of items(); track item.productId; let i = $index) {
+                <tr data-testid="review-item">
+                  <td>{{ i + 1 }}</td>
+                  <td class="td-name">{{ item.descricao }}</td>
+                  <td class="td-mono">{{ item.quantidade }}</td>
+                  <td class="td-mono">{{ item.valorUnitario | brl }}</td>
+                  <td class="td-mono" style="font-weight:700">{{ lineTotal(item) | brl }}</td>
+                </tr>
+              }
+              @empty {
+                <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text3);font-size:12px">Nenhum item adicionado</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tributo-row total" data-testid="review-grand-total"><span>Total da nota</span><span>{{ totalNota() | brl }}</span></div>
+
+        <div class="review-tributos">
+          <div class="tributo-row"><span>Base ICMS <span class="tag-estimate-inline">estimativa</span></span><span>{{ baseCalculo() | brl }}</span></div>
+          <div class="tributo-row"><span>ICMS (18%)</span><span>{{ icms() | brl }}</span></div>
+          <div class="tributo-row"><span>PIS (0,65%)</span><span>{{ pis() | brl }}</span></div>
+          <div class="tributo-row"><span>COFINS (3%)</span><span>{{ cofins() | brl }}</span></div>
+        </div>
+
+        @if (reviewing() && issued() === null) {
+          @if (errorMessage(); as message) {
+            <div class="alert danger" role="alert" data-testid="review-emit-error">
+              <i class="ti ti-alert-circle"></i><span>{{ message }}</span>
+            </div>
+          }
+          @if (!canEmit() && !submitting()) {
+            <div class="field-hint" data-testid="review-incomplete">Complete os passos pendentes para poder confirmar a emissão.</div>
+          }
+          <div class="review-actions">
+            <button class="btn btn-primary" data-testid="confirm-emit" [disabled]="!canEmit()" (click)="emit()">
+              <i class="ti ti-send"></i> {{ submitting() ? 'Emitindo…' : 'Confirmar emissão' }}
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
   </div>
 
   <div class="nfe-sidebar">
-    <div class="card" style="margin-bottom:12px">
+    <div class="card" style="margin-bottom:12px" [id]="panelIds[1]" [class.panel-highlight]="highlightedPanel() === panelIds[1]">
       <div class="card-head"><span class="card-title">Natureza da operação</span></div>
       <div class="card-body">
         <select class="form-select" style="width:100%;margin-bottom:10px" data-testid="natureza-select"

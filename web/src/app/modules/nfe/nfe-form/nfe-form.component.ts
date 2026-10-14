@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IE_INDICATOR_LABELS, formatAddress } from '../../../core/customer-display';
@@ -32,6 +32,16 @@ export type ModalidadeChoice = '' | TransportModalityCode;
 
 export type NfeStepNumber = 1 | 2 | 3 | 4 | 5;
 
+/** Cada passo da trilha aponta sempre para o mesmo painel, qualquer que seja a coluna em que ele esteja. */
+export const STEP_PANEL_IDS: Record<NfeStepNumber, string> = {
+  1: 'nfe-panel-natureza',
+  2: 'nfe-panel-destinatario',
+  3: 'nfe-panel-itens',
+  4: 'nfe-panel-transporte',
+  5: 'nfe-panel-revisao',
+};
+const HIGHLIGHT_MS = 2000;
+
 const GENERIC_FAILURE = 'Não foi possível emitir a NF-e. Tente novamente.';
 const MAX_CUSTOMER_MATCHES = 8;
 const ACCESS_KEY_LENGTH = 44;
@@ -48,7 +58,8 @@ export const lineTotal = (item: FormItem) => round2(subtotal(item) * (1 - item.d
   styleUrl: './nfe-form.component.scss',
   templateUrl: './nfe-form.component.html'
 })
-export class NfeFormComponent implements OnInit {
+export class NfeFormComponent implements OnInit, OnDestroy {
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly customerService = inject(CustomerService);
@@ -70,6 +81,12 @@ export class NfeFormComponent implements OnInit {
 
   /** Só destaca o passo clicado; o "feito" de cada passo vem do estado do formulário (`stepDone`). */
   currentStep = signal<NfeStepNumber>(1);
+  readonly panelIds = STEP_PANEL_IDS;
+  /** Painel com o destaque temporário aceso (o que a trilha ou o "Emitir NF-e" acabou de apontar). */
+  readonly highlightedPanel = signal<string | null>(null);
+  private highlightTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Revisão alcançada (por "Emitir NF-e" ou pelo passo "Revisão"): o painel passa a oferecer "Confirmar emissão". */
+  readonly reviewing = signal(false);
 
   // Natureza (as opções e o CFOP de cada uma vêm do registro de CFOP do backend)
   readonly naturezaOptions = this.cfopRegistry.entries;
@@ -150,6 +167,9 @@ export class NfeFormComponent implements OnInit {
     return { ...done, 5: Object.values(done).every(Boolean) };
   });
 
+  readonly modalidadeName = computed(() => this.modalidadeOptions().find(m => m.code === this.modalidade())?.name ?? null);
+  readonly paymentMethodName = computed(() => this.paymentMethods().find(m => m.id === this.paymentMethodId())?.name ?? null);
+
   readonly itemsValid = computed(() => this.items().every(i => i.quantidade > 0 && i.valorUnitario >= 0));
 
   /** Cliente sem UF no endereço não tem como virar destinatário da NF-e. */
@@ -163,6 +183,30 @@ export class NfeFormComponent implements OnInit {
     void this.cfopRegistry.load();
     void this.paymentMethodService.load();
     void this.transportModalityService.load();
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.highlightTimer);
+  }
+
+  /** Leva ao painel do passo e o destaca; nunca depende de o passo estar "feito". */
+  goToStep(step: NfeStepNumber) {
+    this.currentStep.set(step);
+    if (step === 5) this.reviewing.set(true);
+    this.focusPanel(STEP_PANEL_IDS[step]);
+  }
+
+  /** "Emitir NF-e": só leva à revisão; o POST acontece em "Confirmar emissão" (`emit`). */
+  requestEmit() {
+    if (!this.canEmit()) return;
+    this.goToStep(5);
+  }
+
+  private focusPanel(id: string) {
+    this.host.nativeElement.querySelector(`#${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    clearTimeout(this.highlightTimer);
+    this.highlightedPanel.set(id);
+    this.highlightTimer = setTimeout(() => this.highlightedPanel.set(null), HIGHLIGHT_MS);
   }
 
   reloadRegistry() {
