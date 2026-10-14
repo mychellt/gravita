@@ -20,7 +20,7 @@ public interface IssueNfeUseCase {
 }
 ```
 
-`IssueNfeCommand` fields: `issuerCompanyId`, `originSalesOrderId` (optional), `naturezaOperacao`, `cfop`, `recipient` (`PersonRef` or ad-hoc PF/PJ data), `items: [NfeItemInput]`, `freight`, `insurance`, `otherExpenses`, `transport{modality, carrier, volume, grossWeight, netWeight, rntrc}`, `referencedAccessKey` (optional), `additionalInfo`, `paymentMethodId` (optional; id of a `GET /api/auxiliary/payment-methods` entry — stored and listed with the document, informational only: it is not rendered into the XML). Returns the created `NfeDocument` (id + access key + status).
+`IssueNfeCommand` fields: `issuerCompanyId`, `originSalesOrderId` (optional), `naturezaOperacao`, `cfop`, `recipient` (`PersonRef` or ad-hoc PF/PJ data), `items: [NfeItemInput]`, `freight`, `insurance`, `otherExpenses`, `transport{modality, carrier, volume, grossWeight, netWeight, rntrc}` (optional; `modality` is the `TransportModality` enum CIF/FOB — the form's options come from the Transport-Modalidade registry, `GET /api/auxiliary/transport-modalities`, whose `NONE` row, "Sem transporte", sends no `transport` at all; documents store the resolved modality, never a reference to the registry row), `referencedAccessKey` (optional), `additionalInfo`, `paymentMethodId` (optional; id of a `GET /api/auxiliary/payment-methods` entry — stored and listed with the document, informational only: it is not rendered into the XML). Returns the created `NfeDocument` (id + access key + status).
 
 ## Outbound ports required
 

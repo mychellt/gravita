@@ -10,6 +10,9 @@ import { SettingsComponent } from './settings.component';
 @Component({ standalone: true, template: '<p id="stub">lista de clientes</p>' })
 class CustomersStubComponent {}
 
+@Component({ standalone: true, template: '<p id="modalities-stub">modalidades de frete</p>' })
+class ModalitiesStubComponent {}
+
 describe('SettingsComponent — Clientes no menu lateral', () => {
   let http: HttpTestingController;
   const settle = async (f: { detectChanges(): void }) => { await new Promise(r => setTimeout(r)); f.detectChanges(); };
@@ -18,7 +21,10 @@ describe('SettingsComponent — Clientes no menu lateral', () => {
     sessionStorage.setItem(SESSION_TOKEN_KEY, 'tok');
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(),
-        provideRouter([{ path: 'settings', component: SettingsComponent, children: [{ path: 'customers', component: CustomersStubComponent }] }])],
+        provideRouter([{ path: 'settings', component: SettingsComponent, children: [
+          { path: 'customers', component: CustomersStubComponent },
+          { path: 'transport-modalities', component: ModalitiesStubComponent },
+        ] }])],
     });
     http = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
@@ -66,5 +72,28 @@ describe('SettingsComponent — Clientes no menu lateral', () => {
     expect(router.url).toBe('/settings/customers');
     expect(active(el)).toBe('Clientes');
     expect(el.querySelector('#stub')).not.toBeNull();
+  });
+
+  it('opens the transport-modalities route from the Modalidades de frete menu item, and highlights it on a deep link', async () => {
+    const { fixture, router, el } = await open('/settings');
+
+    item(el, 'Modalidades de frete').click();
+    await settle(fixture);
+
+    expect(router.url).toBe('/settings/transport-modalities');
+    expect(active(el)).toBe('Modalidades de frete');
+    expect(el.querySelector('#modalities-stub')).not.toBeNull();
+    expect(el.textContent).not.toContain('Em desenvolvimento');
+  });
+
+  it('highlights Modalidades de frete when its route is opened directly and leaves it for another menu item', async () => {
+    const { fixture, router, el } = await open('/settings/transport-modalities');
+
+    expect(active(el)).toBe('Modalidades de frete');
+
+    item(el, 'Clientes').click();
+    await settle(fixture);
+    expect(router.url).toBe('/settings/customers');
+    expect(active(el)).toBe('Clientes');
   });
 });

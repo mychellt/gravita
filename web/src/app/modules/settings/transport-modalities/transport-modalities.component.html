@@ -1,0 +1,86 @@
+<app-page-header title="Modalidades de Frete" subtitle="Configurações · Opções de Transporte > Modalidade da NF-e">
+  @if (canEdit()) {
+    <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="formOpen()">
+      <i class="ti ti-plus"></i> Nova modalidade
+    </button>
+  }
+</app-page-header>
+
+@if (formOpen()) {
+  <form class="modality-form" (submit)="submit($event)" novalidate
+        [attr.aria-label]="editingId() === null ? 'Nova modalidade' : 'Editar modalidade'">
+    <div class="form-row cols-2">
+      <div class="form-field">
+        <label class="form-label" for="tm-name">Nome</label>
+        <input id="tm-name" class="form-input" type="text" autocomplete="off" [value]="name()"
+               (input)="name.set($any($event.target).value)" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="tm-code">Código</label>
+        <select id="tm-code" class="form-select" [value]="code()" (change)="code.set($any($event.target).value)">
+          <option value="" [selected]="code() === ''">Selecione…</option>
+          @for (c of codes; track c.code) {
+            <option [value]="c.code" [selected]="code() === c.code">{{ c.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (editingId() !== null) {
+      <label class="active-toggle">
+        <input id="tm-active" type="checkbox" [checked]="active()" (change)="active.set($any($event.target).checked)" />
+        Ativa (oferecida nas novas NF-e)
+      </label>
+    }
+    @if (formError()) { <p class="form-error" role="alert">{{ formError() }}</p> }
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" (click)="closeForm()">Cancelar</button>
+      <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+        {{ submitting() ? 'Salvando…' : (editingId() === null ? 'Cadastrar' : 'Salvar') }}
+      </button>
+    </div>
+  </form>
+}
+
+<div class="card">
+  <table class="data-table">
+    <thead>
+      <tr><th>Nome</th><th>Código</th><th>Status</th>@if (canEdit()) { <th class="td-actions">Ações</th> }</tr>
+    </thead>
+    <tbody>
+      @switch (status()) {
+        @case ('loading') {
+          <tr><td colspan="4" class="state-row" role="status">Carregando modalidades…</td></tr>
+        }
+        @case ('error') {
+          <tr>
+            <td colspan="4" class="state-row" role="alert">
+              Não foi possível carregar as modalidades.
+              <button type="button" class="action-btn" (click)="reload()">Tentar novamente</button>
+            </td>
+          </tr>
+        }
+        @default {
+          @for (m of modalities(); track m.id) {
+            <tr>
+              <td class="td-name">{{ m.name }}</td>
+              <td class="td-mono">{{ m.code }}</td>
+              <td><app-badge [value]="m.active ? 'ativo' : 'inativo'" /></td>
+              @if (canEdit()) {
+                <td class="td-actions">
+                  <button type="button" class="action-btn" (click)="openEdit(m)" [attr.aria-label]="'Editar ' + m.name">Editar</button>
+                  @if (m.active) {
+                    <button type="button" class="action-btn danger" (click)="deactivate(m)" [attr.aria-label]="'Desativar ' + m.name">Desativar</button>
+                  } @else {
+                    <button type="button" class="action-btn" (click)="reactivate(m)" [attr.aria-label]="'Reativar ' + m.name">Reativar</button>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="state-row">Nenhuma modalidade cadastrada</td></tr>
+          }
+        }
+      }
+    </tbody>
+  </table>
+</div>

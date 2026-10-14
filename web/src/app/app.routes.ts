@@ -113,6 +113,10 @@ export const routes: Routes = [
             path: 'customers/:id/payments',
             loadComponent: () => import('./modules/settings/customers/customer-payments.component').then(m => m.CustomerPaymentsComponent)
           },
+          {
+            path: 'transport-modalities',
+            loadComponent: () => import('./modules/settings/transport-modalities/transport-modalities.component').then(m => m.TransportModalitiesComponent)
+          },
         ]
       },
     ]

@@ -30,6 +30,8 @@ public interface ManageAuxiliaryTableUseCase {
 
 `GET/POST/PATCH /api/auxiliary/{payment-terms|payment-methods|cost-centers|chart-of-accounts}` for the four CRUD tables. IBGE municipalities and interstate ICMS rates are not listed with their own REST CRUD routes in the module spec — they're populated by import (see Acceptance criteria); expose them as an import endpoint (e.g. `POST /api/auxiliary/ibge-municipalities/import`, `POST /api/auxiliary/interstate-icms/import`) rather than inventing per-record CRUD the source doc doesn't describe.
 
+The Transport-Modalidade registry (`/api/auxiliary/transport-modalities`, V93) is the NF-e form's Transporte > Modalidade list, seeded with exactly `CIF`, `FOB` and `NONE` ("Sem transporte"); no further SEFAZ `modFrete` values. It follows the same GET/POST/PATCH/DELETE shape, except that DELETE is a soft delete (`active=false`) and `GET` lists only active rows unless `includeInactive=true`. `code` is limited to those three values and only one active row per code is allowed.
+
 ## Domain entities touched
 
 - `PaymentTerm`, `PaymentMethod`, `CostCenter`, `ChartOfAccounts`, `IbgeMunicipality`, `InterstateIcmsRate`

@@ -133,11 +133,11 @@
       </div>
     }
 
-    @if (activeMenu() === 'clientes') {
+    @if (activeIsRouted()) {
       <router-outlet />
     }
 
-    @if (!['empresa', 'usuarios', 'integracoes', 'clientes'].includes(activeMenu())) {
+    @if (!activeIsRouted() && !['empresa', 'usuarios', 'integracoes'].includes(activeMenu())) {
       <div class="settings-panel-head">
         <div class="settings-panel-title">{{ activeMenuLabel() }}</div>
       </div>
