@@ -3,6 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { AuthService, CurrentUser } from '../../../core/services/auth.service';
+import { CfopRegistryEntry } from '../../../core/services/cfop-registry.service';
 import { Customer } from '../../../core/services/customer.service';
 import { IssueNfeRequest } from '../../../core/services/nfe.service';
 import { ProductSearchResult } from '../../../core/services/product-search.service';
@@ -20,10 +21,18 @@ const product = (over: Partial<ProductSearchResult> = {}): ProductSearchResult =
   productId: 'p1', description: 'SKU-ARROZ', ncm: '1006.30', unitPrice: 20, availableForSale: true, ...over,
 });
 
+const registry = (): CfopRegistryEntry[] => [
+  { naturezaOperacao: 'VENDA', cfop: '5102', description: 'Venda de mercadoria', requiresReferencedAccessKey: false },
+  { naturezaOperacao: 'DEVOLUCAO', cfop: '5202', description: 'Devolução', requiresReferencedAccessKey: true },
+  { naturezaOperacao: 'NOTA_COMPLEMENTAR', cfop: '5124', description: 'Nota complementar', requiresReferencedAccessKey: true },
+];
+
+const ACCESS_KEY = '35240111222333000181550010000012345123456789';
+
 describe('NfeFormComponent', () => {
   let http: HttpTestingController;
 
-  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers. */
+  /** Monta o componente (já rodando ngOnInit) e responde GET /api/customers e GET /api/auxiliary/cfop-registry. */
   async function setup(customers: Customer[] = [customer()]) {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
     http = TestBed.inject(HttpTestingController);
@@ -31,6 +40,7 @@ describe('NfeFormComponent', () => {
     const fixture = TestBed.createComponent(NfeFormComponent);
     fixture.detectChanges();
     http.expectOne('/api/customers').flush(customers);
+    http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
     await fixture.whenStable();
     fixture.detectChanges();
     return fixture;
@@ -41,7 +51,7 @@ describe('NfeFormComponent', () => {
 
   /** Preenche tudo que o "Emitir" exige. */
   async function fillAll(c: NfeFormComponent) {
-    c.cfopSel.set('5102');
+    c.naturezaSel.set('VENDA');
     c.selectCustomer(customer());
     c.addProduct(product());
     c.modalidade.set('CIF');
@@ -57,6 +67,99 @@ describe('NfeFormComponent', () => {
     expect(text).toContain('atribuídos na emissão');
     expect(fixture.componentInstance.items()).toEqual([]);
     expect(fixture.nativeElement.querySelector('[data-testid="tax-estimate-tag"]').textContent).toContain('Estimativa');
+  });
+
+  describe('natureza da operação', () => {
+    it('populates the select from the CFOP registry, not from a hard-coded list', async () => {
+      const fixture = await setup([]);
+
+      const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="natureza-select"] option') as NodeListOf<HTMLOptionElement>);
+      expect(options.map(o => o.value)).toEqual(['', 'VENDA', 'DEVOLUCAO', 'NOTA_COMPLEMENTAR']);
+      expect(options[1].textContent).toContain('5102 — Venda de mercadoria');
+    });
+
+    it('offers a retry when the registry cannot be loaded', async () => {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      http = TestBed.inject(HttpTestingController);
+      const fixture = TestBed.createComponent(NfeFormComponent);
+      fixture.detectChanges();
+      http.expectOne('/api/customers').flush([]);
+      http.expectOne('/api/auxiliary/cfop-registry').flush(null, { status: 500, statusText: 'Server Error' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="registry-error"]')).not.toBeNull();
+      fixture.componentInstance.reloadRegistry();
+      http.expectOne('/api/auxiliary/cfop-registry').flush(registry());
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="registry-error"]')).toBeNull();
+      expect(fixture.componentInstance.naturezaOptions().length).toBe(3);
+    });
+
+    it('pre-fills newly-added lines with the CFOP of the selected natureza and keeps the CFOP editable per line', async () => {
+      const c = await create();
+
+      c.naturezaSel.set('VENDA');
+      c.addProduct(product({ productId: 'a' }));
+      c.naturezaSel.set('DEVOLUCAO');
+      c.addProduct(product({ productId: 'b' }));
+
+      expect(c.items().map(i => i.cfop)).toEqual(['5102', '5202']);
+      c.updateItem(0, { cfop: '6102' });
+      expect(c.items().map(i => i.cfop)).toEqual(['6102', '5202']);
+    });
+
+    it('does not ask for the referenced access key on a regular sale', async () => {
+      const fixture = await setup([]);
+      fixture.componentInstance.naturezaSel.set('VENDA');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="referenced-access-key"]')).toBeNull();
+    });
+
+    for (const natureza of ['DEVOLUCAO', 'NOTA_COMPLEMENTAR'] as const) {
+      it(`requires the referenced access key for ${natureza} before Emitir is enabled, and sends it`, async () => {
+        const fixture = await setup();
+        const c = fixture.componentInstance;
+        await fillAll(c);
+        c.naturezaSel.set(natureza);
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('[data-testid="referenced-access-key"]')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('[data-testid="referenced-access-key-error"]')).not.toBeNull();
+        expect(c.canEmit()).toBeFalse();
+
+        c.referencedAccessKey.set('123');
+        expect(c.canEmit()).toBeFalse();
+
+        c.referencedAccessKey.set(ACCESS_KEY.replace(/(\d{4})/g, '$1 '));
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('[data-testid="referenced-access-key-error"]')).toBeNull();
+        expect(c.canEmit()).toBeTrue();
+
+        const emitting = c.emit();
+        const req = http.expectOne('/api/nfe');
+        expect(req.request.body.naturezaOperacao).toBe(natureza);
+        expect(req.request.body.referencedAccessKey).toBe(ACCESS_KEY);
+        req.flush({ id: 'n1', accessKey: null, documentSeries: null, documentNumber: null, status: 'QUEUED' });
+        await emitting;
+      });
+    }
+
+    it('drops the referenced access key from the payload when switching back to a sale', async () => {
+      const c = await create();
+      await fillAll(c);
+      c.naturezaSel.set('DEVOLUCAO');
+      c.referencedAccessKey.set(ACCESS_KEY);
+      c.naturezaSel.set('VENDA');
+
+      const emitting = c.emit();
+      const req = http.expectOne('/api/nfe');
+      expect(req.request.body.referencedAccessKey).toBeUndefined();
+      req.flush({ id: 'n1', accessKey: null, documentSeries: null, documentNumber: null, status: 'QUEUED' });
+      await emitting;
+    });
   });
 
   describe('destinatário', () => {
@@ -121,7 +224,7 @@ describe('NfeFormComponent', () => {
 
       c.addProduct(c.productResults()[0]);
       expect(c.items()).toEqual([
-        { productId: 'p1', descricao: 'SKU-ARROZ', ncm: '1006.30', quantidade: 1, valorUnitario: 20, desconto: 0 },
+        { productId: 'p1', descricao: 'SKU-ARROZ', ncm: '1006.30', quantidade: 1, valorUnitario: 20, desconto: 0, cfop: '' },
       ]);
     });
 
@@ -178,7 +281,7 @@ describe('NfeFormComponent', () => {
       expect(c.stepDone()).toEqual({ 1: false, 2: true, 3: false, 4: true, 5: false });
 
       c.addProduct(product());
-      c.cfopSel.set('5102');
+      c.naturezaSel.set('VENDA');
       expect(c.stepDone()).toEqual({ 1: true, 2: true, 3: true, 4: true, 5: true });
 
       c.removeItem(0);
