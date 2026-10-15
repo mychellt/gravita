@@ -1,6 +1,7 @@
 import { DatePipe, NgClass } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { LoadStatus } from '../../core/services/customer.service';
+import { InventoryChangesService } from '../../core/services/inventory-changes.service';
 import {
   InventoryApiService, MovementFilter, Page, StockMovementItem, StockMovementType, productLabel
 } from '../../core/services/inventory-api.service';
@@ -97,6 +98,7 @@ const TIPO_BADGE: Record<StockMovementType, string> = {
 })
 export class MovementsTabComponent implements OnInit {
   private readonly api = inject(InventoryApiService);
+  private readonly changes = inject(InventoryChangesService);
   private loads = 0;
 
   private produto = '';
@@ -107,6 +109,13 @@ export class MovementsTabComponent implements OnInit {
   readonly produtoInvalido = signal(false);
   readonly status = signal<LoadStatus>('loading');
   readonly pagina = signal<Page<StockMovementItem>>({ content: [], page: 0, size: PAGE_SIZE, totalElements: 0, totalPages: 0 });
+
+  constructor() {
+    // Ajuste, contagem aprovada ou reserva liberada mudam o servidor: busca de novo a página que está na tela.
+    effect(() => {
+      if (this.changes.version()) untracked(() => void this.load(this.pagina().page));
+    });
+  }
 
   ngOnInit(): void {
     void this.load(0);

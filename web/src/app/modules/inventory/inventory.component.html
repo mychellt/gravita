@@ -19,14 +19,6 @@
     <div class="stock-kpi-val text-warn">{{ alertas.expiringStatus() === 'ready' ? alertas.expiringLots().length : '—' }}</div>
     <div class="stock-kpi-label">Lotes a vencer ({{ alertas.expiryWindowDays() }}d)</div>
   </div>
-  <div class="stock-kpi">
-    <div class="stock-kpi-val">{{ inventory.transferenciasPendentes().length }}</div>
-    <div class="stock-kpi-label">Transferências em trânsito</div>
-  </div>
-  <div class="stock-kpi">
-    <div class="stock-kpi-val">{{ inventory.valorEmEstoque() | brl }}</div>
-    <div class="stock-kpi-label">Valor em estoque (CMV)</div>
-  </div>
 </div>
 
 <div class="tabs" role="tablist">
@@ -48,7 +40,6 @@
   }
   @case ('saldos') { <app-balances-tab /> }
   @case ('lotes') { <app-lots-tab /> }
-  @case ('transferencias') { <app-transfers-tab /> }
   @case ('reservas') { <app-reservations-tab /> }
   @case ('inventario') { <app-counts-tab /> }
   @case ('reposicao') { <app-reorder-tab /> }
