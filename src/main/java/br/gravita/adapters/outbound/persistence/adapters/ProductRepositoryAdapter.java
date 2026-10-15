@@ -5,11 +5,13 @@ import br.gravita.adapters.outbound.persistence.mappers.ProductPersistenceMapper
 import br.gravita.adapters.outbound.persistence.repositories.ProductJpaRepository;
 import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
-import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 class ProductRepositoryAdapter implements ProductRepositoryPort {
@@ -43,5 +45,11 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 	@Override
 	public boolean existsByBarcode(final String barcode) {
 		return jpaRepository.existsByBarcodesContaining(barcode);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ProductDomain> findAllByIds(final Collection<UUID> ids) {
+		return jpaRepository.findAllById(ids).stream().map(mapper::map).toList();
 	}
 }

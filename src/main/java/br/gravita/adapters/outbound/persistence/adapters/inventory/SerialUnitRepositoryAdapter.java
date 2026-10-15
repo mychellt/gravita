@@ -5,9 +5,14 @@ import br.gravita.adapters.outbound.persistence.mappers.inventory.SerialUnitPers
 import br.gravita.adapters.outbound.persistence.repositories.inventory.SerialUnitJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.SerialUnit;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.domain.shared.PageQuery;
 import br.gravita.core.ports.outbound.persistence.inventory.SerialUnitRepositoryPort;
+
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
@@ -36,5 +41,14 @@ class SerialUnitRepositoryAdapter implements SerialUnitRepositoryPort {
 				.stream()
 				.map(mapper::map)
 				.toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<SerialUnit> search(final UUID warehouseId, final UUID productId, final PageQuery pageQuery) {
+		final Sort bySerialNumber = Sort.by(Sort.Order.asc("productId"), Sort.Order.asc("serialNumber"));
+		return PageMapping.toPage(
+				jpaRepository.search(warehouseId, productId, PageMapping.pageable(pageQuery, bySerialNumber)),
+				mapper::map);
 	}
 }

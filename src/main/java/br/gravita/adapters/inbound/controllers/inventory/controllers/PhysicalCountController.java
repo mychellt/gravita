@@ -1,13 +1,19 @@
 package br.gravita.adapters.inbound.controllers.inventory.controllers;
 
+import br.gravita.adapters.dtos.response.PageResponse;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.ApprovePhysicalCountRequest;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.ApprovePhysicalCountResponse;
+import br.gravita.adapters.inbound.controllers.inventory.dtos.PhysicalCountItemResponse;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.StartPhysicalCountRequest;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.StartPhysicalCountResponse;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.SubmitPhysicalCountRequest;
 import br.gravita.adapters.inbound.controllers.inventory.dtos.SubmitPhysicalCountResponse;
 import br.gravita.core.domain.inventory.PhysicalCount;
+import br.gravita.core.domain.inventory.PhysicalCountStatus;
+import br.gravita.core.domain.shared.PageQuery;
 import br.gravita.core.ports.inbound.inventory.ApprovePhysicalCountUseCase;
+import br.gravita.core.ports.inbound.inventory.ListPhysicalCountsQuery;
+import br.gravita.core.ports.inbound.inventory.ListPhysicalCountsUseCase;
 import br.gravita.core.ports.inbound.inventory.StartPhysicalCountUseCase;
 import br.gravita.core.ports.inbound.inventory.SubmitPhysicalCountUseCase;
 import jakarta.validation.Valid;
@@ -26,6 +32,7 @@ public class PhysicalCountController {
     private final StartPhysicalCountUseCase startPhysicalCountUseCase;
     private final SubmitPhysicalCountUseCase submitPhysicalCountUseCase;
     private final ApprovePhysicalCountUseCase approvePhysicalCountUseCase;
+    private final ListPhysicalCountsUseCase listPhysicalCountsUseCase;
 
     @PostMapping
     public ResponseEntity<StartPhysicalCountResponse> start(@Valid @RequestBody final StartPhysicalCountRequest request) {
@@ -46,5 +53,16 @@ public class PhysicalCountController {
             @Valid @RequestBody final ApprovePhysicalCountRequest request) {
         final PhysicalCount physicalCount = approvePhysicalCountUseCase.execute(request.toCommand(id));
         return ResponseEntity.ok(ApprovePhysicalCountResponse.from(physicalCount));
+    }
+
+    /** Newest first, with each count's lines. */
+    @GetMapping
+    public ResponseEntity<PageResponse<PhysicalCountItemResponse>> list(
+            @RequestParam(required = false) final PhysicalCountStatus status,
+            @RequestParam(defaultValue = "0") final int page,
+            @RequestParam(defaultValue = "20") final int size) {
+        return ResponseEntity.ok(PageResponse.from(
+                listPhysicalCountsUseCase.execute(new ListPhysicalCountsQuery(status, new PageQuery(page, size))),
+                PhysicalCountItemResponse::from));
     }
 }

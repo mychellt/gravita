@@ -71,6 +71,14 @@ Each use case below has a standalone implementation ticket under [`m5-estoque/`]
 | `POST /api/inventory/reservations` / `DELETE /api/inventory/reservations/{id}` | Reserve/release |
 | `POST /api/inventory/counts` / `.../{id}/submit` / `.../{id}/approve` | Physical count workflow |
 | `GET /api/inventory/alerts/low-stock`, `GET /api/inventory/alerts/expiring-lots` | Alert queries |
+| `GET /api/inventory/balances?productId=&page=&size=` | `ListStockBalancesUseCase` — balances of the default warehouse with the product code, ordered by code |
+| `GET /api/inventory/movements?productId=&type=&from=&to=&page=&size=` | `ListStockMovementsUseCase` — movement log, newest first (`from`/`to` are inclusive ISO-8601 instants) |
+| `GET /api/inventory/lots?productId=&kind=&page=&size=` | `ListLotsUseCase` — lots (`kind=LOT`, default, earliest expiry first) or serial units (`kind=SERIAL`) |
+| `GET /api/inventory/reservations?status=&productId=&page=&size=` | `ListStockReservationsUseCase` — newest first |
+| `GET /api/inventory/counts?status=&page=&size=` | `ListPhysicalCountsUseCase` — newest first, with each count's lines |
+
+The list endpoints are scoped to the single implicit default warehouse (`DefaultWarehouse.ID`) and return
+`{ content, page, size, totalElements, totalPages }`; `page` is zero-based, `size` defaults to 20 and is capped at 100.
 
 ### Outbound (`adapter.out.persistence`)
 

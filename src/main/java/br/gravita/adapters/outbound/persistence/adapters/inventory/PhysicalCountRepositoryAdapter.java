@@ -6,8 +6,14 @@ import br.gravita.adapters.outbound.persistence.repositories.inventory.PhysicalC
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.PhysicalCount;
 import br.gravita.core.domain.inventory.PhysicalCountId;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.ports.inbound.inventory.ListPhysicalCountsQuery;
 import br.gravita.core.ports.outbound.persistence.inventory.PhysicalCountRepositoryPort;
+
 import java.util.Optional;
+import java.util.UUID;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class PhysicalCountRepositoryAdapter implements PhysicalCountRepositoryPort {
@@ -31,5 +37,13 @@ class PhysicalCountRepositoryAdapter implements PhysicalCountRepositoryPort {
 	@Override
 	public Optional<PhysicalCount> findById(final PhysicalCountId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<PhysicalCount> search(final UUID warehouseId, final ListPhysicalCountsQuery query) {
+		final Sort newestFirst = Sort.by(Sort.Order.desc("startedAt"), Sort.Order.desc("id"));
+		return PageMapping.toPage(jpaRepository.search(warehouseId, query.status(),
+				PageMapping.pageable(query.pageQuery(), newestFirst)), mapper::map);
 	}
 }

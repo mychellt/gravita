@@ -5,10 +5,15 @@ import br.gravita.adapters.outbound.persistence.mappers.inventory.StockBalancePe
 import br.gravita.adapters.outbound.persistence.repositories.inventory.StockBalanceJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.StockBalance;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.domain.shared.PageQuery;
 import br.gravita.core.ports.outbound.persistence.inventory.StockBalanceRepositoryPort;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class StockBalanceRepositoryAdapter implements StockBalanceRepositoryPort {
@@ -46,5 +51,14 @@ class StockBalanceRepositoryAdapter implements StockBalanceRepositoryPort {
 		final StockBalanceJpaEntity entity = mapper.map(balance);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<StockBalance> search(final UUID warehouseId, final UUID productId, final PageQuery pageQuery) {
+		// the query orders by product code itself, so the pageable carries no sort
+		return PageMapping.toPage(
+				jpaRepository.search(warehouseId, productId, PageMapping.pageable(pageQuery, Sort.unsorted())),
+				mapper::map);
 	}
 }

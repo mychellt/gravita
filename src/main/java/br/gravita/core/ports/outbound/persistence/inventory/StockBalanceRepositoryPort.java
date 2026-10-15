@@ -1,6 +1,8 @@
 package br.gravita.core.ports.outbound.persistence.inventory;
 
 import br.gravita.core.domain.inventory.StockBalance;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.domain.shared.PageQuery;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,7 @@ public interface StockBalanceRepositoryPort {
 	List<StockBalance> findAll();
 
 	StockBalance save(StockBalance balance);
+
+	/** The warehouse's balances, optionally of one product, ordered by product code. */
+	Page<StockBalance> search(UUID warehouseId, UUID productId, PageQuery pageQuery);
 }
