@@ -1,5 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { LoadStatus } from '../../core/services/customer.service';
+import { InventoryChangesService } from '../../core/services/inventory-changes.service';
 import { InventoryApiService, Page, StockBalanceItem, productLabel } from '../../core/services/inventory-api.service';
 import { LoadStateComponent } from '../../shared/components/load-state/load-state.component';
 import { PagerComponent } from '../../shared/components/pager/pager.component';
@@ -52,10 +53,18 @@ const PAGE_SIZE = 20;
 })
 export class BalancesTabComponent implements OnInit {
   private readonly api = inject(InventoryApiService);
+  private readonly changes = inject(InventoryChangesService);
   private loads = 0;
 
   readonly status = signal<LoadStatus>('loading');
   readonly pagina = signal<Page<StockBalanceItem>>({ content: [], page: 0, size: PAGE_SIZE, totalElements: 0, totalPages: 0 });
+
+  constructor() {
+    // Ajuste, contagem aprovada ou reserva liberada mudam o servidor: busca de novo a página que está na tela.
+    effect(() => {
+      if (this.changes.version()) untracked(() => void this.load(this.pagina().page));
+    });
+  }
 
   ngOnInit(): void {
     void this.load(0);
