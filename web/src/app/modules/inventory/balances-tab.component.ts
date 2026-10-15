@@ -1,113 +1,81 @@
-import { Component, computed, inject, signal } from '@angular/core';
-import { DataService } from '../../core/services/data.service';
-import { InventoryService } from '../../core/services/inventory.service';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { LoadStatus } from '../../core/services/customer.service';
+import { InventoryApiService, Page, StockBalanceItem, productLabel } from '../../core/services/inventory-api.service';
+import { LoadStateComponent } from '../../shared/components/load-state/load-state.component';
+import { PagerComponent } from '../../shared/components/pager/pager.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
-import { ProductDetailModalComponent } from './product-detail-modal.component';
 
-interface LinhaSaldo {
-  produtoId: string;
-  descricao: string;
-  depositoId: string;
-  fisico: number;
-  reservado: number;
-  emTransito: number;
-  disponivel: number;
-  custoMedio: number;
-}
+const PAGE_SIZE = 20;
 
-/** Balance per product × warehouse (on hand, reserved, in transit, available, average cost). */
+/** Balance per product in the default warehouse (on hand, reserved, in transit, available, average cost). */
 @Component({
   selector: 'app-balances-tab',
   standalone: true,
-  imports: [BrlPipe, ProductDetailModalComponent],
+  imports: [BrlPipe, LoadStateComponent, PagerComponent],
   template: `
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">Saldo por depósito</span>
-        <div class="filters">
-          <input class="filter-input" type="text" placeholder="Buscar produto..." aria-label="Buscar produto"
-                 [value]="busca()" (input)="busca.set($any($event.target).value)" />
-          <select class="filter-select" aria-label="Depósito" (change)="deposito.set($any($event.target).value)">
-            <option value="">Todos os depósitos</option>
-            @for (d of inventory.depositos(); track d.id) { <option [value]="d.id">{{ d.nome }}</option> }
-          </select>
-        </div>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Produto</th><th>Depósito</th><th class="td-right">Físico</th><th class="td-right">Reservado</th>
-            <th class="td-right">Em trânsito</th><th class="td-right">Disponível</th><th class="td-right">Custo médio</th>
-            <th>Saldo negativo</th><th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (l of linhas(); track l.produtoId + l.depositoId) {
+      <div class="card-head"><span class="card-title">Saldo em estoque</span></div>
+      @if (status() !== 'ready') {
+        <app-load-state [status]="status()" loadingText="Carregando saldos…"
+                        errorText="Não foi possível carregar os saldos." (retry)="load(pagina().page)" />
+      } @else {
+        <table class="data-table">
+          <thead>
             <tr>
-              <td class="td-name">{{ l.descricao }}</td>
-              <td class="small">{{ inventory.nomeDeposito(l.depositoId) }}</td>
-              <td class="td-mono td-right">{{ l.fisico }}</td>
-              <td class="td-mono td-right">{{ l.reservado }}</td>
-              <td class="td-mono td-right">{{ l.emTransito }}</td>
-              <td class="td-mono td-right" [class.text-danger]="l.disponivel < 0">{{ l.disponivel }}</td>
-              <td class="td-mono td-right">{{ l.custoMedio | brl }}</td>
-              <td>
-                <div class="toggle" role="switch" tabindex="0" [class.on]="permiteNegativo(l.produtoId)"
-                     [attr.aria-checked]="permiteNegativo(l.produtoId)" [attr.aria-label]="'Permitir saldo negativo de ' + l.descricao"
-                     (click)="alternarNegativo(l.produtoId)" (keydown.enter)="alternarNegativo(l.produtoId)"></div>
-              </td>
-              <td class="td-actions">
-                <button class="btn btn-ghost btn-sm" type="button" (click)="detalhe.set(l.produtoId)">Detalhes</button>
-              </td>
+              <th>Produto</th><th class="td-right">Físico</th><th class="td-right">Reservado</th>
+              <th class="td-right">Em trânsito</th><th class="td-right">Disponível</th><th class="td-right">Custo médio</th>
             </tr>
-          } @empty {
-            <tr><td colspan="9" class="empty">Nenhum saldo encontrado</td></tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (l of pagina().content; track l.productId) {
+              <tr>
+                <td class="td-name">{{ rotulo(l) }}</td>
+                <td class="td-mono td-right">{{ l.onHand }}</td>
+                <td class="td-mono td-right">{{ l.reserved }}</td>
+                <td class="td-mono td-right">{{ l.inTransit }}</td>
+                <td class="td-mono td-right" [class.text-danger]="l.available < 0">{{ l.available }}</td>
+                <td class="td-mono td-right">{{ l.averageCost | brl }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="empty">Nenhum saldo encontrado</td></tr>
+            }
+          </tbody>
+        </table>
+        <app-pager [page]="pagina().page" [totalPages]="pagina().totalPages" [totalElements]="pagina().totalElements"
+                   (pageChange)="load($event)" />
+      }
     </div>
-
-    @if (detalhe(); as produtoId) {
-      <app-product-detail-modal [produtoId]="produtoId" (closed)="detalhe.set(null)" />
-    }
   `,
   styles: [`
-    .filters { display: flex; gap: 8px; }
-    .filter-input, .filter-select { height: 30px; border: 1px solid var(--border2); border-radius: var(--r8); font-family: var(--font); font-size: 12px; padding: 0 10px; outline: none; background: var(--surface); color: var(--text); }
-    .filter-input { width: 180px; }
-    .small { font-size: 11px; }
     .empty { text-align: center; padding: 24px; color: var(--text3); }
   `]
 })
-export class BalancesTabComponent {
-  private readonly data = inject(DataService);
-  readonly inventory = inject(InventoryService);
+export class BalancesTabComponent implements OnInit {
+  private readonly api = inject(InventoryApiService);
+  private loads = 0;
 
-  readonly busca = signal('');
-  readonly deposito = signal('');
-  readonly detalhe = signal<string | null>(null);
+  readonly status = signal<LoadStatus>('loading');
+  readonly pagina = signal<Page<StockBalanceItem>>({ content: [], page: 0, size: PAGE_SIZE, totalElements: 0, totalPages: 0 });
 
-  readonly linhas = computed<LinhaSaldo[]>(() => {
-    const busca = this.busca().toLowerCase();
-    return this.inventory.saldos().flatMap(saldo => {
-      const produto = this.data.produtos().find(p => p.id === saldo.produtoId);
-      const visivel = produto && (!this.deposito() || saldo.depositoId === this.deposito())
-        && (!busca || produto.descricao.toLowerCase().includes(busca));
-      if (!produto || !visivel) return [];
-      const disponivel = this.inventory.disponivel(saldo);
-      return [{
-        produtoId: produto.id, descricao: produto.descricao, depositoId: saldo.depositoId,
-        fisico: saldo.fisico, reservado: saldo.reservado, emTransito: saldo.emTransito, disponivel,
-        custoMedio: saldo.custoMedio,
-      }];
-    });
-  });
-
-  permiteNegativo(produtoId: string): boolean {
-    return this.data.produtos().find(p => p.id === produtoId)?.permiteEstoqueNegativo === true;
+  ngOnInit(): void {
+    void this.load(0);
   }
 
-  alternarNegativo(produtoId: string): void {
-    this.inventory.definirPermiteEstoqueNegativo(produtoId, !this.permiteNegativo(produtoId));
+  /** GET /api/inventory/balances — nunca rejeita: o resultado fica em `status`. */
+  async load(page: number): Promise<void> {
+    const load = ++this.loads;
+    this.status.set('loading');
+    try {
+      const result = await this.api.balances(page, PAGE_SIZE);
+      if (load !== this.loads) return;
+      this.pagina.set(result);
+      this.status.set('ready');
+    } catch {
+      if (load === this.loads) this.status.set('error');
+    }
+  }
+
+  rotulo(saldo: StockBalanceItem): string {
+    return productLabel(saldo.productId, saldo.productCode);
   }
 }

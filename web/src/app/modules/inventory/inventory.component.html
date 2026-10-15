@@ -16,8 +16,8 @@
     </div>
   </div>
   <div class="stock-kpi">
-    <div class="stock-kpi-val text-warn">{{ inventory.lotesAVencer().length }}</div>
-    <div class="stock-kpi-label">Lotes a vencer ({{ inventory.janelaValidadeDias() }}d)</div>
+    <div class="stock-kpi-val text-warn">{{ alertas.expiringStatus() === 'ready' ? alertas.expiringLots().length : '—' }}</div>
+    <div class="stock-kpi-label">Lotes a vencer ({{ alertas.expiryWindowDays() }}d)</div>
   </div>
   <div class="stock-kpi">
     <div class="stock-kpi-val">{{ inventory.transferenciasPendentes().length }}</div>

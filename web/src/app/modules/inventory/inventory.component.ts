@@ -1,5 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DataService } from '../../core/services/data.service';
+import { InventoryAlertsService } from '../../core/services/inventory-alerts.service';
 import { InventoryService } from '../../core/services/inventory.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
@@ -26,9 +27,10 @@ type AbaEstoque = 'movimentos' | 'saldos' | 'lotes' | 'transferencias' | 'reserv
   styleUrl: './inventory.component.scss',
   templateUrl: './inventory.component.html'
 })
-export class InventoryComponent {
+export class InventoryComponent implements OnInit {
   private readonly data = inject(DataService);
   readonly inventory = inject(InventoryService);
+  readonly alertas = inject(InventoryAlertsService);
 
   readonly aba = signal<AbaEstoque>('movimentos');
   readonly ajusteAberto = signal(false);
@@ -42,8 +44,13 @@ export class InventoryComponent {
     { id: 'transferencias', rotulo: 'Transferências', contador: this.inventory.transferenciasPendentes().length },
     { id: 'reservas', rotulo: 'Reservas' },
     { id: 'inventario', rotulo: 'Inventário' },
-    { id: 'reposicao', rotulo: 'Reposição', contador: this.inventory.sugestoesReposicao().length },
+    { id: 'reposicao', rotulo: 'Reposição', contador: this.alertas.lowStock().length },
   ]);
+
+  /** Alertas de validade e de estoque baixo alimentam o painel, os contadores e as abas Lotes e Reposição. */
+  ngOnInit(): void {
+    void this.alertas.loadAll();
+  }
 
   abrirInventario(): void {
     this.aba.set('inventario');
