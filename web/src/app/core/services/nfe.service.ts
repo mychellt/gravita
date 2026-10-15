@@ -40,6 +40,84 @@ export interface InboundNfeListItem {
   status: InboundNfeStatus;
 }
 
+/** Corpo de resposta dos POST de /api/nfe/inbound (ImportSupplierNfeXmlResponse); não traz os itens, só a contagem. */
+export interface InboundNfeSummary {
+  id: string;
+  accessKey: string;
+  supplierName: string;
+  itemCount: number;
+  totalValue: number;
+  status: InboundNfeStatus;
+}
+
+/** Item de uma NF-e de entrada lançada manualmente (EnterInboundNfeManuallyRequest.Item). */
+export interface ManualInboundItem {
+  supplierProductCode: string;
+  description: string;
+  ncm: string;
+  cfop: string;
+  unit: string;
+  quantity: number;
+  unitValue: number;
+  totalValue: number;
+  icmsValue: number;
+  ipiValue: number;
+  pisValue: number;
+  cofinsValue: number;
+}
+
+/** Totais de uma NF-e de entrada lançada manualmente (EnterInboundNfeManuallyRequest.Totals). */
+export interface ManualInboundTotals {
+  productsValue: number;
+  freightValue: number;
+  insuranceValue: number;
+  discountValue: number;
+  otherExpensesValue: number;
+  icmsValue: number;
+  ipiValue: number;
+  pisValue: number;
+  cofinsValue: number;
+  totalValue: number;
+}
+
+/** Corpo de POST /api/nfe/inbound (EnterInboundNfeManuallyRequest). A chave de acesso (44 dígitos) é obrigatória mesmo sem XML. */
+export interface EnterInboundNfeRequest {
+  companyId: string;
+  accessKey: string;
+  manualData: {
+    accessKey: string;
+    series: string;
+    number: string;
+    supplierCnpj: string;
+    supplierName: string;
+    issuedAt: string;
+    items: ManualInboundItem[];
+    totals: ManualInboundTotals;
+  };
+}
+
+/**
+ * Uma linha da conferência. `itemRef` é o UUID de um Produto do catálogo (o mesmo `productId` de /inventory),
+ * não um id do item da nota; o backend casa a linha i com o item i da nota, por posição.
+ */
+export interface ConferenceLine {
+  itemRef: string;
+  orderedQty: number;
+  receivedQty: number;
+}
+
+/** Tipo de manifestação do destinatário (enum `ManifestationType`). */
+export type ManifestationType = 'CONFIRMED' | 'UNKNOWN' | 'OPERATION_NOT_PERFORMED';
+
+/** Corpo de resposta de POST /api/nfe/inbound/manifestation (InboundManifestationResponse). */
+export interface InboundManifestation {
+  id: string;
+  accessKey: string;
+  type: ManifestationType;
+  sefazProtocol: string | null;
+  manifestedAt: string;
+}
+
 /** Natureza da operação aceita pelo backend (enum `NaturezaOperacao`). */
 export type NaturezaOperacao = 'VENDA' | 'DEVOLUCAO' | 'NOTA_COMPLEMENTAR' | 'TRANSFERENCIA' | 'REMESSA' | 'OUTRA';
 
@@ -110,6 +188,11 @@ export class NfeService {
   private readonly issuedStatus = signal<LoadStatus>('loading');
   private readonly inbound = signal<InboundNfeListItem[]>([]);
   private readonly inboundStatus = signal<LoadStatus>('loading');
+  /**
+   * Itens conhecidos de notas de entrada desta sessão, por id. O backend não expõe os itens de uma nota depois
+   * de criada; só o que a tela acabou de lançar (ou a contagem devolvida no import) está disponível para a conferência.
+   */
+  private readonly knownItems = new Map<string, ManualInboundItem[] | number>();
 
   readonly nfes = this.issued.asReadonly();
   readonly status = this.issuedStatus.asReadonly();
@@ -138,6 +221,52 @@ export class NfeService {
       this.inboundStatus.set('ready');
     } catch {
       this.inboundStatus.set('error');
+    }
+  }
+
+  /** POST /api/nfe/inbound/import-xml — cria a nota de entrada a partir do XML e atualiza a lista. Rejeita se o backend recusa (400 com `{message}`). */
+  async importInboundXml(companyId: string, xmlFile: File): Promise<InboundNfeSummary> {
+    const form = new FormData();
+    form.append('companyId', companyId);
+    form.append('xmlFile', xmlFile);
+    const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound/import-xml`, form));
+    this.knownItems.set(created.id, created.itemCount);
+    await this.refreshInbound();
+    return created;
+  }
+
+  /** POST /api/nfe/inbound — lançamento manual; atualiza a lista. Rejeita se o backend recusa (400 com `{message}`). */
+  async enterInboundManually(request: EnterInboundNfeRequest): Promise<InboundNfeSummary> {
+    const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound`, request));
+    this.knownItems.set(created.id, request.manualData.items);
+    await this.refreshInbound();
+    return created;
+  }
+
+  /** POST /api/nfe/inbound/{id}/confirm-receipt — a linha passa a refletir a resposta, sem recarregar a lista. Rejeita se o backend recusa. */
+  async confirmInboundReceipt(id: string, conferenceResult: ConferenceLine[]): Promise<void> {
+    const result = await firstValueFrom(
+      this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound/${id}/confirm-receipt`, { conferenceResult }));
+    this.inbound.update(list => list.map(n => n.id === id ? { ...n, status: result.status } : n));
+  }
+
+  /** POST /api/nfe/inbound/manifestation — manifestação do destinatário sobre a chave de acesso. Rejeita se o backend recusa. */
+  manifestInbound(accessKey: string, type: ManifestationType): Promise<InboundManifestation> {
+    return firstValueFrom(this.http.post<InboundManifestation>(`${this.baseUrl}/inbound/manifestation`, { accessKey, type }));
+  }
+
+  /** O que a tela sabe dos itens da nota: a lista completa (lançamento manual), só a contagem (import) ou nada (nota de outra sessão). */
+  knownItemsOf(id: string): ManualInboundItem[] | number | null {
+    return this.knownItems.get(id) ?? null;
+  }
+
+  /** Relê as Entradas sem passar por "carregando", para a tabela não piscar depois de uma ação. */
+  private async refreshInbound(): Promise<void> {
+    try {
+      this.inbound.set(await firstValueFrom(this.http.get<InboundNfeListItem[]>(`${this.baseUrl}/inbound`)));
+      this.inboundStatus.set('ready');
+    } catch {
+      // A nota já foi criada; se a releitura falhar a lista antiga permanece e "Tentar novamente" segue disponível.
     }
   }
 
