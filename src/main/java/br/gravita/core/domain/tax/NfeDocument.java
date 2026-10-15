@@ -1,5 +1,6 @@
 package br.gravita.core.domain.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import lombok.Builder;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.masterdata.CompanyId;
@@ -37,7 +38,7 @@ public final class NfeDocument {
 	private final NfeTransportInfo transport;
 	private final String referencedAccessKey;
 	private final String additionalInfo;
-	private final UUID paymentMethodId;
+	private final PaymentMethodType paymentMethodType;
 	private final TaxCalculationTotals taxTotals;
 	private final NfeDocumentStatus status;
 	private final Instant createdAt;
@@ -59,7 +60,7 @@ public final class NfeDocument {
 	public NfeDocument(final NfeDocumentId id, final CompanyId issuerCompanyId, final UUID originSalesOrderId,
 			final NaturezaOperacao naturezaOperacao, final Cfop cfop, final NfeRecipient recipient, final List<NfeItem> items,
 			final BigDecimal freight, final BigDecimal insurance, final BigDecimal otherExpenses, final NfeTransportInfo transport,
-			final String referencedAccessKey, final String additionalInfo, final UUID paymentMethodId, final TaxCalculationTotals taxTotals,
+			final String referencedAccessKey, final String additionalInfo, final PaymentMethodType paymentMethodType, final TaxCalculationTotals taxTotals,
 			final NfeDocumentStatus status, final Instant createdAt, final String documentSeries, final Long documentNumber, final String accessKey,
 			final String sefazProtocol, final boolean contingencyMode, final String rejectionReason, final String xmlStorageRef,
 			final String danfeStorageRef, final List<CorrectionLetter> correctionLetters, final Instant authorizedAt,
@@ -77,7 +78,7 @@ public final class NfeDocument {
 		this.transport = transport;
 		this.referencedAccessKey = requireReferencedAccessKeyIfNeeded(naturezaOperacao, referencedAccessKey);
 		this.additionalInfo = additionalInfo;
-		this.paymentMethodId = paymentMethodId;
+		this.paymentMethodType = paymentMethodType;
 		this.taxTotals = Objects.requireNonNull(taxTotals, "taxTotals is required");
 		this.status = Objects.requireNonNull(status, "status is required");
 		this.createdAt = Objects.requireNonNull(createdAt, "createdAt is required");
@@ -103,10 +104,10 @@ public final class NfeDocument {
 	private NfeDocument(final NfeDocumentId id, final CompanyId issuerCompanyId, final UUID originSalesOrderId,
 			final NaturezaOperacao naturezaOperacao, final Cfop cfop, final NfeRecipient recipient, final List<NfeItem> items,
 			final BigDecimal freight, final BigDecimal insurance, final BigDecimal otherExpenses, final NfeTransportInfo transport,
-			final String referencedAccessKey, final String additionalInfo, final UUID paymentMethodId,
+			final String referencedAccessKey, final String additionalInfo, final PaymentMethodType paymentMethodType,
 			final TaxCalculationTotals taxTotals, final Instant createdAt) {
 		this(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items, freight,
-				insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.DRAFT, createdAt, null, null, null, null, false, null, null, null,
 				List.of(), null, null, null);
 	}
@@ -120,7 +121,7 @@ public final class NfeDocument {
 	public NfeDocument queue(final String documentSeries, final Long documentNumber, final String accessKey) {
 		requireDraft();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.QUEUED, createdAt, requireText(documentSeries, "documentSeries"),
 				Objects.requireNonNull(documentNumber, "documentNumber is required"),
 				Objects.requireNonNull(accessKey, "accessKey is required"), sefazProtocol, false, null, null, null,
@@ -138,7 +139,7 @@ public final class NfeDocument {
 	public NfeDocument send() {
 		requireQueued();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.SENT, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
 				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt,
 				cancellationJustification, cancelledAt);
@@ -153,7 +154,7 @@ public final class NfeDocument {
 	public NfeDocument switchToContingency() {
 		requireSent();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals, status,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, true, rejectionReason,
 				xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt, cancellationJustification,
 				cancelledAt);
@@ -170,7 +171,7 @@ public final class NfeDocument {
 	public NfeDocument authorize(final String sefazProtocol) {
 		requireSent();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.AUTHORIZED, createdAt, documentSeries, documentNumber, accessKey,
 				requireText(sefazProtocol, "sefazProtocol"), contingencyMode, null, xmlStorageRef, danfeStorageRef,
 				correctionLetters, Instant.now(), null, null);
@@ -188,7 +189,7 @@ public final class NfeDocument {
 					"NfeDocument " + id.value() + " is not AUTHORIZED (current status: " + status + ")");
 		}
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals, status,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
 				requireText(xmlStorageRef, "xmlStorageRef"), requireText(danfeStorageRef, "danfeStorageRef"),
 				correctionLetters, authorizedAt, cancellationJustification, cancelledAt);
@@ -202,7 +203,7 @@ public final class NfeDocument {
 	public NfeDocument reject(final String rejectionReason) {
 		requireSent();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.REJECTED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
 				contingencyMode, requireText(rejectionReason, "rejectionReason"), xmlStorageRef, danfeStorageRef,
 				correctionLetters, authorizedAt, cancellationJustification, cancelledAt);
@@ -226,7 +227,7 @@ public final class NfeDocument {
 		final List<CorrectionLetter> updated = new ArrayList<>(correctionLetters);
 		updated.add(letter);
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals, status,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals, status,
 				createdAt, documentSeries, documentNumber, accessKey, sefazProtocol, contingencyMode, rejectionReason,
 				xmlStorageRef, danfeStorageRef, updated, authorizedAt, cancellationJustification, cancelledAt);
 	}
@@ -242,7 +243,7 @@ public final class NfeDocument {
 	public NfeDocument cancel(final String justification, final Instant cancelledAt) {
 		requireAuthorized();
 		return new NfeDocument(id, issuerCompanyId, originSalesOrderId, naturezaOperacao, cfop, recipient, items,
-				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodId, taxTotals,
+				freight, insurance, otherExpenses, transport, referencedAccessKey, additionalInfo, paymentMethodType, taxTotals,
 				NfeDocumentStatus.CANCELLED, createdAt, documentSeries, documentNumber, accessKey, sefazProtocol,
 				contingencyMode, rejectionReason, xmlStorageRef, danfeStorageRef, correctionLetters, authorizedAt,
 				requireText(justification, "justification"), Objects.requireNonNull(cancelledAt, "cancelledAt is required"));

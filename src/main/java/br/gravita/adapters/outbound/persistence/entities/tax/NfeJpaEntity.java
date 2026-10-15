@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.entities.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NfeDocumentStatus;
@@ -100,8 +101,9 @@ public class NfeJpaEntity extends AbstractEntity<UUID> {
 	@Column(name = "additional_info")
 	private String additionalInfo;
 
-	@Column(name = "payment_method_id")
-	private UUID paymentMethodId;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "payment_method_type", length = 20)
+	private PaymentMethodType paymentMethodType;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)

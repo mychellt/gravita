@@ -112,7 +112,7 @@ public class IssueNfeService implements IssueNfeUseCase {
 				.transport(buildTransport(command.transport()))
 				.referencedAccessKey(command.referencedAccessKey())
 				.additionalInfo(command.additionalInfo())
-				.paymentMethodId(command.paymentMethodId())
+				.paymentMethodType(command.paymentMethodType())
 				.taxTotals(taxResult.totals())
 				.createdAt(Instant.now())
 				.build();
