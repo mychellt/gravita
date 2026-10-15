@@ -1,5 +1,6 @@
 package br.gravita.tax.application.service;
 
+import br.gravita.core.domain.PaymentMethodType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -165,13 +166,13 @@ class IssueNfeServiceTest {
 	@Test
 	@DisplayName("Carries the chosen payment method id onto the document")
 	void paymentMethodIdIsCarriedOntoTheDocument() {
-		final UUID paymentMethodId = UUID.randomUUID();
+		final PaymentMethodType paymentMethodType = PaymentMethodType.BOLETO;
 
 		final NfeDocument document = service.execute(new IssueNfeCommand(companyId.value(), null,
 				NaturezaOperacao.VENDA, companyRecipient(), List.of(item(BigDecimal.ZERO)), null, null, null,
-				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, paymentMethodId));
+				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null, null, null, paymentMethodType));
 
-		assertThat(document.getPaymentMethodId()).isEqualTo(paymentMethodId);
+		assertThat(document.getPaymentMethodType()).isEqualTo(paymentMethodType);
 	}
 
 	@Test
@@ -179,7 +180,7 @@ class IssueNfeServiceTest {
 	void paymentMethodIdIsNullWhenNoneIsChosen() {
 		final NfeDocument document = service.execute(defaultCommand());
 
-		assertThat(document.getPaymentMethodId()).isNull();
+		assertThat(document.getPaymentMethodType()).isNull();
 	}
 
 	@Test

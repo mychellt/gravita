@@ -8,7 +8,7 @@ import { Customer, CustomerAddress, CustomerService } from '../../../core/servic
 import {
   IssueNfeRequest, IssueNfeResponse, NaturezaOperacao, NfeService, TransportModality, nfeFailureDetail,
 } from '../../../core/services/nfe.service';
-import { PaymentMethodService } from '../../../core/services/payment-method.service';
+import { PaymentMethodService, PaymentMethodType } from '../../../core/services/payment-method.service';
 import { ProductSearchResult, ProductSearchService } from '../../../core/services/product-search.service';
 import { TransportModalityCode, TransportModalityService } from '../../../core/services/transport-modality.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
@@ -140,7 +140,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
   // Pagamento (as opções vêm de GET /api/auxiliary/payment-methods; escolher uma é opcional)
   readonly paymentMethods = this.paymentMethodService.paymentMethods;
   readonly paymentMethodsStatus = this.paymentMethodService.status;
-  paymentMethodId = signal('');
+  paymentMethodType = signal<PaymentMethodType | ''>('');
   infoAdicionais = signal('');
 
   // Emissão
@@ -168,7 +168,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
   });
 
   readonly modalidadeName = computed(() => this.modalidadeOptions().find(m => m.code === this.modalidade())?.name ?? null);
-  readonly paymentMethodName = computed(() => this.paymentMethods().find(m => m.id === this.paymentMethodId())?.name ?? null);
+  readonly paymentMethodName = computed(() => this.paymentMethods().find(m => m.code === this.paymentMethodType())?.description ?? null);
 
   readonly itemsValid = computed(() => this.items().every(i => i.quantidade > 0 && i.valorUnitario >= 0));
 
@@ -296,7 +296,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
     try {
       this.issued.set(await this.nfeService.issue(request));
       this.reviewing.set(false);
-      this.issuedPaymentMethodName.set(this.paymentMethods().find(m => m.id === request.paymentMethodId)?.name ?? null);
+      this.issuedPaymentMethodName.set(this.paymentMethods().find(m => m.code === request.paymentMethodType)?.description ?? null);
     } catch (error) {
       this.errorMessage.set((await nfeFailureDetail(error)) || GENERIC_FAILURE);
     } finally {
@@ -317,7 +317,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
 
     const modalidade = this.modalidade();
     const additionalInfo = this.infoAdicionais().trim();
-    const paymentMethodId = this.paymentMethodId();
+    const paymentMethodType = this.paymentMethodType();
     return {
       issuerCompanyId,
       naturezaOperacao: natureza,
@@ -341,7 +341,7 @@ export class NfeFormComponent implements OnInit, OnDestroy {
       ...(modalidade === 'CIF' || modalidade === 'FOB' ? this.transportFields(modalidade) : {}),
       ...(this.requiresReferencedAccessKey() ? { referencedAccessKey: digitsOnly(this.referencedAccessKey()) } : {}),
       ...(additionalInfo ? { additionalInfo } : {}),
-      ...(paymentMethodId ? { paymentMethodId } : {}),
+      ...(paymentMethodType ? { paymentMethodType } : {}),
     };
   }
 

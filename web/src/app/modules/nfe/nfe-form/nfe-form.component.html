@@ -147,6 +147,35 @@
         <span style="margin-left:auto;font-size:12px;color:var(--text3)">{{ items().length }} item(ns)</span>
       </div>
       <div class="form-body">
+        <div class="add-item-row">
+          <input class="form-input" style="flex:1" type="text"
+                 placeholder="Buscar produto por código ou descrição..."
+                 [ngModel]="productQuery()" (ngModelChange)="productQuery.set($event)" name="productQuery"
+                 (keydown.enter)="searchProducts()" data-testid="product-search" />
+          <button class="btn btn-ghost" [disabled]="!productQuery().trim() || productSearchStatus() === 'loading'"
+                  (click)="searchProducts()">
+            <i class="ti ti-search"></i> Buscar
+          </button>
+        </div>
+        @if (productSearchStatus() === 'error') {
+          <div class="field-error">Não foi possível buscar produtos. Tente novamente.</div>
+        } @else if (productSearchStatus() === 'ready' && productResults().length === 0) {
+          <div class="field-hint">Nenhum produto encontrado.</div>
+        }
+        @if (productResults().length) {
+          <ul class="pick-list" data-testid="product-results">
+            @for (p of productResults(); track p.productId) {
+              <li>
+                <button type="button" class="pick-option" [disabled]="!p.availableForSale" (click)="addProduct(p)">
+                  <span>{{ p.description }}
+                    @if (!p.availableForSale) { <span class="tag-unavailable">Indisponível para venda</span> }
+                  </span>
+                  <span class="td-mono">{{ p.unitPrice | brl }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
         <div class="items-table-wrap">
           <table class="items-table">
             <thead>
@@ -189,35 +218,6 @@
         </div>
         @if (!itemsValid()) {
           <div class="field-error">Informe quantidade maior que zero em todos os itens.</div>
-        }
-        <div class="add-item-row">
-          <input class="form-input" style="flex:1" type="text"
-                 placeholder="Buscar produto por código ou descrição..."
-                 [ngModel]="productQuery()" (ngModelChange)="productQuery.set($event)" name="productQuery"
-                 (keydown.enter)="searchProducts()" data-testid="product-search" />
-          <button class="btn btn-ghost" [disabled]="!productQuery().trim() || productSearchStatus() === 'loading'"
-                  (click)="searchProducts()">
-            <i class="ti ti-search"></i> Buscar
-          </button>
-        </div>
-        @if (productSearchStatus() === 'error') {
-          <div class="field-error">Não foi possível buscar produtos. Tente novamente.</div>
-        } @else if (productSearchStatus() === 'ready' && productResults().length === 0) {
-          <div class="field-hint">Nenhum produto encontrado.</div>
-        }
-        @if (productResults().length) {
-          <ul class="pick-list" data-testid="product-results">
-            @for (p of productResults(); track p.productId) {
-              <li>
-                <button type="button" class="pick-option" [disabled]="!p.availableForSale" (click)="addProduct(p)">
-                  <span>{{ p.description }}
-                    @if (!p.availableForSale) { <span class="tag-unavailable">Indisponível para venda</span> }
-                  </span>
-                  <span class="td-mono">{{ p.unitPrice | brl }}</span>
-                </button>
-              </li>
-            }
-          </ul>
         }
       </div>
     </div>
@@ -269,7 +269,7 @@
                 [ngModel]="naturezaSel()" (ngModelChange)="naturezaSel.set($event)" name="naturezaSel">
           <option value="" disabled>Selecione...</option>
           @for (o of naturezaOptions(); track o.naturezaOperacao) {
-            <option [value]="o.naturezaOperacao">{{ o.cfop }} — {{ o.description }}</option>
+            <option [value]="o.naturezaOperacao">{{ o.description }} ({{ o.cfop }})</option>
           }
         </select>
         @if (registryStatus() === 'error') {
@@ -317,10 +317,10 @@
       <div class="card-head"><span class="card-title">Pagamento</span></div>
       <div class="card-body">
         <select class="form-select" style="width:100%;margin-bottom:8px" data-testid="payment-method-select"
-                [ngModel]="paymentMethodId()" (ngModelChange)="paymentMethodId.set($event)" name="paymentMethodId">
-          <option value="">Não informada</option>
-          @for (m of paymentMethods(); track m.id) {
-            <option [value]="m.id">{{ m.name }}</option>
+                [ngModel]="paymentMethodType()" (ngModelChange)="paymentMethodType.set($event)" name="paymentMethodType">
+          <option value="" disabled>Selecione...</option>
+          @for (m of paymentMethods(); track m.code) {
+            <option [value]="m.code">{{ m.description }}</option>
           }
         </select>
         @if (paymentMethodsStatus() === 'error') {
@@ -349,7 +349,7 @@
       <div class="form-body">
         <dl class="review-facts">
           <div><dt>Natureza da operação</dt>
-            <dd data-testid="review-natureza">{{ naturezaEntry() ? naturezaEntry()!.cfop + ' — ' + naturezaEntry()!.description : '—' }}</dd></div>
+            <dd data-testid="review-natureza">{{ naturezaEntry() ? naturezaEntry()!.description + ' (' + naturezaEntry()!.cfop + ')' : '—' }}</dd></div>
           @if (requiresReferencedAccessKey()) {
             <div><dt>Chave de acesso referenciada</dt>
               <dd class="td-mono" data-testid="review-access-key">{{ referencedAccessKey().trim() || '—' }}</dd></div>

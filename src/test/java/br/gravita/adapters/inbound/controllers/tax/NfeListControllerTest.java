@@ -1,5 +1,6 @@
 package br.gravita.adapters.inbound.controllers.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -63,7 +64,7 @@ class NfeListControllerTest {
 
 	private static final String SESSION_TOKEN = "session-token";
 	private static final String BEARER = "Bearer " + SESSION_TOKEN;
-	private static final UUID PAYMENT_METHOD_ID = UUID.randomUUID();
+	private static final PaymentMethodType PAYMENT_METHOD_TYPE = PaymentMethodType.PIX;
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -119,7 +120,7 @@ class NfeListControllerTest {
 				.andExpect(jsonPath("$[0].totalValue").value(115.00))
 				.andExpect(jsonPath("$[0].icmsValue").value(18.00))
 				.andExpect(jsonPath("$[0].emittedAt").exists())
-				.andExpect(jsonPath("$[0].paymentMethodId").value(PAYMENT_METHOD_ID.toString()));
+				.andExpect(jsonPath("$[0].paymentMethodType").value(PAYMENT_METHOD_TYPE.name()));
 	}
 
 	@Test
@@ -159,7 +160,7 @@ class NfeListControllerTest {
 				.recipient(NfeRecipient.of(PersonRef.of(UUID.randomUUID()), "11.222.333/0001-81", PersonType.COMPANY,
 						"Cliente PJ Teste", "123456789", "RJ"))
 				.items(List.of(item)).freight(new BigDecimal("15.00")).insurance(BigDecimal.ZERO)
-				.otherExpenses(BigDecimal.ZERO).paymentMethodId(PAYMENT_METHOD_ID).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
+				.otherExpenses(BigDecimal.ZERO).paymentMethodType(PAYMENT_METHOD_TYPE).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
 				.createdAt(Instant.parse("2028-02-01T10:00:00Z")).build();
 	}
 

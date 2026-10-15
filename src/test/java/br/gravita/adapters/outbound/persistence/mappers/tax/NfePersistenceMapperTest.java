@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.mappers.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.gravita.adapters.outbound.persistence.entities.tax.NfeJpaEntity;
@@ -30,13 +31,13 @@ class NfePersistenceMapperTest {
 	@Test
 	@DisplayName("Maps the payment method id to the entity and back")
 	void shouldRoundTripPaymentMethodId() {
-		final UUID paymentMethodId = UUID.randomUUID();
+		final PaymentMethodType paymentMethodType = PaymentMethodType.BOLETO;
 
-		final NfeJpaEntity entity = mapper.map(document(paymentMethodId));
+		final NfeJpaEntity entity = mapper.map(document(paymentMethodType));
 		final NfeDocument roundTripped = mapper.map(entity);
 
-		assertThat(entity.getPaymentMethodId()).isEqualTo(paymentMethodId);
-		assertThat(roundTripped.getPaymentMethodId()).isEqualTo(paymentMethodId);
+		assertThat(entity.getPaymentMethodType()).isEqualTo(paymentMethodType);
+		assertThat(roundTripped.getPaymentMethodType()).isEqualTo(paymentMethodType);
 	}
 
 	@Test
@@ -44,11 +45,11 @@ class NfePersistenceMapperTest {
 	void shouldKeepPaymentMethodIdNull() {
 		final NfeJpaEntity entity = mapper.map(document(null));
 
-		assertThat(entity.getPaymentMethodId()).isNull();
-		assertThat(mapper.map(entity).getPaymentMethodId()).isNull();
+		assertThat(entity.getPaymentMethodType()).isNull();
+		assertThat(mapper.map(entity).getPaymentMethodType()).isNull();
 	}
 
-	private NfeDocument document(final UUID paymentMethodId) {
+	private NfeDocument document(final PaymentMethodType paymentMethodType) {
 		final UUID productId = UUID.randomUUID();
 		final TaxLineBreakdown icms = new TaxLineBreakdown(TaxType.ICMS, new BigDecimal("100.00"), new BigDecimal("18"),
 				new BigDecimal("18.00"), new BigDecimal("18.00"), false, null);
@@ -61,7 +62,7 @@ class NfePersistenceMapperTest {
 				.recipient(NfeRecipient.of(PersonRef.of(UUID.randomUUID()), "11.222.333/0001-81", PersonType.COMPANY,
 						"Cliente PJ Teste", "123456789", "RJ"))
 				.items(List.of(item)).freight(BigDecimal.ZERO).insurance(BigDecimal.ZERO).otherExpenses(BigDecimal.ZERO)
-				.paymentMethodId(paymentMethodId).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
+				.paymentMethodType(paymentMethodType).taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
 				.createdAt(Instant.parse("2028-02-01T10:00:00Z")).build();
 	}
 }

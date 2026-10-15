@@ -5,7 +5,7 @@ import { provideRouter } from '@angular/router';
 import { AuthService, CurrentUser } from '../../../core/services/auth.service';
 import { CfopRegistryEntry } from '../../../core/services/cfop-registry.service';
 import { Customer } from '../../../core/services/customer.service';
-import { PaymentMethod } from '../../../core/services/payment-method.service';
+import { PaymentMethodTypeOption } from '../../../core/services/payment-method.service';
 import { IssueNfeRequest } from '../../../core/services/nfe.service';
 import { ProductSearchResult } from '../../../core/services/product-search.service';
 import { TransportModalityOption } from '../../../core/services/transport-modality.service';
@@ -29,9 +29,9 @@ const registry = (): CfopRegistryEntry[] => [
   { naturezaOperacao: 'NOTA_COMPLEMENTAR', cfop: '5124', description: 'Nota complementar', requiresReferencedAccessKey: true },
 ];
 
-const paymentMethods = (): PaymentMethod[] => [
-  { id: 'pm-pix', name: 'PIX', type: 'PIX' },
-  { id: 'pm-boleto', name: 'Boleto bancário', type: 'BOLETO' },
+const paymentMethods = (): PaymentMethodTypeOption[] => [
+  { code: 'PIX', description: 'PIX' },
+  { code: 'BOLETO', description: 'Boleto bancário' },
 ];
 
 const transportModalities = (): TransportModalityOption[] => [
@@ -90,7 +90,7 @@ describe('NfeFormComponent', () => {
 
       const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="natureza-select"] option') as NodeListOf<HTMLOptionElement>);
       expect(options.map(o => o.value)).toEqual(['', 'VENDA', 'DEVOLUCAO', 'NOTA_COMPLEMENTAR']);
-      expect(options[1].textContent).toContain('5102 — Venda de mercadoria');
+      expect(options[1].textContent).toContain('Venda de mercadoria (5102)');
     });
 
     it('offers a retry when the registry cannot be loaded', async () => {
@@ -427,12 +427,12 @@ describe('NfeFormComponent', () => {
         c.addProduct(product({ productId: 'p2', description: 'SKU-FEIJAO', unitPrice: 7.5 }));
         c.updateItem(0, { quantidade: 10, desconto: 5 });
         c.updateItem(1, { quantidade: 2 });
-        c.paymentMethodId.set('pm-pix');
+        c.paymentMethodType.set('PIX');
         fixture.detectChanges();
 
         const el: HTMLElement = fixture.nativeElement;
         const text = (id: string) => q(el, id)!.textContent!.trim();
-        expect(text('review-natureza')).toBe('5102 — Venda de mercadoria');
+        expect(text('review-natureza')).toBe('Venda de mercadoria (5102)');
         expect(text('review-recipient')).toBe('Atacadão SP Ltda · 11.222.333/0001-81');
         expect(text('review-recipient-state')).toBe('SP');
         expect(text('review-recipient-address')).toContain('São Paulo/SP');
@@ -503,7 +503,7 @@ describe('NfeFormComponent', () => {
         c.selectCustomer(customer({ name: 'Beta Ltda' }));
         c.naturezaSel.set('DEVOLUCAO');
         c.referencedAccessKey.set(ACCESS_KEY);
-        c.paymentMethodId.set('pm-boleto');
+        c.paymentMethodType.set('BOLETO');
         fixture.detectChanges();
 
         expect(q(el, 'review-grand-total')!.textContent).toContain('60,00');
@@ -547,7 +547,7 @@ describe('NfeFormComponent', () => {
         c.freight.set(15);
         c.grossWeight.set(42);
         c.infoAdicionais.set('  Entregar pela manhã  ');
-        c.paymentMethodId.set('pm-pix');
+        c.paymentMethodType.set('PIX');
         fixture.detectChanges();
         const el: HTMLElement = fixture.nativeElement;
 
@@ -567,7 +567,7 @@ describe('NfeFormComponent', () => {
           freight: 15,
           transport: { modality: 'CIF', grossWeight: 42 },
           additionalInfo: 'Entregar pela manhã',
-          paymentMethodId: 'pm-pix',
+          paymentMethodType: 'PIX',
         });
         req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 77, status: 'QUEUED' });
         await fixture.whenStable();
@@ -618,29 +618,29 @@ describe('NfeFormComponent', () => {
       const fixture = await setup([]);
 
       const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="payment-method-select"] option') as NodeListOf<HTMLOptionElement>);
-      expect(options.map(o => o.value)).toEqual(['', 'pm-pix', 'pm-boleto']);
-      expect(options.map(o => o.textContent?.trim())).toEqual(['Não informada', 'PIX', 'Boleto bancário']);
+      expect(options.map(o => o.value)).toEqual(['', 'PIX', 'BOLETO']);
+      expect(options.map(o => o.textContent?.trim())).toEqual(['Selecione...', 'PIX', 'Boleto bancário']);
     });
 
-    it('sends paymentMethodId in the POST /api/nfe payload when a method is selected', async () => {
+    it('sends paymentMethodType in the POST /api/nfe payload when a method is selected', async () => {
       const c = await create();
       await fillAll(c);
-      c.paymentMethodId.set('pm-pix');
+      c.paymentMethodType.set('PIX');
 
       const emitting = c.emit();
       const req = http.expectOne('/api/nfe');
-      expect((req.request.body as IssueNfeRequest).paymentMethodId).toBe('pm-pix');
+      expect((req.request.body as IssueNfeRequest).paymentMethodType).toBe('PIX');
       req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
       await emitting;
     });
 
-    it('omits paymentMethodId when no method is selected', async () => {
+    it('omits paymentMethodType when no method is selected', async () => {
       const c = await create();
       await fillAll(c);
 
       const emitting = c.emit();
       const req = http.expectOne('/api/nfe');
-      expect('paymentMethodId' in req.request.body).toBeFalse();
+      expect('paymentMethodType' in req.request.body).toBeFalse();
       req.flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 1, status: 'QUEUED' });
       await emitting;
     });
@@ -790,7 +790,7 @@ describe('NfeFormComponent', () => {
       const fixture = await setup();
       const c = fixture.componentInstance;
       await fillAll(c);
-      c.paymentMethodId.set('pm-pix');
+      c.paymentMethodType.set('PIX');
 
       const emitting = c.emit();
       http.expectOne('/api/nfe').flush({ id: 'n1', accessKey: null, documentSeries: '1', documentNumber: 77, status: 'QUEUED' });
@@ -798,7 +798,7 @@ describe('NfeFormComponent', () => {
       fixture.detectChanges();
 
       const shown = fixture.nativeElement.querySelector('[data-testid="issued-payment-method"]') as HTMLElement;
-      expect(shown.textContent?.trim()).toBe(paymentMethods().find(m => m.id === 'pm-pix')!.name);
+      expect(shown.textContent?.trim()).toBe(paymentMethods().find(m => m.code === 'PIX')!.description);
     });
 
     it('omits transport and freight when the modality is "sem transporte"', async () => {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { PaymentMethod, PaymentMethodService } from './payment-method.service';
+import { PaymentMethodTypeOption, PaymentMethodService } from './payment-method.service';
 
 describe('PaymentMethodService', () => {
   let service: PaymentMethodService;
@@ -15,8 +15,8 @@ describe('PaymentMethodService', () => {
 
   afterEach(() => http.verify());
 
-  it('loads the methods from GET /api/auxiliary/payment-methods', async () => {
-    const rows: PaymentMethod[] = [{ id: 'pm1', name: 'PIX', type: 'PIX' }];
+  it('loads the types from GET /api/auxiliary/payment-methods/types', async () => {
+    const rows: PaymentMethodTypeOption[] = [{ code: 'PIX', description: 'PIX' }];
 
     const loading = service.load();
     expect(service.status()).toBe('loading');

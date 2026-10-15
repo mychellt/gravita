@@ -1,5 +1,6 @@
 package br.gravita.adapters.outbound.persistence.adapters.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.adapters.outbound.persistence.entities.tax.NfeJpaEntity;
 import br.gravita.adapters.outbound.persistence.mappers.tax.NfePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.NfeJpaRepository;
@@ -213,7 +214,7 @@ class NfeRepositoryAdapterTest {
 				.transport(transport)
 				.referencedAccessKey(null)
 				.additionalInfo("Informação adicional de teste")
-				.paymentMethodId(UUID.randomUUID())
+				.paymentMethodType(PaymentMethodType.PIX)
 				.taxTotals(TaxCalculationTotals.from(List.of(breakdown)))
 				.createdAt(createdAt)
 				.build();

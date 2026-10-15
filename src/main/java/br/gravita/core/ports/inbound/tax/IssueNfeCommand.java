@@ -1,5 +1,6 @@
 package br.gravita.core.ports.inbound.tax;
 
+import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NaturezaOperacao;
 import br.gravita.core.domain.tax.TransportModality;
@@ -33,7 +34,7 @@ public record IssueNfeCommand(
 		TransportCommand transport,
 		String referencedAccessKey,
 		String additionalInfo,
-		UUID paymentMethodId) {
+		PaymentMethodType paymentMethodType) {
 
 	public IssueNfeCommand {
 		Objects.requireNonNull(issuerCompanyId, "issuerCompanyId");

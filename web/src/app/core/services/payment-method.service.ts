@@ -7,30 +7,29 @@ import type { LoadStatus } from './customer.service';
 /** Tipo da forma de pagamento (enum `PaymentMethodType` do backend). */
 export type PaymentMethodType = 'CASH' | 'DEBIT_CARD' | 'CREDIT_CARD' | 'PIX' | 'BOLETO' | 'STORE_CREDIT' | 'VOUCHER';
 
-/** Forma de pagamento, como devolvida por GET /api/auxiliary/payment-methods (PaymentMethodResponse). */
-export interface PaymentMethod {
-  id: string;
-  name: string;
-  type: PaymentMethodType;
+/** Tipo de pagamento com a descrição em português, como devolvido por GET /api/auxiliary/payment-methods. */
+export interface PaymentMethodTypeOption {
+  code: PaymentMethodType;
+  description: string;
 }
 
-/** Formas de pagamento cadastradas (GET /api/auxiliary/payment-methods) — somente leitura. */
+/** Tipos de forma de pagamento (GET /api/auxiliary/payment-methods) — somente leitura. */
 @Injectable({ providedIn: 'root' })
 export class PaymentMethodService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/auxiliary/payment-methods`;
 
-  private readonly methods = signal<PaymentMethod[]>([]);
+  private readonly types = signal<PaymentMethodTypeOption[]>([]);
   private readonly loadStatus = signal<LoadStatus>('loading');
 
-  readonly paymentMethods = this.methods.asReadonly();
+  readonly paymentMethods = this.types.asReadonly();
   readonly status = this.loadStatus.asReadonly();
 
   /** Nunca rejeita: uma falha vira `status() === 'error'`. */
   async load(): Promise<void> {
     this.loadStatus.set('loading');
     try {
-      this.methods.set(await firstValueFrom(this.http.get<PaymentMethod[]>(this.baseUrl)));
+      this.types.set(await firstValueFrom(this.http.get<PaymentMethodTypeOption[]>(this.baseUrl)));
       this.loadStatus.set('ready');
     } catch {
       this.loadStatus.set('error');

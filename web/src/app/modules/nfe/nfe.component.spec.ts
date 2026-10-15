@@ -11,7 +11,7 @@ const iso = (offsetDays = 0) => new Date(Date.now() - offsetDays * 86_400_000).t
 const nfe = (over: Partial<NfeListItem>): NfeListItem => ({
   id: 'n1', documentNumber: 1, documentSeries: '1', recipientName: 'Cliente A', cfop: '5102',
   emittedAt: iso(), totalValue: 100, icmsValue: 18, status: 'AUTHORIZED',
-  cancellationJustification: null, cancelledAt: null, paymentMethodId: null, ...over,
+  cancellationJustification: null, cancelledAt: null, paymentMethodType: null, ...over,
 });
 
 const inbound = (over: Partial<InboundNfeListItem>): InboundNfeListItem => ({

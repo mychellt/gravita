@@ -1,5 +1,6 @@
 package br.gravita.adapters.inbound.controllers.tax.dtos;
 
+import br.gravita.core.domain.PaymentMethodType;
 import br.gravita.core.domain.shared.PersonType;
 import br.gravita.core.domain.tax.NaturezaOperacao;
 import br.gravita.core.domain.tax.TaxType;
@@ -28,14 +29,14 @@ public record IssueNfeRequest(
 		@Valid TransportRequest transport,
 		String referencedAccessKey,
 		String additionalInfo,
-		UUID paymentMethodId) {
+		PaymentMethodType paymentMethodType) {
 
 	public IssueNfeCommand toCommand() {
 		return new IssueNfeCommand(issuerCompanyId, originSalesOrderId, naturezaOperacao, recipient.toCommand(),
 				items.stream().map(ItemRequest::toCommand).toList(), priceTableId, discountOverrideJustification,
 				taxOverrides == null ? List.of() : taxOverrides.stream().map(TaxOverrideRequest::toCommand).toList(),
 				freight, insurance, otherExpenses, transport == null ? null : transport.toCommand(),
-				referencedAccessKey, additionalInfo, paymentMethodId);
+				referencedAccessKey, additionalInfo, paymentMethodType);
 	}
 
 	public record RecipientRequest(UUID personId, @NotNull String document, @NotNull PersonType personType,
