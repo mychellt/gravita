@@ -7,10 +7,15 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.StockReservation;
 import br.gravita.core.domain.inventory.StockReservationId;
 import br.gravita.core.domain.inventory.StockReservationStatus;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.ports.inbound.inventory.ListStockReservationsQuery;
 import br.gravita.core.ports.outbound.persistence.inventory.StockReservationRepositoryPort;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class StockReservationRepositoryAdapter implements StockReservationRepositoryPort {
@@ -41,5 +46,13 @@ class StockReservationRepositoryAdapter implements StockReservationRepositoryPor
 		return jpaRepository.findByOrderRefAndStatus(orderRef, StockReservationStatus.ACTIVE).stream()
 				.map(mapper::map)
 				.toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<StockReservation> search(final UUID warehouseId, final ListStockReservationsQuery query) {
+		final Sort newestFirst = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+		return PageMapping.toPage(jpaRepository.search(warehouseId, query.status(), query.productId(),
+				PageMapping.pageable(query.pageQuery(), newestFirst)), mapper::map);
 	}
 }

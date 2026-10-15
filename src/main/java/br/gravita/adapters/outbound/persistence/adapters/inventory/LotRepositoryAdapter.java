@@ -5,11 +5,16 @@ import br.gravita.adapters.outbound.persistence.mappers.inventory.LotPersistence
 import br.gravita.adapters.outbound.persistence.repositories.inventory.LotJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.inventory.Lot;
+import br.gravita.core.domain.shared.Page;
+import br.gravita.core.domain.shared.PageQuery;
 import br.gravita.core.ports.outbound.persistence.inventory.LotRepositoryPort;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class LotRepositoryAdapter implements LotRepositoryPort {
@@ -44,5 +49,15 @@ class LotRepositoryAdapter implements LotRepositoryPort {
 		final LotJpaEntity entity = mapper.map(lot);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		return mapper.map(jpaRepository.save(entity));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<Lot> search(final UUID warehouseId, final UUID productId, final PageQuery pageQuery) {
+		final Sort earliestExpiryFirst = Sort.by(Sort.Order.asc("expiryDate"), Sort.Order.asc("code"),
+				Sort.Order.asc("id"));
+		return PageMapping.toPage(
+				jpaRepository.search(warehouseId, productId, PageMapping.pageable(pageQuery, earliestExpiryFirst)),
+				mapper::map);
 	}
 }
