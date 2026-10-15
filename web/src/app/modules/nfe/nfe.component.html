@@ -1,5 +1,7 @@
 <app-page-header title="Notas Fiscais (NF-e)" subtitle="Emissão, transmissão e gestão · Modelo 55">
-  <button class="btn btn-ghost"><i class="ti ti-upload"></i> Importar XML</button>
+  <button class="btn btn-ghost" (click)="inboundDialog.set('import')"><i class="ti ti-upload"></i> Importar XML</button>
+  <button class="btn btn-ghost" (click)="inboundDialog.set('manual')"><i class="ti ti-keyboard"></i> Lançar manualmente</button>
+  <button class="btn btn-ghost" (click)="inboundDialog.set('manifestation')"><i class="ti ti-checkbox"></i> Manifestar</button>
   <a routerLink="/nfe/nova" class="btn btn-primary"><i class="ti ti-plus"></i> Nova NF-e</a>
 </app-page-header>
 
@@ -97,6 +99,7 @@
           <th>Emissão</th>
           <th class="td-right">Valor Total</th>
           <th>Status</th>
+          <th class="td-right">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -108,11 +111,16 @@
             <td style="font-size:12px;color:var(--text3)">{{ nf.issuedAt | date:'dd/MM/yy HH:mm' }}</td>
             <td class="td-amount">{{ nf.totalValue | brl }}</td>
             <td><app-badge [value]="nf.status" /></td>
+            <td class="td-actions">
+              @if (nf.status === 'PENDING_CONFERENCE') {
+                <button class="action-btn" (click)="conferring.set(nf)">Conferir e confirmar recebimento</button>
+              }
+            </td>
           </tr>
         }
         @empty {
           <tr>
-            <td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">
+            <td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">
               Nenhuma NF-e encontrada
             </td>
           </tr>
@@ -169,3 +177,12 @@
     </table>
   }
 </div>
+
+@switch (inboundDialog()) {
+  @case ('import') { <app-import-xml-modal (closed)="inboundDialog.set(null)" /> }
+  @case ('manual') { <app-manual-entry-modal (closed)="inboundDialog.set(null)" /> }
+  @case ('manifestation') { <app-manifestation-modal (closed)="inboundDialog.set(null)" /> }
+}
+@if (conferring(); as nota) {
+  <app-confirm-receipt-modal [nfe]="nota" (closed)="conferring.set(null)" />
+}

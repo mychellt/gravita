@@ -1,13 +1,18 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
-import { NfeListItem, NfeService, nfeFailureDetail } from '../../core/services/nfe.service';
+import { InboundNfeListItem, NfeListItem, NfeService, nfeFailureDetail } from '../../core/services/nfe.service';
 import { ToastService } from '../../core/services/toast.service';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
+import { ConfirmReceiptModalComponent } from './inbound/confirm-receipt-modal.component';
+import { ImportXmlModalComponent } from './inbound/import-xml-modal.component';
+import { ManifestationModalComponent } from './inbound/manifestation-modal.component';
+import { ManualEntryModalComponent } from './inbound/manual-entry-modal.component';
 
 type NfeTab = 'emitidas' | 'entradas' | 'canceladas' | 'sped';
+type InboundDialog = 'import' | 'manual' | 'manifestation';
 
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
 const sameMonth = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
@@ -16,7 +21,10 @@ const sum = (list: NfeListItem[]) => list.reduce((total, n) => total + n.totalVa
 @Component({
   selector: 'app-nfe',
   standalone: true,
-  imports: [RouterLink, DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe],
+  imports: [
+    RouterLink, DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe,
+    ImportXmlModalComponent, ManualEntryModalComponent, ManifestationModalComponent, ConfirmReceiptModalComponent,
+  ],
   styleUrl: './nfe.component.scss',
   templateUrl: './nfe.component.html'
 })
@@ -32,6 +40,10 @@ export class NfeComponent {
   searchQuery = signal('');
   /** Id da NF-e com uma ação em andamento (cancelar/baixar), para não disparar a mesma ação duas vezes. */
   busyId = signal<string | null>(null);
+  /** Modal de entrada aberto (importar, lançar, manifestar), se algum. */
+  inboundDialog = signal<InboundDialog | null>(null);
+  /** Nota de entrada em conferência, se o modal de conferência está aberto. */
+  conferring = signal<InboundNfeListItem | null>(null);
 
   /** Estado de carga da lista da aba ativa: Emitidas/Canceladas vêm de /api/nfe, Entradas de /api/nfe/inbound. */
   readonly loadStatus = computed(() =>
