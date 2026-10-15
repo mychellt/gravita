@@ -619,7 +619,7 @@ describe('NfeFormComponent', () => {
 
       const options = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="payment-method-select"] option') as NodeListOf<HTMLOptionElement>);
       expect(options.map(o => o.value)).toEqual(['', 'PIX', 'BOLETO']);
-      expect(options.map(o => o.textContent?.trim())).toEqual(['Não informada', 'PIX', 'Boleto bancário']);
+      expect(options.map(o => o.textContent?.trim())).toEqual(['Selecione...', 'PIX', 'Boleto bancário']);
     });
 
     it('sends paymentMethodType in the POST /api/nfe payload when a method is selected', async () => {

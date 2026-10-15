@@ -318,7 +318,7 @@
       <div class="card-body">
         <select class="form-select" style="width:100%;margin-bottom:8px" data-testid="payment-method-select"
                 [ngModel]="paymentMethodType()" (ngModelChange)="paymentMethodType.set($event)" name="paymentMethodType">
-          <option value="">Não informada</option>
+          <option value="" disabled>Selecione...</option>
           @for (m of paymentMethods(); track m.code) {
             <option [value]="m.code">{{ m.description }}</option>
           }
