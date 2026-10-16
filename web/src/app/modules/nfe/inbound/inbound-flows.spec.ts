@@ -3,12 +3,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/services/auth.service';
-import { InboundNfeListItem, NfeService } from '../../../core/services/nfe.service';
+import { InboundNfeConferenceView, InboundNfeListItem, NfeService } from '../../../core/services/nfe.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmReceiptModalComponent } from './confirm-receipt-modal.component';
 import { ImportXmlModalComponent } from './import-xml-modal.component';
 import { ManifestationModalComponent } from './manifestation-modal.component';
 import { ManualEntryModalComponent } from './manual-entry-modal.component';
+import { RegisterProductFromItemModalComponent } from './register-product-from-item-modal.component';
 
 const COMPANY = 'company-1';
 const KEY = '3'.repeat(44);
@@ -20,7 +21,20 @@ const row = (over: Partial<InboundNfeListItem> = {}): InboundNfeListItem => ({
   id: 'i1', series: '1', number: '777', supplierName: 'Fornecedor Alfa', issuedAt: '2026-10-01T00:00:00Z',
   totalValue: 165, status: 'PENDING_CONFERENCE', ...over,
 });
-const summary = (over = {}) => ({ id: 'i1', accessKey: KEY, supplierName: 'Fornecedor Alfa', itemCount: 2, totalValue: 165, status: 'PENDING_CONFERENCE', ...over });
+const summary = (over = {}) => ({
+  id: 'i1', accessKey: KEY, supplierName: 'Fornecedor Alfa', itemCount: 2, totalValue: 165, status: 'PENDING_CONFERENCE',
+  supplierResolved: true, ...over,
+});
+const conferenceView = (over: Partial<InboundNfeConferenceView> = {}): InboundNfeConferenceView => ({
+  id: 'i1', series: '1', number: '777', supplierName: 'Fornecedor Alfa', supplierResolved: true, supplierId: 'sup-1',
+  items: [
+    { supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 15,
+      resolvedProductId: PRODUCT, resolvedProductLabel: 'PRF-001', lastPurchaseUnitValue: 15 },
+    { supplierProductCode: 'SKU-2', description: 'Porca', ncm: '73181500', unit: 'UN', quantity: 5, unitValue: 3,
+      resolvedProductId: null, resolvedProductLabel: null, lastPurchaseUnitValue: null },
+  ],
+  ...over,
+});
 
 describe('Inbound NF-e flows', () => {
   let http: HttpTestingController;
@@ -148,39 +162,37 @@ describe('Inbound NF-e flows', () => {
     });
   });
 
-  describe('confirm receipt', () => {
-    async function confirmModal(known: 'manual' | 'none') {
-      if (known === 'manual') {
-        const manual = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
-        manual.chave.set(KEY); manual.numero.set('777'); manual.emissao.set('2026-10-01T10:00');
-        manual.cnpj.set('12345678000195'); manual.fornecedor.set('Fornecedor Alfa');
-        manual.alterar(0, { description: 'Parafuso', quantity: 10, unitValue: 15 });
-        manual.adicionar();
-        manual.alterar(1, { description: 'Porca', quantity: 5, unitValue: 3 });
-        const entering = manual.enviar();
-        http.expectOne('/api/nfe/inbound').flush(summary());
-        await flush();
-        http.expectOne('/api/nfe/inbound').flush([row()]);
-        await entering;
-      }
+  describe('confirm receipt (GRA-246)', () => {
+    async function confirmModal(vista: InboundNfeConferenceView = conferenceView()) {
+      const loading = service.load();
+      http.expectOne('/api/nfe').flush([]);
+      http.expectOne('/api/nfe/inbound').flush([row()]);
+      await loading;
+
       const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
       fixture.componentRef.setInput('nfe', row());
       fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(vista);
+      await flush();
       return fixture.componentInstance;
     }
 
-    it('lists the items of a manually entered note and sends one line per item, in order', async () => {
-      const modal = await confirmModal('manual');
+    it('loads the conference view and sends one line per item, in order', async () => {
+      const modal = await confirmModal();
       expect(modal.linhas().map(l => l.description)).toEqual(['Parafuso', 'Porca']);
-      modal.alterar(0, { productId: PRODUCT });
-      modal.alterar(1, { productId: 'prod-2', receivedQty: 4 });
+      expect(modal.linhas()[0].resolvedProductId).toBe(PRODUCT);
+
+      const linking = modal.vincularExistente(1, { productId: 'prod-2', description: 'Porca Sextavada', ncm: null, unitPrice: 3, availableForSale: true });
+      http.expectOne('/api/nfe/inbound/i1/items/1/link-existing-product').flush(null);
+      await linking;
+      expect(modal.linhas()[1].resolvedProductId).toBe('prod-2');
 
       const confirming = modal.confirmar();
       const post = http.expectOne('/api/nfe/inbound/i1/confirm-receipt');
       expect(post.request.body).toEqual({
         conferenceResult: [
           { itemRef: PRODUCT, orderedQty: 10, receivedQty: 10 },
-          { itemRef: 'prod-2', orderedQty: 5, receivedQty: 4 },
+          { itemRef: 'prod-2', orderedQty: 5, receivedQty: 5 },
         ],
       });
       post.flush(summary({ status: 'CONFIRMED' }));
@@ -189,9 +201,8 @@ describe('Inbound NF-e flows', () => {
       expect(service.inboundNfes()[0].status).toBe('CONFIRMED');
     });
 
-    it('blocks submission while an item has no product chosen (BR4)', async () => {
-      const modal = await confirmModal('manual');
-      modal.alterar(0, { productId: PRODUCT });
+    it('blocks confirmation while an item has no product linked yet (AC3)', async () => {
+      const modal = await confirmModal();
 
       await modal.confirmar();
 
@@ -199,29 +210,104 @@ describe('Inbound NF-e flows', () => {
       expect(modal.tentouEnviar()).toBeTrue();
     });
 
-    it('lets the user build the lines when the note items are unknown', async () => {
-      const modal = await confirmModal('none');
-      expect(modal.itensConhecidos()).toBeFalse();
-      modal.adicionar();
-      expect(modal.linhas().length).toBe(2);
-      modal.remover(1);
-      expect(modal.linhas().length).toBe(1);
+    it('blocks confirmation when the supplier is not registered yet (AC2)', async () => {
+      const modal = await confirmModal(conferenceView({ supplierResolved: false, supplierId: null }));
+
+      await modal.confirmar();
+
+      http.expectNone('/api/nfe/inbound/i1/confirm-receipt');
+      expect(modal.tentouEnviar()).toBeTrue();
     });
 
-    it('keeps the modal open with the backend message when refused (size mismatch / already confirmed)', async () => {
-      const modal = await confirmModal('none');
+    it('resolves a line in place once a new product is registered and linked (BR4)', async () => {
+      const modal = await confirmModal();
+
+      modal.onNewProductLinked(1, { id: 'prod-3', internalCode: 'Porca Nova' });
+
+      expect(modal.linhas()[1].resolvedProductId).toBe('prod-3');
+      expect(modal.linhas()[1].resolvedProductLabel).toBe('Porca Nova');
+    });
+
+    it('flags the price variance against the link\'s last purchase price, but never blocks confirmation (AC8/BR7)', async () => {
+      const modal = await confirmModal();
+
+      expect(modal.variancia(modal.linhas()[0])).toBeNull();
+
+      modal.alterar(0, { unitValue: 18 });
+      expect(modal.variancia(modal.linhas()[0])).toBe(3);
+
+      modal.onNewProductLinked(1, { id: 'prod-3', internalCode: 'Porca Nova' });
+      expect(modal.variancia(modal.linhas()[1])).toBeNull();
+    });
+
+    it('keeps the modal open with the backend message when refused', async () => {
+      const vista = conferenceView({
+        items: [
+          conferenceView().items[0],
+          { ...conferenceView().items[1], resolvedProductId: 'prod-2', resolvedProductLabel: 'Porca', lastPurchaseUnitValue: 3 },
+        ],
+      });
+      const modal = await confirmModal(vista);
       const closed = jasmine.createSpy('closed');
       modal.closed.subscribe(closed);
-      modal.alterar(0, { productId: PRODUCT, orderedQty: 10, receivedQty: 10 });
 
       const confirming = modal.confirmar();
       http.expectOne('/api/nfe/inbound/i1/confirm-receipt')
-        .flush({ message: 'Conference result must have exactly one entry per NFe item (expected 2, got 1)' }, BAD_REQUEST);
+        .flush({ message: 'Item is not linked to a catalog product' }, BAD_REQUEST);
       await confirming;
 
-      expect(modal.erro()).toContain('expected 2, got 1');
+      expect(modal.erro()).toContain('not linked');
       expect(modal.enviando()).toBeFalse();
       expect(closed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('register product from an unresolved item (GRA-246 BR4)', () => {
+    function modal() {
+      const fixture = TestBed.createComponent(RegisterProductFromItemModalComponent);
+      fixture.componentRef.setInput('item', conferenceView().items[1]);
+      fixture.componentRef.setInput('inboundNfeId', 'i1');
+      fixture.componentRef.setInput('itemIndex', 1);
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    it('pre-fills identification fields from the item', () => {
+      const c = modal();
+      expect(c.internalCode()).toBe('Porca');
+      expect(c.ncm()).toBe('73181500');
+      expect(c.purchaseUnit()).toBe('UN');
+      expect(c.averageCost()).toBe(3);
+    });
+
+    it('requires the fiscal-output and pricing fields before saving (UC-M1-11)', async () => {
+      const c = modal();
+      await c.salvar();
+      http.expectNone('/api/nfe/inbound/i1/items/1/link-new-product');
+      expect(c.tentouEnviar()).toBeTrue();
+    });
+
+    it('registers the product and links it, carrying every completed field', async () => {
+      const c = modal();
+      c.cfopVenda.set('5102');
+      c.ufCst.set('SP');
+      c.cstCsosn.set('000');
+      c.icmsRate.set(18);
+      c.basePrice.set(10);
+      const linked = jasmine.createSpy('linked');
+      c.linked.subscribe(linked);
+
+      const saving = c.salvar();
+      const post = http.expectOne('/api/nfe/inbound/i1/items/1/link-new-product');
+      expect(post.request.body).toEqual(jasmine.objectContaining({
+        internalCode: 'Porca', type: 'SIMPLE', ncm: '73181500',
+        defaultCfopByOperation: { VENDA: '5102' }, cstCsosnByState: { SP: '000' },
+        basePrice: 10, averageCost: 3,
+      }));
+      post.flush({ id: 'prod-3', internalCode: 'Porca' });
+      await saving;
+
+      expect(linked).toHaveBeenCalledWith({ id: 'prod-3', internalCode: 'Porca' });
     });
   });
 
