@@ -33,11 +33,13 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<ProductDomain> get(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<ProductDomain> findAll() {
 		return jpaRepository.findAll().stream().map(mapper::map).toList();
 	}
