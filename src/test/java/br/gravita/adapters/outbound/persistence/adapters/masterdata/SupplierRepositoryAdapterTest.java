@@ -93,6 +93,27 @@ class SupplierRepositoryAdapterTest {
 		assertThat(adapter.findById(id)).isEmpty();
 	}
 
+	@Test
+	@DisplayName("Finds a supplier by CNPJ, to resolve one from an NFe's free-text document")
+	void shouldFindSupplierByDocument() {
+		final Supplier supplier = buildSupplier();
+		final SupplierJpaEntity entity = buildEntity(supplier.getId());
+		when(repository.findByDocument("11222333000181")).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(supplier);
+
+		final Optional<Supplier> result = adapter.findByDocument(Document.cnpj("11222333000181"));
+
+		assertThat(result).contains(supplier);
+	}
+
+	@Test
+	@DisplayName("Returns empty when no supplier is registered for the document")
+	void shouldReturnEmptyWhenNoSupplierMatchesDocument() {
+		when(repository.findByDocument("11222333000181")).thenReturn(Optional.empty());
+
+		assertThat(adapter.findByDocument(Document.cnpj("11222333000181"))).isEmpty();
+	}
+
 	private SupplierJpaEntity buildEntity(final SupplierId id) {
 		return SupplierJpaEntity.builder().id(id.value()).build();
 	}

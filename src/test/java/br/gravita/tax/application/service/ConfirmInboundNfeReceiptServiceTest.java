@@ -7,9 +7,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.gravita.core.domain.masterdata.Address;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.Supplier;
+import br.gravita.core.domain.masterdata.SupplierId;
+import br.gravita.core.domain.masterdata.SupplierProductCatalogLink;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
@@ -18,12 +22,16 @@ import br.gravita.core.domain.tax.InboundNfeId;
 import br.gravita.core.domain.tax.InboundNfeItem;
 import br.gravita.core.domain.tax.InboundNfeNotFoundException;
 import br.gravita.core.domain.tax.InboundNfeTotals;
+import br.gravita.core.ports.inbound.masterdata.UpsertSupplierProductCatalogLinkCommand;
+import br.gravita.core.ports.inbound.masterdata.UpsertSupplierProductCatalogLinkUseCase;
 import br.gravita.core.ports.inbound.tax.CalculateTaxCommand;
 import br.gravita.core.ports.inbound.tax.CalculateTaxUseCase;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptCommand;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptCommand.ConferenceItem;
 import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.SupplierProductCatalogLinkRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
 import br.gravita.core.ports.outbound.tax.NotifyPayableGeneratedPort;
 import br.gravita.core.ports.outbound.tax.NotifyPayableGeneratedPort.NotifyPayableGeneratedCommand;
@@ -54,6 +62,15 @@ class ConfirmInboundNfeReceiptServiceTest {
 	private CompanyRepositoryPort companyRepositoryPort;
 
 	@Mock
+	private SupplierRepositoryPort supplierRepositoryPort;
+
+	@Mock
+	private SupplierProductCatalogLinkRepositoryPort linkRepositoryPort;
+
+	@Mock
+	private UpsertSupplierProductCatalogLinkUseCase upsertSupplierProductCatalogLinkUseCase;
+
+	@Mock
 	private CalculateTaxUseCase calculateTaxUseCase;
 
 	@Mock
@@ -67,11 +84,13 @@ class ConfirmInboundNfeReceiptServiceTest {
 	private final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 	private final UUID productId = UUID.randomUUID();
 	private final Instant issuedAt = Instant.parse("2026-01-10T12:00:00Z");
+	private final SupplierId supplierId = SupplierId.of(UUID.randomUUID());
 
 	@BeforeEach
 	void setUp() {
 		service = new ConfirmInboundNfeReceiptService(inboundNfeRepositoryPort, companyRepositoryPort,
-				calculateTaxUseCase, notifyStockEntryPort, notifyPayableGeneratedPort);
+				supplierRepositoryPort, linkRepositoryPort, upsertSupplierProductCatalogLinkUseCase, calculateTaxUseCase,
+				notifyStockEntryPort, notifyPayableGeneratedPort);
 	}
 
 	@Test
@@ -178,10 +197,79 @@ class ConfirmInboundNfeReceiptServiceTest {
 		verify(inboundNfeRepositoryPort, never()).save(any());
 	}
 
+	@Test
+	@DisplayName("GRA-246 AC2: rejects confirming when no supplier is registered for the NFe's CNPJ")
+	void rejectsConfirmingWhenTheSupplierIsUnresolved() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.execute(command(pending.getId().value(), BigDecimal.TEN, BigDecimal.TEN)))
+				.isInstanceOf(br.gravita.core.domain.shared.BusinessRuleException.class)
+				.hasMessageContaining("No supplier is registered");
+
+		verify(notifyStockEntryPort, never()).notifyEntry(any());
+		verify(notifyPayableGeneratedPort, never()).notifyGenerated(any());
+		verify(inboundNfeRepositoryPort, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("GRA-246 AC3: rejects confirming when an item has no SupplierProductCatalogLink yet")
+	void rejectsConfirmingWhenAnItemIsUnresolved() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findByCompanySupplierAndCode(companyId, supplierId, "SKU-001"))
+				.thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.execute(command(pending.getId().value(), BigDecimal.TEN, BigDecimal.TEN)))
+				.isInstanceOf(br.gravita.core.domain.shared.BusinessRuleException.class)
+				.hasMessageContaining("SKU-001")
+				.hasMessageContaining("not linked");
+
+		verify(notifyStockEntryPort, never()).notifyEntry(any());
+		verify(notifyPayableGeneratedPort, never()).notifyGenerated(any());
+		verify(inboundNfeRepositoryPort, never()).save(any());
+	}
+
+	@Test
+	@DisplayName("GRA-246 BR7: a successful confirmation records this NFe's price/date as the link's last purchase")
+	void confirmingUpdatesTheLinksLastPurchasePriceAndDate() {
+		final InboundNfe pending = pendingInboundNfe();
+		mockLookups(pending);
+		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+
+		final ArgumentCaptor<UpsertSupplierProductCatalogLinkCommand> captor =
+				ArgumentCaptor.forClass(UpsertSupplierProductCatalogLinkCommand.class);
+		verify(upsertSupplierProductCatalogLinkUseCase).execute(captor.capture());
+		assertThat(captor.getValue().companyId()).isEqualTo(companyId.value());
+		assertThat(captor.getValue().supplierId()).isEqualTo(supplierId.value());
+		assertThat(captor.getValue().supplierProductCode()).isEqualTo("SKU-001");
+		assertThat(captor.getValue().productId()).isEqualTo(productId);
+		assertThat(captor.getValue().unitValue()).isEqualByComparingTo("1.5000");
+		assertThat(captor.getValue().purchasedAt()).isEqualTo(issuedAt);
+	}
+
 	private void mockLookups(final InboundNfe pending) {
 		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findByCompanySupplierAndCode(companyId, supplierId, "SKU-001"))
+				.thenReturn(Optional.of(link()));
 		when(calculateTaxUseCase.execute(any())).thenReturn(new TaxCalculationResult(List.of(), null));
+	}
+
+	private Supplier supplier() {
+		final Address address = new Address("Rua Fornecedor", "100", null, "Centro", "Sao Paulo", "SP", "01000-000");
+		return Supplier.of(supplierId, Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA", List.of(address),
+				List.of(), null, null, 5, "1102");
+	}
+
+	private SupplierProductCatalogLink link() {
+		return SupplierProductCatalogLink.create(companyId, supplierId, "SKU-001", productId, new BigDecimal("1.5000"),
+				issuedAt);
 	}
 
 	private ConfirmInboundNfeReceiptCommand command(final UUID inboundNfeId, final BigDecimal orderedQty, final BigDecimal receivedQty) {

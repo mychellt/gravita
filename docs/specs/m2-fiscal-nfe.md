@@ -76,7 +76,8 @@ Each use case below has a standalone implementation ticket under [`m2-fiscal-nfe
 | [`ManifestInboundNfeUseCase`](m2-fiscal-nfe/uc-07-manifest-inbound-nfe.md) | Record recipient manifestation for an inbound NFe. |
 | [`ImportSupplierNfeXmlUseCase`](m2-fiscal-nfe/uc-08-import-supplier-nfe-xml.md) | Parse a supplier's XML into an `InboundNfe`, ready for conference. |
 | [`EnterInboundNfeManuallyUseCase`](m2-fiscal-nfe/uc-09-enter-inbound-nfe-manually.md) | Manual entry when no XML is available. |
-| [`ConfirmInboundNfeReceiptUseCase`](m2-fiscal-nfe/uc-10-confirm-inbound-nfe-receipt.md) | Confirms conference, triggers stock entry (`inventory`) and payable generation (`finance`). |
+| [`ConfirmInboundNfeReceiptUseCase`](m2-fiscal-nfe/uc-10-confirm-inbound-nfe-receipt.md) | Confirms conference, triggers stock entry (`inventory`) and payable generation (`finance`); requires the supplier and every item already resolved to a catalog product (GRA-246). |
+| [`GetInboundNfeForConferenceUseCase` / `ResolveInboundNfeItemAsNewProductUseCase` / `ResolveInboundNfeItemAsExistingProductUseCase`](m2-fiscal-nfe/uc-15-resolve-inbound-nfe-item.md) | Resolves supplier and item-to-product dynamically for the conference screen; lets the operator register a new product or link an existing one for an unresolved item (GRA-246). |
 | [`GenerateSpedFiscalUseCase`](m2-fiscal-nfe/uc-11-generate-sped-fiscal.md) / [`GenerateSpedContribuicoesUseCase`](m2-fiscal-nfe/uc-12-generate-sped-contribuicoes.md) | EFD TXT generation per period. |
 | [`GenerateLivrosFiscaisUseCase`](m2-fiscal-nfe/uc-13-generate-livros-fiscais.md) | Entry/Exit/ICMS Assessment books per period. |
 | [`ExportAccountingEntriesUseCase`](m2-fiscal-nfe/uc-14-export-accounting-entries.md) | CSV/TXT export in the configured accounting format. |
