@@ -35,7 +35,8 @@ export class ProductPickerComponent {
 
   @Input() label = 'Produto';
   @Input() invalid = false;
-  @Output() picked = new EventEmitter<string>();
+  /** Emite o produto escolhido (com descrição, para exibição) ou `null` ao limpar a seleção. */
+  @Output() picked = new EventEmitter<ProductSearchResult | null>();
 
   readonly termo = signal('');
   readonly resultados = signal<ProductSearchResult[]>([]);
@@ -60,6 +61,6 @@ export class ProductPickerComponent {
 
   escolher(productId: string): void {
     this.escolhido.set(productId);
-    this.picked.emit(productId);
+    this.picked.emit(this.resultados().find(p => p.productId === productId) ?? null);
   }
 }

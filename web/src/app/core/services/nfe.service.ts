@@ -48,6 +48,63 @@ export interface InboundNfeSummary {
   itemCount: number;
   totalValue: number;
   status: InboundNfeStatus;
+  /** GRA-246 AC1: se já existe um Fornecedor cadastrado para o CNPJ desta nota; não bloqueia o lançamento. */
+  supplierResolved: boolean;
+}
+
+/** Um item da nota na tela de conferência, com a resolução fornecedor/produto já calculada pelo backend (GRA-246). */
+export interface InboundNfeConferenceItem {
+  supplierProductCode: string;
+  description: string;
+  ncm: string;
+  unit: string;
+  quantity: number;
+  unitValue: number;
+  /** Produto já vinculado a este código do fornecedor; nulo enquanto o item não é resolvido. */
+  resolvedProductId: string | null;
+  resolvedProductLabel: string | null;
+  /** Preço da última compra registrada no vínculo; nulo numa primeira compra deste item. */
+  lastPurchaseUnitValue: number | null;
+}
+
+/** Corpo de GET /api/nfe/inbound/{id}/conference (InboundNfeConferenceViewResponse) — fonte única dos itens da nota. */
+export interface InboundNfeConferenceView {
+  id: string;
+  series: string;
+  number: string;
+  supplierName: string;
+  supplierResolved: boolean;
+  supplierId: string | null;
+  items: InboundNfeConferenceItem[];
+}
+
+/** Corpo de POST .../items/{itemIndex}/link-new-product (RegisterProductRequest, só os campos usados por este fluxo). */
+export interface RegisterProductFromItemRequest {
+  internalCode: string;
+  type: 'SIMPLE';
+  ncm: string;
+  origin: number;
+  defaultCfopByOperation: Record<string, string>;
+  cstCsosnByState: Record<string, string>;
+  taxProfile: {
+    icmsRate: number;
+    ipiRate: number;
+    pisRate: number;
+    cofinsRate: number;
+    icmsStRate: number;
+    fcpRate: number;
+  };
+  averageCost: number;
+  basePrice: number;
+  purchaseUnit: string;
+  saleUnit: string;
+  conversionFactor: number;
+}
+
+/** Resposta de POST .../link-new-product (ProductResponse, só os campos usados pela tela). */
+export interface RegisteredProduct {
+  id: string;
+  internalCode: string;
 }
 
 /** Item de uma NF-e de entrada lançada manualmente (EnterInboundNfeManuallyRequest.Item). */
@@ -163,7 +220,11 @@ interface CancelNfeResult {
   cancelledAt: string | null;
 }
 
-/** Mensagem do backend (`{message}`) para uma falha, inclusive quando o corpo veio como Blob (downloads). */
+/**
+ * Mensagem do backend para uma falha. Cobre `{message}` (handlers locais dos controllers), texto puro
+ * (`ApiExceptionHandler` genérico devolve `ResponseEntity<String>`, que o Angular embrulha em `{text}` quando
+ * falha o parse como JSON) e Blob (downloads).
+ */
 export async function nfeFailureDetail(error: unknown): Promise<string> {
   if (!(error instanceof HttpErrorResponse)) return '';
   let body: unknown = error.error;
@@ -174,7 +235,9 @@ export async function nfeFailureDetail(error: unknown): Promise<string> {
       return '';
     }
   }
-  const message = (body as { message?: unknown } | null)?.message;
+  if (typeof body === 'string') return body.trim();
+  const record = body as { message?: unknown; text?: unknown } | null;
+  const message = record?.message ?? record?.text;
   return typeof message === 'string' ? message.trim() : '';
 }
 
@@ -188,11 +251,6 @@ export class NfeService {
   private readonly issuedStatus = signal<LoadStatus>('loading');
   private readonly inbound = signal<InboundNfeListItem[]>([]);
   private readonly inboundStatus = signal<LoadStatus>('loading');
-  /**
-   * Itens conhecidos de notas de entrada desta sessão, por id. O backend não expõe os itens de uma nota depois
-   * de criada; só o que a tela acabou de lançar (ou a contagem devolvida no import) está disponível para a conferência.
-   */
-  private readonly knownItems = new Map<string, ManualInboundItem[] | number>();
 
   readonly nfes = this.issued.asReadonly();
   readonly status = this.issuedStatus.asReadonly();
@@ -230,7 +288,6 @@ export class NfeService {
     form.append('companyId', companyId);
     form.append('xmlFile', xmlFile);
     const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound/import-xml`, form));
-    this.knownItems.set(created.id, created.itemCount);
     await this.refreshInbound();
     return created;
   }
@@ -238,9 +295,25 @@ export class NfeService {
   /** POST /api/nfe/inbound — lançamento manual; atualiza a lista. Rejeita se o backend recusa (400 com `{message}`). */
   async enterInboundManually(request: EnterInboundNfeRequest): Promise<InboundNfeSummary> {
     const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound`, request));
-    this.knownItems.set(created.id, request.manualData.items);
     await this.refreshInbound();
     return created;
+  }
+
+  /** GET /api/nfe/inbound/{id}/conference — fornecedor/itens com a resolução de produto já calculada (GRA-246). */
+  getConferenceView(id: string): Promise<InboundNfeConferenceView> {
+    return firstValueFrom(this.http.get<InboundNfeConferenceView>(`${this.baseUrl}/inbound/${id}/conference`));
+  }
+
+  /** POST .../items/{itemIndex}/link-new-product — cadastra o produto a partir do item e já cria o vínculo (BR4). */
+  linkNewProduct(id: string, itemIndex: number, request: RegisterProductFromItemRequest): Promise<RegisteredProduct> {
+    return firstValueFrom(
+      this.http.post<RegisteredProduct>(`${this.baseUrl}/inbound/${id}/items/${itemIndex}/link-new-product`, request));
+  }
+
+  /** POST .../items/{itemIndex}/link-existing-product — vincula o item a um produto já existente do catálogo (BR5). */
+  linkExistingProduct(id: string, itemIndex: number, productId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${this.baseUrl}/inbound/${id}/items/${itemIndex}/link-existing-product`, { productId }));
   }
 
   /** POST /api/nfe/inbound/{id}/confirm-receipt — a linha passa a refletir a resposta, sem recarregar a lista. Rejeita se o backend recusa. */
@@ -253,11 +326,6 @@ export class NfeService {
   /** POST /api/nfe/inbound/manifestation — manifestação do destinatário sobre a chave de acesso. Rejeita se o backend recusa. */
   manifestInbound(accessKey: string, type: ManifestationType): Promise<InboundManifestation> {
     return firstValueFrom(this.http.post<InboundManifestation>(`${this.baseUrl}/inbound/manifestation`, { accessKey, type }));
-  }
-
-  /** O que a tela sabe dos itens da nota: a lista completa (lançamento manual), só a contagem (import) ou nada (nota de outra sessão). */
-  knownItemsOf(id: string): ManualInboundItem[] | number | null {
-    return this.knownItems.get(id) ?? null;
   }
 
   /** Relê as Entradas sem passar por "carregando", para a tabela não piscar depois de uma ação. */

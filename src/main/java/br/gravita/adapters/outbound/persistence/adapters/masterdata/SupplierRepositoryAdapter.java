@@ -6,6 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.masterdata.Supplier
 import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
+import br.gravita.core.domain.shared.Document;
 import br.gravita.core.annotations.PersistenceAdapter;
 import java.util.Optional;
 
@@ -31,5 +32,10 @@ class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 	@Override
 	public Optional<Supplier> findById(final SupplierId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
+	}
+
+	@Override
+	public Optional<Supplier> findByDocument(final Document document) {
+		return jpaRepository.findByDocument(document.number()).map(mapper::map);
 	}
 }

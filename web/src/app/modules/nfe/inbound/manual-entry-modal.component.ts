@@ -182,8 +182,12 @@ export class ManualEntryModalComponent {
     this.enviando.set(true);
     this.erro.set('');
     try {
-      await this.nfe.enterInboundManually(this.montarRequisicao(companyId));
-      this.toast.success('NF-e de entrada lançada — aguardando conferência');
+      const nota = await this.nfe.enterInboundManually(this.montarRequisicao(companyId));
+      if (nota.supplierResolved) {
+        this.toast.success('NF-e de entrada lançada — aguardando conferência');
+      } else {
+        this.toast.warn('NF-e de entrada lançada, mas o fornecedor ainda não está cadastrado — cadastre-o antes de conferir.');
+      }
       this.closed.emit();
     } catch (error) {
       this.erro.set((await nfeFailureDetail(error)) || 'Não foi possível lançar a NF-e.');

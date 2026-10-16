@@ -74,6 +74,7 @@ Base registrations are the foundation of every other module. Errors or missing f
 - **Supplier** (aggregate root, embeds `Person`) — `bankAccount`, `pixKey`, `averageLeadTimeDays`, `defaultPurchaseCfop`.
 - **Product** (aggregate root) — `internalCode`, `barcodes: [EAN13|DUN14]`, `type: {SIMPLE, VARIANT, KIT, SERVICE}`, `ncm`, `cest`, `origin (0–8)`, `defaultCfopByOperation`, `cstCsosnByState`, `taxProfile` (ICMS/IPI/PIS/COFINS/ICMS-ST/FCP parameters), `averageCost: Money`, `basePrice: Money`, `stock{min,max,reorderPoint}`, `purchaseUnit`, `saleUnit`, `conversionFactor`, `lotControl: boolean`, `serialControl: boolean`, `classification{group,subgroup,brand,section}`, `images: [URL] (max 5)`, `status: {ACTIVE, INACTIVE, OUT_OF_STOCK}`. A `Kit` variant composes other `Product`s; a `Service` variant carries no stock fields.
 - **PriceTable** — `formation: {FIXED, PERCENT_OVER_COST, PERCENT_OVER_BASE}`, `validFrom`, `validTo`, `maxDiscountPercent`, `maxDiscountBehavior: {BLOCK, ALERT}`, list of `PriceTableEntry` (per product or product class).
+- **SupplierProductCatalogLink** (GRA-246) — `companyId`, `supplierId`, `supplierProductCode`, `productId`, `lastPurchaseUnitValue: Money`, `lastPurchaseAt`. Remembers which catalog `Product` a supplier's own item code refers to, so inbound NF-e conference (`tax`, M2) auto-resolves a repeat purchase instead of the operator re-picking it every time. Unique per `(companyId, supplierId, supplierProductCode)`; a `Product` can carry links from more than one supplier.
 - **PaymentTerm**, **PaymentMethod**, **CostCenter** (tree), **ChartOfAccounts** (tree), **IbgeMunicipality**, **InterstateIcmsRate** — auxiliary reference entities, all read by other contexts but owned here.
 
 ## Use cases (`application.port.in`)
@@ -97,6 +98,7 @@ Each use case below has a standalone implementation ticket under [`m1-cadastros-
 | [`ManagePriceTableUseCase`](m1-cadastros-base/uc-13-manage-price-table.md) | Create/edit price tables and entries, including validity transitions. |
 | [`ManageAuxiliaryTableUseCase`](m1-cadastros-base/uc-14-manage-auxiliary-table.md) | CRUD for payment terms/methods, cost centers, chart of accounts, IBGE municipalities, interstate ICMS rates. |
 | [`AllocateDocumentNumberUseCase`](m1-cadastros-base/uc-15-allocate-document-number.md) | Atomically reserve the next number for a document series (called by `tax`, not user-facing). |
+| [`UpsertSupplierProductCatalogLinkUseCase` / `QuerySupplierProductCatalogLinkUseCase`](m1-cadastros-base/uc-16-supplier-product-catalog-link.md) | Create/refresh the link between a supplier's item code and a catalog product; query it by code or by product (called by `tax`'s inbound NF-e conference, GRA-246). |
 
 ## Outbound ports (`application.port.out`)
 

@@ -58,7 +58,11 @@ export class ImportXmlModalComponent {
     this.erro.set('');
     try {
       const nota = await this.nfe.importInboundXml(companyId, arquivo);
-      this.toast.success(`NF-e de ${nota.supplierName} importada — aguardando conferência`);
+      if (nota.supplierResolved) {
+        this.toast.success(`NF-e de ${nota.supplierName} importada — aguardando conferência`);
+      } else {
+        this.toast.warn(`NF-e de ${nota.supplierName} importada, mas o fornecedor ainda não está cadastrado — cadastre-o antes de conferir.`);
+      }
       this.closed.emit();
     } catch (error) {
       this.erro.set((await nfeFailureDetail(error)) || 'Não foi possível importar o XML.');

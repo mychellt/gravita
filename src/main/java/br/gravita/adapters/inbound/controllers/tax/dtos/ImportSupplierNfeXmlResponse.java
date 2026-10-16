@@ -10,15 +10,18 @@ public record ImportSupplierNfeXmlResponse(
 		String supplierName,
 		int itemCount,
 		BigDecimal totalValue,
-		String status) {
+		String status,
+		/** GRA-246 AC1: whether a Supplier is already registered for this NFe's CNPJ; never blocks the import either way. */
+		boolean supplierResolved) {
 
-	public static ImportSupplierNfeXmlResponse from(final InboundNfe inboundNfe) {
+	public static ImportSupplierNfeXmlResponse from(final InboundNfe inboundNfe, final boolean supplierResolved) {
 		return new ImportSupplierNfeXmlResponse(
 				inboundNfe.getId().value(),
 				inboundNfe.getAccessKey(),
 				inboundNfe.getSupplierName(),
 				inboundNfe.getItems().size(),
 				inboundNfe.getTotals().totalValue(),
-				inboundNfe.getStatus().name());
+				inboundNfe.getStatus().name(),
+				supplierResolved);
 	}
 }
