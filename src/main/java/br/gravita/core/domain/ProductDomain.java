@@ -40,6 +40,7 @@ public class ProductDomain extends AbstractDomain {
 	private BigDecimal conversionFactor;
 	private Boolean lotControl;
 	private Boolean serialControl;
+	private Boolean allowNegativeStock;
 	private ClassificationDomain classification;
 	private List<String> images;
 	private ProductStatus status;
@@ -97,6 +98,9 @@ public class ProductDomain extends AbstractDomain {
 		}
 		if (patch.serialControl != null) {
 			this.serialControl = patch.serialControl;
+		}
+		if (patch.allowNegativeStock != null) {
+			this.allowNegativeStock = patch.allowNegativeStock;
 		}
 		if (patch.classification != null) {
 			this.classification = patch.classification;

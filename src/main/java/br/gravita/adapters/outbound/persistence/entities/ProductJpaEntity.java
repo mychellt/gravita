@@ -79,6 +79,9 @@ public class ProductJpaEntity extends AbstractEntity<UUID> {
 
 	private Boolean serialControl;
 
+	@Column(name = "allow_negative_stock")
+	private Boolean allowNegativeStock;
+
 	@Embedded
 	private ProductClassificationEmbeddable classification;
 

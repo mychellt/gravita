@@ -50,7 +50,8 @@ class ListStockBalancesServiceTest {
 				new BigDecimal("10"), new BigDecimal("4"), new BigDecimal("1"), new BigDecimal("2.5"));
 		when(stockBalanceRepositoryPort.search(DefaultWarehouse.ID, productId, pageQuery))
 				.thenReturn(new Page<>(List.of(balance), 1, 10, 11));
-		final ProductDomain product = ProductDomain.builder().id(productId).internalCode("SKU-1").build();
+		final ProductDomain product = ProductDomain.builder().id(productId).internalCode("SKU-1")
+				.allowNegativeStock(true).build();
 		when(productRepositoryPort.findAllByIds(List.of(productId))).thenReturn(List.of(product));
 
 		final Page<StockBalanceItemView> result = service.execute(new ListStockBalancesQuery(productId, pageQuery));
@@ -63,6 +64,7 @@ class ListStockBalancesServiceTest {
 			assertThat(item.warehouseId()).isEqualTo(DefaultWarehouse.ID);
 			assertThat(item.onHand()).isEqualByComparingTo("10");
 			assertThat(item.available()).isEqualByComparingTo("6");
+			assertThat(item.allowNegativeStock()).isTrue();
 		});
 	}
 

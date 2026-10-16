@@ -40,7 +40,8 @@ describe('Inventory tabs backed by the API', () => {
       expect(text(fixture)).toContain('Carregando saldos');
 
       http.expectOne(byUrl('/api/inventory/balances')).flush(page([{
-        productId: PRODUCT, productCode: 'SKU-9', warehouseId: 'w', onHand: 12, reserved: 2, inTransit: 0, available: 10, averageCost: 5 }]));
+        productId: PRODUCT, productCode: 'SKU-9', warehouseId: 'w', onHand: 12, reserved: 2, inTransit: 0, available: 10,
+        averageCost: 5, allowNegativeStock: false }]));
       await settle(fixture);
 
       expect(text(fixture)).toContain('SKU-9');
@@ -60,6 +61,43 @@ describe('Inventory tabs backed by the API', () => {
       await settle(fixture);
 
       expect(text(fixture)).toContain('Nenhum saldo encontrado');
+    });
+
+    it('toggles allow-negative-stock through the server and reflects the persisted value', async () => {
+      const fixture = TestBed.createComponent(BalancesTabComponent);
+      fixture.detectChanges();
+      http.expectOne(byUrl('/api/inventory/balances')).flush(page([{
+        productId: PRODUCT, productCode: 'SKU-9', warehouseId: 'w', onHand: 12, reserved: 2, inTransit: 0, available: 10,
+        averageCost: 5, allowNegativeStock: false }]));
+      await settle(fixture);
+      const switchEl = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="switch"]')!;
+      expect(switchEl.getAttribute('aria-checked')).toBe('false');
+
+      switchEl.click();
+      const request = http.expectOne(byUrl(`/api/inventory/products/${PRODUCT}/allow-negative-stock`));
+      expect(request.request.method).toBe('PATCH');
+      expect(request.request.body).toEqual({ allowNegativeStock: true });
+      request.flush({ productId: PRODUCT, allowNegativeStock: true });
+      await settle(fixture);
+
+      expect(switchEl.getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('keeps the previous value and shows a toast when the toggle fails', async () => {
+      const fixture = TestBed.createComponent(BalancesTabComponent);
+      fixture.detectChanges();
+      http.expectOne(byUrl('/api/inventory/balances')).flush(page([{
+        productId: PRODUCT, productCode: 'SKU-9', warehouseId: 'w', onHand: 12, reserved: 2, inTransit: 0, available: 10,
+        averageCost: 5, allowNegativeStock: false }]));
+      await settle(fixture);
+      const switchEl = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('[role="switch"]')!;
+
+      switchEl.click();
+      http.expectOne(byUrl(`/api/inventory/products/${PRODUCT}/allow-negative-stock`))
+        .flush(null, { status: 500, statusText: 'Server Error' });
+      await settle(fixture);
+
+      expect(switchEl.getAttribute('aria-checked')).toBe('false');
     });
   });
 

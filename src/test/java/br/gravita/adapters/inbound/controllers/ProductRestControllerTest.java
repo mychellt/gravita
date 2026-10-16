@@ -94,7 +94,7 @@ class ProductRestControllerTest {
 		final UUID id = UUID.randomUUID();
 		final UpdateProductRequest partialUpdate = new UpdateProductRequest(
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, ProductStatus.INACTIVE, null, null);
+				null, null, null, null, ProductStatus.INACTIVE, null, null);
 		final ProductDomain updated = request.toDomain(id);
 		updated.setStatus(ProductStatus.INACTIVE);
 		when(updateProductPort.execute(any())).thenReturn(updated);

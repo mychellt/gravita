@@ -5,11 +5,13 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record StockBalanceItemView(UUID productId, String productCode, UUID warehouseId, BigDecimal onHand,
-		BigDecimal reserved, BigDecimal inTransit, BigDecimal available, BigDecimal averageCost) {
+		BigDecimal reserved, BigDecimal inTransit, BigDecimal available, BigDecimal averageCost,
+		boolean allowNegativeStock) {
 
-	public static StockBalanceItemView from(final StockBalance balance, final String productCode) {
+	public static StockBalanceItemView from(final StockBalance balance, final String productCode,
+			final boolean allowNegativeStock) {
 		return new StockBalanceItemView(balance.getProductId(), productCode, balance.getWarehouseId(),
 				balance.getOnHand(), balance.getReserved(), balance.getInTransit(), balance.available(),
-				balance.getAverageCost());
+				balance.getAverageCost(), allowNegativeStock);
 	}
 }

@@ -43,6 +43,7 @@ class RegisterProductAdapterTest {
 
 		assertThat(created.getId()).isNotNull();
 		assertThat(created.getStatus()).isEqualTo(ProductStatus.ACTIVE);
+		assertThat(created.getAllowNegativeStock()).isFalse();
 		final ArgumentCaptor<ProductDomain> captor = ArgumentCaptor.forClass(ProductDomain.class);
 		verify(productRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getInternalCode()).isEqualTo("SKU-1");

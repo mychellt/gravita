@@ -36,6 +36,7 @@ public record UpdateProductRequest(
 		BigDecimal conversionFactor,
 		Boolean lotControl,
 		Boolean serialControl,
+		Boolean allowNegativeStock,
 		@Valid ClassificationRequest classification,
 		@Size(max = ProductDomain.MAX_IMAGES, message = "A product can have at most 5 images") List<String> images,
 		ProductStatus status,
@@ -62,6 +63,7 @@ public record UpdateProductRequest(
 				.conversionFactor(conversionFactor)
 				.lotControl(lotControl)
 				.serialControl(serialControl)
+				.allowNegativeStock(allowNegativeStock)
 				.classification(classification == null ? null : classification.toDomain())
 				.images(images)
 				.status(status)

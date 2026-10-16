@@ -29,6 +29,9 @@ public class RegisterProductAdapter implements RegisterProductPort {
 			product.setId(UUID.randomUUID());
 		}
 		product.setStatus(ProductStatus.ACTIVE);
+		if (product.getAllowNegativeStock() == null) {
+			product.setAllowNegativeStock(Boolean.FALSE);
+		}
 
 		product.validate();
 		validateBarcodesAreUnique(product.getBarcodes());

@@ -1,6 +1,7 @@
 package br.gravita.core.usercases.inventory;
 
 import br.gravita.core.annotations.UseCase;
+import br.gravita.core.domain.ProductDomain;
 import br.gravita.core.domain.inventory.DefaultWarehouse;
 import br.gravita.core.domain.inventory.StockBalance;
 import br.gravita.core.domain.shared.Page;
@@ -28,11 +29,15 @@ public class ListStockBalancesService implements ListStockBalancesUseCase {
 	public Page<StockBalanceItemView> execute(final ListStockBalancesQuery query) {
 		final Page<StockBalance> balances = stockBalanceRepositoryPort.search(DefaultWarehouse.ID, query.productId(),
 				query.pageQuery());
-		final Map<UUID, String> codes = ProductCodeLookup.codesOf(productRepositoryPort,
+		final Map<UUID, ProductDomain> products = ProductCodeLookup.productsOf(productRepositoryPort,
 				balances.content().stream().map(StockBalance::getProductId).toList());
 		return new Page<>(
 				balances.content().stream()
-						.map(balance -> StockBalanceItemView.from(balance, codes.get(balance.getProductId())))
+						.map(balance -> {
+							final ProductDomain product = products.get(balance.getProductId());
+							return StockBalanceItemView.from(balance, product == null ? null : product.getInternalCode(),
+									product != null && Boolean.TRUE.equals(product.getAllowNegativeStock()));
+						})
 						.toList(),
 				balances.page(), balances.size(), balances.totalElements());
 	}

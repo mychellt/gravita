@@ -26,6 +26,7 @@ export interface StockBalanceItem {
   inTransit: number;
   available: number;
   averageCost: number;
+  allowNegativeStock: boolean;
 }
 
 /** Saldo agregado de um produto, como devolvido por GET /api/inventory/products/{id}/balance. */
@@ -199,6 +200,13 @@ export class InventoryApiService {
   /** GET /api/inventory/products/{id}/balance — saldo do produto no depósito padrão (zerado se nunca movimentado). */
   productBalance(productId: string): Promise<ProductBalance> {
     return firstValueFrom(this.http.get<ProductBalance>(`${this.baseUrl}/products/${productId}/balance`));
+  }
+
+  /** PATCH /api/inventory/products/{id}/allow-negative-stock — devolve o valor persistido. */
+  async setAllowNegativeStock(productId: string, allowNegativeStock: boolean): Promise<boolean> {
+    const updated = await firstValueFrom(this.http.patch<{ allowNegativeStock: boolean }>(
+      `${this.baseUrl}/products/${productId}/allow-negative-stock`, { allowNegativeStock }));
+    return updated.allowNegativeStock;
   }
 
   units(kind: StockUnitKind, page: number, size: number, productId?: string): Promise<Page<StockUnit>> {

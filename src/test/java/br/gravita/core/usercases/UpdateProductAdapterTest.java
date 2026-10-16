@@ -168,4 +168,45 @@ class UpdateProductAdapterTest {
 		verify(productRepositoryPort).save(captor.capture());
 		assertThat(captor.getValue().getNcm()).isEqualTo("12345678");
 	}
+
+	@DisplayName("An unrelated update does not reset allowNegativeStock")
+	@Test
+	void shouldNotChangeAllowNegativeStockOnUnrelatedUpdate() {
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
+				.id(id)
+				.type(ProductType.SIMPLE)
+				.internalCode("SKU-1")
+				.allowNegativeStock(true)
+				.build();
+		final ProductDomain patch = ProductDomain.builder().id(id).basePrice(java.math.BigDecimal.ONE).build();
+		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
+		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		final ProductDomain updated = adapter.execute(new Context(patch));
+
+		assertThat(updated.getAllowNegativeStock()).isTrue();
+	}
+
+	@DisplayName("Toggling allowNegativeStock through the generic update leaves everything else untouched")
+	@Test
+	void shouldToggleAllowNegativeStockWhenProvided() {
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder()
+				.id(id)
+				.type(ProductType.SIMPLE)
+				.internalCode("SKU-1")
+				.allowNegativeStock(false)
+				.build();
+		final ProductDomain patch = ProductDomain.builder().id(id).allowNegativeStock(true).build();
+		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
+		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		final ProductDomain updated = adapter.execute(new Context(patch));
+
+		assertThat(updated.getAllowNegativeStock()).isTrue();
+		assertThat(updated.getInternalCode()).isEqualTo("SKU-1");
+	}
 }

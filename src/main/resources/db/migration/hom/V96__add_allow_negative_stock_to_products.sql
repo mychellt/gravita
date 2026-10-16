@@ -1,0 +1,2 @@
+ALTER TABLE products
+    ADD COLUMN IF NOT EXISTS allow_negative_stock BOOLEAN DEFAULT FALSE;

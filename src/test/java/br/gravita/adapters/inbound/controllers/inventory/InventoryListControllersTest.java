@@ -105,7 +105,8 @@ class InventoryListControllersTest {
 	@DisplayName("Balances: returns the page with the product code and forwards productId, page and size")
 	void balancesReturnsThePageAndForwardsTheFilters() throws Exception {
 		final StockBalanceItemView item = new StockBalanceItemView(PRODUCT_ID, "SKU-A", DefaultWarehouse.ID,
-				new BigDecimal("10"), new BigDecimal("4"), BigDecimal.ZERO, new BigDecimal("6"), new BigDecimal("2.5"));
+				new BigDecimal("10"), new BigDecimal("4"), BigDecimal.ZERO, new BigDecimal("6"), new BigDecimal("2.5"),
+				true);
 		when(listStockBalancesUseCase.execute(any())).thenReturn(new Page<>(List.of(item), 1, 5, 6));
 
 		mockMvc.perform(get("/api/inventory/balances").param("productId", PRODUCT_ID.toString())
@@ -113,6 +114,7 @@ class InventoryListControllersTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.content[0].productCode").value("SKU-A"))
 				.andExpect(jsonPath("$.content[0].available").value(6))
+				.andExpect(jsonPath("$.content[0].allowNegativeStock").value(true))
 				.andExpect(jsonPath("$.page").value(1))
 				.andExpect(jsonPath("$.size").value(5))
 				.andExpect(jsonPath("$.totalElements").value(6))
