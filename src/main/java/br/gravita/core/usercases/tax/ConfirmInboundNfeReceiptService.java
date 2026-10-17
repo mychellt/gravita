@@ -30,6 +30,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @UseCase
 public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceiptUseCase {
@@ -59,6 +60,7 @@ public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceipt
 	}
 
 	@Override
+	@Transactional
 	public InboundNfe execute(final ConfirmInboundNfeReceiptCommand command) {
 		final InboundNfeId id = InboundNfeId.of(command.inboundNfeId());
 		final InboundNfe inboundNfe = inboundNfeRepositoryPort.findById(id)
