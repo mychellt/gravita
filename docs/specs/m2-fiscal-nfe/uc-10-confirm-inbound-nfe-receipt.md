@@ -28,6 +28,7 @@ public interface ConfirmInboundNfeReceiptUseCase {
 - `NotifyStockEntryPort` (into `inventory`)
 - `NotifyPayableGeneratedPort` (into `finance`)
 - `CalculateTaxUseCase` ([UC-M2-02](uc-02-calculate-tax.md)) — for the ICMS/PIS/COFINS credit computation
+- `SupplierRepositoryPort`, `SupplierProductCatalogLinkRepositoryPort` — supplier/item resolution ([UC-M2-15](uc-15-resolve-inbound-nfe-supplier-and-products.md))
 
 ## REST endpoint
 
@@ -36,6 +37,7 @@ public interface ConfirmInboundNfeReceiptUseCase {
 ## Domain entities touched
 
 - `InboundNfe` (conference result recorded, marked confirmed)
+- `SupplierProductCatalogLink` (last purchase price/date refreshed)
 
 ## Acceptance criteria
 
@@ -43,6 +45,8 @@ public interface ConfirmInboundNfeReceiptUseCase {
 - [ ] Stock entry is created immediately on confirmation — not on a delayed batch job.
 - [ ] Accounts-payable titles are generated with installments matching the NF's payment terms, not re-entered manually.
 - [ ] ICMS/PIS/COFINS credit is computed according to the company's tax regime at confirmation time.
+- [ ] Rejected with a clear message when the NFe's supplier CNPJ matches no registered `Supplier`, or when any item has no `SupplierProductCatalogLink` (UC-M2-15 AC2/AC3), and when a conference line's `itemRef` is not the product linked to its item.
+- [ ] On success, each item's link gets this NFe's `unitValue`/`issuedAt` as its last purchase; the imported `InboundNfeItem` values are never changed (UC-M2-15 AC8/AC10).
 
 ## Dependencies
 

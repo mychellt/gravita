@@ -4,6 +4,7 @@ import br.gravita.core.domain.PaymentMethodType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,6 +33,8 @@ import br.gravita.core.domain.tax.TaxType;
 import br.gravita.core.ports.inbound.tax.CancelNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptUseCase;
 import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
+import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceUseCase;
+import br.gravita.core.ports.inbound.tax.InboundNfeConference;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
 import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterUseCase;
 import br.gravita.core.ports.inbound.tax.IssueNfeUseCase;
@@ -39,6 +42,10 @@ import br.gravita.core.ports.inbound.tax.ListInboundNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ListNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ManifestInboundNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ResendNfeEmailUseCase;
+import br.gravita.core.ports.inbound.tax.ResolveInboundNfeItemCommand;
+import br.gravita.core.ports.inbound.tax.ResolveInboundNfeItemUseCase;
+import br.gravita.core.domain.masterdata.SupplierId;
+import br.gravita.core.domain.masterdata.SupplierProductCatalogLink;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.XmlObjectStoragePort;
 import br.gravita.core.ports.outbound.persistence.tax.NfeRepositoryPort;
@@ -73,6 +80,10 @@ class NfeListControllerTest {
 	private ListNfeUseCase listNfeUseCase;
 	@MockitoBean
 	private ListInboundNfeUseCase listInboundNfeUseCase;
+	@MockitoBean
+	private GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase;
+	@MockitoBean
+	private ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase;
 	@MockitoBean
 	private SessionStorePort sessionStorePort;
 
@@ -145,6 +156,42 @@ class NfeListControllerTest {
 				.andExpect(jsonPath("$[0].number").value("12345"))
 				.andExpect(jsonPath("$[0].totalValue").value(165.00))
 				.andExpect(jsonPath("$[0].status").value("PENDING_CONFERENCE"));
+	}
+
+	@Test
+	@DisplayName("GET /api/nfe/inbound/{id}/conference returns the supplier resolution and each item's linked product")
+	void shouldReturnTheInboundNfeConference() throws Exception {
+		final UUID inboundNfeId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		when(getInboundNfeConferenceUseCase.execute(any())).thenReturn(new InboundNfeConference(inboundNfeId, true,
+				UUID.randomUUID(), List.of(new InboundNfeConference.Item(0, "SKU-001", "Parafuso", "73181500", "UN",
+						BigDecimal.TEN, new BigDecimal("1.8000"), productId, "PARAF-M8", new BigDecimal("1.5000"),
+						Instant.parse("2026-01-10T12:00:00Z"), new BigDecimal("0.3000")))));
+
+		mockMvc.perform(get("/api/nfe/inbound/" + inboundNfeId + "/conference").header("Authorization", BEARER))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.supplierResolved").value(true))
+				.andExpect(jsonPath("$.items[0].resolved").value(true))
+				.andExpect(jsonPath("$.items[0].productId").value(productId.toString()))
+				.andExpect(jsonPath("$.items[0].lastPurchaseUnitValue").value(1.5))
+				.andExpect(jsonPath("$.items[0].priceDelta").value(0.3));
+	}
+
+	@Test
+	@DisplayName("POST /api/nfe/inbound/{id}/items/{index}/link-product links an existing product to the item")
+	void shouldLinkAnExistingProductToTheItem() throws Exception {
+		final UUID inboundNfeId = UUID.randomUUID();
+		final UUID productId = UUID.randomUUID();
+		when(resolveInboundNfeItemUseCase.execute(any(ResolveInboundNfeItemCommand.class))).thenReturn(
+				SupplierProductCatalogLink.create(CompanyId.of(UUID.randomUUID()), SupplierId.of(UUID.randomUUID()),
+						"SKU-001", productId, new BigDecimal("1.5000"), Instant.parse("2026-01-10T12:00:00Z")));
+
+		mockMvc.perform(post("/api/nfe/inbound/" + inboundNfeId + "/items/0/link-product")
+				.header("Authorization", BEARER).contentType("application/json")
+				.content("{\"productId\":\"" + productId + "\"}"))
+				.andExpect(status().isCreated())
+				.andExpect(jsonPath("$.productId").value(productId.toString()))
+				.andExpect(jsonPath("$.supplierProductCode").value("SKU-001"));
 	}
 
 	private NfeDocument draftNfe() {

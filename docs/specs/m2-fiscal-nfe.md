@@ -77,6 +77,7 @@ Each use case below has a standalone implementation ticket under [`m2-fiscal-nfe
 | [`ImportSupplierNfeXmlUseCase`](m2-fiscal-nfe/uc-08-import-supplier-nfe-xml.md) | Parse a supplier's XML into an `InboundNfe`, ready for conference. |
 | [`EnterInboundNfeManuallyUseCase`](m2-fiscal-nfe/uc-09-enter-inbound-nfe-manually.md) | Manual entry when no XML is available. |
 | [`ConfirmInboundNfeReceiptUseCase`](m2-fiscal-nfe/uc-10-confirm-inbound-nfe-receipt.md) | Confirms conference, triggers stock entry (`inventory`) and payable generation (`finance`). |
+| [`GetInboundNfeConferenceUseCase`, `ResolveInboundNfeItemUseCase`](m2-fiscal-nfe/uc-15-resolve-inbound-nfe-supplier-and-products.md) | Resolve an inbound NFe's supplier (CNPJ) and item products (supplier-code links) for the conference. |
 | [`GenerateSpedFiscalUseCase`](m2-fiscal-nfe/uc-11-generate-sped-fiscal.md) / [`GenerateSpedContribuicoesUseCase`](m2-fiscal-nfe/uc-12-generate-sped-contribuicoes.md) | EFD TXT generation per period. |
 | [`GenerateLivrosFiscaisUseCase`](m2-fiscal-nfe/uc-13-generate-livros-fiscais.md) | Entry/Exit/ICMS Assessment books per period. |
 | [`ExportAccountingEntriesUseCase`](m2-fiscal-nfe/uc-14-export-accounting-entries.md) | CSV/TXT export in the configured accounting format. |
@@ -112,6 +113,8 @@ Each use case below has a standalone implementation ticket under [`m2-fiscal-nfe
 | `POST /api/nfe/inbound/import-xml` | `ImportSupplierNfeXmlUseCase` |
 | `POST /api/nfe/inbound` | `EnterInboundNfeManuallyUseCase` |
 | `POST /api/nfe/inbound/{id}/confirm-receipt` | `ConfirmInboundNfeReceiptUseCase` |
+| `GET /api/nfe/inbound/{id}/conference` | `GetInboundNfeConferenceUseCase` |
+| `POST /api/nfe/inbound/{id}/items/{itemIndex}/link-product`, `…/register-product` | `ResolveInboundNfeItemUseCase` |
 | `POST /api/sped/fiscal`, `POST /api/sped/contribuicoes` | SPED generation |
 | `GET /api/livros-fiscais` | `GenerateLivrosFiscaisUseCase` |
 | `POST /api/accounting/export` | `ExportAccountingEntriesUseCase` |

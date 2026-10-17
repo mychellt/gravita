@@ -71,6 +71,17 @@ class SupplierRepositoryAdapterTest {
 	}
 
 	@Test
+	@DisplayName("Finds a supplier by its document number")
+	void shouldFindSupplierByDocument() {
+		final Supplier supplier = buildSupplier();
+		final SupplierJpaEntity entity = buildEntity(supplier.getId());
+		when(repository.findByDocument(supplier.getDocument().number())).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(supplier);
+
+		assertThat(adapter.findByDocument(supplier.getDocument())).contains(supplier);
+	}
+
+	@Test
 	@DisplayName("Finds a supplier by id")
 	void shouldFindSupplierById() {
 		final Supplier supplier = buildSupplier();

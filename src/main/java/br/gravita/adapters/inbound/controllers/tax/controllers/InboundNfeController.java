@@ -2,7 +2,11 @@ package br.gravita.adapters.inbound.controllers.tax.controllers;
 
 import br.gravita.adapters.inbound.controllers.tax.dtos.ConfirmInboundNfeReceiptRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.EnterInboundNfeManuallyRequest;
+import br.gravita.adapters.dtos.request.RegisterProductRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ImportSupplierNfeXmlResponse;
+import br.gravita.adapters.inbound.controllers.tax.dtos.InboundNfeConferenceResponse;
+import br.gravita.adapters.inbound.controllers.tax.dtos.LinkInboundNfeItemRequest;
+import br.gravita.adapters.inbound.controllers.tax.dtos.SupplierProductCatalogLinkResponse;
 import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
 import br.gravita.adapters.inbound.controllers.tax.dtos.InboundManifestationResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.InboundNfeListItemResponse;
@@ -14,10 +18,15 @@ import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.tax.InboundNfeNotFoundException;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptUseCase;
 import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
+import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceQuery;
+import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceUseCase;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlCommand;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
 import br.gravita.core.ports.inbound.tax.ListInboundNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ManifestInboundNfeUseCase;
+import br.gravita.core.ports.inbound.tax.ResolveInboundNfeItemCommand;
+import br.gravita.core.ports.inbound.tax.ResolveInboundNfeItemUseCase;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
@@ -46,17 +55,23 @@ public class InboundNfeController {
 	private final ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase;
 	private final ManifestInboundNfeUseCase manifestInboundNfeUseCase;
 	private final ListInboundNfeUseCase listInboundNfeUseCase;
+	private final GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase;
+	private final ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase;
 
 	public InboundNfeController(final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
 			final EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase,
 			final ConfirmInboundNfeReceiptUseCase confirmInboundNfeReceiptUseCase,
 			final ManifestInboundNfeUseCase manifestInboundNfeUseCase,
-			final ListInboundNfeUseCase listInboundNfeUseCase) {
+			final ListInboundNfeUseCase listInboundNfeUseCase,
+			final GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase,
+			final ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase) {
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
 		this.enterInboundNfeManuallyUseCase = enterInboundNfeManuallyUseCase;
 		this.confirmInboundNfeReceiptUseCase = confirmInboundNfeReceiptUseCase;
 		this.manifestInboundNfeUseCase = manifestInboundNfeUseCase;
 		this.listInboundNfeUseCase = listInboundNfeUseCase;
+		this.getInboundNfeConferenceUseCase = getInboundNfeConferenceUseCase;
+		this.resolveInboundNfeItemUseCase = resolveInboundNfeItemUseCase;
 	}
 
 	/** All inbound NF-e of the caller's company, any status, newest first. */
@@ -86,6 +101,33 @@ public class InboundNfeController {
 			@RequestBody final ConfirmInboundNfeReceiptRequest request) {
 		final var inboundNfe = confirmInboundNfeReceiptUseCase.execute(request.toCommand(id));
 		return ResponseEntity.ok(ImportSupplierNfeXmlResponse.from(inboundNfe));
+	}
+
+	/** The NFe's items next to the supplier and catalog Product each resolves to, for the conference screen. */
+	@GetMapping("/{id}/conference")
+	public InboundNfeConferenceResponse conference(@PathVariable final UUID id, @AuthenticatedUser final UserId callerId) {
+		return InboundNfeConferenceResponse
+				.from(getInboundNfeConferenceUseCase.execute(new GetInboundNfeConferenceQuery(id, callerId)));
+	}
+
+	/** Resolves an unresolved item by linking an existing catalog Product to the supplier's product code. */
+	@PostMapping("/{id}/items/{itemIndex}/link-product")
+	public ResponseEntity<SupplierProductCatalogLinkResponse> linkProduct(@PathVariable final UUID id,
+			@PathVariable final int itemIndex, @Valid @RequestBody final LinkInboundNfeItemRequest request,
+			@AuthenticatedUser final UserId callerId) {
+		final var link = resolveInboundNfeItemUseCase.execute(
+				ResolveInboundNfeItemCommand.linkingExisting(callerId, id, itemIndex, request.productId()));
+		return ResponseEntity.status(HttpStatus.CREATED).body(SupplierProductCatalogLinkResponse.from(link));
+	}
+
+	/** Resolves an unresolved item by registering the (operator-completed) Product and linking it in one step. */
+	@PostMapping("/{id}/items/{itemIndex}/register-product")
+	public ResponseEntity<SupplierProductCatalogLinkResponse> registerProduct(@PathVariable final UUID id,
+			@PathVariable final int itemIndex, @Valid @RequestBody final RegisterProductRequest request,
+			@AuthenticatedUser final UserId callerId) {
+		final var link = resolveInboundNfeItemUseCase.execute(
+				ResolveInboundNfeItemCommand.registeringNew(callerId, id, itemIndex, request.toDomain(null)));
+		return ResponseEntity.status(HttpStatus.CREATED).body(SupplierProductCatalogLinkResponse.from(link));
 	}
 
 	@PostMapping("/manifestation")
