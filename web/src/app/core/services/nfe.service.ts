@@ -97,13 +97,57 @@ export interface EnterInboundNfeRequest {
 }
 
 /**
- * Uma linha da conferência. `itemRef` é o UUID de um Produto do catálogo (o mesmo `productId` de /inventory),
- * não um id do item da nota; o backend casa a linha i com o item i da nota, por posição.
+ * Uma linha da conferência. `itemRef` é o UUID do Produto do catálogo vinculado ao item (o mesmo `productId` de /inventory),
+ * não um id do item da nota; o backend casa a linha i com o item i da nota, por posição, e exige o produto do vínculo.
  */
 export interface ConferenceLine {
   itemRef: string;
   orderedQty: number;
   receivedQty: number;
+}
+
+/**
+ * Um item da NF-e de entrada na conferência (InboundNfeConferenceResponse.Item): o que foi importado e, quando o código do
+ * fornecedor já tem vínculo, o produto do catálogo e a comparação com a última compra. `index` é a posição na nota.
+ */
+export interface InboundConferenceItem {
+  index: number;
+  supplierProductCode: string;
+  description: string;
+  ncm: string | null;
+  unit: string | null;
+  quantity: number;
+  unitValue: number;
+  resolved: boolean;
+  productId: string | null;
+  productLabel: string | null;
+  lastPurchaseUnitValue: number | null;
+  lastPurchaseAt: string | null;
+  /** Valor unitário da nota menos a última compra; positivo quando ficou mais caro. */
+  priceDelta: number | null;
+}
+
+/** Corpo de resposta de GET /api/nfe/inbound/{id}/conference (InboundNfeConferenceResponse). */
+export interface InboundConference {
+  inboundNfeId: string;
+  /** Falso enquanto nenhum fornecedor cadastrado tem o CNPJ da nota. */
+  supplierResolved: boolean;
+  supplierId: string | null;
+  items: InboundConferenceItem[];
+}
+
+/** Corpo de POST /api/nfe/inbound/{id}/items/{index}/register-product (RegisterProductRequest, só o que a conferência envia). */
+export interface RegisterInboundProductRequest {
+  internalCode: string;
+  type: 'SIMPLE';
+  ncm: string;
+  origin: number;
+  defaultCfopByOperation: Record<string, string>;
+  cstCsosnByState: Record<string, string>;
+  taxProfile?: { icmsRate?: number; ipiRate?: number; pisRate?: number; cofinsRate?: number };
+  basePrice: number;
+  purchaseUnit: string;
+  saleUnit: string;
 }
 
 /** Tipo de manifestação do destinatário (enum `ManifestationType`). */
@@ -188,11 +232,6 @@ export class NfeService {
   private readonly issuedStatus = signal<LoadStatus>('loading');
   private readonly inbound = signal<InboundNfeListItem[]>([]);
   private readonly inboundStatus = signal<LoadStatus>('loading');
-  /**
-   * Itens conhecidos de notas de entrada desta sessão, por id. O backend não expõe os itens de uma nota depois
-   * de criada; só o que a tela acabou de lançar (ou a contagem devolvida no import) está disponível para a conferência.
-   */
-  private readonly knownItems = new Map<string, ManualInboundItem[] | number>();
 
   readonly nfes = this.issued.asReadonly();
   readonly status = this.issuedStatus.asReadonly();
@@ -230,7 +269,6 @@ export class NfeService {
     form.append('companyId', companyId);
     form.append('xmlFile', xmlFile);
     const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound/import-xml`, form));
-    this.knownItems.set(created.id, created.itemCount);
     await this.refreshInbound();
     return created;
   }
@@ -238,7 +276,6 @@ export class NfeService {
   /** POST /api/nfe/inbound — lançamento manual; atualiza a lista. Rejeita se o backend recusa (400 com `{message}`). */
   async enterInboundManually(request: EnterInboundNfeRequest): Promise<InboundNfeSummary> {
     const created = await firstValueFrom(this.http.post<InboundNfeSummary>(`${this.baseUrl}/inbound`, request));
-    this.knownItems.set(created.id, request.manualData.items);
     await this.refreshInbound();
     return created;
   }
@@ -255,9 +292,19 @@ export class NfeService {
     return firstValueFrom(this.http.post<InboundManifestation>(`${this.baseUrl}/inbound/manifestation`, { accessKey, type }));
   }
 
-  /** O que a tela sabe dos itens da nota: a lista completa (lançamento manual), só a contagem (import) ou nada (nota de outra sessão). */
-  knownItemsOf(id: string): ManualInboundItem[] | number | null {
-    return this.knownItems.get(id) ?? null;
+  /** GET /api/nfe/inbound/{id}/conference — itens da nota com fornecedor e produtos já resolvidos. Rejeita se o backend recusa. */
+  loadInboundConference(id: string): Promise<InboundConference> {
+    return firstValueFrom(this.http.get<InboundConference>(`${this.baseUrl}/inbound/${id}/conference`));
+  }
+
+  /** POST …/items/{index}/link-product — vincula um produto existente ao código do fornecedor do item (cria só o vínculo). */
+  async linkInboundItemToProduct(id: string, itemIndex: number, productId: string): Promise<void> {
+    await firstValueFrom(this.http.post(`${this.baseUrl}/inbound/${id}/items/${itemIndex}/link-product`, { productId }));
+  }
+
+  /** POST …/items/{index}/register-product — cadastra o produto e já o vincula ao código do fornecedor do item. */
+  async registerInboundItemProduct(id: string, itemIndex: number, product: RegisterInboundProductRequest): Promise<void> {
+    await firstValueFrom(this.http.post(`${this.baseUrl}/inbound/${id}/items/${itemIndex}/register-product`, product));
   }
 
   /** Relê as Entradas sem passar por "carregando", para a tabela não piscar depois de uma ação. */

@@ -40,6 +40,7 @@ public interface ImportSupplierNfeXmlUseCase {
 - [ ] All fields available in the XML (supplier, items, quantities, values, taxes) are auto-filled with no manual re-entry.
 - [ ] The original XML is stored via `XmlObjectStoragePort`, referenced from the `InboundNfe` record.
 - [ ] The resulting `InboundNfe` is in a state ready for conference, not yet confirmed into stock/payables.
+- [ ] An unmatched supplier CNPJ never blocks the import: supplier and product resolution happens later, on demand ([UC-M2-15](uc-15-resolve-inbound-nfe-supplier-and-products.md)).
 
 ## Dependencies
 

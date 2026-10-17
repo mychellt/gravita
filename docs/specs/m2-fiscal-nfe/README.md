@@ -18,6 +18,7 @@ Index of the standalone use-case tickets for [M2 — Fiscal: NFe](../m2-fiscal-n
 | 12 | [Generate SPED Contribuições](uc-12-generate-sped-contribuicoes.md) | 7 — Visibilidade | EFD PIS/COFINS TXT generation per period. |
 | 13 | [Generate Livros Fiscais](uc-13-generate-livros-fiscais.md) | 7 — Visibilidade | Entry/Exit/ICMS Assessment books per period. |
 | 14 | [Export Accounting Entries](uc-14-export-accounting-entries.md) | 7 — Visibilidade | CSV/TXT export in the configured accounting format. |
+| 15 | [Resolve Inbound NFe Supplier and Products](uc-15-resolve-inbound-nfe-supplier-and-products.md) | 2 — Fiscal Core | Resolve an inbound NFe's supplier (CNPJ) and item products (supplier-code links) at conference; flag price variance. |
 
 ## Reading order for Phase 2 (Fiscal Core)
 

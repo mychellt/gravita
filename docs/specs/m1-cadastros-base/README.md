@@ -19,3 +19,4 @@ Index of the per-use-case tickets for [M1 — Cadastros Base](../m1-cadastros-ba
 | 13 | [Manage Price Table](uc-13-manage-price-table.md) | 1 — Fundação | Create/edit price tables and entries, including validity transitions. |
 | 14 | [Manage Auxiliary Table](uc-14-manage-auxiliary-table.md) | 1 — Fundação | CRUD for payment terms/methods, cost centers, chart of accounts, IBGE municipalities, interstate ICMS rates. |
 | 15 | [Allocate Document Number](uc-15-allocate-document-number.md) | 1 — Fundação | Atomically reserve the next number for a document series (called by `tax`, not user-facing). |
+| 16 | [Manage Supplier Product Catalog Link](uc-16-manage-supplier-product-catalog-link.md) | 2 — Fiscal Core | Remember which catalog product a supplier's own code stands for, per company, with the last purchase price/date (used by the inbound-NFe conference). |
