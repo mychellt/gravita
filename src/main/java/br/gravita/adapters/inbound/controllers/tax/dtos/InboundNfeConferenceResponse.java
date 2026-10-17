@@ -11,7 +11,7 @@ public record InboundNfeConferenceResponse(UUID inboundNfeId, String supplierDoc
 
 	public record Item(int index, String supplierProductCode, String description, String ncm, String unit, BigDecimal quantity,
 			BigDecimal unitValue, boolean resolved, UUID productId, String productLabel, BigDecimal lastPurchaseUnitValue,
-			Instant lastPurchaseAt, BigDecimal priceDelta) {
+			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest) {
 	}
 
 	public static InboundNfeConferenceResponse from(final InboundNfeConference conference) {
@@ -23,6 +23,6 @@ public record InboundNfeConferenceResponse(UUID inboundNfeId, String supplierDoc
 	private static Item toItem(final InboundNfeConference.Item item) {
 		return new Item(item.index(), item.supplierProductCode(), item.description(), item.ncm(), item.unit(),
 				item.quantity(), item.unitValue(), item.resolved(), item.productId(), item.productLabel(),
-				item.lastPurchaseUnitValue(), item.lastPurchaseAt(), item.priceDelta());
+				item.lastPurchaseUnitValue(), item.lastPurchaseAt(), item.priceDelta(), item.barcode(), item.cest());
 	}
 }

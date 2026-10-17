@@ -34,6 +34,8 @@ import br.gravita.core.ports.inbound.tax.CancelNfeUseCase;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptUseCase;
 import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
 import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceUseCase;
+import br.gravita.core.ports.inbound.tax.GetProductPurchaseHistoryUseCase;
+import br.gravita.core.domain.tax.ProductPurchase;
 import br.gravita.core.ports.inbound.tax.InboundNfeConference;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
 import br.gravita.core.ports.inbound.tax.IssueCorrectionLetterUseCase;
@@ -84,6 +86,8 @@ class NfeListControllerTest {
 	private GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase;
 	@MockitoBean
 	private ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase;
+	@MockitoBean
+	private GetProductPurchaseHistoryUseCase getProductPurchaseHistoryUseCase;
 	@MockitoBean
 	private SessionStorePort sessionStorePort;
 
@@ -177,6 +181,25 @@ class NfeListControllerTest {
 				.andExpect(jsonPath("$.items[0].productId").value(productId.toString()))
 				.andExpect(jsonPath("$.items[0].lastPurchaseUnitValue").value(1.5))
 				.andExpect(jsonPath("$.items[0].priceDelta").value(0.3));
+	}
+
+	@Test
+	@DisplayName("GET /api/nfe/inbound/purchase-history returns what was paid for the product, supplier by supplier")
+	void shouldReturnTheProductPurchaseHistory() throws Exception {
+		final UUID productId = UUID.randomUUID();
+		when(getProductPurchaseHistoryUseCase.execute(any())).thenReturn(List.of(
+				new ProductPurchase(UUID.randomUUID(), "1", "109887", "19117785000105", "Fornecedor A",
+						Instant.parse("2026-01-10T12:00:00Z"), BigDecimal.ONE, new BigDecimal("6998.89")),
+				new ProductPurchase(UUID.randomUUID(), "1", "5", "11222333000181", "Fornecedor B",
+						Instant.parse("2025-12-01T12:00:00Z"), BigDecimal.TEN, new BigDecimal("6500.00"))));
+
+		mockMvc.perform(get("/api/nfe/inbound/purchase-history").param("productId", productId.toString())
+						.header("Authorization", BEARER))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(2))
+				.andExpect(jsonPath("$[0].supplierName").value("Fornecedor A"))
+				.andExpect(jsonPath("$[0].unitValue").value(6998.89))
+				.andExpect(jsonPath("$[1].supplierName").value("Fornecedor B"));
 	}
 
 	@Test

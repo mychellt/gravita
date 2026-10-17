@@ -46,6 +46,10 @@ class NfeXmlParserTest {
 		final InboundNfeItem second = parsed.items().get(1);
 		assertThat(second.supplierProductCode()).isEqualTo("SKU-002");
 		assertThat(second.quantity()).isEqualByComparingTo("10.0000");
+		assertThat(first.barcode()).isEqualTo("7891234567895");
+		assertThat(first.cest()).isEqualTo("2100100");
+		assertThat(second.barcode()).isNull();
+		assertThat(second.cest()).isNull();
 
 		final var totals = parsed.totals();
 		assertThat(totals.productsValue()).isEqualByComparingTo("250.00");
@@ -111,8 +115,10 @@ class NfeXmlParserTest {
 				      <det nItem="1">
 				        <prod>
 				          <cProd>SKU-001</cProd>
+				          <cEAN>7891234567895</cEAN>
 				          <xProd>Parafuso Sextavado M8</xProd>
 				          <NCM>73181500</NCM>
+				          <CEST>2100100</CEST>
 				          <CFOP>5102</CFOP>
 				          <uCom>UN</uCom>
 				          <qCom>100.0000</qCom>
@@ -128,6 +134,7 @@ class NfeXmlParserTest {
 				      <det nItem="2">
 				        <prod>
 				          <cProd>SKU-002</cProd>
+				          <cEAN>SEM GTIN</cEAN>
 				          <xProd>Porca Sextavada M8</xProd>
 				          <NCM>73181600</NCM>
 				          <CFOP>5102</CFOP>

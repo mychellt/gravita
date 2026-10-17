@@ -16,7 +16,17 @@ public record InboundNfeItem(
 		BigDecimal icmsValue,
 		BigDecimal ipiValue,
 		BigDecimal pisValue,
-		BigDecimal cofinsValue) {
+		BigDecimal cofinsValue,
+		String barcode,
+		String cest) {
+
+	/** An item without GTIN/CEST (manual entry, or a supplier that does not state them). */
+	public InboundNfeItem(final String supplierProductCode, final String description, final String ncm, final String cfop,
+			final String unit, final BigDecimal quantity, final BigDecimal unitValue, final BigDecimal totalValue,
+			final BigDecimal icmsValue, final BigDecimal ipiValue, final BigDecimal pisValue, final BigDecimal cofinsValue) {
+		this(supplierProductCode, description, ncm, cfop, unit, quantity, unitValue, totalValue, icmsValue, ipiValue, pisValue,
+				cofinsValue, null, null);
+	}
 
 	public InboundNfeItem {
 		if (supplierProductCode == null || supplierProductCode.isBlank()) {
@@ -32,6 +42,8 @@ public record InboundNfeItem(
 		ipiValue = requireNonNegative(ipiValue, "ipiValue");
 		pisValue = requireNonNegative(pisValue, "pisValue");
 		cofinsValue = requireNonNegative(cofinsValue, "cofinsValue");
+		barcode = validGtin(barcode);
+		cest = validCest(cest);
 		if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
 			throw new BusinessRuleException("Item quantity must be positive: " + quantity);
 		}
@@ -49,5 +61,16 @@ public record InboundNfeItem(
 			throw new BusinessRuleException("Item " + field + " cannot be negative: " + resolved);
 		}
 		return resolved;
+	}
+
+	/** The GTIN only when it is a real one: suppliers write "SEM GTIN" (or zeros) when the product has none. */
+	private static String validGtin(final String barcode) {
+		final String digits = barcode == null ? "" : barcode.trim();
+		return digits.matches("\\d{8}|\\d{12,14}") && !digits.matches("0+") ? digits : null;
+	}
+
+	private static String validCest(final String cest) {
+		final String digits = cest == null ? "" : cest.trim();
+		return digits.matches("\\d{7}") ? digits : null;
 	}
 }

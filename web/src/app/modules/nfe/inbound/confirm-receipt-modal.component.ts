@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InventoryChangesService } from '../../../core/services/inventory-changes.service';
 import {
-  ConferenceLine, InboundConference, InboundConferenceItem, InboundNfeListItem, NfeService, nfeFailureDetail,
+  ConferenceLine, InboundConference, InboundConferenceItem, InboundNfeListItem, NfeService, ProductPurchase, nfeFailureDetail,
 } from '../../../core/services/nfe.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
@@ -28,7 +29,7 @@ const lineValid = (line: LineDraft) =>
 @Component({
   selector: 'app-confirm-receipt-modal',
   standalone: true,
-  imports: [FormsModule, ModalComponent, ProductPickerComponent, RegisterProductModalComponent, RegisterSupplierModalComponent],
+  imports: [FormsModule, DatePipe, ModalComponent, ProductPickerComponent, RegisterProductModalComponent, RegisterSupplierModalComponent],
   template: `
     <app-modal [title]="'Conferir NF-e #' + nfe.number + ' — ' + nfe.supplierName" [width]="760" (closed)="closed.emit()">
       <div class="impact-note">
@@ -81,6 +82,42 @@ const lineValid = (line: LineDraft) =>
             <div class="linked">
               <i class="ti ti-link"></i> Produto vinculado: <strong>{{ line.item.productLabel || line.item.productId }}</strong>
             </div>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="alternarHistorico(line.item.productId!)">
+              <i class="ti ti-history"></i>
+              {{ historicoAberto(line.item.productId!) ? 'Ocultar histórico de compras' : 'Histórico de compras' }}
+            </button>
+            @if (historicoAberto(line.item.productId!)) {
+              <div class="history" [attr.data-testid]="'history-' + line.item.index">
+                @switch (historicoStatus(line.item.productId!)) {
+                  @case ('loading') { <div class="field-hint">Carregando histórico…</div> }
+                  @case ('error') { <div class="field-error">Não foi possível carregar o histórico de compras.</div> }
+                  @default {
+                    @if (historico(line.item.productId!).length === 0) {
+                      <div class="field-hint">Nenhuma compra confirmada deste produto ainda.</div>
+                    } @else {
+                      <table class="data-table">
+                        <thead><tr><th>Fornecedor</th><th>NF-e</th><th>Data</th><th class="td-right">Qtd.</th><th class="td-right">Valor unit.</th></tr></thead>
+                        <tbody>
+                          @for (compra of historico(line.item.productId!); track compra.inboundNfeId) {
+                            <tr [class.best]="compra.unitValue === menorValor(line.item.productId!)">
+                              <td>{{ compra.supplierName }}</td>
+                              <td class="td-mono">{{ compra.number }}</td>
+                              <td>{{ compra.issuedAt | date:'dd/MM/yy' }}</td>
+                              <td class="td-right">{{ compra.quantity }}</td>
+                              <td class="td-right">{{ valor(compra.unitValue) }}
+                                @if (compra.unitValue === menorValor(line.item.productId!) && historico(line.item.productId!).length > 1) {
+                                  <span class="field-hint">menor preço</span>
+                                }
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    }
+                  }
+                }
+              </div>
+            }
             @if (houveVariacao(line.item)) {
               <div class="price-variance" role="status">
                 <i class="ti ti-trending-up"></i>
@@ -149,6 +186,8 @@ const lineValid = (line: LineDraft) =>
     .linked { margin-bottom: 6px; }
     .price-variance { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; border-radius: var(--r8, 8px); padding: 8px 10px; font-size: 13px; }
     .resolve-actions { margin: 6px 0; }
+    .history { margin: 6px 0 8px; font-size: 13px; }
+    .history .best { font-weight: 600; }
     .checklist { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 6px; }
     .checklist li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: #92400E; }
     .checklist li.ok { color: var(--text2); }
@@ -170,6 +209,8 @@ export class ConfirmReceiptModalComponent implements OnInit {
   /** Formulário de novo fornecedor aberto (CNPJ e nome vêm da conferência). */
   readonly cadastrandoFornecedor = signal(false);
   readonly vinculando = signal(false);
+  /** Histórico de compras já pedido, por produto; a entrada existe só depois de aberto pela primeira vez. */
+  private readonly historicos = signal<Record<string, { status: 'loading' | 'ready' | 'error'; compras: ProductPurchase[]; aberto: boolean }>>({});
   readonly registrandoErro = signal('');
   readonly tentouEnviar = signal(false);
   readonly enviando = signal(false);
@@ -230,6 +271,38 @@ export class ConfirmReceiptModalComponent implements OnInit {
 
   houveVariacao(item: InboundConferenceItem): boolean {
     return item.priceDelta !== null && item.priceDelta !== 0 && item.lastPurchaseUnitValue !== null;
+  }
+
+  historicoAberto(productId: string): boolean {
+    return this.historicos()[productId]?.aberto ?? false;
+  }
+
+  historicoStatus(productId: string): 'loading' | 'ready' | 'error' {
+    return this.historicos()[productId]?.status ?? 'loading';
+  }
+
+  historico(productId: string): ProductPurchase[] {
+    return this.historicos()[productId]?.compras ?? [];
+  }
+
+  menorValor(productId: string): number {
+    return Math.min(...this.historico(productId).map(compra => compra.unitValue));
+  }
+
+  /** Abre/fecha o histórico de compras do produto; a primeira abertura (ou depois de um erro) consulta o backend. */
+  async alternarHistorico(productId: string): Promise<void> {
+    const atual = this.historicos()[productId];
+    if (atual && atual.status !== 'error') {
+      this.historicos.update(h => ({ ...h, [productId]: { ...atual, aberto: !atual.aberto } }));
+      return;
+    }
+    this.historicos.update(h => ({ ...h, [productId]: { status: 'loading', compras: [], aberto: true } }));
+    try {
+      const compras = await this.service.loadProductPurchaseHistory(productId);
+      this.historicos.update(h => ({ ...h, [productId]: { status: 'ready', compras, aberto: h[productId]?.aberto ?? true } }));
+    } catch {
+      this.historicos.update(h => ({ ...h, [productId]: { status: 'error', compras: [], aberto: true } }));
+    }
   }
 
   valor(value: number): string {

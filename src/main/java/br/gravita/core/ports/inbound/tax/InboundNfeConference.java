@@ -21,7 +21,16 @@ public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, S
 	/** {@code productId} and the price fields are {@code null} while the item has no link. */
 	public record Item(int index, String supplierProductCode, String description, String ncm, String unit, BigDecimal quantity,
 			BigDecimal unitValue, UUID productId, String productLabel, BigDecimal lastPurchaseUnitValue,
-			Instant lastPurchaseAt, BigDecimal priceDelta) {
+			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest) {
+
+		/** An item whose XML did not state a GTIN/CEST. */
+		public Item(final int index, final String supplierProductCode, final String description, final String ncm,
+				final String unit, final BigDecimal quantity, final BigDecimal unitValue, final UUID productId,
+				final String productLabel, final BigDecimal lastPurchaseUnitValue, final Instant lastPurchaseAt,
+				final BigDecimal priceDelta) {
+			this(index, supplierProductCode, description, ncm, unit, quantity, unitValue, productId, productLabel,
+					lastPurchaseUnitValue, lastPurchaseAt, priceDelta, null, null);
+		}
 
 		public boolean resolved() {
 			return productId != null;

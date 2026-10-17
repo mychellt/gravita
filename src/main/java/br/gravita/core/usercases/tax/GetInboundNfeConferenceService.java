@@ -63,6 +63,6 @@ public class GetInboundNfeConferenceService implements GetInboundNfeConferenceUs
 				link == null ? null : productLabels.get(link.getProductId()),
 				link == null ? null : link.getLastPurchaseUnitValue(),
 				link == null ? null : link.getLastPurchaseAt(),
-				link == null ? null : link.priceDelta(item.unitValue()));
+				link == null ? null : link.priceDelta(item.unitValue()), item.barcode(), item.cest());
 	}
 }

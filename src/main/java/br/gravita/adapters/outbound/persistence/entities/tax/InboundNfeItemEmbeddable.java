@@ -52,4 +52,10 @@ public class InboundNfeItemEmbeddable {
 
 	@Column(name = "cofins_value", nullable = false)
 	private BigDecimal cofinsValue;
+
+	@Column(name = "barcode")
+	private String barcode;
+
+	@Column(name = "cest")
+	private String cest;
 }

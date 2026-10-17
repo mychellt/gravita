@@ -8,6 +8,8 @@ import { formatUnitValue } from './inbound-format';
 const SALE_OPERATION = 'VENDA';
 const CFOP_PATTERN = /^\d{4}$/;
 const CST_CSOSN_PATTERN = /^\d{2,3}$/;
+const GTIN_PATTERN = /^(\d{8}|\d{12,14})$/;
+const CEST_PATTERN = /^\d{7}$/;
 const STATE_PATTERN = /^[A-Za-z]{2}$/;
 
 /**
@@ -24,7 +26,7 @@ const STATE_PATTERN = /^[A-Za-z]{2}$/;
       <div class="impact-note">
         <i class="ti ti-info-circle"></i>
         <span>
-          Descrição, NCM e unidade vieram da nota (código do fornecedor {{ item.supplierProductCode }}, {{ valorNota }} por unidade).
+          Descrição, NCM, GTIN, CEST e unidade vieram da nota (código do fornecedor {{ item.supplierProductCode }}, {{ valorNota }} por unidade).
           Informe o preço de venda. Os dados fiscais de saída não vêm da nota: o CFOP e o CST do fornecedor são de saída dele e
           não servem para a sua venda.
         </span>
@@ -35,6 +37,20 @@ const STATE_PATTERN = /^[A-Za-z]{2}$/;
           <input id="prd-codigo" class="form-input" type="text" maxlength="60" [class.invalid]="tentouEnviar() && !codigo().trim()"
                  [ngModel]="codigo()" (ngModelChange)="codigo.set($event)" />
           @if (tentouEnviar() && !codigo().trim()) { <div class="field-error">Informe a descrição do produto.</div> }
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div>
+          <label class="form-label" for="prd-barcode">Código de barras (GTIN)</label>
+          <input id="prd-barcode" class="form-input" type="text" inputmode="numeric" maxlength="14" [class.invalid]="tentouEnviar() && !barcodeValido()"
+                 [ngModel]="barcode()" (ngModelChange)="barcode.set($event)" />
+          @if (tentouEnviar() && !barcodeValido()) { <div class="field-error">O GTIN tem 8, 12, 13 ou 14 dígitos.</div> }
+        </div>
+        <div>
+          <label class="form-label" for="prd-cest">CEST</label>
+          <input id="prd-cest" class="form-input" type="text" inputmode="numeric" maxlength="7" [class.invalid]="tentouEnviar() && !cestValido()"
+                 [ngModel]="cest()" (ngModelChange)="cest.set($event)" />
+          @if (tentouEnviar() && !cestValido()) { <div class="field-error">O CEST tem 7 dígitos.</div> }
         </div>
       </div>
       <div class="form-row cols-3">
@@ -138,6 +154,8 @@ export class RegisterProductModalComponent implements OnInit {
 
   readonly codigo = signal('');
   readonly ncm = signal('');
+  readonly barcode = signal('');
+  readonly cest = signal('');
   readonly unidadeCompra = signal('');
   readonly unidadeVenda = signal('');
   readonly origem = signal<number | null>(null);
@@ -155,13 +173,15 @@ export class RegisterProductModalComponent implements OnInit {
   readonly erro = signal('');
 
   readonly origemValida = computed(() => this.origem() === null || (Number.isInteger(this.origem()) && this.origem()! >= 0 && this.origem()! <= 8));
+  readonly barcodeValido = computed(() => !this.barcode().trim() || GTIN_PATTERN.test(this.barcode().trim()));
+  readonly cestValido = computed(() => !this.cest().trim() || CEST_PATTERN.test(this.cest().trim()));
   readonly cfopValido = computed(() => !this.cfopVenda().trim() || CFOP_PATTERN.test(this.cfopVenda().trim()));
   readonly precoValido = computed(() => this.precoVenda() !== null && this.precoVenda()! > 0);
   readonly ufValida = computed(() => (!this.uf().trim() && !this.cstCsosn().trim()) || STATE_PATTERN.test(this.uf().trim()));
   readonly cstValido = computed(() => (!this.uf().trim() && !this.cstCsosn().trim()) || CST_CSOSN_PATTERN.test(this.cstCsosn().trim()));
   private readonly valido = computed(() =>
     !!this.codigo().trim() && !!this.unidadeVenda().trim() && this.origemValida() && this.cfopValido()
-    && this.precoValido() && this.ufValida() && this.cstValido());
+    && this.precoValido() && this.ufValida() && this.cstValido() && this.barcodeValido() && this.cestValido());
 
   /** Sugere o preço de venda a partir do custo da nota e da margem; o operador ainda pode editar o preço. */
   aoMudarMargem(valor: number | null): void {
@@ -178,6 +198,8 @@ export class RegisterProductModalComponent implements OnInit {
   ngOnInit(): void {
     this.codigo.set(this.item.description.slice(0, 60));
     this.ncm.set(this.item.ncm ?? '');
+    this.barcode.set(this.item.barcode ?? '');
+    this.cest.set(this.item.cest ?? '');
     this.unidadeCompra.set(this.item.unit ?? '');
     this.unidadeVenda.set(this.item.unit ?? '');
   }
@@ -208,6 +230,8 @@ export class RegisterProductModalComponent implements OnInit {
       internalCode: this.codigo().trim(),
       type: 'SIMPLE',
       ncm: this.ncm().trim(),
+      ...(this.cest().trim() ? { cest: this.cest().trim() } : {}),
+      ...(this.barcode().trim() ? { barcodes: [this.barcode().trim()] } : {}),
       ...(this.origem() !== null ? { origin: this.origem()! } : {}),
       ...(cfop ? { defaultCfopByOperation: { [SALE_OPERATION]: cfop } } : {}),
       ...(cst ? { cstCsosnByState: { [this.uf().trim().toUpperCase()]: cst } } : {}),

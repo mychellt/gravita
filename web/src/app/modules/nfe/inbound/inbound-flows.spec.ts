@@ -171,11 +171,11 @@ describe('Inbound NF-e flows', () => {
     const resolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
       index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
       resolved: true, productId: PRODUCT, productLabel: 'PARAF-M8', lastPurchaseUnitValue: 1.5, lastPurchaseAt: '2026-09-01T00:00:00Z',
-      priceDelta: 0, ...over,
+      priceDelta: 0, barcode: null, cest: null, ...over,
     });
     const unresolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => resolvedItem({
       index: 1, supplierProductCode: 'SKU-2', description: 'Porca', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
-      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, ...over,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, ...over,
     });
     const conference = (items: InboundConferenceItem[], supplierResolved = true): InboundConference =>
       ({ inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved, supplierId: supplierResolved ? 'sup-1' : null, items });
@@ -222,6 +222,42 @@ describe('Inbound NF-e flows', () => {
       expect(modal.variacao(0.3)).toContain('0,30');
       expect(modal.variacao(-1)).toMatch(/^−/);
       expect(modal.valor(1.5)).toContain('1,50');
+    });
+
+    it('loads the purchase history of the linked product once and toggles it', async () => {
+      const modal = await open([resolvedItem()]);
+      const purchase = (id: string, supplierName: string, unitValue: number) =>
+        ({ inboundNfeId: id, series: '1', number: id, supplierDocument: '1', supplierName, issuedAt: '2026-01-10T12:00:00Z', quantity: 1, unitValue });
+
+      const opening = modal.alternarHistorico(PRODUCT);
+      expect(modal.historicoAberto(PRODUCT)).toBeTrue();
+      expect(modal.historicoStatus(PRODUCT)).toBe('loading');
+      const request = http.expectOne(r => r.url === '/api/nfe/inbound/purchase-history');
+      expect(request.request.params.get('productId')).toBe(PRODUCT);
+      request.flush([purchase('a', 'Fornecedor A', 7000), purchase('b', 'Fornecedor B', 6500)]);
+      await opening;
+
+      expect(modal.historicoStatus(PRODUCT)).toBe('ready');
+      expect(modal.historico(PRODUCT).map(p => p.supplierName)).toEqual(['Fornecedor A', 'Fornecedor B']);
+      expect(modal.menorValor(PRODUCT)).toBe(6500);
+      await modal.alternarHistorico(PRODUCT);
+      expect(modal.historicoAberto(PRODUCT)).toBeFalse();
+      http.expectNone(r => r.url === '/api/nfe/inbound/purchase-history');
+    });
+
+    it('lets the operator retry the purchase history after a failure', async () => {
+      const modal = await open([resolvedItem()]);
+
+      const first = modal.alternarHistorico(PRODUCT);
+      http.expectOne(r => r.url === '/api/nfe/inbound/purchase-history').flush(null, { status: 500, statusText: 'Server Error' });
+      await first;
+      expect(modal.historicoStatus(PRODUCT)).toBe('error');
+
+      const retry = modal.alternarHistorico(PRODUCT);
+      http.expectOne(r => r.url === '/api/nfe/inbound/purchase-history').flush([]);
+      await retry;
+      expect(modal.historicoStatus(PRODUCT)).toBe('ready');
+      expect(modal.historico(PRODUCT)).toEqual([]);
     });
 
     it('shows no variance when the price is unchanged', async () => {
@@ -334,7 +370,7 @@ describe('Inbound NF-e flows', () => {
   describe('register the supplier during the confirmation', () => {
     const item = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
       index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
-      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, ...over,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, ...over,
     });
     const conf = (supplierResolved: boolean): InboundConference => ({
       inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved,
@@ -471,6 +507,7 @@ describe('Inbound NF-e flows', () => {
     const item: InboundConferenceItem = {
       index: 1, supplierProductCode: 'SKU-2', description: 'Porca Sextavada M8', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
       resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null,
+      barcode: '7891234567895', cest: '2100100',
     };
 
     function open() {
@@ -518,6 +555,34 @@ describe('Inbound NF-e flows', () => {
       expect(modal.precoValido()).toBeFalse();
     });
 
+    it('pre-fills the GTIN and CEST stated in the XML and sends them with the product', async () => {
+      const modal = open();
+      modal.unidadeVenda.set('PC');
+      modal.precoVenda.set(6.9);
+
+      expect(modal.barcode()).toBe('7891234567895');
+      expect(modal.cest()).toBe('2100100');
+      const saving = modal.salvar();
+      const post = http.expectOne('/api/nfe/inbound/i1/items/1/register-product');
+      expect(post.request.body.barcodes).toEqual(['7891234567895']);
+      expect(post.request.body.cest).toBe('2100100');
+      post.flush({});
+      await saving;
+    });
+
+    it('rejects a malformed GTIN or CEST but accepts them empty', () => {
+      const modal = open();
+
+      modal.barcode.set('123');
+      modal.cest.set('12');
+      expect(modal.barcodeValido()).toBeFalse();
+      expect(modal.cestValido()).toBeFalse();
+      modal.barcode.set('');
+      modal.cest.set('');
+      expect(modal.barcodeValido()).toBeTrue();
+      expect(modal.cestValido()).toBeTrue();
+    });
+
     it('suggests the sale price from the invoice cost and the margin', () => {
       const modal = open();
 
@@ -546,7 +611,7 @@ describe('Inbound NF-e flows', () => {
       const saving = modal.salvar();
       const post = http.expectOne('/api/nfe/inbound/i1/items/1/register-product');
       expect(post.request.body).toEqual({
-        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600',
+        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600', cest: '2100100', barcodes: ['7891234567895'],
         basePrice: 6.9, purchaseUnit: 'PC', saleUnit: 'PC',
       });
       post.flush({});
@@ -561,7 +626,7 @@ describe('Inbound NF-e flows', () => {
       const saving = modal.salvar();
       const post = http.expectOne('/api/nfe/inbound/i1/items/1/register-product');
       expect(post.request.body).toEqual({
-        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600', origin: 0,
+        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600', cest: '2100100', barcodes: ['7891234567895'], origin: 0,
         defaultCfopByOperation: { VENDA: '5102' }, cstCsosnByState: { SP: '102' },
         basePrice: 6.9, purchaseUnit: 'PC', saleUnit: 'PC',
       });

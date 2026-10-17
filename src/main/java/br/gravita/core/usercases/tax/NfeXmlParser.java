@@ -117,9 +117,18 @@ public class NfeXmlParser {
 					decimalOrZero(xpath, taxNode, ".//*[local-name()='ICMS']//*[local-name()='vICMS']"),
 					decimalOrZero(xpath, taxNode, ".//*[local-name()='IPI']//*[local-name()='vIPI']"),
 					decimalOrZero(xpath, taxNode, ".//*[local-name()='PIS']//*[local-name()='vPIS']"),
-					decimalOrZero(xpath, taxNode, ".//*[local-name()='COFINS']//*[local-name()='vCOFINS']")));
+					decimalOrZero(xpath, taxNode, ".//*[local-name()='COFINS']//*[local-name()='vCOFINS']"),
+					gtin(xpath, prod),
+					textOrNull(xpath, prod, "*[local-name()='CEST']")));
 		}
 		return items;
+	}
+
+	/** The commercial GTIN (cEAN), falling back to the taxable one (cEANTrib); "SEM GTIN" is dropped by the item itself. */
+	private String gtin(final XPath xpath, final Node prod) throws Exception {
+		final String commercial = textOrNull(xpath, prod, "*[local-name()='cEAN']");
+		return commercial != null && commercial.trim().matches("\\d+") ? commercial
+				: textOrNull(xpath, prod, "*[local-name()='cEANTrib']");
 	}
 
 	private InboundNfeTotals extractTotals(final XPath xpath, final Node icmsTot) throws Exception {

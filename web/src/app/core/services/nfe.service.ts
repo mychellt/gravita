@@ -125,6 +125,21 @@ export interface InboundConferenceItem {
   lastPurchaseAt: string | null;
   /** Valor unitário da nota menos a última compra; positivo quando ficou mais caro. */
   priceDelta: number | null;
+  /** GTIN e CEST como o XML do fornecedor os declara; nulos quando a nota não traz (ou traz "SEM GTIN"). */
+  barcode: string | null;
+  cest: string | null;
+}
+
+/** Uma compra confirmada de um produto (GET /api/nfe/inbound/purchase-history): quem vendeu, em que nota, quando e a que preço. */
+export interface ProductPurchase {
+  inboundNfeId: string;
+  series: string;
+  number: string;
+  supplierDocument: string;
+  supplierName: string;
+  issuedAt: string;
+  quantity: number;
+  unitValue: number;
 }
 
 /** Corpo de resposta de GET /api/nfe/inbound/{id}/conference (InboundNfeConferenceResponse). */
@@ -144,6 +159,8 @@ export interface RegisterInboundProductRequest {
   internalCode: string;
   type: 'SIMPLE';
   ncm: string;
+  cest?: string;
+  barcodes?: string[];
   origin?: number;
   defaultCfopByOperation?: Record<string, string>;
   cstCsosnByState?: Record<string, string>;
@@ -305,6 +322,11 @@ export class NfeService {
   /** GET /api/nfe/inbound/{id}/conference — itens da nota com fornecedor e produtos já resolvidos. Rejeita se o backend recusa. */
   loadInboundConference(id: string): Promise<InboundConference> {
     return firstValueFrom(this.http.get<InboundConference>(`${this.baseUrl}/inbound/${id}/conference`));
+  }
+
+  /** GET /api/nfe/inbound/purchase-history — o que a empresa pagou pelo produto, por fornecedor e nota, da compra mais recente à mais antiga. */
+  loadProductPurchaseHistory(productId: string): Promise<ProductPurchase[]> {
+    return firstValueFrom(this.http.get<ProductPurchase[]>(`${this.baseUrl}/inbound/purchase-history`, { params: { productId } }));
   }
 
   /** POST …/items/{index}/link-product — vincula um produto existente ao código do fornecedor do item (cria só o vínculo). */

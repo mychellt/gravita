@@ -5,6 +5,7 @@ import br.gravita.adapters.inbound.controllers.tax.dtos.EnterInboundNfeManuallyR
 import br.gravita.adapters.dtos.request.RegisterProductRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.ImportSupplierNfeXmlResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.InboundNfeConferenceResponse;
+import br.gravita.adapters.inbound.controllers.tax.dtos.ProductPurchaseResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.LinkInboundNfeItemRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.SupplierProductCatalogLinkResponse;
 import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
@@ -19,6 +20,8 @@ import br.gravita.core.domain.tax.InboundNfeNotFoundException;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptUseCase;
 import br.gravita.core.ports.inbound.tax.EnterInboundNfeManuallyUseCase;
 import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceQuery;
+import br.gravita.core.ports.inbound.tax.GetProductPurchaseHistoryQuery;
+import br.gravita.core.ports.inbound.tax.GetProductPurchaseHistoryUseCase;
 import br.gravita.core.ports.inbound.tax.GetInboundNfeConferenceUseCase;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlCommand;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlUseCase;
@@ -57,6 +60,7 @@ public class InboundNfeController {
 	private final ListInboundNfeUseCase listInboundNfeUseCase;
 	private final GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase;
 	private final ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase;
+	private final GetProductPurchaseHistoryUseCase getProductPurchaseHistoryUseCase;
 
 	public InboundNfeController(final ImportSupplierNfeXmlUseCase importSupplierNfeXmlUseCase,
 			final EnterInboundNfeManuallyUseCase enterInboundNfeManuallyUseCase,
@@ -64,7 +68,8 @@ public class InboundNfeController {
 			final ManifestInboundNfeUseCase manifestInboundNfeUseCase,
 			final ListInboundNfeUseCase listInboundNfeUseCase,
 			final GetInboundNfeConferenceUseCase getInboundNfeConferenceUseCase,
-			final ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase) {
+			final ResolveInboundNfeItemUseCase resolveInboundNfeItemUseCase,
+			final GetProductPurchaseHistoryUseCase getProductPurchaseHistoryUseCase) {
 		this.importSupplierNfeXmlUseCase = importSupplierNfeXmlUseCase;
 		this.enterInboundNfeManuallyUseCase = enterInboundNfeManuallyUseCase;
 		this.confirmInboundNfeReceiptUseCase = confirmInboundNfeReceiptUseCase;
@@ -72,6 +77,7 @@ public class InboundNfeController {
 		this.listInboundNfeUseCase = listInboundNfeUseCase;
 		this.getInboundNfeConferenceUseCase = getInboundNfeConferenceUseCase;
 		this.resolveInboundNfeItemUseCase = resolveInboundNfeItemUseCase;
+		this.getProductPurchaseHistoryUseCase = getProductPurchaseHistoryUseCase;
 	}
 
 	/** All inbound NF-e of the caller's company, any status, newest first. */
@@ -108,6 +114,14 @@ public class InboundNfeController {
 	public InboundNfeConferenceResponse conference(@PathVariable final UUID id, @AuthenticatedUser final UserId callerId) {
 		return InboundNfeConferenceResponse
 				.from(getInboundNfeConferenceUseCase.execute(new GetInboundNfeConferenceQuery(id, callerId)));
+	}
+
+	/** What the caller's company paid for a product, per supplier and note, newest first (confirmed notes only). */
+	@GetMapping("/purchase-history")
+	public List<ProductPurchaseResponse> purchaseHistory(@RequestParam final UUID productId,
+			@AuthenticatedUser final UserId callerId) {
+		return getProductPurchaseHistoryUseCase.execute(new GetProductPurchaseHistoryQuery(productId, callerId)).stream()
+				.map(ProductPurchaseResponse::from).toList();
 	}
 
 	/** Resolves an unresolved item by linking an existing catalog Product to the supplier's product code. */
