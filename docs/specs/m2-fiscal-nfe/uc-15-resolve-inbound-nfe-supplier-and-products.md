@@ -32,7 +32,7 @@ public interface ResolveInboundNfeItemUseCase {
 }
 ```
 
-`InboundNfeConference`: `inboundNfeId`, `supplierResolved`, `supplierId`, and per item `index`, `supplierProductCode`, `description`, `ncm`, `unit`, `quantity`, `unitValue`, plus — when linked — `productId`, `productLabel`, `lastPurchaseUnitValue`, `lastPurchaseAt`, `priceDelta`.
+`InboundNfeConference`: `inboundNfeId`, `supplierDocument` and `supplierName` (the NF-e's own snapshot, so an unregistered supplier can be registered from the screen), `supplierResolved`, `supplierId`, and per item `index`, `supplierProductCode`, `description`, `ncm`, `unit`, `quantity`, `unitValue`, plus — when linked — `productId`, `productLabel`, `lastPurchaseUnitValue`, `lastPurchaseAt`, `priceDelta`.
 
 `ResolveInboundNfeItemCommand`: `callerId`, `inboundNfeId`, `itemIndex`, and exactly one of `existingProductId` (BR5) or `newProduct` (BR4).
 
@@ -53,7 +53,9 @@ public interface ResolveInboundNfeItemUseCase {
 
 ## Web
 
-`ConfirmReceiptModalComponent` loads the conference, pre-fills linked products, shows the price variance, and offers "Cadastrar produto novo" (`RegisterProductModalComponent`, pre-filled description/NCM/unit; origin, sale CFOP, CST/CSOSN + UF and sale price required) or "Vincular produto selecionado" (`ProductPickerComponent`) per unresolved item. It blocks confirmation until the supplier and every item are resolved.
+`ConfirmReceiptModalComponent` loads the conference, pre-fills linked products, shows the price variance, and offers "Cadastrar produto novo" (`RegisterProductModalComponent`, pre-filled description/NCM/unit; origin, sale CFOP, CST/CSOSN + UF and sale price required) or "Vincular produto selecionado" (`ProductPickerComponent`) per unresolved item. It blocks confirmation until the supplier and every item are resolved, and says why when the button is clicked.
+
+An intro and a status checklist state up front that the supplier and the products can be registered on the same screen. When the supplier is unresolved, "Cadastrar fornecedor" opens `RegisterSupplierModalComponent`: the NF-e's CNPJ is read-only (it is the key the NF-e matches on), the name is pre-filled, and the operator completes one address (CEP, street, neighborhood, city, UF — the XML does not carry it; `GET /api/lookup/cnpj|cep` pre-fill it best-effort). It posts to `POST /api/suppliers` ([UC-M1-09](../m1-cadastros-base/uc-09-register-supplier.md)) and reloads the conference, which unlocks the per-item actions (disabled, with the reason, while the supplier is unresolved).
 
 ## Domain entities touched
 

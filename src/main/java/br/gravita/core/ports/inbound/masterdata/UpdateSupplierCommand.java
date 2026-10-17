@@ -17,5 +17,22 @@ public record UpdateSupplierCommand(
 		BankAccount bankAccount,
 		PixKey pixKey,
 		Integer averageLeadTimeDays,
-		String defaultPurchaseCfop) {
+		String defaultPurchaseCfop,
+		String ie,
+		String im,
+		String cnae,
+		Boolean simplesOptante) {
+
+	/** A command without the optional fiscal profile. */
+	public UpdateSupplierCommand(final SupplierId supplierId,
+			final Document document,
+			final String name,
+			final List<Address> addresses,
+			final List<Contact> contacts,
+			final BankAccount bankAccount,
+			final PixKey pixKey,
+			final Integer averageLeadTimeDays,
+			final String defaultPurchaseCfop) {
+		this(supplierId, document, name, addresses, contacts, bankAccount, pixKey, averageLeadTimeDays, defaultPurchaseCfop, null, null, null, null);
+	}
 }

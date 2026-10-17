@@ -165,6 +165,21 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	@Test
+	@DisplayName("Confirms the receipt without the tax credit when the company has no state (UF) registered")
+	void confirmingWithoutCompanyStateSkipsTheTaxCredit() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(companyWithoutState()));
+		mockResolvedSupplierAndLink(pending);
+		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+
+		verify(calculateTaxUseCase, never()).execute(any());
+		verify(inboundNfeRepositoryPort).save(any(InboundNfe.class));
+	}
+
+	@Test
 	@DisplayName("Rejects confirming an inbound NF-e that does not exist")
 	void rejectsConfirmingAnInboundNfeThatDoesNotExist() {
 		final UUID inboundNfeId = UUID.randomUUID();
@@ -363,6 +378,15 @@ class ConfirmInboundNfeReceiptServiceTest {
 	}
 
 	private Company company() {
+		return company("SP");
+	}
+
+	private Company companyWithoutState() {
+		return Company.rehydrate().id(companyId).name("Acme Ltda").cnpj(Document.cnpj("11444777000161"))
+				.taxRegime(TaxRegime.LUCRO_PRESUMIDO).sefazEnvironment(SefazEnvironment.HOMOLOGATION).lenient(true).build();
+	}
+
+	private Company company(final String state) {
 		return Company.builder()
 				.id(companyId)
 				.name("Acme Ltda")
@@ -374,7 +398,7 @@ class ConfirmInboundNfeReceiptServiceTest {
 				.simplesOptante(false)
 				.sefazEnvironment(SefazEnvironment.HOMOLOGATION)
 				.address("Rua Exemplo, 100")
-				.state("SP")
+				.state(state)
 				.issuingEmail("fiscal@exemplo.com")
 				.phone("11999999999")
 				.logoUrl(null)

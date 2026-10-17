@@ -25,7 +25,8 @@ const STATE_PATTERN = /^[A-Za-z]{2}$/;
         <i class="ti ti-info-circle"></i>
         <span>
           Descrição, NCM e unidade vieram da nota (código do fornecedor {{ item.supplierProductCode }}, {{ valorNota }} por unidade).
-          Complete os dados fiscais de saída e o preço de venda — eles não vêm da nota.
+          Informe o preço de venda. Os dados fiscais de saída não vêm da nota: o CFOP e o CST do fornecedor são de saída dele e
+          não servem para a sua venda.
         </span>
       </div>
       <div class="form-row">
@@ -52,18 +53,33 @@ const STATE_PATTERN = /^[A-Za-z]{2}$/;
           @if (tentouEnviar() && !unidadeVenda().trim()) { <div class="field-error">Informe a unidade de venda.</div> }
         </div>
       </div>
+      <div class="impact-note">
+        <i class="ti ti-receipt-tax"></i>
+        <span>
+          Dados fiscais de saída (origem, CFOP, CST/CSOSN e alíquotas) são opcionais. Só são obrigatórios para emitir nota fiscal
+          de venda; sem eles o produto só serve para venda gerencial. Defina-os com sua contabilidade, conforme seu regime tributário.
+        </span>
+      </div>
       <div class="form-row cols-3">
         <div>
-          <label class="form-label" for="prd-origem">Origem da mercadoria (0–8)</label>
+          <label class="form-label" for="prd-origem">Origem da mercadoria (0–8, opcional)</label>
           <input id="prd-origem" class="form-input" type="number" min="0" max="8" step="1" [class.invalid]="tentouEnviar() && !origemValida()"
                  [ngModel]="origem()" (ngModelChange)="origem.set($event)" />
-          @if (tentouEnviar() && !origemValida()) { <div class="field-error">Informe a origem, de 0 a 8.</div> }
+          @if (tentouEnviar() && !origemValida()) { <div class="field-error">A origem vai de 0 a 8.</div> }
         </div>
         <div>
-          <label class="form-label" for="prd-cfop">CFOP de venda</label>
+          <label class="form-label" for="prd-cfop">CFOP de venda (opcional)</label>
           <input id="prd-cfop" class="form-input" type="text" inputmode="numeric" maxlength="4" [class.invalid]="tentouEnviar() && !cfopValido()"
                  [ngModel]="cfopVenda()" (ngModelChange)="cfopVenda.set($event)" />
           @if (tentouEnviar() && !cfopValido()) { <div class="field-error">O CFOP tem 4 dígitos.</div> }
+        </div>
+      </div>
+      <div class="form-row cols-2">
+        <div>
+          <label class="form-label" for="prd-margem">Margem sobre o custo (%)</label>
+          <input id="prd-margem" class="form-input" type="number" min="0" step="any"
+                 [ngModel]="margem()" (ngModelChange)="aoMudarMargem($event)" />
+          <div class="form-hint">Custo da nota: {{ valorNota }}</div>
         </div>
         <div>
           <label class="form-label" for="prd-preco">Preço de venda (R$)</label>
@@ -74,16 +90,16 @@ const STATE_PATTERN = /^[A-Za-z]{2}$/;
       </div>
       <div class="form-row cols-2">
         <div>
-          <label class="form-label" for="prd-uf">UF do CST/CSOSN</label>
+          <label class="form-label" for="prd-uf">UF do CST/CSOSN (opcional)</label>
           <input id="prd-uf" class="form-input" type="text" maxlength="2" [class.invalid]="tentouEnviar() && !ufValida()"
                  [ngModel]="uf()" (ngModelChange)="uf.set($event)" />
-          @if (tentouEnviar() && !ufValida()) { <div class="field-error">Informe a UF com 2 letras.</div> }
+          @if (tentouEnviar() && !ufValida()) { <div class="field-error">Informe a UF com 2 letras para o CST/CSOSN.</div> }
         </div>
         <div>
-          <label class="form-label" for="prd-cst">CST/CSOSN</label>
+          <label class="form-label" for="prd-cst">CST/CSOSN (opcional)</label>
           <input id="prd-cst" class="form-input" type="text" inputmode="numeric" maxlength="3" [class.invalid]="tentouEnviar() && !cstValido()"
                  [ngModel]="cstCsosn()" (ngModelChange)="cstCsosn.set($event)" />
-          @if (tentouEnviar() && !cstValido()) { <div class="field-error">O CST/CSOSN tem 2 ou 3 dígitos.</div> }
+          @if (tentouEnviar() && !cstValido()) { <div class="field-error">O CST/CSOSN tem 2 ou 3 dígitos; informe também a UF.</div> }
         </div>
       </div>
       <div class="form-row cols-3">
@@ -127,6 +143,7 @@ export class RegisterProductModalComponent implements OnInit {
   readonly origem = signal<number | null>(null);
   readonly cfopVenda = signal('');
   readonly precoVenda = signal<number | null>(null);
+  readonly margem = signal<number | null>(null);
   readonly uf = signal('');
   readonly cstCsosn = signal('');
   readonly icms = signal<number | null>(null);
@@ -137,14 +154,22 @@ export class RegisterProductModalComponent implements OnInit {
   readonly enviando = signal(false);
   readonly erro = signal('');
 
-  readonly origemValida = computed(() => this.origem() !== null && Number.isInteger(this.origem()) && this.origem()! >= 0 && this.origem()! <= 8);
-  readonly cfopValido = computed(() => CFOP_PATTERN.test(this.cfopVenda().trim()));
+  readonly origemValida = computed(() => this.origem() === null || (Number.isInteger(this.origem()) && this.origem()! >= 0 && this.origem()! <= 8));
+  readonly cfopValido = computed(() => !this.cfopVenda().trim() || CFOP_PATTERN.test(this.cfopVenda().trim()));
   readonly precoValido = computed(() => this.precoVenda() !== null && this.precoVenda()! > 0);
-  readonly ufValida = computed(() => STATE_PATTERN.test(this.uf().trim()));
-  readonly cstValido = computed(() => CST_CSOSN_PATTERN.test(this.cstCsosn().trim()));
+  readonly ufValida = computed(() => (!this.uf().trim() && !this.cstCsosn().trim()) || STATE_PATTERN.test(this.uf().trim()));
+  readonly cstValido = computed(() => (!this.uf().trim() && !this.cstCsosn().trim()) || CST_CSOSN_PATTERN.test(this.cstCsosn().trim()));
   private readonly valido = computed(() =>
     !!this.codigo().trim() && !!this.unidadeVenda().trim() && this.origemValida() && this.cfopValido()
     && this.precoValido() && this.ufValida() && this.cstValido());
+
+  /** Sugere o preço de venda a partir do custo da nota e da margem; o operador ainda pode editar o preço. */
+  aoMudarMargem(valor: number | null): void {
+    this.margem.set(valor);
+    const custo = Number(this.item.unitValue);
+    if (valor === null || valor === undefined || !Number.isFinite(custo) || custo <= 0) return;
+    this.precoVenda.set(Math.round(custo * (1 + valor / 100) * 100) / 100);
+  }
 
   get valorNota(): string {
     return formatUnitValue(this.item.unitValue);
@@ -154,6 +179,7 @@ export class RegisterProductModalComponent implements OnInit {
     this.codigo.set(this.item.description.slice(0, 60));
     this.ncm.set(this.item.ncm ?? '');
     this.unidadeCompra.set(this.item.unit ?? '');
+    this.unidadeVenda.set(this.item.unit ?? '');
   }
 
   /** POST …/items/{index}/register-product; só fecha depois do sucesso, mantendo o modal aberto nas falhas. */
@@ -173,6 +199,8 @@ export class RegisterProductModalComponent implements OnInit {
   }
 
   private toRequest(): RegisterInboundProductRequest {
+    const cfop = this.cfopVenda().trim();
+    const cst = this.cstCsosn().trim();
     const rates = {
       icmsRate: this.icms() ?? undefined, pisRate: this.pis() ?? undefined, cofinsRate: this.cofins() ?? undefined,
     };
@@ -180,9 +208,9 @@ export class RegisterProductModalComponent implements OnInit {
       internalCode: this.codigo().trim(),
       type: 'SIMPLE',
       ncm: this.ncm().trim(),
-      origin: this.origem()!,
-      defaultCfopByOperation: { [SALE_OPERATION]: this.cfopVenda().trim() },
-      cstCsosnByState: { [this.uf().trim().toUpperCase()]: this.cstCsosn().trim() },
+      ...(this.origem() !== null ? { origin: this.origem()! } : {}),
+      ...(cfop ? { defaultCfopByOperation: { [SALE_OPERATION]: cfop } } : {}),
+      ...(cst ? { cstCsosnByState: { [this.uf().trim().toUpperCase()]: cst } } : {}),
       ...(Object.values(rates).some(rate => rate !== undefined) ? { taxProfile: rates } : {}),
       basePrice: this.precoVenda()!,
       purchaseUnit: this.unidadeCompra().trim(),

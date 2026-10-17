@@ -25,7 +25,7 @@ class SupplierTest {
 	void shouldRegisterPjSupplierWithOptionalPurchasingFieldsAbsent() {
 		final Supplier supplier = validBuilder().build();
 
-		assertThat(supplier.personType()).isEqualTo(PersonType.COMPANY);
+		assertThat(supplier.getDocument().personType()).isEqualTo(PersonType.COMPANY);
 		assertThat(supplier.getDocument()).isEqualTo(VALID_CNPJ);
 		assertThat(supplier.getBankAccount()).isNull();
 		assertThat(supplier.getPixKey()).isNull();
@@ -34,12 +34,11 @@ class SupplierTest {
 	}
 
 	@Test
-	@DisplayName("Registers a PF supplier reusing the shared document value object")
-	void shouldRegisterPfSupplierReusingSharedDocumentValueObject() {
-		final Supplier supplier = validBuilder().document(VALID_CPF).build();
-
-		assertThat(supplier.personType()).isEqualTo(PersonType.INDIVIDUAL);
-		assertThat(supplier.getDocument()).isEqualTo(VALID_CPF);
+	@DisplayName("Rejects an individual (CPF): a supplier is always a company")
+	void shouldRejectAnIndividualSupplier() {
+		assertThatThrownBy(() -> build(b -> b.document(VALID_CPF)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("company");
 	}
 
 	@Test
@@ -126,6 +125,37 @@ class SupplierTest {
 		assertThatThrownBy(supplier::assertReadyForPurchasing)
 				.isInstanceOf(BusinessRuleException.class)
 				.hasMessageContaining("CFOP");
+	}
+
+	@Test
+	@DisplayName("Keeps the optional fiscal profile and treats blanks as absent")
+	void shouldKeepTheOptionalFiscalProfile() {
+		final Supplier full = fiscal("123456789", "98765", " 4751201 ", true);
+		final Supplier blank = fiscal(" ", "", null, null);
+
+		assertThat(full.getIe()).isEqualTo("123456789");
+		assertThat(full.getIm()).isEqualTo("98765");
+		assertThat(full.getCnae()).isEqualTo("4751201");
+		assertThat(full.getSimplesOptante()).isTrue();
+		assertThat(blank.getIe()).isNull();
+		assertThat(blank.getIm()).isNull();
+		assertThat(blank.getCnae()).isNull();
+		assertThat(blank.getSimplesOptante()).isNull();
+		assertThat(fiscal("ISENTO", null, null, false).getIe()).isEqualTo("ISENTO");
+	}
+
+	@Test
+	@DisplayName("Rejects a malformed IE or IM")
+	void shouldRejectMalformedIeOrIm() {
+		assertThatThrownBy(() -> fiscal("12AB", null, null, null))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("Invalid IE");
+		assertThatThrownBy(() -> fiscal(null, "x1", null, null))
+				.isInstanceOf(BusinessRuleException.class).hasMessageContaining("Invalid IM");
+	}
+
+	private Supplier fiscal(final String ie, final String im, final String cnae, final Boolean simplesOptante) {
+		return new Supplier(SupplierId.of(UUID.randomUUID()), VALID_CNPJ, "Fornecedor", List.of(VALID_ADDRESS), List.of(), null, null,
+				null, null, ie, im, cnae, simplesOptante);
 	}
 
 	private void build(final java.util.function.Consumer<Builder> customize) {

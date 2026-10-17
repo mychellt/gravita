@@ -130,6 +130,9 @@ export interface InboundConferenceItem {
 /** Corpo de resposta de GET /api/nfe/inbound/{id}/conference (InboundNfeConferenceResponse). */
 export interface InboundConference {
   inboundNfeId: string;
+  /** CNPJ (só dígitos) e nome do fornecedor como a própria nota traz, para cadastrá-lo quando ainda não existe. */
+  supplierDocument: string;
+  supplierName: string;
   /** Falso enquanto nenhum fornecedor cadastrado tem o CNPJ da nota. */
   supplierResolved: boolean;
   supplierId: string | null;
@@ -141,9 +144,9 @@ export interface RegisterInboundProductRequest {
   internalCode: string;
   type: 'SIMPLE';
   ncm: string;
-  origin: number;
-  defaultCfopByOperation: Record<string, string>;
-  cstCsosnByState: Record<string, string>;
+  origin?: number;
+  defaultCfopByOperation?: Record<string, string>;
+  cstCsosnByState?: Record<string, string>;
   taxProfile?: { icmsRate?: number; ipiRate?: number; pisRate?: number; cofinsRate?: number };
   basePrice: number;
   purchaseUnit: string;

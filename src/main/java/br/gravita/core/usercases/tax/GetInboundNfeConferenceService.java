@@ -39,7 +39,8 @@ public class GetInboundNfeConferenceService implements GetInboundNfeConferenceUs
 		final List<InboundNfeConference.Item> items = resolution.items().stream()
 				.map(item -> toItem(item, productLabels))
 				.toList();
-		return new InboundNfeConference(inboundNfe.getId().value(), resolution.isSupplierResolved(),
+		return new InboundNfeConference(inboundNfe.getId().value(), inboundNfe.getSupplierDocument().number(),
+				inboundNfe.getSupplierName(), resolution.isSupplierResolved(),
 				resolution.supplierId().map(SupplierId::value).orElse(null), items);
 	}
 

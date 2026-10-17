@@ -3,7 +3,6 @@ package br.gravita.adapters.inbound.controllers.masterdata.dtos;
 import br.gravita.core.domain.masterdata.*;
 import br.gravita.core.ports.inbound.masterdata.RegisterSupplierCommand;
 import br.gravita.core.domain.shared.Document;
-import br.gravita.core.domain.shared.PersonType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -13,7 +12,6 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 public record RegisterSupplierRequest(
-		@NotNull PersonType personType,
 		@NotBlank String document,
 		@NotBlank String name,
 		@NotEmpty List<@Valid AddressRequest> addresses,
@@ -21,10 +19,14 @@ public record RegisterSupplierRequest(
 		@Valid BankAccountRequest bankAccount,
 		String pixKey,
 		@Positive Integer averageLeadTimeDays,
-		String defaultPurchaseCfop) {
+		String defaultPurchaseCfop,
+		String ie,
+		String im,
+		String cnae,
+		Boolean simplesOptante) {
 
 	public RegisterSupplierCommand toCommand() {
-		final Document supplierDocument = personType == PersonType.INDIVIDUAL ? Document.cpf(document) : Document.cnpj(document);
+		final Document supplierDocument = Document.cnpj(document);
 		return new RegisterSupplierCommand(
 				supplierDocument,
 				name,
@@ -33,7 +35,11 @@ public record RegisterSupplierRequest(
 				bankAccount == null ? null : bankAccount.toDomain(),
 				pixKey == null || pixKey.isBlank() ? null : PixKey.of(pixKey),
 				averageLeadTimeDays,
-				defaultPurchaseCfop);
+				defaultPurchaseCfop,
+				ie,
+				im,
+				cnae,
+				simplesOptante);
 	}
 
 	public record AddressRequest(

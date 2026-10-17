@@ -6,7 +6,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record InboundNfeConferenceResponse(UUID inboundNfeId, boolean supplierResolved, UUID supplierId, List<Item> items) {
+public record InboundNfeConferenceResponse(UUID inboundNfeId, String supplierDocument, String supplierName,
+		boolean supplierResolved, UUID supplierId, List<Item> items) {
 
 	public record Item(int index, String supplierProductCode, String description, String ncm, String unit, BigDecimal quantity,
 			BigDecimal unitValue, boolean resolved, UUID productId, String productLabel, BigDecimal lastPurchaseUnitValue,
@@ -14,8 +15,9 @@ public record InboundNfeConferenceResponse(UUID inboundNfeId, boolean supplierRe
 	}
 
 	public static InboundNfeConferenceResponse from(final InboundNfeConference conference) {
-		return new InboundNfeConferenceResponse(conference.inboundNfeId(), conference.supplierResolved(),
-				conference.supplierId(), conference.items().stream().map(InboundNfeConferenceResponse::toItem).toList());
+		return new InboundNfeConferenceResponse(conference.inboundNfeId(), conference.supplierDocument(),
+				conference.supplierName(), conference.supplierResolved(), conference.supplierId(),
+				conference.items().stream().map(InboundNfeConferenceResponse::toItem).toList());
 	}
 
 	private static Item toItem(final InboundNfeConference.Item item) {

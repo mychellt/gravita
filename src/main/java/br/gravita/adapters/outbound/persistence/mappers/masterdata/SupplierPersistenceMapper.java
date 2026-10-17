@@ -10,7 +10,6 @@ import br.gravita.core.domain.masterdata.PixKey;
 import br.gravita.core.domain.masterdata.Supplier;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.shared.Document;
-import br.gravita.core.domain.shared.PersonType;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -30,7 +29,6 @@ public interface SupplierPersistenceMapper {
 
     @Mapping(target = "id", source = "id.value")
     @Mapping(target = "document", source = "document.number")
-    @Mapping(target = "personType", source = "document.personType")
     @Mapping(target = "bankCode", source = "bankAccount.bankCode")
     @Mapping(target = "bankAgency", source = "bankAccount.agency")
     @Mapping(target = "bankAccountNumber", source = "bankAccount.accountNumber")
@@ -55,9 +53,7 @@ public interface SupplierPersistenceMapper {
 
     @Named("toDocument")
     static Document toDocument(final SupplierJpaEntity entity) {
-        return entity.getPersonType() == PersonType.INDIVIDUAL
-                ? Document.cpf(entity.getDocument())
-                : Document.cnpj(entity.getDocument());
+        return Document.cnpj(entity.getDocument());
     }
 
     @Named("toPixKey")

@@ -25,7 +25,7 @@ public interface CompanyPersistenceMapper {
         		.im(entity.getIm())
         		.cnae(entity.getCnae())
         		.taxRegime(entity.getTaxRegime())
-        		.simplesOptante(entity.isSimplesOptante())
+        		.simplesOptante(Boolean.TRUE.equals(entity.getSimplesOptante()))
         		.sefazEnvironment(entity.getSefazEnvironment())
         		.address(entity.getAddress())
         		.state(entity.getState())

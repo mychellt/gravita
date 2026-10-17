@@ -9,6 +9,7 @@ import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.shared.Document;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class SupplierRepositoryAdapter implements SupplierRepositoryPort {
@@ -22,6 +23,7 @@ class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 	}
 
 	@Override
+	@Transactional
 	public Supplier save(final Supplier supplier) {
 		final SupplierJpaEntity entity = mapper.map(supplier);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
@@ -30,11 +32,13 @@ class SupplierRepositoryAdapter implements SupplierRepositoryPort {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<Supplier> findById(final SupplierId id) {
 		return jpaRepository.findById(id.value()).map(entity -> mapper.map(entity));
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<Supplier> findByDocument(final Document document) {
 		return jpaRepository.findByDocument(document.number()).map(entity -> mapper.map(entity));
 	}

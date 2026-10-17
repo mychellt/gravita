@@ -12,6 +12,9 @@ import lombok.Getter;
 public final class Supplier {
 
 	private static final Pattern CFOP = Pattern.compile("\\d{4}");
+	private static final Pattern IE = Pattern.compile("\\d{2,14}");
+	private static final Pattern IM = Pattern.compile("\\d{1,15}");
+	private static final String ISENTO = "ISENTO";
 
 	private final SupplierId id;
 	private final Document document;
@@ -22,9 +25,15 @@ public final class Supplier {
 	private final PixKey pixKey;
 	private final Integer averageLeadTimeDays;
 	private final String defaultPurchaseCfop;
+	/** Optional fiscal profile; {@code simplesOptante} is {@code null} while unknown. */
+	private final String ie;
+	private final String im;
+	private final String cnae;
+	private final Boolean simplesOptante;
 
 	public Supplier(final SupplierId id, final Document document, final String name, final List<Address> addresses, final List<Contact> contacts,
-			final BankAccount bankAccount, final PixKey pixKey, final Integer averageLeadTimeDays, final String defaultPurchaseCfop) {
+			final BankAccount bankAccount, final PixKey pixKey, final Integer averageLeadTimeDays, final String defaultPurchaseCfop,
+			final String ie, final String im, final String cnae, final Boolean simplesOptante) {
 		this.id = Objects.requireNonNull(id, "SupplierId is required");
 		this.document = requireDocument(document);
 		this.name = requireName(name);
@@ -34,17 +43,17 @@ public final class Supplier {
 		this.pixKey = pixKey;
 		this.averageLeadTimeDays = requireValidLeadTime(averageLeadTimeDays);
 		this.defaultPurchaseCfop = requireValidCfop(defaultPurchaseCfop);
+		this.ie = validIe(ie);
+		this.im = validIm(im);
+		this.cnae = blankToNull(cnae);
+		this.simplesOptante = simplesOptante;
 	}
 
 	public static Supplier of(final SupplierId id, final Document document, final String name, final List<Address> addresses,
 			final List<Contact> contacts, final BankAccount bankAccount, final PixKey pixKey, final Integer averageLeadTimeDays,
 			final String defaultPurchaseCfop) {
 		return new Supplier(id, document, name, addresses, contacts, bankAccount, pixKey, averageLeadTimeDays,
-				defaultPurchaseCfop);
-	}
-
-	public PersonType personType() {
-		return document.personType();
+				defaultPurchaseCfop, null, null, null, null);
 	}
 
 	public void assertReadyForPurchasing() {
@@ -59,6 +68,9 @@ public final class Supplier {
 	private static Document requireDocument(final Document document) {
 		if (document == null) {
 			throw new BusinessRuleException("Supplier document is required");
+		}
+		if (document.personType() != PersonType.COMPANY) {
+			throw new BusinessRuleException("A supplier must be a company: a CNPJ is required");
 		}
 		return document;
 	}
@@ -96,5 +108,25 @@ public final class Supplier {
 			throw new BusinessRuleException("Invalid CFOP: " + defaultPurchaseCfop);
 		}
 		return trimmed;
+	}
+
+	private static String validIe(final String ie) {
+		final String trimmed = blankToNull(ie);
+		if (trimmed != null && !ISENTO.equalsIgnoreCase(trimmed) && !IE.matcher(trimmed).matches()) {
+			throw new BusinessRuleException("Invalid IE: " + ie);
+		}
+		return trimmed;
+	}
+
+	private static String validIm(final String im) {
+		final String trimmed = blankToNull(im);
+		if (trimmed != null && !IM.matcher(trimmed).matches()) {
+			throw new BusinessRuleException("Invalid IM: " + im);
+		}
+		return trimmed;
+	}
+
+	private static String blankToNull(final String value) {
+		return value == null || value.isBlank() ? null : value.trim();
 	}
 }

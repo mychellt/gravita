@@ -8,9 +8,11 @@ import java.util.UUID;
 /**
  * What the conference screen needs about an inbound NFe: whether its supplier is registered and, per item, the
  * imported snapshot next to the catalog Product it resolves to (if any) and how its price compares with the last
- * purchase.
+ * purchase. {@code supplierDocument}/{@code supplierName} are the NFe's own snapshot, so an unregistered supplier can
+ * be registered from the screen.
  */
-public record InboundNfeConference(UUID inboundNfeId, boolean supplierResolved, UUID supplierId, List<Item> items) {
+public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, String supplierName, boolean supplierResolved,
+		UUID supplierId, List<Item> items) {
 
 	public InboundNfeConference {
 		items = List.copyOf(items);

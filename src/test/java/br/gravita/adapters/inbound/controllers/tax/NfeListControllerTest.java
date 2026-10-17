@@ -163,14 +163,16 @@ class NfeListControllerTest {
 	void shouldReturnTheInboundNfeConference() throws Exception {
 		final UUID inboundNfeId = UUID.randomUUID();
 		final UUID productId = UUID.randomUUID();
-		when(getInboundNfeConferenceUseCase.execute(any())).thenReturn(new InboundNfeConference(inboundNfeId, true,
-				UUID.randomUUID(), List.of(new InboundNfeConference.Item(0, "SKU-001", "Parafuso", "73181500", "UN",
+		when(getInboundNfeConferenceUseCase.execute(any())).thenReturn(new InboundNfeConference(inboundNfeId, "11222333000181",
+				"Fornecedor Alfa", true, UUID.randomUUID(), List.of(new InboundNfeConference.Item(0, "SKU-001", "Parafuso", "73181500", "UN",
 						BigDecimal.TEN, new BigDecimal("1.8000"), productId, "PARAF-M8", new BigDecimal("1.5000"),
 						Instant.parse("2026-01-10T12:00:00Z"), new BigDecimal("0.3000")))));
 
 		mockMvc.perform(get("/api/nfe/inbound/" + inboundNfeId + "/conference").header("Authorization", BEARER))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.supplierResolved").value(true))
+				.andExpect(jsonPath("$.supplierDocument").value("11222333000181"))
+				.andExpect(jsonPath("$.supplierName").value("Fornecedor Alfa"))
 				.andExpect(jsonPath("$.items[0].resolved").value(true))
 				.andExpect(jsonPath("$.items[0].productId").value(productId.toString()))
 				.andExpect(jsonPath("$.items[0].lastPurchaseUnitValue").value(1.5))

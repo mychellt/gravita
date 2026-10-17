@@ -102,6 +102,8 @@ class GetInboundNfeConferenceServiceTest {
 
 		assertThat(conference.supplierResolved()).isFalse();
 		assertThat(conference.supplierId()).isNull();
+		assertThat(conference.supplierDocument()).isEqualTo(nfe.getSupplierDocument().number());
+		assertThat(conference.supplierName()).isEqualTo(nfe.getSupplierName());
 		assertThat(conference.items()).hasSize(1);
 		assertThat(conference.items().get(0).resolved()).isFalse();
 		verify(linkRepositoryPort, never()).findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection());

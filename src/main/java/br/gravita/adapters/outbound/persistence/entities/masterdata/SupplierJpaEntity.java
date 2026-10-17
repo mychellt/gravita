@@ -1,17 +1,18 @@
 package br.gravita.adapters.outbound.persistence.entities.masterdata;
 
-import br.gravita.adapters.outbound.persistence.entities.AbstractEntity;
-import br.gravita.core.domain.shared.PersonType;
 import jakarta.persistence.*;
-
-import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.List;
+
+/**
+ * A supplier is a company: id, name, document (stored as the company's {@code cnpj}), IE, IM, CNAE and Simples flag live
+ * in {@code companies}; this table (joined by id) holds only what is specific to buying from it.
+ */
 @Getter
 @Setter
 @Entity
@@ -19,43 +20,31 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "suppliers")
-public class SupplierJpaEntity extends AbstractEntity<UUID> {
-	@Id
-	private UUID id;
+@PrimaryKeyJoinColumn(name = "id")
+public class SupplierJpaEntity extends CompanyJpaEntity {
 
-	@Column(nullable = false, unique = true, length = 20)
-	private String document;
+    @ElementCollection
+    @CollectionTable(name = "supplier_addresses", joinColumns = @JoinColumn(name = "supplier_id"))
+    private List<SupplierAddressEmbeddable> addresses;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private PersonType personType;
+    @ElementCollection
+    @CollectionTable(name = "supplier_contacts", joinColumns = @JoinColumn(name = "supplier_id"))
+    private List<SupplierContactEmbeddable> contacts;
 
-	@Column(nullable = false)
-	private String name;
+    @Column(name = "bank_code", length = 10)
+    private String bankCode;
 
-	@ElementCollection
-	@CollectionTable(name = "supplier_addresses", joinColumns = @JoinColumn(name = "supplier_id"))
-	private List<SupplierAddressEmbeddable> addresses;
+    @Column(name = "bank_agency", length = 20)
+    private String bankAgency;
+    @Column(name = "bank_account_number", length = 30)
+    private String bankAccountNumber;
 
-	@ElementCollection
-	@CollectionTable(name = "supplier_contacts", joinColumns = @JoinColumn(name = "supplier_id"))
-	private List<SupplierContactEmbeddable> contacts;
+    @Column(name = "pix_key")
+    private String pixKey;
 
-	@Column(name = "bank_code", length = 10)
-	private String bankCode;
+    @Column(name = "average_lead_time_days")
+    private Integer averageLeadTimeDays;
 
-	@Column(name = "bank_agency", length = 20)
-	private String bankAgency;
-
-	@Column(name = "bank_account_number", length = 30)
-	private String bankAccountNumber;
-
-	@Column(name = "pix_key")
-	private String pixKey;
-
-	@Column(name = "average_lead_time_days")
-	private Integer averageLeadTimeDays;
-
-	@Column(name = "default_purchase_cfop", length = 4)
-	private String defaultPurchaseCfop;
+    @Column(name = "default_purchase_cfop", length = 4)
+    private String defaultPurchaseCfop;
 }

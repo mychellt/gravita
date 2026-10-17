@@ -20,9 +20,9 @@ public class RegisterSupplierService implements RegisterSupplierUseCase {
 	@Override
 	public SupplierId execute(final RegisterSupplierCommand command) {
 		final SupplierId id = SupplierId.of(UUID.randomUUID());
-		final Supplier supplier = Supplier.of(id, command.document(), command.name(), command.addresses(),
+		final Supplier supplier = new Supplier(id, command.document(), command.name(), command.addresses(),
 				command.contacts(), command.bankAccount(), command.pixKey(), command.averageLeadTimeDays(),
-				command.defaultPurchaseCfop());
+				command.defaultPurchaseCfop(), command.ie(), command.im(), command.cnae(), command.simplesOptante());
 
 		final Supplier saved = supplierRepositoryPort.save(supplier);
 		return saved.getId();

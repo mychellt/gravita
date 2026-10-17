@@ -10,6 +10,7 @@ import { ImportXmlModalComponent } from './import-xml-modal.component';
 import { ManifestationModalComponent } from './manifestation-modal.component';
 import { ManualEntryModalComponent } from './manual-entry-modal.component';
 import { RegisterProductModalComponent } from './register-product-modal.component';
+import { RegisterSupplierModalComponent } from './register-supplier-modal.component';
 
 const COMPANY = 'company-1';
 const KEY = '3'.repeat(44);
@@ -177,7 +178,7 @@ describe('Inbound NF-e flows', () => {
       resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, ...over,
     });
     const conference = (items: InboundConferenceItem[], supplierResolved = true): InboundConference =>
-      ({ inboundNfeId: 'i1', supplierResolved, supplierId: supplierResolved ? 'sup-1' : null, items });
+      ({ inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved, supplierId: supplierResolved ? 'sup-1' : null, items });
 
     async function open(items: InboundConferenceItem[], supplierResolved = true) {
       const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
@@ -236,6 +237,7 @@ describe('Inbound NF-e flows', () => {
 
       http.expectNone('/api/nfe/inbound/i1/confirm-receipt');
       expect(modal.tentouEnviar()).toBeTrue();
+      expect(modal.erro()).toBe('Vincule o item sem produto a um produto do catálogo antes de confirmar.');
     });
 
     it('blocks submission while the supplier is not registered (BR1)', async () => {
@@ -245,6 +247,17 @@ describe('Inbound NF-e flows', () => {
 
       http.expectNone('/api/nfe/inbound/i1/confirm-receipt');
       expect(modal.conferencia()!.supplierResolved).toBeFalse();
+      expect(modal.erro()).toBe('Cadastre o fornecedor desta NF-e (botão "Cadastrar fornecedor") antes de confirmar o recebimento.');
+    });
+
+    it('blocks submission and says so when a quantity is empty', async () => {
+      const modal = await open([resolvedItem()]);
+      modal.alterar(0, { receivedQty: null });
+
+      await modal.confirmar();
+
+      http.expectNone('/api/nfe/inbound/i1/confirm-receipt');
+      expect(modal.erro()).toBe('Informe as quantidades da nota e recebida de todos os itens (zero ou mais).');
     });
 
     it('links an existing product picked for an unresolved item and reloads the resolution (BR5)', async () => {
@@ -318,6 +331,142 @@ describe('Inbound NF-e flows', () => {
     });
   });
 
+  describe('register the supplier during the confirmation', () => {
+    const item = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
+      index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, ...over,
+    });
+    const conf = (supplierResolved: boolean): InboundConference => ({
+      inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved,
+      supplierId: supplierResolved ? 'sup-1' : null, items: [item()],
+    });
+
+    async function open(supplierResolved: boolean) {
+      const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
+      fixture.componentRef.setInput('nfe', row());
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(conf(supplierResolved));
+      await flush();
+      fixture.detectChanges();
+      return fixture;
+    }
+    const q = (fixture: { nativeElement: HTMLElement }, id: string) => fixture.nativeElement.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+
+    it('tells the user, up front, that the supplier and the products can be registered here', async () => {
+      const fixture = await open(false);
+
+      expect(fixture.nativeElement.textContent).toContain('pode ser cadastrado aqui mesmo');
+      expect(q(fixture, 'check-supplier')!.textContent).toContain('ainda não está cadastrado');
+      expect(q(fixture, 'check-supplier')!.textContent).toContain('11.222.333/0001-81');
+      expect(q(fixture, 'register-supplier')).not.toBeNull();
+      expect(q(fixture, 'check-items')!.textContent).toContain('0 de 1 itens vinculados');
+      expect(q(fixture, 'item-needs-supplier')).not.toBeNull();
+    });
+
+    it('does not offer the action when the supplier is already registered', async () => {
+      const fixture = await open(true);
+
+      expect(q(fixture, 'register-supplier')).toBeNull();
+      expect(q(fixture, 'check-supplier')!.textContent).toContain('Fornecedor cadastrado');
+      expect(q(fixture, 'item-needs-supplier')).toBeNull();
+    });
+
+    it('opens the supplier form with the CNPJ and name of the NF-e; the CNPJ is read-only', async () => {
+      const fixture = await open(false);
+
+      q(fixture, 'register-supplier')!.click();
+      fixture.detectChanges();
+      http.expectOne('/api/lookup/cnpj/11222333000181').flush(null, { status: 404, statusText: 'Not Found' });
+      await flush();
+      fixture.detectChanges();
+
+      const cnpj = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#sup-cnpj')!;
+      expect(cnpj.readOnly).toBeTrue();
+      expect(cnpj.value).toBe('11.222.333/0001-81');
+      expect((fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('#sup-nome')!.value).toBe('Fornecedor Alfa');
+    });
+
+    it('posts the supplier with the NF-e CNPJ and one address, then reloads the conference', async () => {
+      const fixture = await open(false);
+      fixture.componentInstance.cadastrandoFornecedor.set(true);
+      fixture.detectChanges();
+      http.expectOne('/api/lookup/cnpj/11222333000181').flush({ name: null, address: null });
+      await flush();
+      const modal = fixture.debugElement.query(d => d.componentInstance instanceof RegisterSupplierModalComponent).componentInstance as RegisterSupplierModalComponent;
+      modal.cep.set('01001-000');
+      modal.rua.set('Praça da Sé');
+      modal.bairro.set('Sé');
+      modal.cidade.set('São Paulo');
+      modal.uf.set('sp');
+
+      const saving = modal.salvar();
+      const post = http.expectOne('/api/suppliers');
+      expect(post.request.body).toEqual({
+        document: '11222333000181', name: 'Fornecedor Alfa',
+        addresses: [{ street: 'Praça da Sé', number: null, complement: null, neighborhood: 'Sé', city: 'São Paulo', state: 'SP', zipCode: '01001000' }],
+      });
+      post.flush({ id: 'sup-1' });
+      await saving;
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(conf(true));
+      await flush();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.cadastrandoFornecedor()).toBeFalse();
+      expect(fixture.componentInstance.conferencia()!.supplierResolved).toBeTrue();
+      expect(q(fixture, 'register-supplier')).toBeNull();
+    });
+
+    it('requires the address before posting', async () => {
+      const fixture = await open(false);
+      fixture.componentInstance.cadastrandoFornecedor.set(true);
+      fixture.detectChanges();
+      http.expectOne('/api/lookup/cnpj/11222333000181').flush({ name: null, address: null });
+      await flush();
+      const modal = fixture.debugElement.query(d => d.componentInstance instanceof RegisterSupplierModalComponent).componentInstance as RegisterSupplierModalComponent;
+
+      await modal.salvar();
+
+      http.expectNone('/api/suppliers');
+      expect(modal.tentouEnviar()).toBeTrue();
+    });
+
+    it('keeps the form open with the backend message when the registration is refused', async () => {
+      const fixture = await open(false);
+      fixture.componentInstance.cadastrandoFornecedor.set(true);
+      fixture.detectChanges();
+      http.expectOne('/api/lookup/cnpj/11222333000181').flush({ name: null, address: null });
+      await flush();
+      const modal = fixture.debugElement.query(d => d.componentInstance instanceof RegisterSupplierModalComponent).componentInstance as RegisterSupplierModalComponent;
+      Object.entries({ cep: '01001000', rua: 'Rua A', bairro: 'Centro', cidade: 'Recife', uf: 'PE' }).forEach(([k, v]) =>
+        (modal as unknown as Record<string, { set(v: string): void }>)[k].set(v));
+
+      const saving = modal.salvar();
+      http.expectOne('/api/suppliers').flush({ message: 'Supplier already registered' }, { status: 400, statusText: 'Bad Request' });
+      await saving;
+
+      expect(modal.erro()).toBe('Supplier already registered');
+      expect(modal.enviando()).toBeFalse();
+      expect(fixture.componentInstance.cadastrandoFornecedor()).toBeTrue();
+    });
+
+    it('pre-fills the address from the CNPJ lookup without overwriting what the operator typed', async () => {
+      const fixture = await open(false);
+      fixture.componentInstance.cadastrandoFornecedor.set(true);
+      fixture.detectChanges();
+      const modal = fixture.debugElement.query(d => d.componentInstance instanceof RegisterSupplierModalComponent).componentInstance as RegisterSupplierModalComponent;
+      modal.cidade.set('Digitada');
+      http.expectOne('/api/lookup/cnpj/11222333000181').flush({
+        name: 'Razão Social Alfa', address: { street: 'Rua X', number: '10', neighborhood: 'Centro', city: 'Recife', state: 'PE', zipCode: '50000000' },
+      });
+      await flush();
+
+      expect(modal.rua()).toBe('Rua X');
+      expect(modal.uf()).toBe('PE');
+      expect(modal.cidade()).toBe('Digitada');
+      expect(modal.nome()).toBe('Fornecedor Alfa');
+    });
+  });
+
   describe('register product from an NF-e item', () => {
     const item: InboundConferenceItem = {
       index: 1, supplierProductCode: 'SKU-2', description: 'Porca Sextavada M8', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
@@ -343,29 +492,65 @@ describe('Inbound NF-e flows', () => {
       return modal;
     }
 
-    it('pre-fills description, NCM and purchase unit from the NF-e item, leaving fiscal and pricing fields empty (BR4)', () => {
+    it('pre-fills description, NCM and units from the NF-e item, leaving fiscal and pricing fields empty (BR4)', () => {
       const modal = open();
 
       expect(modal.codigo()).toBe('Porca Sextavada M8');
       expect(modal.ncm()).toBe('73181600');
       expect(modal.unidadeCompra()).toBe('PC');
+      expect(modal.unidadeVenda()).toBe('PC');
       expect(modal.origem()).toBeNull();
       expect(modal.cfopVenda()).toBe('');
       expect(modal.cstCsosn()).toBe('');
       expect(modal.precoVenda()).toBeNull();
     });
 
-    it('requires the fiscal-output and pricing fields before posting', async () => {
+    it('requires only the sale unit and price; fiscal-output fields are optional (managerial sale)', async () => {
       const modal = open();
 
       await modal.salvar();
 
       http.expectNone('/api/nfe/inbound/i1/items/1/register-product');
       expect(modal.tentouEnviar()).toBeTrue();
-      expect(modal.origemValida()).toBeFalse();
-      expect(modal.cfopValido()).toBeFalse();
-      expect(modal.cstValido()).toBeFalse();
+      expect(modal.origemValida()).toBeTrue();
+      expect(modal.cfopValido()).toBeTrue();
+      expect(modal.cstValido()).toBeTrue();
       expect(modal.precoValido()).toBeFalse();
+    });
+
+    it('suggests the sale price from the invoice cost and the margin', () => {
+      const modal = open();
+
+      modal.aoMudarMargem(50);
+
+      expect(modal.precoVenda()).toBe(Math.round(Number(modal.item.unitValue) * 1.5 * 100) / 100);
+    });
+
+    it('validates fiscal fields only when filled, and CST needs its state', () => {
+      const modal = open();
+
+      modal.cfopVenda.set('51');
+      modal.cstCsosn.set('102');
+
+      expect(modal.cfopValido()).toBeFalse();
+      expect(modal.ufValida()).toBeFalse();
+      modal.uf.set('SP');
+      expect(modal.ufValida()).toBeTrue();
+    });
+
+    it('posts without fiscal-output data when the operator leaves it empty', async () => {
+      const modal = open();
+      modal.unidadeVenda.set('PC');
+      modal.precoVenda.set(6.9);
+
+      const saving = modal.salvar();
+      const post = http.expectOne('/api/nfe/inbound/i1/items/1/register-product');
+      expect(post.request.body).toEqual({
+        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600',
+        basePrice: 6.9, purchaseUnit: 'PC', saleUnit: 'PC',
+      });
+      post.flush({});
+      await saving;
     });
 
     it('posts the product to the item endpoint so the backend also creates the link, then emits registered', async () => {

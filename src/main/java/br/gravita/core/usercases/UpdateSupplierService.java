@@ -21,7 +21,7 @@ public class UpdateSupplierService implements UpdateSupplierUseCase {
 		final Supplier existing = supplierRepositoryPort.findById(command.supplierId())
 				.orElseThrow(() -> new SupplierNotFoundException(command.supplierId().value()));
 
-		final Supplier updated = Supplier.of(
+		final Supplier updated = new Supplier(
 				existing.getId(),
 				coalesce(command.document(), existing.getDocument()),
 				coalesce(command.name(), existing.getName()),
@@ -30,7 +30,11 @@ public class UpdateSupplierService implements UpdateSupplierUseCase {
 				coalesce(command.bankAccount(), existing.getBankAccount()),
 				coalesce(command.pixKey(), existing.getPixKey()),
 				coalesce(command.averageLeadTimeDays(), existing.getAverageLeadTimeDays()),
-				coalesce(command.defaultPurchaseCfop(), existing.getDefaultPurchaseCfop()));
+				coalesce(command.defaultPurchaseCfop(), existing.getDefaultPurchaseCfop()),
+				coalesce(command.ie(), existing.getIe()),
+				coalesce(command.im(), existing.getIm()),
+				coalesce(command.cnae(), existing.getCnae()),
+				coalesce(command.simplesOptante(), existing.getSimplesOptante()));
 
 		supplierRepositoryPort.save(updated);
 	}

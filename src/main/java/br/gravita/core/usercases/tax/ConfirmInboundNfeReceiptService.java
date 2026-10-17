@@ -85,7 +85,9 @@ public class ConfirmInboundNfeReceiptService implements ConfirmInboundNfeReceipt
 		notifyPayableGeneratedPort.notifyGenerated(new NotifyPayableGeneratedCommand(confirmed.getId().value(),
 				confirmed.getSupplierDocument().number(), toInstallments(confirmed)));
 
-		calculateTaxUseCase.execute(buildTaxCommand(confirmed, conferenceResult, company));
+		if (company.getState() != null) {
+			calculateTaxUseCase.execute(buildTaxCommand(confirmed, conferenceResult, company));
+		}
 
 		recordLastPurchase(resolution, confirmed);
 
