@@ -2,6 +2,7 @@ package br.gravita.adapters.inbound.controllers;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
 import br.gravita.core.domain.exceptions.DuplicateResourceException;
+import br.gravita.core.domain.exceptions.NfeAlreadyImportedException;
 import br.gravita.core.domain.exceptions.ForbiddenException;
 import br.gravita.core.domain.exceptions.ResourceNotFoundException;
 import br.gravita.core.domain.exceptions.UnauthorizedException;
@@ -38,6 +39,12 @@ public class ApiExceptionHandler {
 	public ResponseEntity<String> handleOptimisticLockingFailure(final ObjectOptimisticLockingFailureException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body("The record was updated by another request in the meantime; reload and retry.");
+	}
+
+	/** UC-M2-08: the access key was already imported; `code` lets the UI show its own message. */
+	@ExceptionHandler(NfeAlreadyImportedException.class)
+	public ResponseEntity<Map<String, String>> handleNfeAlreadyImported(final NfeAlreadyImportedException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", ex.getMessage(), "code", "NFE_ALREADY_IMPORTED"));
 	}
 
 	@ExceptionHandler(DuplicateResourceException.class)

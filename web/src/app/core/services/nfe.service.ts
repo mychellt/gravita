@@ -222,6 +222,12 @@ export async function nfeFailureDetail(error: unknown): Promise<string> {
   return typeof message === 'string' ? message.trim() : '';
 }
 
+/** O backend recusou a importação porque já existe uma NF-e de entrada com a mesma chave de acesso (409 `NFE_ALREADY_IMPORTED`). */
+export function isNfeAlreadyImported(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && error.status === 409
+    && (error.error as { code?: unknown } | null)?.code === 'NFE_ALREADY_IMPORTED';
+}
+
 /** NF-e emitidas e de entrada da empresa (GET /api/nfe, GET /api/nfe/inbound) e as ações sobre uma NF-e emitida. */
 @Injectable({ providedIn: 'root' })
 export class NfeService {

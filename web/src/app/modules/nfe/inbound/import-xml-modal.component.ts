@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
-import { NfeService, nfeFailureDetail } from '../../../core/services/nfe.service';
+import { NfeService, isNfeAlreadyImported, nfeFailureDetail } from '../../../core/services/nfe.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
@@ -61,7 +61,9 @@ export class ImportXmlModalComponent {
       this.toast.success(`NF-e de ${nota.supplierName} importada — aguardando conferência`);
       this.closed.emit();
     } catch (error) {
-      this.erro.set((await nfeFailureDetail(error)) || 'Não foi possível importar o XML.');
+      this.erro.set(isNfeAlreadyImported(error)
+        ? 'Não é possível importar esta NF-e: já existe uma NF-e importada com a mesma chave de acesso.'
+        : (await nfeFailureDetail(error)) || 'Não foi possível importar o XML.');
       this.enviando.set(false);
     }
   }

@@ -1,5 +1,6 @@
 package br.gravita.tax.application.service;
 
+import br.gravita.core.domain.exceptions.NfeAlreadyImportedException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeStatus;
@@ -18,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,21 @@ class ImportSupplierNfeXmlServiceTest {
 		final ArgumentCaptor<InboundNfe> savedCaptor = ArgumentCaptor.forClass(InboundNfe.class);
 		org.mockito.Mockito.verify(inboundNfeRepositoryPort).save(savedCaptor.capture());
 		assertThat(savedCaptor.getValue().getXmlStorageRef()).isEqualTo("xml-object-ref-1");
+	}
+
+	@Test
+	@DisplayName("Rejects an access key that was already imported, without storing the XML")
+	void rejectsAnAlreadyImportedAccessKeyBeforeStoringTheXml() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		final byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
+		when(inboundNfeRepositoryPort.findByAccessKey("35240111222333000181550010000012345123456789"))
+				.thenReturn(java.util.Optional.of(org.mockito.Mockito.mock(InboundNfe.class)));
+
+		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeXmlCommand(companyId, xml)))
+				.isInstanceOf(NfeAlreadyImportedException.class);
+
+		org.mockito.Mockito.verifyNoInteractions(xmlObjectStoragePort);
+		org.mockito.Mockito.verify(inboundNfeRepositoryPort, org.mockito.Mockito.never()).save(any());
 	}
 
 	private String nfeXml() {

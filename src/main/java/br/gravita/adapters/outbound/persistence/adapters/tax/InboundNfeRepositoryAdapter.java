@@ -4,7 +4,7 @@ import br.gravita.adapters.outbound.persistence.entities.tax.InboundNfeJpaEntity
 import br.gravita.adapters.outbound.persistence.mappers.tax.InboundNfePersistenceMapper;
 import br.gravita.adapters.outbound.persistence.repositories.tax.InboundNfeJpaRepository;
 import br.gravita.core.annotations.PersistenceAdapter;
-import br.gravita.core.domain.exceptions.DuplicateResourceException;
+import br.gravita.core.domain.exceptions.NfeAlreadyImportedException;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
@@ -27,6 +28,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
+	@Transactional
 	public InboundNfe save(final InboundNfe inboundNfe) {
 		final InboundNfeJpaEntity entity = mapper.map(inboundNfe);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
@@ -35,19 +37,20 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 			return mapper.map(saved);
 		} catch (final DataIntegrityViolationException e) {
 			if (violatesAccessKeyUniqueness(e)) {
-				throw new DuplicateResourceException(
-						"An NFe with access key " + entity.getAccessKey() + " has already been imported");
+				throw new NfeAlreadyImportedException(entity.getAccessKey());
 			}
 			throw e;
 		}
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<InboundNfe> findById(final InboundNfeId id) {
 		return jpaRepository.findById(id.value()).map(mapper::map);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<InboundNfe> findByAccessKey(final String accessKey) {
 		return jpaRepository.findByAccessKey(accessKey).map(mapper::map);
 	}
@@ -58,17 +61,20 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<InboundNfe> findAllByCompany(final CompanyId companyId) {
 		return jpaRepository.findByCompanyIdOrderByIssuedAtDesc(companyId.value()).stream().map(mapper::map).toList();
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<InboundNfe> findIssuedBetween(final Instant from, final Instant to) {
 		return jpaRepository.findByIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(from, to).stream()
 				.map(mapper::map).toList();
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<InboundNfe> findIssuedByCompanyBetween(final CompanyId companyId, final Instant from, final Instant to) {
 		return jpaRepository
 				.findByCompanyIdAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(companyId.value(), from,
@@ -77,6 +83,7 @@ class InboundNfeRepositoryAdapter implements InboundNfeRepositoryPort {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public List<InboundNfe> findConfirmedByCompanyBetween(final CompanyId companyId, final Instant from, final Instant to) {
 		return jpaRepository
 				.findByCompanyIdAndStatusAndIssuedAtGreaterThanEqualAndIssuedAtLessThanOrderByIssuedAt(

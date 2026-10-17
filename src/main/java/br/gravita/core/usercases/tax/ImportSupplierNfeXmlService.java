@@ -1,6 +1,7 @@
 package br.gravita.core.usercases.tax;
 
 import br.gravita.core.annotations.UseCase;
+import br.gravita.core.domain.exceptions.NfeAlreadyImportedException;
 import br.gravita.core.domain.shared.Document;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeId;
@@ -35,6 +36,9 @@ public class ImportSupplierNfeXmlService implements ImportSupplierNfeXmlUseCase 
 	@Override
 	public InboundNfe execute(final ImportSupplierNfeXmlCommand command) {
 		final ParsedSupplierNfe parsed = xmlParser.parse(command.xmlFile());
+		inboundNfeRepositoryPort.findByAccessKey(parsed.accessKey()).ifPresent(existing -> {
+			throw new NfeAlreadyImportedException(parsed.accessKey());
+		});
 
 		final String xmlStorageRef = xmlObjectStoragePort.store(command.companyId(), command.xmlFile());
 

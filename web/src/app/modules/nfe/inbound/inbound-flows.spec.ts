@@ -79,6 +79,23 @@ describe('Inbound NF-e flows', () => {
       expect(closed).not.toHaveBeenCalled();
     });
 
+    it('tells the user the NF-e cannot be imported when its access key already exists', async () => {
+      const modal = TestBed.createComponent(ImportXmlModalComponent).componentInstance;
+      const closed = jasmine.createSpy('closed');
+      modal.closed.subscribe(closed);
+      modal.arquivo.set(new File(['x'], 'repetida.xml'));
+
+      const sending = modal.enviar();
+      http.expectOne('/api/nfe/inbound/import-xml').flush(
+        { message: 'An NFe with access key 3524 has already been imported', code: 'NFE_ALREADY_IMPORTED' },
+        { status: 409, statusText: 'Conflict' });
+      await sending;
+
+      expect(modal.erro()).toBe('Não é possível importar esta NF-e: já existe uma NF-e importada com a mesma chave de acesso.');
+      expect(modal.enviando()).toBeFalse();
+      expect(closed).not.toHaveBeenCalled();
+    });
+
     it('does not post without a file', async () => {
       const modal = TestBed.createComponent(ImportXmlModalComponent).componentInstance;
 
