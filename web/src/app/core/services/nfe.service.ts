@@ -252,7 +252,8 @@ export class NfeService {
     await Promise.all([this.loadIssued(), this.loadInbound()]);
   }
 
-  private async loadIssued(): Promise<void> {
+  /** Recarrega só as NF-e emitidas (GET /api/nfe); nunca rejeita. */
+  async loadIssued(): Promise<void> {
     this.issuedStatus.set('loading');
     try {
       this.issued.set(await firstValueFrom(this.http.get<NfeListItem[]>(this.baseUrl)));

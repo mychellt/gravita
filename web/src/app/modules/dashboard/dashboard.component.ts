@@ -1,7 +1,9 @@
-import { Component, computed } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { DataService } from '../../core/services/data.service';
+import { NfeListItem, NfeService, nfeFailureDetail } from '../../core/services/nfe.service';
+import { ToastService } from '../../core/services/toast.service';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
@@ -14,13 +16,54 @@ import { BrlPipe } from '../../shared/pipes/brl.pipe';
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent {
-  constructor(public data: DataService) {}
+  private readonly nfeService = inject(NfeService);
+  private readonly toast = inject(ToastService);
+
+  constructor(public data: DataService) {
+    void this.nfeService.loadIssued();
+  }
+
+  /** Estado de carga das NF-e emitidas (GET /api/nfe). */
+  readonly nfeStatus = this.nfeService.status;
+  /** Id da NF-e com download em andamento, para não disparar o mesmo download duas vezes. */
+  readonly busyId = signal<string | null>(null);
 
   readonly faturamentoHoje = 18420;
   readonly nfCount = 47;
   readonly receber30d = computed(() => this.data.totalReceber());
   readonly estoqueCritico = computed(() => this.data.produtosCriticos().length);
-  readonly recentNfes = computed(() => this.data.nfes().slice(0, 5));
+  /** As 5 NF-e emitidas mais recentes, da mais nova para a mais antiga. */
+  readonly recentNfes = computed(() => [...this.nfeService.nfes()]
+    .sort((a, b) => new Date(b.emittedAt).getTime() - new Date(a.emittedAt).getTime())
+    .slice(0, 5));
+
+  reloadNfes(): void {
+    void this.nfeService.loadIssued();
+  }
+
+  downloadDanfe(nfe: NfeListItem): Promise<void> {
+    return this.download(nfe, 'pdf', 'DANFE', () => this.nfeService.danfe(nfe.id));
+  }
+
+  downloadXml(nfe: NfeListItem): Promise<void> {
+    return this.download(nfe, 'xml', 'XML', () => this.nfeService.xml(nfe.id));
+  }
+
+  private async download(nfe: NfeListItem, extension: string, label: string, fetchFile: () => Promise<Blob>): Promise<void> {
+    this.busyId.set(nfe.id);
+    try {
+      const url = URL.createObjectURL(await fetchFile());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `nfe-${nfe.documentSeries}-${nfe.documentNumber}.${extension}`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      this.toast.danger((await nfeFailureDetail(error)) || `Não foi possível baixar o ${label} da NF-e #${nfe.documentNumber}.`);
+    } finally {
+      this.busyId.set(null);
+    }
+  }
 
   readonly chartBars = [
     { day: 'Seg', value: 12400, height: 48,  highlight: false },

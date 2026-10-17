@@ -89,22 +89,35 @@
       </tr>
     </thead>
     <tbody>
-      @for (nf of recentNfes(); track nf.id) {
+      @if (nfeStatus() === 'loading') {
+        <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Carregando NF-e…</td></tr>
+      } @else if (nfeStatus() === 'error') {
         <tr>
-          <td class="td-mono">#{{ nf.numero }}</td>
-          <td class="td-name">{{ nf.clienteNome }}</td>
-          <td class="td-mono">{{ nf.cfop }}</td>
-          <td style="font-size:12px;color:var(--text3)">{{ nf.dataEmissao | date:'dd/MM HH:mm' }}</td>
-          <td class="td-amount">{{ nf.valorTotal | brl }}</td>
-          <td><app-badge [value]="nf.status" /></td>
-          <td class="td-actions">
-            @if (nf.status === 'autorizada') {
-              <button class="action-btn">DANFE</button>
-              <button class="action-btn">XML</button>
-            }
-            <button class="action-btn">Ver</button>
+          <td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">
+            Não foi possível carregar as NF-e.
+            <button class="action-btn" (click)="reloadNfes()">Tentar novamente</button>
           </td>
         </tr>
+      } @else {
+        @for (nf of recentNfes(); track nf.id) {
+          <tr>
+            <td class="td-mono">#{{ nf.documentNumber ?? '—' }}</td>
+            <td class="td-name">{{ nf.recipientName }}</td>
+            <td class="td-mono">{{ nf.cfop }}</td>
+            <td style="font-size:12px;color:var(--text3)">{{ nf.emittedAt | date:'dd/MM HH:mm' }}</td>
+            <td class="td-amount">{{ nf.totalValue | brl }}</td>
+            <td><app-badge [value]="nf.status" /></td>
+            <td class="td-actions">
+              @if (nf.status === 'AUTHORIZED') {
+                <button class="action-btn" [disabled]="busyId() === nf.id" (click)="downloadDanfe(nf)">DANFE</button>
+                <button class="action-btn" [disabled]="busyId() === nf.id" (click)="downloadXml(nf)">XML</button>
+              }
+              <a routerLink="/nfe" class="action-btn">Ver</a>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Nenhuma NF-e emitida ainda</td></tr>
+        }
       }
     </tbody>
   </table>
