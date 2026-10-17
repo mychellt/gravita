@@ -3,6 +3,8 @@ package br.gravita.tax.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -10,6 +12,10 @@ import static org.mockito.Mockito.when;
 import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
 import br.gravita.core.domain.masterdata.SefazEnvironment;
+import br.gravita.core.domain.masterdata.Supplier;
+import br.gravita.core.domain.masterdata.SupplierId;
+import br.gravita.core.domain.masterdata.SupplierProductCatalogLink;
+import br.gravita.core.domain.masterdata.Address;
 import br.gravita.core.domain.masterdata.TaxRegime;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.domain.shared.Document;
@@ -24,12 +30,15 @@ import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptCommand;
 import br.gravita.core.ports.inbound.tax.ConfirmInboundNfeReceiptCommand.ConferenceItem;
 import br.gravita.core.ports.inbound.tax.TaxCalculationResult;
 import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.SupplierProductCatalogLinkRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.SupplierRepositoryPort;
 import br.gravita.core.ports.outbound.persistence.tax.InboundNfeRepositoryPort;
 import br.gravita.core.ports.outbound.tax.NotifyPayableGeneratedPort;
 import br.gravita.core.ports.outbound.tax.NotifyPayableGeneratedPort.NotifyPayableGeneratedCommand;
 import br.gravita.core.ports.outbound.tax.NotifyStockEntryPort;
 import br.gravita.core.ports.outbound.tax.NotifyStockEntryPort.NotifyStockEntryCommand;
 import br.gravita.core.usercases.tax.ConfirmInboundNfeReceiptService;
+import br.gravita.core.usercases.tax.InboundNfeResolver;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -62,16 +71,25 @@ class ConfirmInboundNfeReceiptServiceTest {
 	@Mock
 	private NotifyPayableGeneratedPort notifyPayableGeneratedPort;
 
+	@Mock
+	private SupplierRepositoryPort supplierRepositoryPort;
+
+	@Mock
+	private SupplierProductCatalogLinkRepositoryPort linkRepositoryPort;
+
 	private ConfirmInboundNfeReceiptService service;
 
 	private final CompanyId companyId = CompanyId.of(UUID.randomUUID());
 	private final UUID productId = UUID.randomUUID();
+	private final SupplierId supplierId = SupplierId.of(UUID.randomUUID());
+	private final Instant previousPurchaseAt = Instant.parse("2025-12-01T12:00:00Z");
 	private final Instant issuedAt = Instant.parse("2026-01-10T12:00:00Z");
 
 	@BeforeEach
 	void setUp() {
 		service = new ConfirmInboundNfeReceiptService(inboundNfeRepositoryPort, companyRepositoryPort,
-				calculateTaxUseCase, notifyStockEntryPort, notifyPayableGeneratedPort);
+				calculateTaxUseCase, notifyStockEntryPort, notifyPayableGeneratedPort,
+				new InboundNfeResolver(supplierRepositoryPort, linkRepositoryPort), linkRepositoryPort);
 	}
 
 	@Test
@@ -178,10 +196,137 @@ class ConfirmInboundNfeReceiptServiceTest {
 		verify(inboundNfeRepositoryPort, never()).save(any());
 	}
 
+	@Test
+	@DisplayName("AC2: rejects the confirmation when no registered supplier matches the NF-e's CNPJ")
+	void rejectsConfirmationWhenTheSupplierIsUnresolved() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.execute(command(pending.getId().value(), BigDecimal.TEN, BigDecimal.TEN)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("No registered supplier");
+
+		verifyNothingWasConfirmed();
+	}
+
+	@Test
+	@DisplayName("AC3: rejects the confirmation while any item has no resolved product")
+	void rejectsConfirmationWhenAnItemHasNoResolvedProduct() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection())).thenReturn(List.of());
+
+		assertThatThrownBy(() -> service.execute(command(pending.getId().value(), BigDecimal.TEN, BigDecimal.TEN)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("item 1 (SKU-001)");
+
+		verifyNothingWasConfirmed();
+	}
+
+	@Test
+	@DisplayName("Still rejects a conference whose line count differs from the NF-e's item count")
+	void rejectsConferenceWithTheWrongNumberOfLines() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+
+		assertThatThrownBy(() -> service.execute(new ConfirmInboundNfeReceiptCommand(pending.getId().value(), List.of())))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("exactly one entry per NFe item");
+
+		verifyNothingWasConfirmed();
+	}
+
+	@Test
+	@DisplayName("Rejects a conference line received as a product other than the one linked to the item")
+	void rejectsConferenceLineThatDoesNotMatchTheLinkedProduct() {
+		final InboundNfe pending = pendingInboundNfe();
+		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection()))
+				.thenReturn(List.of(link(UUID.randomUUID(), new BigDecimal("1.2000"))));
+
+		assertThatThrownBy(() -> service.execute(command(pending.getId().value(), BigDecimal.TEN, BigDecimal.TEN)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("product linked to it");
+
+		verifyNothingWasConfirmed();
+	}
+
+	@Test
+	@DisplayName("AC9: resolves the links inside the NF-e's own company only")
+	void resolvesLinksWithinTheInboundNfesCompany() {
+		final InboundNfe pending = pendingInboundNfe();
+		mockLookups(pending);
+		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+
+		verify(linkRepositoryPort).findBySupplierAndCodes(eq(companyId), eq(supplierId), eq(List.of("SKU-001")));
+	}
+
+	@Test
+	@DisplayName("AC8: confirming updates the link to this NF-e's unit value and issuance date")
+	void confirmingUpdatesTheLinkToThisNfesLastPurchase() {
+		final InboundNfe pending = pendingInboundNfe();
+		mockLookups(pending);
+		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+
+		final ArgumentCaptor<SupplierProductCatalogLink> captor = ArgumentCaptor.forClass(SupplierProductCatalogLink.class);
+		verify(linkRepositoryPort).save(captor.capture());
+		assertThat(captor.getValue().getProductId()).isEqualTo(productId);
+		assertThat(captor.getValue().getLastPurchaseUnitValue()).isEqualByComparingTo("1.5000");
+		assertThat(captor.getValue().getLastPurchaseAt()).isEqualTo(issuedAt);
+	}
+
+	@Test
+	@DisplayName("AC10: confirming never mutates the originally imported item values")
+	void confirmingNeverMutatesTheImportedItems() {
+		final InboundNfe pending = pendingInboundNfe();
+		final List<InboundNfeItem> importedItems = List.copyOf(pending.getItems());
+		mockLookups(pending);
+		when(inboundNfeRepositoryPort.save(any(InboundNfe.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		final InboundNfe result = service.execute(command(pending.getId().value(), new BigDecimal("10"), new BigDecimal("8")));
+
+		assertThat(result.getItems()).isEqualTo(importedItems);
+		assertThat(pending.getItems()).isEqualTo(importedItems);
+	}
+
+	private void verifyNothingWasConfirmed() {
+		verify(notifyStockEntryPort, never()).notifyEntry(any());
+		verify(notifyPayableGeneratedPort, never()).notifyGenerated(any());
+		verify(calculateTaxUseCase, never()).execute(any());
+		verify(linkRepositoryPort, never()).save(any());
+		verify(inboundNfeRepositoryPort, never()).save(any());
+	}
+
 	private void mockLookups(final InboundNfe pending) {
 		when(inboundNfeRepositoryPort.findById(pending.getId())).thenReturn(Optional.of(pending));
 		when(companyRepositoryPort.findById(companyId)).thenReturn(Optional.of(company()));
 		when(calculateTaxUseCase.execute(any())).thenReturn(new TaxCalculationResult(List.of(), null));
+		mockResolvedSupplierAndLink(pending);
+	}
+
+	private void mockResolvedSupplierAndLink(final InboundNfe pending) {
+		when(supplierRepositoryPort.findByDocument(pending.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection()))
+				.thenReturn(List.of(link(productId, new BigDecimal("1.2000"))));
+		when(linkRepositoryPort.save(any(SupplierProductCatalogLink.class))).thenAnswer(invocation -> invocation.getArgument(0));
+	}
+
+	private SupplierProductCatalogLink link(final UUID linkedProductId, final BigDecimal lastPurchaseUnitValue) {
+		return SupplierProductCatalogLink.create(companyId, supplierId, "SKU-001", linkedProductId, lastPurchaseUnitValue,
+				previousPurchaseAt);
+	}
+
+	private Supplier supplier() {
+		return Supplier.of(supplierId, Document.cnpj("11222333000181"), "Fornecedor Exemplo LTDA",
+				List.of(new Address("Rua Teste", "100", null, "Centro", "Sao Paulo", "SP", "01000-000")), List.of(), null,
+				null, null, null);
 	}
 
 	private ConfirmInboundNfeReceiptCommand command(final UUID inboundNfeId, final BigDecimal orderedQty, final BigDecimal receivedQty) {

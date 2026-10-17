@@ -3,12 +3,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from '../../../core/services/auth.service';
-import { InboundNfeListItem, NfeService } from '../../../core/services/nfe.service';
+import { InboundConference, InboundConferenceItem, InboundNfeListItem, NfeService } from '../../../core/services/nfe.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmReceiptModalComponent } from './confirm-receipt-modal.component';
 import { ImportXmlModalComponent } from './import-xml-modal.component';
 import { ManifestationModalComponent } from './manifestation-modal.component';
 import { ManualEntryModalComponent } from './manual-entry-modal.component';
+import { RegisterProductModalComponent } from './register-product-modal.component';
 
 const COMPANY = 'company-1';
 const KEY = '3'.repeat(44);
@@ -149,31 +150,38 @@ describe('Inbound NF-e flows', () => {
   });
 
   describe('confirm receipt', () => {
-    async function confirmModal(known: 'manual' | 'none') {
-      if (known === 'manual') {
-        const manual = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
-        manual.chave.set(KEY); manual.numero.set('777'); manual.emissao.set('2026-10-01T10:00');
-        manual.cnpj.set('12345678000195'); manual.fornecedor.set('Fornecedor Alfa');
-        manual.alterar(0, { description: 'Parafuso', quantity: 10, unitValue: 15 });
-        manual.adicionar();
-        manual.alterar(1, { description: 'Porca', quantity: 5, unitValue: 3 });
-        const entering = manual.enviar();
-        http.expectOne('/api/nfe/inbound').flush(summary());
-        await flush();
-        http.expectOne('/api/nfe/inbound').flush([row()]);
-        await entering;
-      }
+    const resolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
+      index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
+      resolved: true, productId: PRODUCT, productLabel: 'PARAF-M8', lastPurchaseUnitValue: 1.5, lastPurchaseAt: '2026-09-01T00:00:00Z',
+      priceDelta: 0, ...over,
+    });
+    const unresolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => resolvedItem({
+      index: 1, supplierProductCode: 'SKU-2', description: 'Porca', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, ...over,
+    });
+    const conference = (items: InboundConferenceItem[], supplierResolved = true): InboundConference =>
+      ({ inboundNfeId: 'i1', supplierResolved, supplierId: supplierResolved ? 'sup-1' : null, items });
+
+    async function open(items: InboundConferenceItem[], supplierResolved = true) {
       const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
       fixture.componentRef.setInput('nfe', row());
       fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(conference(items, supplierResolved));
+      await flush();
       return fixture.componentInstance;
     }
 
-    it('lists the items of a manually entered note and sends one line per item, in order', async () => {
-      const modal = await confirmModal('manual');
-      expect(modal.linhas().map(l => l.description)).toEqual(['Parafuso', 'Porca']);
-      modal.alterar(0, { productId: PRODUCT });
-      modal.alterar(1, { productId: 'prod-2', receivedQty: 4 });
+    it('pre-fills the product of an item that already has a link, with no search (BR3)', async () => {
+      const modal = await open([resolvedItem()]);
+
+      expect(modal.linhas().map(l => l.item.productId)).toEqual([PRODUCT]);
+      expect(modal.linhas()[0].orderedQty).toBe(10);
+    });
+
+    it('sends one line per item, in order, each with the linked product', async () => {
+      const second = resolvedItem({ index: 1, productId: 'prod-2', productLabel: 'PORCA', quantity: 5 });
+      const modal = await open([resolvedItem(), second]);
+      modal.alterar(1, { receivedQty: 4 });
 
       const confirming = modal.confirmar();
       const post = http.expectOne('/api/nfe/inbound/i1/confirm-receipt');
@@ -186,12 +194,26 @@ describe('Inbound NF-e flows', () => {
       post.flush(summary({ status: 'CONFIRMED' }));
       await confirming;
 
-      expect(service.inboundNfes()[0].status).toBe('CONFIRMED');
+      expect(toast.success).toHaveBeenCalled();
     });
 
-    it('blocks submission while an item has no product chosen (BR4)', async () => {
-      const modal = await confirmModal('manual');
-      modal.alterar(0, { productId: PRODUCT });
+    it('shows both prices and the delta when the NF-e price differs from the last purchase (BR7)', async () => {
+      const modal = await open([resolvedItem({ unitValue: 1.8, lastPurchaseUnitValue: 1.5, priceDelta: 0.3 })]);
+
+      expect(modal.houveVariacao(modal.linhas()[0].item)).toBeTrue();
+      expect(modal.variacao(0.3)).toContain('0,30');
+      expect(modal.variacao(-1)).toMatch(/^−/);
+      expect(modal.valor(1.5)).toContain('1,50');
+    });
+
+    it('shows no variance when the price is unchanged', async () => {
+      const modal = await open([resolvedItem()]);
+
+      expect(modal.houveVariacao(modal.linhas()[0].item)).toBeFalse();
+    });
+
+    it('blocks submission while an item has no linked product (BR2)', async () => {
+      const modal = await open([resolvedItem(), unresolvedItem()]);
 
       await modal.confirmar();
 
@@ -199,29 +221,168 @@ describe('Inbound NF-e flows', () => {
       expect(modal.tentouEnviar()).toBeTrue();
     });
 
-    it('lets the user build the lines when the note items are unknown', async () => {
-      const modal = await confirmModal('none');
-      expect(modal.itensConhecidos()).toBeFalse();
-      modal.adicionar();
-      expect(modal.linhas().length).toBe(2);
-      modal.remover(1);
-      expect(modal.linhas().length).toBe(1);
+    it('blocks submission while the supplier is not registered (BR1)', async () => {
+      const modal = await open([resolvedItem()], false);
+
+      await modal.confirmar();
+
+      http.expectNone('/api/nfe/inbound/i1/confirm-receipt');
+      expect(modal.conferencia()!.supplierResolved).toBeFalse();
     });
 
-    it('keeps the modal open with the backend message when refused (size mismatch / already confirmed)', async () => {
-      const modal = await confirmModal('none');
+    it('links an existing product picked for an unresolved item and reloads the resolution (BR5)', async () => {
+      const modal = await open([unresolvedItem()]);
+      modal.alterar(1, { pick: 'prod-9' });
+
+      const linking = modal.vincular(modal.linhas()[0]);
+      const post = http.expectOne('/api/nfe/inbound/i1/items/1/link-product');
+      expect(post.request.body).toEqual({ productId: 'prod-9' });
+      post.flush({});
+      await flush();
+      http.expectOne('/api/nfe/inbound/i1/conference')
+        .flush(conference([unresolvedItem({ resolved: true, productId: 'prod-9', productLabel: 'PRODUTO-9' })]));
+      await linking;
+      await flush();
+
+      expect(modal.linhas()[0].item.productId).toBe('prod-9');
+      expect(modal.linhas()[0].pick).toBe('');
+    });
+
+    it('keeps the quantities the operator typed when the resolution is reloaded', async () => {
+      const modal = await open([unresolvedItem()]);
+      modal.alterar(1, { pick: 'prod-9', receivedQty: 3 });
+
+      const linking = modal.vincular(modal.linhas()[0]);
+      http.expectOne('/api/nfe/inbound/i1/items/1/link-product').flush({});
+      await flush();
+      http.expectOne('/api/nfe/inbound/i1/conference')
+        .flush(conference([unresolvedItem({ resolved: true, productId: 'prod-9', productLabel: 'PRODUTO-9' })]));
+      await linking;
+      await flush();
+
+      expect(modal.linhas()[0].receivedQty).toBe(3);
+    });
+
+    it('shows the backend message when linking is refused', async () => {
+      const modal = await open([unresolvedItem()]);
+      modal.alterar(1, { pick: 'prod-9' });
+
+      const linking = modal.vincular(modal.linhas()[0]);
+      http.expectOne('/api/nfe/inbound/i1/items/1/link-product')
+        .flush({ message: 'Item 2 is already linked to a product' }, BAD_REQUEST);
+      await linking;
+
+      expect(modal.registrandoErro()).toContain('already linked');
+    });
+
+    it('keeps the modal open with the backend message when refused (supplier / item / size mismatch)', async () => {
+      const modal = await open([resolvedItem()]);
       const closed = jasmine.createSpy('closed');
       modal.closed.subscribe(closed);
-      modal.alterar(0, { productId: PRODUCT, orderedQty: 10, receivedQty: 10 });
 
       const confirming = modal.confirmar();
       http.expectOne('/api/nfe/inbound/i1/confirm-receipt')
-        .flush({ message: 'Conference result must have exactly one entry per NFe item (expected 2, got 1)' }, BAD_REQUEST);
+        .flush({ message: 'Link a product to every NF-e item before confirming the receipt; unresolved: item 2 (SKU-2)' }, BAD_REQUEST);
       await confirming;
 
-      expect(modal.erro()).toContain('expected 2, got 1');
+      expect(modal.erro()).toContain('unresolved: item 2');
       expect(modal.enviando()).toBeFalse();
       expect(closed).not.toHaveBeenCalled();
+    });
+
+    it('offers a retry when the conference cannot be loaded', async () => {
+      const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
+      fixture.componentRef.setInput('nfe', row());
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush({}, { status: 500, statusText: 'Server Error' });
+      await flush();
+
+      expect(fixture.componentInstance.carregamento()).toBe('error');
+    });
+  });
+
+  describe('register product from an NF-e item', () => {
+    const item: InboundConferenceItem = {
+      index: 1, supplierProductCode: 'SKU-2', description: 'Porca Sextavada M8', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null,
+    };
+
+    function open() {
+      const fixture = TestBed.createComponent(RegisterProductModalComponent);
+      fixture.componentRef.setInput('inboundNfeId', 'i1');
+      fixture.componentRef.setInput('item', item);
+      fixture.detectChanges();
+      return fixture.componentInstance;
+    }
+
+    function completed() {
+      const modal = open();
+      modal.unidadeVenda.set('PC');
+      modal.origem.set(0);
+      modal.cfopVenda.set('5102');
+      modal.precoVenda.set(6.9);
+      modal.uf.set('sp');
+      modal.cstCsosn.set('102');
+      return modal;
+    }
+
+    it('pre-fills description, NCM and purchase unit from the NF-e item, leaving fiscal and pricing fields empty (BR4)', () => {
+      const modal = open();
+
+      expect(modal.codigo()).toBe('Porca Sextavada M8');
+      expect(modal.ncm()).toBe('73181600');
+      expect(modal.unidadeCompra()).toBe('PC');
+      expect(modal.origem()).toBeNull();
+      expect(modal.cfopVenda()).toBe('');
+      expect(modal.cstCsosn()).toBe('');
+      expect(modal.precoVenda()).toBeNull();
+    });
+
+    it('requires the fiscal-output and pricing fields before posting', async () => {
+      const modal = open();
+
+      await modal.salvar();
+
+      http.expectNone('/api/nfe/inbound/i1/items/1/register-product');
+      expect(modal.tentouEnviar()).toBeTrue();
+      expect(modal.origemValida()).toBeFalse();
+      expect(modal.cfopValido()).toBeFalse();
+      expect(modal.cstValido()).toBeFalse();
+      expect(modal.precoValido()).toBeFalse();
+    });
+
+    it('posts the product to the item endpoint so the backend also creates the link, then emits registered', async () => {
+      const modal = completed();
+      const registered = jasmine.createSpy('registered');
+      modal.registered.subscribe(registered);
+
+      const saving = modal.salvar();
+      const post = http.expectOne('/api/nfe/inbound/i1/items/1/register-product');
+      expect(post.request.body).toEqual({
+        internalCode: 'Porca Sextavada M8', type: 'SIMPLE', ncm: '73181600', origin: 0,
+        defaultCfopByOperation: { VENDA: '5102' }, cstCsosnByState: { SP: '102' },
+        basePrice: 6.9, purchaseUnit: 'PC', saleUnit: 'PC',
+      });
+      post.flush({});
+      await saving;
+
+      expect(registered).toHaveBeenCalled();
+      expect(toast.success).toHaveBeenCalled();
+    });
+
+    it('keeps the form open with the backend message when refused', async () => {
+      const modal = completed();
+      const registered = jasmine.createSpy('registered');
+      modal.registered.subscribe(registered);
+
+      const saving = modal.salvar();
+      http.expectOne('/api/nfe/inbound/i1/items/1/register-product')
+        .flush({ message: 'Barcode is already registered' }, BAD_REQUEST);
+      await saving;
+
+      expect(modal.erro()).toContain('Barcode');
+      expect(modal.enviando()).toBeFalse();
+      expect(registered).not.toHaveBeenCalled();
     });
   });
 
