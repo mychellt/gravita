@@ -30,6 +30,8 @@ public interface SearchProductForSaleUseCase {
 
 `GET /api/pdv/products/search?q=`
 
+A blank or missing `q` lists every active product (the PDV catalog); a non-blank `q` filters by barcode or internal code.
+
 ## Domain entities touched
 
 - None owned by M3. Reads `Product` and `PriceTable` from `masterdata` — never mutated here.

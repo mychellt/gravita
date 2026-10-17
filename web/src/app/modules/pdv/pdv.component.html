@@ -5,28 +5,35 @@
       <i class="ti ti-barcode search-icon"></i>
       <input type="text" placeholder="Código de barras, nome ou código interno..."
              [value]="search()"
-             (input)="search.set($any($event.target).value)" />
+             (input)="onSearch($any($event.target).value)" />
       <span class="env-badge hom">CAIXA 01</span>
     </div>
 
     <div class="pdv-grid-label">Produtos</div>
 
     <div class="pdv-products">
-      @for (p of filteredProdutos(); track p.id) {
-        <div class="pdv-prod" (click)="addToCart(p)"
-             [class.critical]="p.estoque <= p.estoqueMinimo">
-          <div class="pdv-prod-icon">
-            {{ p.grupo === 'Alimentos' ? '🛒' : p.grupo === 'Laticínios' ? '🥛' : p.grupo === 'Bebidas' ? '☕' : '📦' }}
-          </div>
-          <div class="pdv-prod-name">{{ p.descricao }}</div>
-          <div class="pdv-prod-price">{{ p.precoVenda | brl }}</div>
-          <div class="pdv-prod-stock" [class.low]="p.estoque <= p.estoqueMinimo">
-            Estoque: {{ p.estoque }} un
-          </div>
+      @if (produtosStatus() === 'loading' && produtos().length === 0) {
+        <div class="pdv-empty">Carregando produtos…</div>
+      } @else if (produtosStatus() === 'error') {
+        <div class="pdv-empty">
+          Não foi possível carregar os produtos.
+          <button class="btn btn-ghost btn-sm" (click)="reload()">Tentar novamente</button>
         </div>
-      }
-      @empty {
-        <div class="pdv-empty">Nenhum produto encontrado</div>
+      } @else {
+        @for (p of produtos(); track p.id) {
+          <div class="pdv-prod" (click)="addToCart(p)"
+               [class.critical]="p.estoque !== null && p.estoque <= 0">
+            <div class="pdv-prod-icon">📦</div>
+            <div class="pdv-prod-name">{{ p.descricao }}</div>
+            <div class="pdv-prod-price">{{ p.precoVenda | brl }}</div>
+            <div class="pdv-prod-stock" [class.low]="p.estoque !== null && p.estoque <= 0">
+              {{ p.estoque === null ? 'Sem saldo em estoque' : 'Estoque: ' + p.estoque + ' un' }}
+            </div>
+          </div>
+        }
+        @empty {
+          <div class="pdv-empty">Nenhum produto encontrado</div>
+        }
       }
     </div>
   </div>

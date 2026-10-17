@@ -1,9 +1,30 @@
-import { Component, computed, signal } from '@angular/core';
-import { DataService } from '../../core/services/data.service';
-import { ToastService } from '../../core/services/toast.service';
-import { Produto, ItemCarrinho } from '../../core/models';
-import { BrlPipe } from '../../shared/pipes/brl.pipe';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { InventoryApiService } from '../../core/services/inventory-api.service';
+import { ProductSearchService } from '../../core/services/product-search.service';
+import { ToastService } from '../../core/services/toast.service';
+import type { LoadStatus } from '../../core/services/customer.service';
+import { BrlPipe } from '../../shared/pipes/brl.pipe';
+
+/** Produto à venda no PDV: catálogo (/api/pdv/products/search) com o saldo disponível (/api/inventory/balances). */
+export interface PdvProduto {
+  id: string;
+  descricao: string;
+  ncm: string | null;
+  precoVenda: number;
+  /** Saldo disponível; `null` quando o produto ainda não tem saldo no depósito. */
+  estoque: number | null;
+}
+
+export interface ItemCarrinho {
+  produto: PdvProduto;
+  quantidade: number;
+  desconto: number;
+  subtotal: number;
+}
+
+const BALANCE_PAGE_SIZE = 200;
+const SEARCH_DEBOUNCE_MS = 300;
 
 @Component({
   selector: 'app-pdv',
@@ -13,14 +34,27 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './pdv.component.html'
 })
 export class PdvComponent {
-  constructor(public data: DataService, private toast: ToastService) {}
+  private readonly productSearch = inject(ProductSearchService);
+  private readonly inventory = inject(InventoryApiService);
+  private readonly toast = inject(ToastService);
 
   search = signal('');
+  produtos = signal<PdvProduto[]>([]);
+  produtosStatus = signal<LoadStatus>('loading');
   cart = signal<ItemCarrinho[]>([]);
   cpfNota = signal('');
   showPayModal = signal(false);
   selectedMethod = signal<'dinheiro' | 'cartao' | 'pix'>('dinheiro');
   valorRecebido = signal(0);
+
+  private searchTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Descarta a resposta de uma busca que já foi superada por outra mais nova. */
+  private searchSeq = 0;
+  private stockByProduct = new Map<string, number>();
+
+  constructor() {
+    void this.loadStock().then(() => this.loadProdutos());
+  }
 
   readonly cartTotal = computed(() =>
     this.cart().reduce((s, i) => s + i.subtotal, 0)
@@ -30,19 +64,52 @@ export class PdvComponent {
     Math.max(0, this.valorRecebido() - this.cartTotal())
   );
 
-  readonly filteredProdutos = computed(() => {
-    const q = this.search().toLowerCase();
-    return this.data.produtos().filter(p =>
-      p.status === 'ativo' && (
-        !q ||
-        p.descricao.toLowerCase().includes(q) ||
-        p.codigo.includes(q) ||
-        (p.codigoBarras ?? '').includes(q)
-      )
-    );
-  });
+  /** Digitar na busca consulta o servidor (código de barras, nome ou código interno) depois de uma breve pausa. */
+  onSearch(value: string) {
+    this.search.set(value);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => void this.loadProdutos(), SEARCH_DEBOUNCE_MS);
+  }
 
-  addToCart(p: Produto) {
+  reload() {
+    void this.loadStock().then(() => this.loadProdutos());
+  }
+
+  /** Termo vazio devolve todos os produtos ativos. */
+  async loadProdutos(): Promise<void> {
+    const seq = ++this.searchSeq;
+    this.produtosStatus.set('loading');
+    try {
+      const results = await this.productSearch.search(this.search().trim());
+      if (seq !== this.searchSeq) return;
+      this.produtos.set(results
+        .filter(r => r.availableForSale)
+        .map(r => ({
+          id: r.productId, descricao: r.description, ncm: r.ncm, precoVenda: r.unitPrice,
+          estoque: this.stockByProduct.get(r.productId) ?? null,
+        })));
+      this.produtosStatus.set('ready');
+    } catch {
+      if (seq === this.searchSeq) this.produtosStatus.set('error');
+    }
+  }
+
+  /** Saldo disponível por produto, de todas as páginas; sem saldo, o card mostra o estoque como indisponível. */
+  private async loadStock(): Promise<void> {
+    try {
+      const stock = new Map<string, number>();
+      for (let page = 0, pages = 1; page < pages; page++) {
+        const result = await this.inventory.balances(page, BALANCE_PAGE_SIZE);
+        result.content.forEach(b => stock.set(b.productId, (stock.get(b.productId) ?? 0) + b.available));
+        pages = result.totalPages;
+      }
+      this.stockByProduct = stock;
+    } catch {
+      this.stockByProduct = new Map();
+    }
+  }
+
+  addToCart(p: PdvProduto) {
     this.cart.update(items => {
       const existing = items.find(i => i.produto.id === p.id);
       if (existing) {

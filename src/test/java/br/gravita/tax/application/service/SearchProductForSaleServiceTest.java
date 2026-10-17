@@ -109,6 +109,19 @@ class SearchProductForSaleServiceTest {
 	}
 
 	@Test
+	@DisplayName("A blank term lists every active product")
+	void blankTermListsEveryActiveProduct() {
+		final ProductDomain first = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
+		final ProductDomain second = product("SKU-2", List.of("7891234567896"), ProductStatus.ACTIVE, "5.00");
+		final ProductDomain inactive = product("SKU-3", List.of("7891234567897"), ProductStatus.INACTIVE, "9.90");
+		when(productRepositoryPort.findAll()).thenReturn(List.of(first, second, inactive));
+
+		final List<ProductSearchResult> results = service.execute(new SearchProductQuery("", null));
+
+		assertThat(results).extracting(ProductSearchResult::productId).containsExactly(first.getId(), second.getId());
+	}
+
+	@Test
 	@DisplayName("Falls back to the base price when no customer is set")
 	void ac3FallsBackToBasePriceWhenNoCustomerIsSet() {
 		final ProductDomain product = product("SKU-1", List.of("7891234567895"), ProductStatus.ACTIVE, "9.90");
