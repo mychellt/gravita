@@ -172,11 +172,11 @@ describe('Inbound NF-e flows', () => {
     const resolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
       index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
       resolved: true, productId: PRODUCT, productLabel: 'PARAF-M8', lastPurchaseUnitValue: 1.5, lastPurchaseAt: '2026-09-01T00:00:00Z',
-      priceDelta: 0, barcode: null, cest: null, suggestedProductId: null, suggestedProductLabel: null, ...over,
+      priceDelta: 0, barcode: null, cest: null, suggestions: [], ...over,
     });
     const unresolvedItem = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => resolvedItem({
       index: 1, supplierProductCode: 'SKU-2', description: 'Porca', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
-      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, suggestedProductId: null, suggestedProductLabel: null, ...over,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, suggestions: [], ...over,
     });
     const conference = (items: InboundConferenceItem[], supplierResolved = true): InboundConference =>
       ({ inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved, supplierId: supplierResolved ? 'sup-1' : null, items });
@@ -316,9 +316,11 @@ describe('Inbound NF-e flows', () => {
     });
 
     it('offers the product that shares the GTIN and links it with one click', async () => {
-      const modal = await open([unresolvedItem({ barcode: '7891234567895', suggestedProductId: 'prod-7', suggestedProductLabel: 'PRODUTO-7' })]);
+      const modal = await open([unresolvedItem({
+        barcode: '7891234567895', suggestions: [{ productId: 'prod-7', productLabel: 'PRODUTO-7', reason: 'GTIN' }],
+      })]);
 
-      const linking = modal.vincularSugestao(modal.linhas()[0].item);
+      const linking = modal.vincularSugestao(modal.linhas()[0].item, 'prod-7');
       const post = http.expectOne('/api/nfe/inbound/i1/items/1/link-product');
       expect(post.request.body).toEqual({ productId: 'prod-7' });
       post.flush({});
@@ -331,12 +333,36 @@ describe('Inbound NF-e flows', () => {
       expect(modal.linhas()[0].item.productId).toBe('prod-7');
     });
 
-    it('does nothing when asked to link a suggestion that does not exist', async () => {
-      const modal = await open([unresolvedItem()]);
+    it('lists every suggestion, the GTIN match explained as such and the look-alikes as similar products', async () => {
+      const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
+      fixture.componentRef.setInput('nfe', row());
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(conference([unresolvedItem({
+        suggestions: [
+          { productId: 'prod-1', productLabel: 'PISO IPANEMA BEGE', reason: 'SIMILAR_DESCRIPTION' },
+          { productId: 'prod-2', productLabel: 'PISO IPANEMA CINZA', reason: 'SIMILAR_DESCRIPTION' },
+        ],
+      })]));
+      await flush();
+      fixture.detectChanges();
 
-      await modal.vincularSugestao(modal.linhas()[0].item);
+      const rows = fixture.nativeElement.querySelectorAll('[data-testid="product-suggestion"]');
+      expect(rows.length).toBe(2);
+      expect(rows[0].textContent).toContain('Produto parecido já cadastrado');
+      expect(rows[0].textContent).toContain('PISO IPANEMA BEGE');
+      expect(rows[0].querySelector('button').classList).toContain('btn-primary');
+      expect(rows[1].querySelector('button').classList).toContain('btn-ghost');
+    });
 
-      http.expectNone('/api/nfe/inbound/i1/items/1/link-product');
+    it('shows no suggestion block for an item without suggestions', async () => {
+      const fixture = TestBed.createComponent(ConfirmReceiptModalComponent);
+      fixture.componentRef.setInput('nfe', row());
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(conference([unresolvedItem()]));
+      await flush();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="product-suggestion"]')).toBeNull();
     });
 
     it('keeps the quantities the operator typed when the resolution is reloaded', async () => {
@@ -395,7 +421,7 @@ describe('Inbound NF-e flows', () => {
   describe('register the supplier during the confirmation', () => {
     const item = (over: Partial<InboundConferenceItem> = {}): InboundConferenceItem => ({
       index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 1.5,
-      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, suggestedProductId: null, suggestedProductLabel: null, ...over,
+      resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null, barcode: null, cest: null, suggestions: [], ...over,
     });
     const conf = (supplierResolved: boolean): InboundConference => ({
       inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved,
@@ -532,7 +558,7 @@ describe('Inbound NF-e flows', () => {
     const item: InboundConferenceItem = {
       index: 1, supplierProductCode: 'SKU-2', description: 'Porca Sextavada M8', ncm: '73181600', unit: 'PC', quantity: 5, unitValue: 3,
       resolved: false, productId: null, productLabel: null, lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null,
-      barcode: '7891234567895', cest: '2100100', suggestedProductId: null, suggestedProductLabel: null,
+      barcode: '7891234567895', cest: '2100100', suggestions: [],
     };
 
     function open() {
@@ -682,7 +708,7 @@ describe('Inbound NF-e flows', () => {
     const items: InboundConferenceItem[] = [{
       index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 2.5,
       resolved: true, productId: PRODUCT, productLabel: 'PARAF-01', lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null,
-      barcode: null, cest: null, suggestedProductId: null, suggestedProductLabel: null,
+      barcode: null, cest: null, suggestions: [],
     }];
 
     it('loads the items of a confirmed note and shows them read-only', async () => {

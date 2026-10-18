@@ -128,9 +128,15 @@ export interface InboundConferenceItem {
   /** GTIN e CEST como o XML do fornecedor os declara; nulos quando a nota não traz (ou traz "SEM GTIN"). */
   barcode: string | null;
   cest: string | null;
-  /** Produto do catálogo com o mesmo GTIN, oferecido só a itens sem vínculo; nunca vira vínculo sozinho. */
-  suggestedProductId: string | null;
-  suggestedProductLabel: string | null;
+  /** Produtos do catálogo que o item provavelmente é, o melhor primeiro; só para itens sem vínculo e nunca viram vínculo sozinhos. */
+  suggestions: ProductSuggestion[];
+}
+
+/** `GTIN`: o item e o produto têm o mesmo código de barras. `SIMILAR_DESCRIPTION`: mesmo NCM e descrição parecida. */
+export interface ProductSuggestion {
+  productId: string;
+  productLabel: string;
+  reason: 'GTIN' | 'SIMILAR_DESCRIPTION';
 }
 
 /** Uma compra confirmada de um produto (GET /api/nfe/inbound/purchase-history): quem vendeu, em que nota, quando e a que preço. */

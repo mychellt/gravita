@@ -11,8 +11,12 @@ public record InboundNfeConferenceResponse(UUID inboundNfeId, String supplierDoc
 
 	public record Item(int index, String supplierProductCode, String description, String ncm, String unit, BigDecimal quantity,
 			BigDecimal unitValue, boolean resolved, UUID productId, String productLabel, BigDecimal lastPurchaseUnitValue,
-			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest, UUID suggestedProductId,
-			String suggestedProductLabel) {
+			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest,
+			List<Suggestion> suggestions) {
+	}
+
+	/** {@code reason} is {@code GTIN} or {@code SIMILAR_DESCRIPTION}. */
+	public record Suggestion(UUID productId, String productLabel, String reason) {
 	}
 
 	public static InboundNfeConferenceResponse from(final InboundNfeConference conference) {
@@ -22,10 +26,11 @@ public record InboundNfeConferenceResponse(UUID inboundNfeId, String supplierDoc
 	}
 
 	private static Item toItem(final InboundNfeConference.Item item) {
-		final InboundNfeConference.ProductSuggestion suggestion = item.suggestedProduct();
 		return new Item(item.index(), item.supplierProductCode(), item.description(), item.ncm(), item.unit(),
 				item.quantity(), item.unitValue(), item.resolved(), item.productId(), item.productLabel(),
 				item.lastPurchaseUnitValue(), item.lastPurchaseAt(), item.priceDelta(), item.barcode(), item.cest(),
-				suggestion == null ? null : suggestion.productId(), suggestion == null ? null : suggestion.productLabel());
+				item.suggestions().stream()
+						.map(suggestion -> new Suggestion(suggestion.productId(), suggestion.productLabel(), suggestion.reason().name()))
+						.toList());
 	}
 }
