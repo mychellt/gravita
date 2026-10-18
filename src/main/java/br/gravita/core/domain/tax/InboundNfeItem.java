@@ -1,6 +1,7 @@
 package br.gravita.core.domain.tax;
 
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Gtin;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -66,7 +67,7 @@ public record InboundNfeItem(
 	/** The GTIN only when it is a real one: suppliers write "SEM GTIN" (or zeros) when the product has none. */
 	private static String validGtin(final String barcode) {
 		final String digits = barcode == null ? "" : barcode.trim();
-		return digits.matches("\\d{8}|\\d{12,14}") && !digits.matches("0+") ? digits : null;
+		return Gtin.isValid(digits) ? digits : null;
 	}
 
 	private static String validCest(final String cest) {

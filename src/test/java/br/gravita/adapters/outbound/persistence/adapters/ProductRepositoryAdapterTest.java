@@ -108,6 +108,25 @@ class ProductRepositoryAdapterTest {
 		verify(repository).existsByBarcodesContaining("7891234567895");
 	}
 
+	@Test
+	@DisplayName("Finds the product registered under a barcode")
+	void shouldFindProductByBarcode() {
+		final ProductDomain product = buildProduct("SKU-1");
+		final ProductJpaEntity entity = buildEntity(product.getId());
+		when(repository.findByBarcodesContaining("7891234567895")).thenReturn(Optional.of(entity));
+		when(mapper.map(entity)).thenReturn(product);
+
+		assertThat(adapter.findByBarcode("7891234567895")).contains(product);
+	}
+
+	@Test
+	@DisplayName("Finds nothing for an unknown barcode")
+	void shouldFindNothingForUnknownBarcode() {
+		when(repository.findByBarcodesContaining("96385074")).thenReturn(Optional.empty());
+
+		assertThat(adapter.findByBarcode("96385074")).isEmpty();
+	}
+
 	private ProductJpaEntity buildEntity(final UUID id) {
 		return ProductJpaEntity.builder().id(id).build();
 	}

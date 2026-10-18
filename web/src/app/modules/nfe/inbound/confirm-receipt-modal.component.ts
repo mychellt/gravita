@@ -133,6 +133,15 @@ const lineValid = (line: LineDraft) =>
             <div class="field-hint" [class.field-error]="tentouEnviar()">
               Este produto ainda não existe no cadastro vinculado a este fornecedor: cadastre-o como novo ou vincule um produto que já exista.
             </div>
+            @if (line.item.suggestedProductId) {
+              <div class="linked" data-testid="gtin-suggestion">
+                <i class="ti ti-barcode"></i> Mesmo GTIN do produto <strong>{{ line.item.suggestedProductLabel || line.item.suggestedProductId }}</strong>.
+                <button class="btn btn-primary btn-sm" type="button" [disabled]="vinculando()"
+                        (click)="vincularSugestao(line.item)">
+                  <i class="ti ti-link"></i> Vincular a este produto
+                </button>
+              </div>
+            }
             <div class="resolve-actions">
               <button class="btn btn-ghost btn-sm" type="button" (click)="cadastrando.set(line.item)">
                 <i class="ti ti-plus"></i> Cadastrar produto novo
@@ -323,12 +332,21 @@ export class ConfirmReceiptModalComponent implements OnInit {
   }
 
   /** POST …/link-product: o produto escolhido na busca passa a valer para este código do fornecedor. */
-  async vincular(line: LineDraft): Promise<void> {
-    if (!line.pick || this.vinculando()) return;
+  vincular(line: LineDraft): Promise<void> {
+    return this.vincularProduto(line.item.index, line.pick);
+  }
+
+  /** Aceita o produto que o backend achou pelo GTIN: é o mesmo POST …/link-product da escolha manual. */
+  vincularSugestao(item: InboundConferenceItem): Promise<void> {
+    return this.vincularProduto(item.index, item.suggestedProductId ?? '');
+  }
+
+  private async vincularProduto(itemIndex: number, productId: string): Promise<void> {
+    if (!productId || this.vinculando()) return;
     this.vinculando.set(true);
     this.registrandoErro.set('');
     try {
-      await this.service.linkInboundItemToProduct(this.nfe.id, line.item.index, line.pick);
+      await this.service.linkInboundItemToProduct(this.nfe.id, itemIndex, productId);
       await this.carregar();
     } catch (error) {
       this.registrandoErro.set((await nfeFailureDetail(error)) || 'Não foi possível vincular o produto.');

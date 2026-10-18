@@ -1,6 +1,7 @@
 package br.gravita.core.domain;
 
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.shared.Gtin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,6 @@ import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Getter
 @Setter
@@ -20,8 +20,6 @@ import java.util.regex.Pattern;
 public class ProductDomain extends AbstractDomain {
 
 	public static final int MAX_IMAGES = 5;
-
-	private static final Pattern BARCODE_PATTERN = Pattern.compile("\\d{13}|\\d{14}");
 
 	private String internalCode;
 	private List<String> barcodes;
@@ -138,8 +136,8 @@ public class ProductDomain extends AbstractDomain {
 			return;
 		}
 		for (final String barcode : barcodes) {
-			if (barcode == null || !BARCODE_PATTERN.matcher(barcode).matches()) {
-				throw new BusinessRuleException("Barcode must be a valid EAN-13 or DUN-14 code: " + barcode);
+			if (!Gtin.isValid(barcode)) {
+				throw new BusinessRuleException("Barcode must be a valid GTIN-8, GTIN-12, EAN-13 or DUN-14 code: " + barcode);
 			}
 		}
 	}
