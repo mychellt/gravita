@@ -51,6 +51,12 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 
 	@Override
 	@Transactional(readOnly = true)
+	public Optional<ProductDomain> findByBarcode(final String barcode) {
+		return jpaRepository.findByBarcodesContaining(barcode).map(mapper::map);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<ProductDomain> findAllByIds(final Collection<UUID> ids) {
 		return jpaRepository.findAllById(ids).stream().map(mapper::map).toList();
 	}

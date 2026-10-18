@@ -55,6 +55,26 @@ class ProductDomainTest {
 		assertThatCode(product::validate).doesNotThrowAnyException();
 	}
 
+	@DisplayName("Accepts GTIN-8 and GTIN-12 barcodes, which NF-e suppliers also declare")
+	@Test
+	void shouldAcceptGtin8AndGtin12Barcodes() {
+		final ProductDomain product = simpleProductBuilder()
+				.barcodes(List.of("96385074", "036000291452"))
+				.build();
+
+		assertThatCode(product::validate).doesNotThrowAnyException();
+	}
+
+	@DisplayName("Rejects a barcode made only of zeros")
+	@Test
+	void shouldRejectAllZeroBarcode() {
+		final ProductDomain product = simpleProductBuilder()
+				.barcodes(List.of("0000000000000"))
+				.build();
+
+		assertThatThrownBy(product::validate).isInstanceOf(BusinessRuleException.class);
+	}
+
 	@DisplayName("Rejects a service that carries stock fields")
 	@Test
 	void shouldRejectServiceWithStockFields() {

@@ -67,6 +67,8 @@ class GetInboundNfeConferenceServiceTest {
 	private final SupplierId supplierId = SupplierId.of(UUID.randomUUID());
 	private final UUID productId = UUID.randomUUID();
 
+	private static final String GTIN = "7891234567895";
+
 	@BeforeEach
 	void setUp() {
 		final OwnedInboundNfeLoader loader = new OwnedInboundNfeLoader(inboundNfeRepositoryPort,
@@ -152,6 +154,59 @@ class GetInboundNfeConferenceServiceTest {
 	}
 
 	@Test
+	@DisplayName("suggests the catalog product that shares the GTIN of an unlinked item")
+	void suggestsTheProductThatSharesTheGtinOfAnUnlinkedItem() {
+		final InboundNfe nfe = inboundNfe(companyId, GTIN);
+		callerBelongsTo(companyId);
+		when(inboundNfeRepositoryPort.findById(nfe.getId())).thenReturn(Optional.of(nfe));
+		when(supplierRepositoryPort.findByDocument(nfe.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection())).thenReturn(List.of());
+		when(productRepositoryPort.findByBarcode(GTIN))
+				.thenReturn(Optional.of(ProductDomain.builder().id(productId).internalCode("PARAF-M8").build()));
+
+		final InboundNfeConference.Item item = service
+				.execute(new GetInboundNfeConferenceQuery(nfe.getId().value(), callerId)).items().get(0);
+
+		assertThat(item.resolved()).isFalse();
+		assertThat(item.suggestedProduct())
+				.isEqualTo(new InboundNfeConference.ProductSuggestion(productId, "PARAF-M8"));
+	}
+
+	@Test
+	@DisplayName("offers no suggestion when no catalog product has the GTIN")
+	void offersNoSuggestionWhenNoProductHasTheGtin() {
+		final InboundNfe nfe = inboundNfe(companyId, GTIN);
+		callerBelongsTo(companyId);
+		when(inboundNfeRepositoryPort.findById(nfe.getId())).thenReturn(Optional.of(nfe));
+		when(supplierRepositoryPort.findByDocument(nfe.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection())).thenReturn(List.of());
+		when(productRepositoryPort.findByBarcode(GTIN)).thenReturn(Optional.empty());
+
+		final InboundNfeConference.Item item = service
+				.execute(new GetInboundNfeConferenceQuery(nfe.getId().value(), callerId)).items().get(0);
+
+		assertThat(item.suggestedProduct()).isNull();
+	}
+
+	@Test
+	@DisplayName("does not look up the GTIN of an item that is already linked, nor of one without GTIN")
+	void doesNotLookUpTheGtinWhenThereIsNothingToSuggest() {
+		final InboundNfe linkedNfe = inboundNfe(companyId, GTIN);
+		callerBelongsTo(companyId);
+		when(inboundNfeRepositoryPort.findById(linkedNfe.getId())).thenReturn(Optional.of(linkedNfe));
+		when(supplierRepositoryPort.findByDocument(linkedNfe.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection()))
+				.thenReturn(List.of(link("1.5000")));
+		when(productRepositoryPort.findAllByIds(anyCollection())).thenReturn(List.of());
+
+		final InboundNfeConference.Item linked = service
+				.execute(new GetInboundNfeConferenceQuery(linkedNfe.getId().value(), callerId)).items().get(0);
+
+		assertThat(linked.suggestedProduct()).isNull();
+		verify(productRepositoryPort, never()).findByBarcode(GTIN);
+	}
+
+	@Test
 	@DisplayName("AC9: an NF-e of another company looks nonexistent to the caller")
 	void hidesTheInboundNfeOfAnotherCompany() {
 		final InboundNfe nfe = inboundNfe(CompanyId.of(UUID.randomUUID()));
@@ -179,6 +234,10 @@ class GetInboundNfeConferenceServiceTest {
 	}
 
 	private InboundNfe inboundNfe(final CompanyId nfeCompanyId) {
+		return inboundNfe(nfeCompanyId, null);
+	}
+
+	private InboundNfe inboundNfe(final CompanyId nfeCompanyId, final String gtin) {
 		return InboundNfe.importedFromXml()
 				.id(InboundNfeId.of(UUID.randomUUID()))
 				.companyId(nfeCompanyId)
@@ -190,7 +249,7 @@ class GetInboundNfeConferenceServiceTest {
 				.issuedAt(Instant.parse("2026-01-10T12:00:00Z"))
 				.items(List.of(new InboundNfeItem("SKU-001", "Parafuso Sextavado M8", "73181500", "5102", "UN",
 						new BigDecimal("10"), new BigDecimal("1.5000"), new BigDecimal("150.00"), BigDecimal.ZERO,
-						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)))
+						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, gtin, null)))
 				.totals(new InboundNfeTotals(new BigDecimal("150.00"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 						BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
 						new BigDecimal("150.00")))
