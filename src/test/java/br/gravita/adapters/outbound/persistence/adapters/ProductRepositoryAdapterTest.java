@@ -127,6 +127,17 @@ class ProductRepositoryAdapterTest {
 		assertThat(adapter.findByBarcode("96385074")).isEmpty();
 	}
 
+	@Test
+	@DisplayName("Finds the products that share an NCM")
+	void shouldFindProductsByNcm() {
+		final ProductDomain product = buildProduct("SKU-1");
+		final ProductJpaEntity entity = buildEntity(product.getId());
+		when(repository.findAllByNcmDigits("69072200")).thenReturn(List.of(entity));
+		when(mapper.map(entity)).thenReturn(product);
+
+		assertThat(adapter.findAllByNcm("69072200")).containsExactly(product);
+	}
+
 	private ProductJpaEntity buildEntity(final UUID id) {
 		return ProductJpaEntity.builder().id(id).build();
 	}
