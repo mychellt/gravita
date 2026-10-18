@@ -72,8 +72,8 @@ public class ImportSupplierNfeXmlService implements ImportSupplierNfeXmlUseCase 
 				.orElseThrow(() -> new BusinessRuleException("Company not found: " + command.companyId().value()));
 		final String companyDocument = company.getCnpj().number();
 		if (parsed.recipientDocument() == null || !parsed.recipientDocument().equals(companyDocument)) {
-			throw new BusinessRuleException("This NF-e is not addressed to your company (recipient CNPJ differs from "
-					+ companyDocument + "); only notes issued to the logged-in company can be imported");
+			throw new BusinessRuleException("Esta NF-e não é destinada à sua empresa (CNPJ " + companyDocument
+					+ "). Só é possível importar notas emitidas para a empresa logada.");
 		}
 	}
 }

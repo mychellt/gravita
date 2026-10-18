@@ -96,7 +96,7 @@ class ImportSupplierNfeXmlServiceTest {
 
 		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeXmlCommand(companyId, xml)))
 				.isInstanceOf(BusinessRuleException.class)
-				.hasMessageContaining("not addressed to your company");
+				.hasMessageContaining("não é destinada à sua empresa");
 
 		org.mockito.Mockito.verifyNoInteractions(xmlObjectStoragePort);
 		org.mockito.Mockito.verify(inboundNfeRepositoryPort, org.mockito.Mockito.never()).save(any());
