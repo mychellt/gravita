@@ -113,7 +113,7 @@
             <td><app-badge [value]="nf.status" /></td>
             <td class="td-actions">
               <button class="btn-icon" type="button" title="Detalhes da NF-e" aria-label="Detalhes da NF-e"
-                      (click)="detailing.set(nf)"><i class="ti ti-eye"></i></button>
+                      (click)="detailing.set(nf)"><i class="ti ti-search"></i></button>
               @if (nf.status === 'PENDING_CONFERENCE') {
                 <button class="action-btn" (click)="conferring.set(nf)">Conferir e confirmar recebimento</button>
               }
