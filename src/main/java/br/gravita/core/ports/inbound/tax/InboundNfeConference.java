@@ -19,12 +19,16 @@ public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, S
 	}
 
 	/**
-	 * {@code productId} and the price fields are {@code null} while the item has no link. {@code suggestedProduct} is the
-	 * catalog product registered under the item's GTIN, offered only to unlinked items; it never becomes a link by itself.
+	 * {@code productId} and the price fields are {@code null} while the item has no link. {@code suggestions} are the
+	 * catalog products the item probably stands for, best first, offered only to unlinked items; none becomes a link by itself.
 	 */
 	public record Item(int index, String supplierProductCode, String description, String ncm, String unit, BigDecimal quantity,
 			BigDecimal unitValue, UUID productId, String productLabel, BigDecimal lastPurchaseUnitValue,
-			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest, ProductSuggestion suggestedProduct) {
+			Instant lastPurchaseAt, BigDecimal priceDelta, String barcode, String cest, List<ProductSuggestion> suggestions) {
+
+		public Item {
+			suggestions = suggestions == null ? List.of() : List.copyOf(suggestions);
+		}
 
 		/** An item without a GTIN-based suggestion. */
 		public Item(final int index, final String supplierProductCode, final String description, final String ncm,
@@ -32,7 +36,7 @@ public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, S
 				final String productLabel, final BigDecimal lastPurchaseUnitValue, final Instant lastPurchaseAt,
 				final BigDecimal priceDelta, final String barcode, final String cest) {
 			this(index, supplierProductCode, description, ncm, unit, quantity, unitValue, productId, productLabel,
-					lastPurchaseUnitValue, lastPurchaseAt, priceDelta, barcode, cest, null);
+					lastPurchaseUnitValue, lastPurchaseAt, priceDelta, barcode, cest, List.of());
 		}
 
 		/** An item whose XML did not state a GTIN/CEST. */
@@ -41,7 +45,7 @@ public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, S
 				final String productLabel, final BigDecimal lastPurchaseUnitValue, final Instant lastPurchaseAt,
 				final BigDecimal priceDelta) {
 			this(index, supplierProductCode, description, ncm, unit, quantity, unitValue, productId, productLabel,
-					lastPurchaseUnitValue, lastPurchaseAt, priceDelta, null, null, null);
+					lastPurchaseUnitValue, lastPurchaseAt, priceDelta, null, null, List.of());
 		}
 
 		public boolean resolved() {
@@ -49,7 +53,12 @@ public record InboundNfeConference(UUID inboundNfeId, String supplierDocument, S
 		}
 	}
 
-	/** A catalog product that shares the item's GTIN. */
-	public record ProductSuggestion(UUID productId, String productLabel) {
+	/** A catalog product offered for an unlinked item, and why. */
+	public record ProductSuggestion(UUID productId, String productLabel, MatchReason reason) {
+	}
+
+	/** {@code GTIN}: the item and the product share a barcode. {@code SIMILAR_DESCRIPTION}: same NCM and alike wording. */
+	public enum MatchReason {
+		GTIN, SIMILAR_DESCRIPTION
 	}
 }

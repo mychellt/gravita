@@ -1,6 +1,7 @@
 package br.gravita.core.usercases.tax;
 
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Gtin;
 import br.gravita.core.domain.tax.InboundNfeItem;
 import br.gravita.core.domain.tax.InboundNfeTotals;
 import java.io.ByteArrayInputStream;
@@ -135,11 +136,22 @@ public class NfeXmlParser {
 		return items;
 	}
 
-	/** The commercial GTIN (cEAN), falling back to the taxable one (cEANTrib); "SEM GTIN" is dropped by the item itself. */
+	/**
+	 * The commercial GTIN (cEAN), falling back to the taxable one (cEANTrib). Retailers often write "SEM GTIN" there and put
+	 * the manufacturer's barcode in cProd, so a cProd that is a GTIN with a correct check digit is used as a last resort.
+	 */
 	private String gtin(final XPath xpath, final Node prod) throws Exception {
-		final String commercial = textOrNull(xpath, prod, "*[local-name()='cEAN']");
-		return commercial != null && commercial.trim().matches("\\d+") ? commercial
-				: textOrNull(xpath, prod, "*[local-name()='cEANTrib']");
+		for (final String tag : List.of("cEAN", "cEANTrib", "cProd")) {
+			final String candidate = textOrNull(xpath, prod, "*[local-name()='" + tag + "']");
+			if (candidate != null && isGtin(candidate.trim(), "cProd".equals(tag))) {
+				return candidate.trim();
+			}
+		}
+		return null;
+	}
+
+	private boolean isGtin(final String candidate, final boolean mustProveItself) {
+		return mustProveItself ? Gtin.hasValidCheckDigit(candidate) : Gtin.isValid(candidate);
 	}
 
 	private InboundNfeTotals extractTotals(final XPath xpath, final Node icmsTot) throws Exception {

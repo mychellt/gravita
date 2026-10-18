@@ -133,11 +133,13 @@ const lineValid = (line: LineDraft) =>
             <div class="field-hint" [class.field-error]="tentouEnviar()">
               Este produto ainda não existe no cadastro vinculado a este fornecedor: cadastre-o como novo ou vincule um produto que já exista.
             </div>
-            @if (line.item.suggestedProductId) {
-              <div class="linked" data-testid="gtin-suggestion">
-                <i class="ti ti-barcode"></i> Mesmo GTIN do produto <strong>{{ line.item.suggestedProductLabel || line.item.suggestedProductId }}</strong>.
-                <button class="btn btn-primary btn-sm" type="button" [disabled]="vinculando()"
-                        (click)="vincularSugestao(line.item)">
+            @for (sugestao of line.item.suggestions; track sugestao.productId; let primeira = $first) {
+              <div class="linked" data-testid="product-suggestion">
+                <i class="ti" [class.ti-barcode]="sugestao.reason === 'GTIN'" [class.ti-search]="sugestao.reason !== 'GTIN'"></i>
+                {{ sugestao.reason === 'GTIN' ? 'Mesmo GTIN do produto' : 'Produto parecido já cadastrado:' }}
+                <strong>{{ sugestao.productLabel || sugestao.productId }}</strong>.
+                <button class="btn btn-sm" type="button" [class.btn-primary]="primeira" [class.btn-ghost]="!primeira"
+                        [disabled]="vinculando()" (click)="vincularSugestao(line.item, sugestao.productId)">
                   <i class="ti ti-link"></i> Vincular a este produto
                 </button>
               </div>
@@ -336,9 +338,9 @@ export class ConfirmReceiptModalComponent implements OnInit {
     return this.vincularProduto(line.item.index, line.pick);
   }
 
-  /** Aceita o produto que o backend achou pelo GTIN: é o mesmo POST …/link-product da escolha manual. */
-  vincularSugestao(item: InboundConferenceItem): Promise<void> {
-    return this.vincularProduto(item.index, item.suggestedProductId ?? '');
+  /** Aceita um produto que o backend sugeriu (pelo GTIN ou pela descrição): é o mesmo POST …/link-product da escolha manual. */
+  vincularSugestao(item: InboundConferenceItem, productId: string): Promise<void> {
+    return this.vincularProduto(item.index, productId);
   }
 
   private async vincularProduto(itemIndex: number, productId: string): Promise<void> {

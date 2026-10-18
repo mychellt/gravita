@@ -23,12 +23,15 @@ public class GetInboundNfeConferenceService implements GetInboundNfeConferenceUs
 	private final OwnedInboundNfeLoader ownedInboundNfeLoader;
 	private final InboundNfeResolver inboundNfeResolver;
 	private final ProductRepositoryPort productRepositoryPort;
+	private final InboundItemProductMatcher productMatcher;
 
 	public GetInboundNfeConferenceService(final OwnedInboundNfeLoader ownedInboundNfeLoader,
-			final InboundNfeResolver inboundNfeResolver, final ProductRepositoryPort productRepositoryPort) {
+			final InboundNfeResolver inboundNfeResolver, final ProductRepositoryPort productRepositoryPort,
+			final InboundItemProductMatcher productMatcher) {
 		this.ownedInboundNfeLoader = ownedInboundNfeLoader;
 		this.inboundNfeResolver = inboundNfeResolver;
 		this.productRepositoryPort = productRepositoryPort;
+		this.productMatcher = productMatcher;
 	}
 
 	@Override
@@ -64,16 +67,6 @@ public class GetInboundNfeConferenceService implements GetInboundNfeConferenceUs
 				link == null ? null : link.getLastPurchaseUnitValue(),
 				link == null ? null : link.getLastPurchaseAt(),
 				link == null ? null : link.priceDelta(item.unitValue()), item.barcode(), item.cest(),
-				link == null ? suggestByGtin(item) : null);
-	}
-
-	/** An unlinked item whose GTIN is already in the catalog probably is that product; the operator still confirms it. */
-	private InboundNfeConference.ProductSuggestion suggestByGtin(final InboundNfeItem item) {
-		if (item.barcode() == null) {
-			return null;
-		}
-		return productRepositoryPort.findByBarcode(item.barcode())
-				.map(product -> new InboundNfeConference.ProductSuggestion(product.getId(), product.getInternalCode()))
-				.orElse(null);
+				link == null ? productMatcher.suggestFor(item) : List.of());
 	}
 }

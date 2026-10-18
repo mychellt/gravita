@@ -68,6 +68,38 @@ class NfeXmlParserTest {
 	}
 
 	@Test
+	@DisplayName("Takes the GTIN from cProd when the retailer writes SEM GTIN in cEAN and cProd is a valid GTIN")
+	void takesTheGtinFromCProdWhenTheRetailerWritesSemGtin() {
+		final ParsedSupplierNfe parsed = parser.parse(retailerNfeXml("7908597504167", "SEM GTIN", "SEM GTIN").getBytes(StandardCharsets.UTF_8));
+
+		assertThat(parsed.items().get(0).barcode()).isEqualTo("7908597504167");
+	}
+
+	@Test
+	@DisplayName("Ignores a cProd that only looks like a GTIN because its check digit is wrong")
+	void ignoresACProdWithAWrongCheckDigit() {
+		final ParsedSupplierNfe parsed = parser.parse(retailerNfeXml("7908597504160", "SEM GTIN", "SEM GTIN").getBytes(StandardCharsets.UTF_8));
+
+		assertThat(parsed.items().get(0).barcode()).isNull();
+	}
+
+	@Test
+	@DisplayName("Prefers the declared cEAN over a cProd that is also a GTIN")
+	void prefersTheDeclaredCEan() {
+		final ParsedSupplierNfe parsed = parser.parse(retailerNfeXml("7908597504167", "7891234567895", "SEM GTIN").getBytes(StandardCharsets.UTF_8));
+
+		assertThat(parsed.items().get(0).barcode()).isEqualTo("7891234567895");
+	}
+
+	@Test
+	@DisplayName("Has no GTIN when neither cEAN, cEANTrib nor cProd is one")
+	void hasNoGtinWhenNothingIsOne() {
+		final ParsedSupplierNfe parsed = parser.parse(retailerNfeXml("5663637", "SEM GTIN", "SEM GTIN").getBytes(StandardCharsets.UTF_8));
+
+		assertThat(parsed.items().get(0).barcode()).isNull();
+	}
+
+	@Test
 	@DisplayName("Rejects malformed XML as a business rule violation")
 	void rejectsMalformedXmlAsABusinessRuleViolation() {
 		assertThatThrownBy(() -> parser.parse("not xml at all".getBytes(StandardCharsets.UTF_8)))
@@ -96,6 +128,37 @@ class NfeXmlParserTest {
 				""";
 		assertThatThrownBy(() -> parser.parse(withDoctype.getBytes(StandardCharsets.UTF_8)))
 				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	private String retailerNfeXml(final String productCode, final String commercialEan, final String taxableEan) {
+		return """
+				<?xml version="1.0" encoding="UTF-8"?>
+				<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe">
+				  <NFe>
+				    <infNFe Id="NFe24251101438784005409650270002150481221083164" versao="4.00">
+				      <ide><serie>27</serie><nNF>215048</nNF><dhEmi>2025-11-07T20:37:30-03:00</dhEmi></ide>
+				      <emit><CNPJ>01438784005409</CNPJ><xNome>Varejista Exemplo</xNome></emit>
+				      <dest><CPF>04993692463</CPF></dest>
+				      <det nItem="1">
+				        <prod>
+				          <cProd>%s</cProd>
+				          <cEAN>%s</cEAN>
+				          <xProd>PISO BR BO AR IN 46X46 IPANEMA BG M2</xProd>
+				          <NCM>69072200</NCM>
+				          <CFOP>5102</CFOP>
+				          <uCom>M2</uCom>
+				          <qCom>2.3000</qCom>
+				          <vUnCom>22.9000000000</vUnCom>
+				          <vProd>52.67</vProd>
+				          <cEANTrib>%s</cEANTrib>
+				        </prod>
+				        <imposto><ICMS><ICMS00><vICMS>9.91</vICMS></ICMS00></ICMS></imposto>
+				      </det>
+				      <total><ICMSTot><vProd>52.67</vProd><vNF>49.52</vNF></ICMSTot></total>
+				    </infNFe>
+				  </NFe>
+				</nfeProc>
+				""".formatted(productCode, commercialEan, taxableEan);
 	}
 
 	private String nfeProcXml() {

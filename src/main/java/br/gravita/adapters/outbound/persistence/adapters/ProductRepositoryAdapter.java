@@ -57,6 +57,12 @@ class ProductRepositoryAdapter implements ProductRepositoryPort {
 
 	@Override
 	@Transactional(readOnly = true)
+	public List<ProductDomain> findAllByNcm(final String ncmDigits) {
+		return jpaRepository.findAllByNcmDigits(ncmDigits).stream().map(mapper::map).toList();
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<ProductDomain> findAllByIds(final Collection<UUID> ids) {
 		return jpaRepository.findAllById(ids).stream().map(mapper::map).toList();
 	}

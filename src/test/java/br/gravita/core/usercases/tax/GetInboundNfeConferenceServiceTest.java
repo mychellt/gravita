@@ -2,6 +2,7 @@ package br.gravita.core.usercases.tax;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -74,7 +75,8 @@ class GetInboundNfeConferenceServiceTest {
 		final OwnedInboundNfeLoader loader = new OwnedInboundNfeLoader(inboundNfeRepositoryPort,
 				new CallerCompanyResolver(userRepositoryPort));
 		service = new GetInboundNfeConferenceService(loader,
-				new InboundNfeResolver(supplierRepositoryPort, linkRepositoryPort), productRepositoryPort);
+				new InboundNfeResolver(supplierRepositoryPort, linkRepositoryPort), productRepositoryPort,
+				new InboundItemProductMatcher(productRepositoryPort));
 	}
 
 	@Test
@@ -168,8 +170,8 @@ class GetInboundNfeConferenceServiceTest {
 				.execute(new GetInboundNfeConferenceQuery(nfe.getId().value(), callerId)).items().get(0);
 
 		assertThat(item.resolved()).isFalse();
-		assertThat(item.suggestedProduct())
-				.isEqualTo(new InboundNfeConference.ProductSuggestion(productId, "PARAF-M8"));
+		assertThat(item.suggestions()).containsExactly(
+				new InboundNfeConference.ProductSuggestion(productId, "PARAF-M8", InboundNfeConference.MatchReason.GTIN));
 	}
 
 	@Test
@@ -185,7 +187,26 @@ class GetInboundNfeConferenceServiceTest {
 		final InboundNfeConference.Item item = service
 				.execute(new GetInboundNfeConferenceQuery(nfe.getId().value(), callerId)).items().get(0);
 
-		assertThat(item.suggestedProduct()).isNull();
+		assertThat(item.suggestions()).isEmpty();
+	}
+
+	@Test
+	@DisplayName("suggests products of the same NCM with alike wording when the item has no GTIN")
+	void suggestsSimilarProductsWhenTheItemHasNoGtin() {
+		final InboundNfe nfe = inboundNfe(companyId);
+		callerBelongsTo(companyId);
+		when(inboundNfeRepositoryPort.findById(nfe.getId())).thenReturn(Optional.of(nfe));
+		when(supplierRepositoryPort.findByDocument(nfe.getSupplierDocument())).thenReturn(Optional.of(supplier()));
+		when(linkRepositoryPort.findBySupplierAndCodes(eq(companyId), eq(supplierId), anyCollection())).thenReturn(List.of());
+		when(productRepositoryPort.findAllByNcm("73181500")).thenReturn(List.of(
+				ProductDomain.builder().id(productId).internalCode("Parafuso Sextavado M8 Zincado").build()));
+
+		final InboundNfeConference.Item item = service
+				.execute(new GetInboundNfeConferenceQuery(nfe.getId().value(), callerId)).items().get(0);
+
+		assertThat(item.suggestions()).extracting(InboundNfeConference.ProductSuggestion::reason)
+				.containsExactly(InboundNfeConference.MatchReason.SIMILAR_DESCRIPTION);
+		verify(productRepositoryPort, never()).findByBarcode(any());
 	}
 
 	@Test
@@ -202,8 +223,9 @@ class GetInboundNfeConferenceServiceTest {
 		final InboundNfeConference.Item linked = service
 				.execute(new GetInboundNfeConferenceQuery(linkedNfe.getId().value(), callerId)).items().get(0);
 
-		assertThat(linked.suggestedProduct()).isNull();
+		assertThat(linked.suggestions()).isEmpty();
 		verify(productRepositoryPort, never()).findByBarcode(GTIN);
+		verify(productRepositoryPort, never()).findAllByNcm(any());
 	}
 
 	@Test
