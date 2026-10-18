@@ -20,4 +20,6 @@ public interface NfseJpaRepository extends JpaRepository<NfseJpaEntity, UUID> {
 
 	List<NfseJpaEntity> findByStatusAndAuthorizedAtGreaterThanEqualAndAuthorizedAtLessThanOrderByAuthorizedAt(
 			NfseStatus status, Instant from, Instant to);
+
+	List<NfseJpaEntity> findByProviderCompanyIdOrderByDocumentCreatedAtDesc(UUID providerCompanyId);
 }

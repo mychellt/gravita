@@ -28,6 +28,7 @@ const LABELS: Record<string, string> = {
   renegociado:       'Renegociado',
   cancelado:         'Cancelado',
   // NF-e emitida (NfeDocumentStatus) e de entrada (InboundNfeStatus), como vêm do backend
+  RPS:                'RPS',
   DRAFT:              'Rascunho',
   QUEUED:             'Em fila',
   SENT:               'Enviada',
@@ -63,6 +64,7 @@ const CLASSES: Record<string, BadgeType> = {
   rascunho:          'rascunho',
   em_envio:          'proc',
   em_transito:       'proc',
+  RPS:                'rascunho',
   DRAFT:              'rascunho',
   QUEUED:             'pend',
   SENT:               'proc',

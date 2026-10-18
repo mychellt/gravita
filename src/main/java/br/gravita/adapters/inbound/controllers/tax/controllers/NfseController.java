@@ -6,17 +6,24 @@ import br.gravita.adapters.inbound.controllers.tax.dtos.ConvertRpsToNfseResponse
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsRequest;
 import br.gravita.adapters.inbound.controllers.tax.dtos.IssueRpsResponse;
 import br.gravita.adapters.inbound.controllers.tax.dtos.TransmitNfseResponse;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
+import br.gravita.adapters.inbound.controllers.tax.dtos.NfseListItemResponse;
+import br.gravita.core.domain.Context;
+import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.tax.NfseId;
 import br.gravita.core.ports.inbound.tax.CancelNfseUseCase;
 import br.gravita.core.ports.inbound.tax.ConvertRpsToNfseUseCase;
 import br.gravita.core.ports.inbound.tax.IssueRpsUseCase;
+import br.gravita.core.ports.inbound.tax.ListNfseUseCase;
 import br.gravita.core.ports.inbound.tax.TransmitNfseCommand;
 import br.gravita.core.ports.inbound.tax.TransmitNfseUseCase;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +39,13 @@ public class NfseController {
 	private final ConvertRpsToNfseUseCase convertRpsToNfseUseCase;
 	private final TransmitNfseUseCase transmitNfseUseCase;
 	private final CancelNfseUseCase cancelNfseUseCase;
+	private final ListNfseUseCase listNfseUseCase;
+
+	/** All RPS/NFSe of the caller's company, any status, newest first. */
+	@GetMapping
+	public List<NfseListItemResponse> findAll(@AuthenticatedUser final UserId callerId) {
+		return listNfseUseCase.execute(new Context().withCaller(callerId)).stream().map(NfseListItemResponse::from).toList();
+	}
 
 	@PostMapping("/rps")
 	public ResponseEntity<IssueRpsResponse> issueRps(@Valid @RequestBody final IssueRpsRequest request) {

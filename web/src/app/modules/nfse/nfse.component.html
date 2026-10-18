@@ -8,20 +8,20 @@
   <div class="kpi">
     <div class="kpi-icon blue"><i class="ti ti-receipt"></i></div>
     <div class="kpi-label">NFS-e no mês</div>
-    <div class="kpi-value">{{ nfses().length }}</div>
-    <div class="kpi-sub">R$ 23.700 em serviços</div>
+    <div class="kpi-value">{{ kpis().count }}</div>
+    <div class="kpi-sub">{{ kpis().serviceTotal | brl }} em serviços</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon amber"><i class="ti ti-building-store"></i></div>
-    <div class="kpi-label">Municípios ativos</div>
-    <div class="kpi-value">3</div>
-    <div class="kpi-sub">SP · Campinas · Santos</div>
+    <div class="kpi-label">Municípios</div>
+    <div class="kpi-value">{{ kpis().municipalities }}</div>
+    <div class="kpi-sub">com documentos emitidos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-coin"></i></div>
-    <div class="kpi-label">ISS retido</div>
-    <div class="kpi-value">R$ 516</div>
-    <div class="kpi-sub">2,0% médio efetivo</div>
+    <div class="kpi-label">ISS no mês</div>
+    <div class="kpi-value">{{ kpis().issTotal | brl }}</div>
+    <div class="kpi-sub">{{ kpis().withheldTotal | brl }} retidos na fonte</div>
   </div>
 </div>
 
@@ -35,39 +35,47 @@
     <span class="card-title">RPS / NFS-e emitidos</span>
     <button class="card-action">Exportar</button>
   </div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Número RPS</th>
-        <th>Tomador</th>
-        <th>Município</th>
-        <th>Padrão</th>
-        <th>Serviço (LC116)</th>
-        <th class="td-right">Valor</th>
-        <th class="td-right">ISS</th>
-        <th>Data</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (n of nfses(); track n.id) {
+  @if (loadStatus() === 'loading') {
+    <div class="nfse-state">Carregando NFS-e…</div>
+  } @else if (loadStatus() === 'error') {
+    <div class="nfse-state nfse-state-error" role="alert">
+      Não foi possível carregar as NFS-e.
+      <button class="action-btn" (click)="reload()">Tentar novamente</button>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
         <tr>
-          <td class="td-mono">{{ n.rpsNumero }}</td>
-          <td class="td-name">{{ n.tomadorNome }}</td>
-          <td>{{ n.municipio }}/{{ n.uf }}</td>
-          <td>
-            <span class="badge" [ngClass]="n.padrao === 'abrasf' ? 'proc' : 'rascunho'">
-              <span class="badge-dot"></span>
-              {{ n.padrao === 'abrasf' ? 'ABRASF 2.x' : 'Nacional SEFAZ' }}
-            </span>
-          </td>
-          <td style="font-size:11px">{{ n.codigoServico }} — {{ n.discriminacao | slice:0:30 }}...</td>
-          <td class="td-amount">{{ n.valorServico | brl }}</td>
-          <td class="td-right td-mono">{{ n.valorIss | brl }}</td>
-          <td style="font-size:12px;color:var(--text3)">{{ n.dataEmissao | date:'dd/MM/yy' }}</td>
-          <td><app-badge [value]="n.status" /></td>
+          <th>Número</th>
+          <th>RPS</th>
+          <th>Tomador</th>
+          <th>Município</th>
+          <th>Serviço (LC116)</th>
+          <th class="td-right">Valor</th>
+          <th class="td-right">ISS</th>
+          <th>Data</th>
+          <th>Status</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (n of nfses(); track n.id) {
+          <tr>
+            <td class="td-mono">{{ n.number ? '#' + n.number : '—' }}</td>
+            <td class="td-mono">{{ n.rpsSeries }}-{{ n.rpsNumber }}</td>
+            <td class="td-name">{{ n.tomadorName }}</td>
+            <td>{{ n.municipalityName ? n.municipalityName + '/' + n.municipalityState : n.municipalityIbgeCode }}</td>
+            <td style="font-size:11px">{{ n.serviceCode }} — {{ n.discrimination | slice:0:30 }}{{ n.discrimination.length > 30 ? '...' : '' }}</td>
+            <td class="td-amount">{{ n.serviceAmount | brl }}</td>
+            <td class="td-right td-mono">{{ n.issAmount | brl }}</td>
+            <td style="font-size:12px;color:var(--text3)">{{ n.issuedAt | date:'dd/MM/yy' }}</td>
+            <td><app-badge [value]="n.status" /></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">Nenhuma NFS-e encontrada</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
 </div>

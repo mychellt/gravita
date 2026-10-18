@@ -29,4 +29,7 @@ public interface NfseRepositoryPort {
 
 	/** The NFSe authorized over {@code [from, to)}, oldest authorization first. Cancelled ones are not included. */
 	List<NfseDocument> findAuthorizedBetween(Instant from, Instant to);
+
+	/** Every RPS/NFSe the company issued, at any status, newest first. */
+	List<NfseDocument> findAllByProvider(CompanyId providerCompanyId);
 }

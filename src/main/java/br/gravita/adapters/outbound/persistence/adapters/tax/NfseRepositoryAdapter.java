@@ -75,4 +75,11 @@ class NfseRepositoryAdapter implements NfseRepositoryPort {
 						NfseStatus.AUTHORIZED, from, to)
 				.stream().map(mapper::map).toList();
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<NfseDocument> findAllByProvider(final CompanyId providerCompanyId) {
+		return jpaRepository.findByProviderCompanyIdOrderByDocumentCreatedAtDesc(providerCompanyId.value()).stream()
+				.map(mapper::map).toList();
+	}
 }
