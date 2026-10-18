@@ -166,6 +166,67 @@ describe('Inbound NF-e flows', () => {
       expect(modal.erro()).toBe('Invalid CNPJ');
       expect(closed).not.toHaveBeenCalled();
     });
+    describe('supplier pre-fill and item entry', () => {
+      it('fills the supplier name from the registered supplier when the CNPJ is complete', async () => {
+        const modal = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
+
+        modal.aoMudarCnpj('12.345.678/0001-95');
+        http.expectOne('/api/suppliers/by-document/12345678000195')
+          .flush({ id: 's1', name: 'Fornecedor Cadastrado LTDA', document: '12345678000195' });
+        await flush();
+
+        expect(modal.fornecedor()).toBe('Fornecedor Cadastrado LTDA');
+        expect(modal.fornecedorStatus()).toBe('cadastrado');
+      });
+
+      it('falls back to the CNPJ lookup when the supplier is not registered, without overwriting a typed name', async () => {
+        const modal = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
+        modal.fornecedor.set('Digitado');
+
+        modal.aoMudarCnpj('12345678000195');
+        http.expectOne('/api/suppliers/by-document/12345678000195').flush(null, { status: 404, statusText: 'Not Found' });
+        await flush();
+        http.expectOne('/api/lookup/cnpj/12345678000195').flush({ name: 'Razão Social Receita', address: null });
+        await flush();
+
+        expect(modal.fornecedor()).toBe('Digitado');
+        expect(modal.fornecedorStatus()).toBe('novo');
+      });
+
+      it('does not look anything up before the CNPJ has 14 digits', () => {
+        const modal = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
+
+        modal.aoMudarCnpj('12345');
+
+        http.expectNone('/api/suppliers/by-document/12345');
+        expect(modal.fornecedorStatus()).toBe('nenhum');
+      });
+
+      it('suggests catalog products while typing the description and fills description and NCM on pick', async () => {
+        const modal = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
+
+        modal.aoDigitarDescricao(0, 'paraf');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        http.expectOne(r => r.url === '/api/pdv/products/search' && r.params.get('q') === 'paraf')
+          .flush([{ productId: PRODUCT, description: 'Parafuso M8', ncm: '73181500', unitPrice: 1, availableForSale: true }]);
+        await flush();
+        expect(modal.sugestoes().length).toBe(1);
+
+        modal.escolherSugestao(0, modal.sugestoes()[0]);
+
+        expect(modal.itens()[0].description).toBe('Parafuso M8');
+        expect(modal.itens()[0].ncm).toBe('73181500');
+        expect(modal.sugestoes()).toEqual([]);
+      });
+
+      it('adds a new line when Enter is pressed on the unit value of the last line', () => {
+        const modal = TestBed.createComponent(ManualEntryModalComponent).componentInstance;
+
+        modal.aoEnterNoValor(new Event('keydown'), 0);
+
+        expect(modal.itens().length).toBe(2);
+      });
+    });
   });
 
   describe('confirm receipt', () => {

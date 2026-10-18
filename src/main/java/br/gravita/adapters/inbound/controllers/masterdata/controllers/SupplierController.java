@@ -2,10 +2,12 @@ package br.gravita.adapters.inbound.controllers.masterdata.controllers;
 
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.RegisterSupplierRequest;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.SupplierResponse;
+import br.gravita.adapters.inbound.controllers.masterdata.dtos.SupplierSummaryResponse;
 import br.gravita.adapters.inbound.controllers.masterdata.dtos.UpdateSupplierRequest;
 import br.gravita.core.domain.masterdata.SupplierId;
 import br.gravita.core.domain.masterdata.SupplierNotFoundException;
 import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.ports.inbound.masterdata.FindSupplierByDocumentUseCase;
 import br.gravita.core.ports.inbound.masterdata.RegisterSupplierUseCase;
 import br.gravita.core.ports.inbound.masterdata.UpdateSupplierUseCase;
 import jakarta.validation.Valid;
@@ -25,6 +27,15 @@ public class SupplierController {
 
     private final RegisterSupplierUseCase registerSupplierUseCase;
     private final UpdateSupplierUseCase updateSupplierUseCase;
+    private final FindSupplierByDocumentUseCase findSupplierByDocumentUseCase;
+
+    /** 200 with the registered supplier, or 404 when no supplier has this CNPJ; used to pre-fill forms. */
+    @GetMapping("/by-document/{cnpj}")
+    public ResponseEntity<SupplierSummaryResponse> byDocument(@PathVariable final String cnpj) {
+        return findSupplierByDocumentUseCase.execute(cnpj)
+                .map(supplier -> ResponseEntity.ok(SupplierSummaryResponse.from(supplier)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
     @PostMapping
     public ResponseEntity<SupplierResponse> register(@Valid @RequestBody final RegisterSupplierRequest request) {

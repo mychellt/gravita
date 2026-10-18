@@ -21,6 +21,13 @@ export interface RegisterSupplierRequest {
   addresses: SupplierAddress[];
 }
 
+/** Fornecedor já cadastrado, como GET /api/suppliers/by-document/{cnpj} devolve (SupplierSummaryResponse). */
+export interface SupplierSummary {
+  id: string;
+  name: string;
+  document: string;
+}
+
 /** GET /api/lookup/cnpj/{cnpj} e /cep/{cep} (PersonLookupResponse); campos nulos quando nada foi encontrado. */
 export interface PersonLookup {
   name: string | null;
@@ -35,6 +42,15 @@ export class SupplierService {
   /** POST /api/suppliers. Rejeita se o backend recusa (400/409 com `{message}`; ver `nfeFailureDetail`). */
   register(request: RegisterSupplierRequest): Promise<{ id: string }> {
     return firstValueFrom(this.http.post<{ id: string }>(`${environment.apiUrl}/suppliers`, request));
+  }
+
+  /** O fornecedor cadastrado com este CNPJ, ou `null` se não há (404) ou a consulta falha; só ajuda a preencher formulários. */
+  async findByDocument(cnpj: string): Promise<SupplierSummary | null> {
+    try {
+      return await firstValueFrom(this.http.get<SupplierSummary>(`${environment.apiUrl}/suppliers/by-document/${cnpj.replace(/\D/g, '')}`));
+    } catch {
+      return null;
+    }
   }
 
   /** Só ajuda a preencher o formulário: qualquer falha da consulta vira `null`, nunca um erro. */
