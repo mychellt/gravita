@@ -25,6 +25,7 @@ class NfeXmlParserTest {
 		assertThat(parsed.series()).isEqualTo("1");
 		assertThat(parsed.number()).isEqualTo("12345");
 		assertThat(parsed.supplierCnpj()).isEqualTo("11222333000181");
+		assertThat(parsed.recipientDocument()).isEqualTo("11444777000161");
 		assertThat(parsed.supplierName()).isEqualTo("Fornecedor Exemplo LTDA");
 		assertThat(parsed.issuedAt()).isEqualTo(OffsetDateTime.parse("2026-01-15T10:00:00-03:00").toInstant());
 
@@ -112,6 +113,9 @@ class NfeXmlParserTest {
 				        <CNPJ>11222333000181</CNPJ>
 				        <xNome>Fornecedor Exemplo LTDA</xNome>
 				      </emit>
+				      <dest>
+				        <CNPJ>11444777000161</CNPJ>
+				      </dest>
 				      <det nItem="1">
 				        <prod>
 				          <cProd>SKU-001</cProd>

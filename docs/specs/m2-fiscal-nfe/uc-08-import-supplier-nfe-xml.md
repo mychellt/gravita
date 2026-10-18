@@ -26,6 +26,7 @@ public interface ImportSupplierNfeXmlUseCase {
 
 - `InboundNfeRepositoryPort`
 - `XmlObjectStoragePort`
+- `CompanyRepositoryPort`
 
 ## REST endpoint
 
@@ -41,6 +42,7 @@ public interface ImportSupplierNfeXmlUseCase {
 - [ ] The original XML is stored via `XmlObjectStoragePort`, referenced from the `InboundNfe` record.
 - [ ] The resulting `InboundNfe` is in a state ready for conference, not yet confirmed into stock/payables.
 - [ ] An unmatched supplier CNPJ never blocks the import: supplier and product resolution happens later, on demand ([UC-M2-15](uc-15-resolve-inbound-nfe-supplier-and-products.md)).
+- [x] The recipient (`dest`) CNPJ must be the logged-in company's. Any other recipient (or a missing/CPF one) is rejected before the XML is stored or anything is saved, and no company is ever created from the XML: importing a third party's note is not allowed.
 
 ## Dependencies
 

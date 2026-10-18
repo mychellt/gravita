@@ -11,6 +11,7 @@ public record ParsedSupplierNfe(
 		String number,
 		String supplierCnpj,
 		String supplierName,
+		String recipientDocument,
 		Instant issuedAt,
 		List<InboundNfeItem> items,
 		InboundNfeTotals totals) {

@@ -43,16 +43,27 @@ public class NfeXmlParser {
 			final String supplierCnpj = text(xpath, emit, "*[local-name()='CNPJ']");
 			final String supplierName = text(xpath, emit, "*[local-name()='xNome']");
 
+			final Node dest = node(xpath, document, "//*[local-name()='dest']");
+			final String recipientDocument = dest == null ? null : digitsOrNull(
+					textOrNull(xpath, dest, "*[local-name()='CNPJ']") != null
+							? textOrNull(xpath, dest, "*[local-name()='CNPJ']")
+							: textOrNull(xpath, dest, "*[local-name()='CPF']"));
+
 			final List<InboundNfeItem> items = extractItems(xpath, detNodes);
 			final InboundNfeTotals totals = extractTotals(xpath, icmsTot);
 
-			return new ParsedSupplierNfe(accessKey, series, number, supplierCnpj, supplierName, issuedAt, items,
+			return new ParsedSupplierNfe(accessKey, series, number, supplierCnpj, supplierName, recipientDocument, issuedAt,
+					items,
 					totals);
 		} catch (final BusinessRuleException e) {
 			throw e;
 		} catch (final Exception e) {
 			throw new BusinessRuleException("Unable to parse supplier NFe XML: " + e.getMessage(), e);
 		}
+	}
+
+	private static String digitsOrNull(final String value) {
+		return value == null ? null : value.replaceAll("\\D", "");
 	}
 
 	private org.w3c.dom.Document parseDocument(final byte[] xmlContent) throws Exception {

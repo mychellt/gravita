@@ -1,7 +1,11 @@
 package br.gravita.tax.application.service;
 
 import br.gravita.core.domain.exceptions.NfeAlreadyImportedException;
+import br.gravita.core.domain.masterdata.Company;
 import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.shared.BusinessRuleException;
+import br.gravita.core.domain.shared.Document;
+import br.gravita.core.ports.outbound.persistence.CompanyRepositoryPort;
 import br.gravita.core.domain.tax.InboundNfe;
 import br.gravita.core.domain.tax.InboundNfeStatus;
 import br.gravita.core.ports.inbound.tax.ImportSupplierNfeXmlCommand;
@@ -33,18 +37,24 @@ class ImportSupplierNfeXmlServiceTest {
 	@Mock
 	private XmlObjectStoragePort xmlObjectStoragePort;
 
+	@Mock
+	private CompanyRepositoryPort companyRepositoryPort;
+
+	private static final String COMPANY_CNPJ = "11444777000161";
+
 	private ImportSupplierNfeXmlService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ImportSupplierNfeXmlService(inboundNfeRepositoryPort, xmlObjectStoragePort);
+		service = new ImportSupplierNfeXmlService(inboundNfeRepositoryPort, xmlObjectStoragePort, companyRepositoryPort);
 	}
 
 	@Test
 	@DisplayName("Stores the XML before persisting and returns an inbound NF-e pending conference")
 	void storesTheXmlBeforePersistingAndReturnsAPendingConferenceInboundNfe() {
 		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
-		final byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
+		final byte[] xml = nfeXml("<dest><CNPJ>" + COMPANY_CNPJ + "</CNPJ></dest>").getBytes(StandardCharsets.UTF_8);
+		companyIs(companyId);
 		when(xmlObjectStoragePort.store(eq(companyId), eq(xml))).thenReturn("xml-object-ref-1");
 		when(inboundNfeRepositoryPort.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -65,7 +75,8 @@ class ImportSupplierNfeXmlServiceTest {
 	@DisplayName("Rejects an access key that was already imported, without storing the XML")
 	void rejectsAnAlreadyImportedAccessKeyBeforeStoringTheXml() {
 		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
-		final byte[] xml = nfeXml().getBytes(StandardCharsets.UTF_8);
+		final byte[] xml = nfeXml("<dest><CNPJ>" + COMPANY_CNPJ + "</CNPJ></dest>").getBytes(StandardCharsets.UTF_8);
+		companyIs(companyId);
 		when(inboundNfeRepositoryPort.findByAccessKey("35240111222333000181550010000012345123456789"))
 				.thenReturn(java.util.Optional.of(org.mockito.Mockito.mock(InboundNfe.class)));
 
@@ -76,7 +87,52 @@ class ImportSupplierNfeXmlServiceTest {
 		org.mockito.Mockito.verify(inboundNfeRepositoryPort, org.mockito.Mockito.never()).save(any());
 	}
 
-	private String nfeXml() {
+	@Test
+	@DisplayName("Rejects an NF-e addressed to another CNPJ, without storing the XML or saving anything")
+	void rejectsANfeAddressedToAnotherCompany() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		companyIs(companyId);
+		final byte[] xml = nfeXml("<dest><CNPJ>99888777000166</CNPJ></dest>").getBytes(StandardCharsets.UTF_8);
+
+		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeXmlCommand(companyId, xml)))
+				.isInstanceOf(BusinessRuleException.class)
+				.hasMessageContaining("not addressed to your company");
+
+		org.mockito.Mockito.verifyNoInteractions(xmlObjectStoragePort);
+		org.mockito.Mockito.verify(inboundNfeRepositoryPort, org.mockito.Mockito.never()).save(any());
+	}
+
+	@Test
+	@DisplayName("Rejects an NF-e that carries no recipient")
+	void rejectsANfeWithoutRecipient() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		companyIs(companyId);
+		final byte[] xml = nfeXml("").getBytes(StandardCharsets.UTF_8);
+
+		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeXmlCommand(companyId, xml)))
+				.isInstanceOf(BusinessRuleException.class);
+
+		org.mockito.Mockito.verifyNoInteractions(xmlObjectStoragePort);
+	}
+
+	@Test
+	@DisplayName("Rejects an NF-e addressed to a CPF, since the company is identified by its CNPJ")
+	void rejectsANfeAddressedToACpf() {
+		final CompanyId companyId = CompanyId.of(UUID.randomUUID());
+		companyIs(companyId);
+		final byte[] xml = nfeXml("<dest><CPF>52998224725</CPF></dest>").getBytes(StandardCharsets.UTF_8);
+
+		assertThatThrownBy(() -> service.execute(new ImportSupplierNfeXmlCommand(companyId, xml)))
+				.isInstanceOf(BusinessRuleException.class);
+	}
+
+	private void companyIs(final CompanyId companyId) {
+		final Company company = org.mockito.Mockito.mock(Company.class);
+		when(company.getCnpj()).thenReturn(Document.cnpj(COMPANY_CNPJ));
+		when(companyRepositoryPort.findById(companyId)).thenReturn(java.util.Optional.of(company));
+	}
+
+	private String nfeXml(final String dest) {
 		return """
 				<?xml version="1.0" encoding="UTF-8"?>
 				<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
@@ -90,6 +146,7 @@ class ImportSupplierNfeXmlServiceTest {
 				      <CNPJ>11222333000181</CNPJ>
 				      <xNome>Fornecedor Exemplo LTDA</xNome>
 				    </emit>
+				    %s
 				    <det nItem="1">
 				      <prod>
 				        <cProd>SKU-001</cProd>
@@ -114,6 +171,6 @@ class ImportSupplierNfeXmlServiceTest {
 				    </total>
 				  </infNFe>
 				</NFe>
-				""";
+				""".formatted(dest);
 	}
 }
