@@ -112,6 +112,8 @@
             <td class="td-amount">{{ nf.totalValue | brl }}</td>
             <td><app-badge [value]="nf.status" /></td>
             <td class="td-actions">
+              <button class="btn-icon" type="button" title="Detalhes da NF-e" aria-label="Detalhes da NF-e"
+                      (click)="detailing.set(nf)"><i class="ti ti-eye"></i></button>
               @if (nf.status === 'PENDING_CONFERENCE') {
                 <button class="action-btn" (click)="conferring.set(nf)">Conferir e confirmar recebimento</button>
               }
@@ -182,6 +184,9 @@
   @case ('import') { <app-import-xml-modal (closed)="inboundDialog.set(null)" /> }
   @case ('manual') { <app-manual-entry-modal (closed)="inboundDialog.set(null)" /> }
   @case ('manifestation') { <app-manifestation-modal (closed)="inboundDialog.set(null)" /> }
+}
+@if (detailing(); as nota) {
+  <app-inbound-details-modal [nfe]="nota" (closed)="detailing.set(null)" />
 }
 @if (conferring(); as nota) {
   <app-confirm-receipt-modal [nfe]="nota" (closed)="conferring.set(null)" />

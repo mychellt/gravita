@@ -7,6 +7,7 @@ import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
 import { ConfirmReceiptModalComponent } from './inbound/confirm-receipt-modal.component';
+import { InboundDetailsModalComponent } from './inbound/inbound-details-modal.component';
 import { ImportXmlModalComponent } from './inbound/import-xml-modal.component';
 import { ManifestationModalComponent } from './inbound/manifestation-modal.component';
 import { ManualEntryModalComponent } from './inbound/manual-entry-modal.component';
@@ -24,6 +25,7 @@ const sum = (list: NfeListItem[]) => list.reduce((total, n) => total + n.totalVa
   imports: [
     RouterLink, DatePipe, BadgeComponent, PageHeaderComponent, BrlPipe,
     ImportXmlModalComponent, ManualEntryModalComponent, ManifestationModalComponent, ConfirmReceiptModalComponent,
+    InboundDetailsModalComponent,
   ],
   styleUrl: './nfe.component.scss',
   templateUrl: './nfe.component.html'
@@ -44,6 +46,7 @@ export class NfeComponent {
   inboundDialog = signal<InboundDialog | null>(null);
   /** Nota de entrada em conferência, se o modal de conferência está aberto. */
   conferring = signal<InboundNfeListItem | null>(null);
+  detailing = signal<InboundNfeListItem | null>(null);
 
   /** Estado de carga da lista da aba ativa: Emitidas/Canceladas vêm de /api/nfe, Entradas de /api/nfe/inbound. */
   readonly loadStatus = computed(() =>

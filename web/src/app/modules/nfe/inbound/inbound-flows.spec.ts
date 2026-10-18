@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { InboundConference, InboundConferenceItem, InboundNfeListItem, NfeService } from '../../../core/services/nfe.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmReceiptModalComponent } from './confirm-receipt-modal.component';
+import { InboundDetailsModalComponent } from './inbound-details-modal.component';
 import { ImportXmlModalComponent } from './import-xml-modal.component';
 import { ManifestationModalComponent } from './manifestation-modal.component';
 import { ManualEntryModalComponent } from './manual-entry-modal.component';
@@ -650,6 +651,40 @@ describe('Inbound NF-e flows', () => {
       expect(modal.erro()).toContain('Barcode');
       expect(modal.enviando()).toBeFalse();
       expect(registered).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('details of an inbound NF-e', () => {
+    const items: InboundConferenceItem[] = [{
+      index: 0, supplierProductCode: 'SKU-1', description: 'Parafuso', ncm: '73181500', unit: 'UN', quantity: 10, unitValue: 2.5,
+      resolved: true, productId: PRODUCT, productLabel: 'PARAF-01', lastPurchaseUnitValue: null, lastPurchaseAt: null, priceDelta: null,
+      barcode: null, cest: null,
+    }];
+
+    it('loads the items of a confirmed note and shows them read-only', async () => {
+      const fixture = TestBed.createComponent(InboundDetailsModalComponent);
+      fixture.componentRef.setInput('nfe', row({ status: 'CONFIRMED' }));
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush(
+        { inboundNfeId: 'i1', supplierDocument: '11222333000181', supplierName: 'Fornecedor Alfa', supplierResolved: true, supplierId: 'sup-1', items });
+      await flush();
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(fixture.componentInstance.carregamento()).toBe('ready');
+      expect(text).toContain('Parafuso');
+      expect(text).toContain('11.222.333/0001-81');
+      expect(text).toContain('PARAF-01');
+    });
+
+    it('offers a retry when the items cannot be loaded', async () => {
+      const fixture = TestBed.createComponent(InboundDetailsModalComponent);
+      fixture.componentRef.setInput('nfe', row());
+      fixture.detectChanges();
+      http.expectOne('/api/nfe/inbound/i1/conference').flush({}, { status: 500, statusText: 'Server Error' });
+      await flush();
+
+      expect(fixture.componentInstance.carregamento()).toBe('error');
     });
   });
 
