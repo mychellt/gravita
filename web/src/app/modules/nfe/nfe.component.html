@@ -105,15 +105,15 @@
       <tbody>
         @for (nf of filteredInbound(); track nf.id) {
           <tr>
-            <td class="td-mono">#{{ nf.number }}</td>
+            <td class="td-mono">
+              <a class="nfe-link" href="#" title="Ver detalhes da NF-e" (click)="$event.preventDefault(); detailing.set(nf)">#{{ nf.number }}</a>
+            </td>
             <td class="td-mono">{{ nf.series }}</td>
             <td class="td-name">{{ nf.supplierName }}</td>
             <td style="font-size:12px;color:var(--text3)">{{ nf.issuedAt | date:'dd/MM/yy HH:mm' }}</td>
             <td class="td-amount">{{ nf.totalValue | brl }}</td>
             <td><app-badge [value]="nf.status" /></td>
             <td class="td-actions">
-              <button class="btn-icon" type="button" title="Detalhes da NF-e" aria-label="Detalhes da NF-e"
-                      (click)="detailing.set(nf)"><i class="ti ti-search"></i></button>
               @if (nf.status === 'PENDING_CONFERENCE') {
                 <button class="action-btn" (click)="conferring.set(nf)">Conferir e confirmar recebimento</button>
               }
