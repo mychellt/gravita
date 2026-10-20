@@ -6,6 +6,7 @@ import br.gravita.adapters.outbound.persistence.repositories.ProfileJpaRepositor
 import br.gravita.core.domain.ProfileDomain;
 import br.gravita.core.ports.outbound.persistence.ProfileRepositoryPort;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,17 +22,21 @@ class ProfileRepositoryAdapter implements ProfileRepositoryPort {
 		this.mapper = mapper;
 	}
 
+	/** Read inside a transaction: the permissions are a lazy collection that the mapper reads (open-in-view is off). */
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<ProfileDomain> findById(final UUID id) {
 		return jpaRepository.findById(id).map(mapper::map);
 	}
 
 	@Override
+	@Transactional(readOnly = true)
 	public Optional<ProfileDomain> findByName(final String name) {
 		return jpaRepository.findByName(name).map(mapper::map);
 	}
 
 	@Override
+	@Transactional
 	public ProfileDomain save(final ProfileDomain profile) {
 		final ProfileJpaEntity entity = mapper.map(profile);
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
