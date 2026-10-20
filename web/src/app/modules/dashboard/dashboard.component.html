@@ -1,27 +1,42 @@
+@if (dashboardStatus() === 'error') {
+  <div class="card mt-14" role="alert">
+    <div class="card-body" style="color:var(--text3)">
+      Não foi possível carregar os indicadores.
+      <button class="action-btn" (click)="reloadDashboard()">Tentar novamente</button>
+    </div>
+  </div>
+}
+
 <div class="kpi-grid">
   <div class="kpi">
     <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
     <div class="kpi-label">Faturamento Hoje</div>
-    <div class="kpi-value">{{ faturamentoHoje | brl }}</div>
-    <div class="kpi-change up">↑ 12,4% vs. ontem</div>
+    <div class="kpi-value">{{ faturamentoHoje() | brl }}</div>
+    @if (variacaoDia(); as variacao) {
+      <div class="kpi-change" [class.up]="variacao >= 0" [class.dn]="variacao < 0">
+        {{ variacao >= 0 ? '↑' : '↓' }} {{ variacao < 0 ? -variacao : variacao | number:'1.1-1' }}% vs. ontem
+      </div>
+    } @else {
+      <div class="kpi-sub">sem comparação com ontem</div>
+    }
   </div>
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-file-check"></i></div>
     <div class="kpi-label">NF-e Emitidas</div>
-    <div class="kpi-value">{{ nfCount }}</div>
-    <div class="kpi-sub">38 NFC-e · 9 NF-e</div>
+    <div class="kpi-value">{{ nfeDoMes().count }}</div>
+    <div class="kpi-sub">no mês · {{ nfeDoMes().total | brl }}</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon amber"><i class="ti ti-clock"></i></div>
-    <div class="kpi-label">A Receber (30d)</div>
-    <div class="kpi-value">{{ receber30d() | brl }}</div>
-    <div class="kpi-change dn">R$ 4.200 vencido</div>
+    <div class="kpi-label">Contas Vencidas</div>
+    <div class="kpi-value">{{ vencido() | brl }}</div>
+    <div class="kpi-sub">{{ titulosVencidos() }} título(s) a receber em atraso</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon red"><i class="ti ti-alert-triangle"></i></div>
     <div class="kpi-label">Estoque Crítico</div>
     <div class="kpi-value">{{ estoqueCritico() }}</div>
-    <div class="kpi-sub">itens abaixo do mínimo</div>
+    <div class="kpi-sub">itens abaixo do mínimo ou a vencer</div>
   </div>
 </div>
 
@@ -33,7 +48,7 @@
     </div>
     <div class="card-body">
       <div class="chart-bars">
-        @for (bar of chartBars; track bar.day) {
+        @for (bar of chartBars(); track $index) {
           <div class="bar-col">
             <div class="bar"
                  [style.height.px]="bar.height"
@@ -45,9 +60,11 @@
       </div>
       <div class="chart-footer">
         <span class="text-muted" style="font-size:11px">
-          Total semana: <strong style="color:var(--text);font-weight:700">R$ 123.420</strong>
+          Últimos 7 dias: <strong style="color:var(--text);font-weight:700">{{ totalSemana() | brl }}</strong>
         </span>
-        <span class="text-success" style="font-size:11px">Margem bruta: 38,2%</span>
+        @if (margemBruta() !== null) {
+          <span class="text-success" style="font-size:11px">Margem bruta (mês): {{ margemBruta() | number:'1.1-1' }}%</span>
+        }
       </div>
     </div>
   </div>
@@ -55,16 +72,19 @@
   <div class="card">
     <div class="card-head">
       <span class="card-title">Atividade recente</span>
-      <button class="card-action">Ver tudo</button>
+      <a routerLink="/nfe" class="card-action">Ver tudo</a>
     </div>
-    @for (item of activity; track item.time) {
+    @if (activity().length === 0) {
+      <div class="activity-item"><div class="activity-text"><div class="activity-meta">Nenhuma atividade ainda</div></div></div>
+    }
+    @for (item of activity(); track $index) {
       <div class="activity-item">
         <div class="activity-dot {{ item.type }}">
           <i class="ti {{ item.icon }}"></i>
         </div>
         <div class="activity-text">
           <div class="activity-main">{{ item.title }}</div>
-          <div class="activity-meta">{{ item.time }} · {{ item.value }}</div>
+          <div class="activity-meta">{{ item.at | date:'dd/MM HH:mm' }} · {{ item.value | brl }}</div>
         </div>
       </div>
     }

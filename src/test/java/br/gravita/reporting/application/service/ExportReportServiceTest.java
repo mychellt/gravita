@@ -300,6 +300,7 @@ class ExportReportServiceTest {
 				new ExecutiveDashboardView.TargetProgress(PERIOD,
 						new ExecutiveDashboardView.Target(new BigDecimal("1000.00"), new BigDecimal("300.00"),
 								new BigDecimal("30.00")),
-						List.of()));
+						List.of()),
+				List.of());
 	}
 }

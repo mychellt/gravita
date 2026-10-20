@@ -14,7 +14,7 @@ import java.util.UUID;
  */
 public record ExecutiveDashboardView(DashboardPeriod period, LocalDate from, LocalDate to, Revenue revenue,
 		Margin margin, Delinquency delinquency, List<CriticalStockItem> criticalStock, TopProducts topProducts,
-		TargetProgress targets) {
+		TargetProgress targets, List<DailyRevenue> lastSevenDays) {
 
 	/**
 	 * Faturamento of the current day, week and month, each against the prior period over the same elapsed span.
@@ -23,6 +23,10 @@ public record ExecutiveDashboardView(DashboardPeriod period, LocalDate from, Loc
 	 */
 	public record Revenue(PeriodComparison day, PeriodComparison week, PeriodComparison month,
 			BigDecimal invoicedTotal, BigDecimal reconciliationDifference) {
+	}
+
+	/** Revenue of one day; the dashboard chart gets the last seven days, oldest first, zero-filled. */
+	public record DailyRevenue(LocalDate date, BigDecimal value) {
 	}
 
 	/** {@code variationPercent} is {@code null} when the prior period had no revenue to compare to. */

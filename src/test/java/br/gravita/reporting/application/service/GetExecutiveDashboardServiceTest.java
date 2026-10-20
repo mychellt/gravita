@@ -107,6 +107,21 @@ class GetExecutiveDashboardServiceTest {
 		assertThat(view.revenue().month().variationPercent()).isEqualByComparingTo("74.90");
 	}
 
+	@DisplayName("Lists the last seven days of revenue, oldest first, with days without sales at zero")
+	@Test
+	void listsTheLastSevenDaysOfRevenueForTheChart() {
+		when(sales.dailyRevenue(any(), any(), any())).thenReturn(Map.of(
+				TODAY, new BigDecimal("100"), TODAY.minusDays(2), new BigDecimal("50"), TODAY.minusDays(6), new BigDecimal("10"),
+				TODAY.minusDays(7), new BigDecimal("999")));
+
+		final ExecutiveDashboardView view = service.execute(new DashboardQuery(user, DashboardPeriod.MONTH, null));
+
+		assertThat(view.lastSevenDays()).extracting(ExecutiveDashboardView.DailyRevenue::date)
+				.containsExactly(TODAY.minusDays(6), TODAY.minusDays(5), TODAY.minusDays(4), TODAY.minusDays(3), TODAY.minusDays(2),
+						TODAY.minusDays(1), TODAY);
+		assertThat(view.lastSevenDays()).extracting(day -> day.value().intValue()).containsExactly(10, 0, 0, 0, 50, 0, 100);
+	}
+
 	@DisplayName("Leaves the variation empty when the prior period had no revenue")
 	@Test
 	void leavesTheVariationEmptyWhenThePriorPeriodHadNoRevenue() {

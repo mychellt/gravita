@@ -8,6 +8,7 @@ import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.AgingBuckets;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.CriticalStockItem;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.CriticalStockReason;
+import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.DailyRevenue;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.Delinquency;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.Margin;
 import br.gravita.core.ports.inbound.reporting.ExecutiveDashboardView.PeriodComparison;
@@ -61,6 +62,7 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 	static final String SCREEN = "dashboard";
 	static final int NEAR_EXPIRY_DAYS = 30;
 	static final int TOP_PRODUCTS_SIZE = 10;
+	static final int CHART_DAYS = 7;
 	static final Duration CACHE_TTL = Duration.ofSeconds(60);
 
 	private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
@@ -149,7 +151,14 @@ public class GetExecutiveDashboardService implements GetExecutiveDashboardUseCas
 		final List<ProductSales> sales = await(productSales);
 		return new ExecutiveDashboardView(query.period(), selected.from(), selected.to(), revenue,
 				margin(selectedRevenue, await(cmv)), delinquency(await(overdue), today), criticalStock(await(stockAlerts)),
-				topProducts(sales), targetProgress(month, await(achievements)));
+				topProducts(sales), targetProgress(month, await(achievements)), lastSevenDays(revenueByDay, today));
+	}
+
+	private List<DailyRevenue> lastSevenDays(final Map<LocalDate, BigDecimal> revenueByDay, final LocalDate today) {
+		return java.util.stream.IntStream.rangeClosed(0, CHART_DAYS - 1)
+				.mapToObj(offset -> today.minusDays(CHART_DAYS - 1L - offset))
+				.map(day -> new DailyRevenue(day, revenueByDay.getOrDefault(day, BigDecimal.ZERO)))
+				.toList();
 	}
 
 	private PeriodComparison comparison(final Map<LocalDate, BigDecimal> revenueByDay, final Window current,
