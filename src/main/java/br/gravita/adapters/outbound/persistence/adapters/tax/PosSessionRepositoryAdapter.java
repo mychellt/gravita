@@ -36,6 +36,11 @@ class PosSessionRepositoryAdapter implements PosSessionRepositoryPort {
 	}
 
 	@Override
+	public Optional<PosSession> findByRegisterIdAndStatus(final UUID registerId, final PosSessionStatus status) {
+		return jpaRepository.findFirstByRegisterIdAndStatus(registerId, status).map(mapper::map);
+	}
+
+	@Override
 	public boolean existsByRegisterIdAndStatus(final UUID registerId, final PosSessionStatus status) {
 		return jpaRepository.existsByRegisterIdAndStatus(registerId, status);
 	}

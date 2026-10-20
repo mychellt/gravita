@@ -136,8 +136,8 @@
         <span>Troco</span>
         <span class="troco-val">{{ troco() | brl }}</span>
       </div>
-      <button class="pay-btn-confirm" (click)="confirmSale()">
-        <i class="ti ti-check"></i> Confirmar · Emitir NFC-e
+      <button class="pay-btn-confirm" [disabled]="confirmando()" (click)="confirmSale()">
+        <i class="ti ti-check"></i> {{ confirmando() ? 'Registrando…' : 'Confirmar · Emitir NFC-e' }}
       </button>
     </div>
   </div>

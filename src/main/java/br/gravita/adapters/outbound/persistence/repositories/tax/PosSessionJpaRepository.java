@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PosSessionJpaRepository extends JpaRepository<PosSessionJpaEntity, UUID> {
 
+	java.util.Optional<PosSessionJpaEntity> findFirstByRegisterIdAndStatus(UUID registerId, PosSessionStatus status);
+
 	boolean existsByRegisterIdAndStatus(UUID registerId, PosSessionStatus status);
 }

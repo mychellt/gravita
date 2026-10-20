@@ -10,6 +10,10 @@ import br.gravita.core.ports.inbound.tax.ClosePosSessionUseCase;
 import br.gravita.core.ports.inbound.tax.GetZReportUseCase;
 import br.gravita.core.ports.inbound.tax.OpenPosSessionUseCase;
 import jakarta.validation.Valid;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
+import br.gravita.core.domain.Context;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.tax.GetOrOpenPosSessionUseCase;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +33,19 @@ public class PosSessionController {
 	private final OpenPosSessionUseCase openPosSessionUseCase;
 	private final ClosePosSessionUseCase closePosSessionUseCase;
 	private final GetZReportUseCase getZReportUseCase;
+	private final GetOrOpenPosSessionUseCase getOrOpenPosSessionUseCase;
 
 	@PostMapping
 	public ResponseEntity<OpenPosSessionResponse> open(@Valid @RequestBody final OpenPosSessionRequest request) {
 		final PosSessionId id = openPosSessionUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/pdv/sessions/" + id.value()))
 				.body(OpenPosSessionResponse.from(id));
+	}
+
+	/** The caller's company's open session, opened on demand; the PDV screen calls it before its first sale. */
+	@PostMapping("/current")
+	public OpenPosSessionResponse current(@AuthenticatedUser final UserId callerId) {
+		return OpenPosSessionResponse.from(getOrOpenPosSessionUseCase.execute(new Context().withCaller(callerId)));
 	}
 
 	@PostMapping("/{id}/close")

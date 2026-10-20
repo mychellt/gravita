@@ -13,5 +13,7 @@ public interface PosSessionRepositoryPort {
 
 	Optional<PosSession> findById(PosSessionId id);
 
+	Optional<PosSession> findByRegisterIdAndStatus(UUID registerId, PosSessionStatus status);
+
 	boolean existsByRegisterIdAndStatus(UUID registerId, PosSessionStatus status);
 }

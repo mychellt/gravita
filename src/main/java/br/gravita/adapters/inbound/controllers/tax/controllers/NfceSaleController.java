@@ -7,12 +7,12 @@ import br.gravita.core.domain.tax.NfceSaleId;
 import br.gravita.core.ports.inbound.tax.CancelNfceUseCase;
 import br.gravita.core.ports.inbound.tax.IssueNfceCommand;
 import br.gravita.core.ports.inbound.tax.IssueNfceUseCase;
-import br.gravita.core.ports.inbound.tax.NfceIssuanceResult;
 import br.gravita.core.ports.inbound.tax.RegisterNfceSaleUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/pdv/sales")
@@ -32,9 +33,15 @@ public class NfceSaleController {
 	@PostMapping
 	public ResponseEntity<RegisterNfceSaleResponse> register(@Valid @RequestBody final RegisterNfceSaleRequest request) {
 		final NfceSaleId id = registerNfceSaleUseCase.execute(request.toCommand());
-		final NfceIssuanceResult issuance = issueNfceUseCase.execute(new IssueNfceCommand(id.value()));
-		return ResponseEntity.created(URI.create("/api/pdv/sales/" + id.value()))
-				.body(RegisterNfceSaleResponse.from(id, issuance));
+		// The sale is already stored; a failure issuing its NFC-e must not hide that, so the sale stays DRAFT and says why.
+		RegisterNfceSaleResponse body;
+		try {
+			body = RegisterNfceSaleResponse.from(id, issueNfceUseCase.execute(new IssueNfceCommand(id.value())));
+		} catch (final RuntimeException issuanceFailure) {
+			log.warn("NFC-e issuance failed for sale {}; it stays DRAFT", id.value(), issuanceFailure);
+			body = RegisterNfceSaleResponse.notIssued(id, issuanceFailure.getMessage());
+		}
+		return ResponseEntity.created(URI.create("/api/pdv/sales/" + id.value())).body(body);
 	}
 
 	@PostMapping("/{id}/cancel")

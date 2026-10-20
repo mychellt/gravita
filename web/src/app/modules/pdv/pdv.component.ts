@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { PaymentMethodType, PdvSaleResult, PdvSalesService } from '../../core/services/pdv-sales.service';
 import { InventoryApiService } from '../../core/services/inventory-api.service';
 import { ProductSearchService } from '../../core/services/product-search.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -28,6 +30,8 @@ export interface ItemCarrinho {
 
 const BALANCE_PAGE_SIZE = 200;
 const SEARCH_DEBOUNCE_MS = 300;
+const CPF_LENGTH = 11;
+const PAYMENT_METHOD: Record<'dinheiro' | 'cartao' | 'pix', PaymentMethodType> = { dinheiro: 'CASH', cartao: 'CREDIT_CARD', pix: 'PIX' };
 
 @Component({
   selector: 'app-pdv',
@@ -40,6 +44,7 @@ export class PdvComponent {
   private readonly productSearch = inject(ProductSearchService);
   private readonly inventory = inject(InventoryApiService);
   private readonly toast = inject(ToastService);
+  private readonly sales = inject(PdvSalesService);
 
   search = signal('');
   produtos = signal<PdvProduto[]>([]);
@@ -49,6 +54,8 @@ export class PdvComponent {
   showPayModal = signal(false);
   selectedMethod = signal<'dinheiro' | 'cartao' | 'pix'>('dinheiro');
   valorRecebido = signal(0);
+  /** Venda sendo gravada, para não confirmar duas vezes. */
+  confirmando = signal(false);
 
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
   /** Descarta a resposta de uma busca que já foi superada por outra mais nova. */
@@ -154,10 +161,52 @@ export class PdvComponent {
 
   selectMethod(m: 'dinheiro' | 'cartao' | 'pix') { this.selectedMethod.set(m); }
 
-  confirmSale() {
-    this.showPayModal.set(false);
-    this.clearCart();
-    this.cpfNota.set('');
-    this.toast.success('✓ NFC-e emitida e autorizada com sucesso!');
+  /** Grava a venda no backend e emite a NFC-e; só limpa o carrinho depois que a venda foi gravada. */
+  async confirmSale() {
+    if (this.confirmando()) return;
+    const method = PAYMENT_METHOD[this.selectedMethod()];
+    const total = this.cartTotal();
+    const received = method === 'CASH' ? this.valorRecebido() : total;
+    if (received < total) {
+      this.toast.warn('O valor recebido não cobre o total da venda.');
+      return;
+    }
+    const cpf = this.cpfNota().replace(/\D/g, '');
+    if (cpf && cpf.length !== CPF_LENGTH) {
+      this.toast.warn('CPF na nota inválido: informe os 11 dígitos ou deixe em branco.');
+      return;
+    }
+
+    this.confirmando.set(true);
+    try {
+      const result = await this.sales.register({
+        items: this.cart().map(i => ({
+          productId: i.produto.id, quantity: i.quantidade, unitPrice: i.produto.precoVenda,
+          ...(i.desconto > 0 ? { itemDiscount: i.desconto } : {}),
+        })),
+        payments: [{ method, amount: received }],
+        ...(cpf ? { customerCpf: cpf } : {}),
+      });
+      this.showPayModal.set(false);
+      this.clearCart();
+      this.cpfNota.set('');
+      this.announce(result);
+      void this.loadStock().then(() => this.loadProdutos());
+    } catch (error) {
+      const detail = error instanceof HttpErrorResponse ? error.error?.message ?? error.error?.detail : null;
+      this.toast.danger(detail ? `Venda não registrada: ${detail}` : 'Não foi possível registrar a venda. Tente novamente.');
+    } finally {
+      this.confirmando.set(false);
+    }
+  }
+
+  private announce(result: PdvSaleResult) {
+    if (result.status === 'AUTHORIZED') {
+      this.toast.success('✓ Venda registrada e NFC-e autorizada!');
+    } else if (result.status === 'PENDING_SYNC') {
+      this.toast.warn('Venda registrada. A SEFAZ está indisponível: a NFC-e foi emitida em contingência e será transmitida depois.');
+    } else {
+      this.toast.warn(`Venda registrada, mas a NFC-e não foi emitida${result.issuanceError ? `: ${result.issuanceError}` : '.'}`);
+    }
   }
 }
