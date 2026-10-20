@@ -1,10 +1,13 @@
 <app-page-header title="Relatórios & BI" subtitle="Dashboard executivo · Curva ABC · DRE gerencial · Livros fiscais">
-  <button class="btn btn-ghost"><i class="ti ti-download"></i> Exportar</button>
+  <select class="filter-select" aria-label="Formato da exportação" [value]="format()" (change)="format.set($any($event.target).value)">
+    <option value="pdf">Exportar em PDF</option>
+    <option value="xlsx">Exportar em Excel</option>
+  </select>
 </app-page-header>
 
 <div class="report-cards-grid">
   @for (card of reportCards; track card.title) {
-    <div class="report-card" (click)="generate(card.title)">
+    <div class="report-card" [class.busy]="exporting() === card.slug" (click)="generate(card)">
       <div class="report-card-icon" [style.background]="card.iconBg">
         <i class="ti {{ card.icon }}" [style.color]="card.iconColor"></i>
       </div>
@@ -21,61 +24,83 @@
       <span class="card-title">Curva ABC — Top 10 Produtos</span>
     </div>
     <div class="card-body">
-      <div class="abc-chart">
-        @for (item of abcData; track item.label) {
-          <div class="abc-col">
-            <div class="abc-bar {{ item.cls }}" [style.height.px]="(item.pct / maxPct) * 90"></div>
-            <div class="abc-label">{{ item.label }}</div>
-            <div class="abc-val">{{ item.pct }}%</div>
-          </div>
-        }
-      </div>
-      <div class="abc-legend">
-        <div class="abc-legend-item"><div class="abc-dot a"></div>Classe A (66%)</div>
-        <div class="abc-legend-item"><div class="abc-dot b"></div>Classe B (19%)</div>
-        <div class="abc-legend-item"><div class="abc-dot c"></div>Classe C (15%)</div>
-      </div>
+      @if (abcStatus() === 'loading') {
+        <div class="reports-state">Carregando…</div>
+      } @else if (abcStatus() === 'error') {
+        <div class="reports-state" role="alert">
+          Não foi possível carregar a Curva ABC.
+          <button class="action-btn" (click)="reload()">Tentar novamente</button>
+        </div>
+      } @else if (abcData().length === 0) {
+        <div class="reports-state">Sem vendas faturadas em {{ periodLabel }}</div>
+      } @else {
+        <div class="abc-chart">
+          @for (item of abcData(); track $index) {
+            <div class="abc-col" [title]="item.name">
+              <div class="abc-bar {{ item.cls }}" [style.height.px]="item.height"></div>
+              <div class="abc-label">{{ item.label }}</div>
+              <div class="abc-val">{{ item.pct.toFixed(1) }}%</div>
+            </div>
+          }
+        </div>
+        <div class="abc-legend">
+          <div class="abc-legend-item"><div class="abc-dot a"></div>Classe A ({{ abcShares().a.toFixed(0) }}%)</div>
+          <div class="abc-legend-item"><div class="abc-dot b"></div>Classe B ({{ abcShares().b.toFixed(0) }}%)</div>
+          <div class="abc-legend-item"><div class="abc-dot c"></div>Classe C ({{ abcShares().c.toFixed(0) }}%)</div>
+        </div>
+      }
     </div>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <span class="card-title">DRE Gerencial — Maio 2026</span>
-      <button class="card-action" (click)="generate('DRE Gerencial')">Exportar</button>
+      <span class="card-title">DRE Gerencial — {{ periodLabel }}</span>
+      <button class="card-action" (click)="generate(reportCards[0])">Exportar</button>
     </div>
     <div class="card-body">
-      <table class="dre-table">
-        <tr>
-          <td>Receita Bruta</td>
-          <td class="td-right" style="font-weight:700">R$ 124.820</td>
-          <td class="td-pct text-muted">100%</td>
-        </tr>
-        <tr>
-          <td class="text-muted">(−) Impostos s/ venda</td>
-          <td class="td-right text-danger" style="font-weight:600">−R$ 14.980</td>
-          <td class="td-pct text-muted">12%</td>
-        </tr>
-        <tr>
-          <td class="text-muted">(−) CMV</td>
-          <td class="td-right text-danger" style="font-weight:600">−R$ 68.650</td>
-          <td class="td-pct text-muted">55%</td>
-        </tr>
-        <tr class="dre-separator">
-          <td style="font-weight:700">= Lucro Bruto</td>
-          <td class="td-right text-success" style="font-weight:700">R$ 41.190</td>
-          <td class="td-pct text-success" style="font-weight:700">33%</td>
-        </tr>
-        <tr>
-          <td class="text-muted">(−) Despesas operacionais</td>
-          <td class="td-right text-danger" style="font-weight:600">−R$ 24.300</td>
-          <td class="td-pct text-muted">19,5%</td>
-        </tr>
-        <tr class="dre-result">
-          <td style="font-weight:700">= Resultado Líquido</td>
-          <td class="td-right text-accent" style="font-weight:700;font-size:15px">R$ 16.890</td>
-          <td class="td-pct text-accent" style="font-weight:700">13,5%</td>
-        </tr>
-      </table>
+      @if (dreStatus() === 'loading') {
+        <div class="reports-state">Carregando…</div>
+      } @else if (dreStatus() === 'error') {
+        <div class="reports-state" role="alert">
+          Não foi possível carregar o DRE.
+          <button class="action-btn" (click)="reload()">Tentar novamente</button>
+        </div>
+      } @else {
+        @if (dreRows(); as r) {
+        <table class="dre-table">
+          <tr>
+            <td>Receita Bruta</td>
+            <td class="td-right" style="font-weight:700">{{ r.grossRevenue | brl }}</td>
+            <td class="td-pct text-muted">{{ r.grossRevenue > 0 ? '100%' : '—' }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted">(−) Impostos s/ venda</td>
+            <td class="td-right text-danger" style="font-weight:600">−{{ r.deductions | brl }}</td>
+            <td class="td-pct text-muted">{{ pct(r.deductionsShare) }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted">(−) CMV</td>
+            <td class="td-right text-danger" style="font-weight:600">−{{ r.cmv | brl }}</td>
+            <td class="td-pct text-muted">{{ pct(r.cmvShare) }}</td>
+          </tr>
+          <tr class="dre-separator">
+            <td style="font-weight:700">= Lucro Bruto</td>
+            <td class="td-right text-success" style="font-weight:700">{{ r.grossProfit | brl }}</td>
+            <td class="td-pct text-success" style="font-weight:700">{{ pct(r.grossProfitShare) }}</td>
+          </tr>
+          <tr>
+            <td class="text-muted">(−) Despesas operacionais</td>
+            <td class="td-right text-danger" style="font-weight:600">−{{ r.expenses | brl }}</td>
+            <td class="td-pct text-muted">{{ pct(r.expensesShare) }}</td>
+          </tr>
+          <tr class="dre-result">
+            <td style="font-weight:700">= Resultado Líquido</td>
+            <td class="td-right text-accent" style="font-weight:700;font-size:15px">{{ r.netResult | brl }}</td>
+            <td class="td-pct text-accent" style="font-weight:700">{{ pct(r.netShare) }}</td>
+          </tr>
+        </table>
+        }
+      }
     </div>
   </div>
 
