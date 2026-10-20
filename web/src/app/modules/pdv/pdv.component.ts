@@ -4,7 +4,7 @@ import { InventoryApiService } from '../../core/services/inventory-api.service';
 import { ProductSearchService } from '../../core/services/product-search.service';
 import { ToastService } from '../../core/services/toast.service';
 import type { LoadStatus } from '../../core/services/customer.service';
-import { productIconClass } from '../../core/models/product-icon';
+import { productIconEmoji } from '../../core/models/product-icon';
 import { BrlPipe } from '../../shared/pipes/brl.pipe';
 
 /** Produto à venda no PDV: catálogo (/api/pdv/products/search) com o saldo disponível (/api/inventory/balances). */
@@ -15,7 +15,7 @@ export interface PdvProduto {
   precoVenda: number;
   /** Saldo disponível; `null` quando o produto ainda não tem saldo no depósito. */
   estoque: number | null;
-  /** Classe Tabler do ícone do produto. */
+  /** Emoji do produto. */
   icone: string;
 }
 
@@ -90,7 +90,7 @@ export class PdvComponent {
         .map(r => ({
           id: r.productId, descricao: r.description, ncm: r.ncm, precoVenda: r.unitPrice,
           estoque: this.stockByProduct.get(r.productId) ?? null,
-          icone: productIconClass(r.icon),
+          icone: productIconEmoji(r.icon),
         })));
       this.produtosStatus.set('ready');
     } catch {

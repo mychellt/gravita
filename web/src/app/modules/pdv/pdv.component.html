@@ -23,7 +23,7 @@
         @for (p of produtos(); track p.id) {
           <div class="pdv-prod" (click)="addToCart(p)"
                [class.critical]="p.estoque !== null && p.estoque <= 0">
-            <div class="pdv-prod-icon"><i [class]="'ti ' + p.icone"></i></div>
+            <div class="pdv-prod-icon">{{ p.icone }}</div>
             <div class="pdv-prod-name">{{ p.descricao }}</div>
             <div class="pdv-prod-price">{{ p.precoVenda | brl }}</div>
             <div class="pdv-prod-stock" [class.low]="p.estoque !== null && p.estoque <= 0">

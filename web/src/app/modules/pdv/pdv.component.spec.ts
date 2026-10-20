@@ -36,11 +36,11 @@ describe('PdvComponent — Produtos', () => {
     expect(c.produtos().map(p => [p.id, p.precoVenda, p.estoque])).toEqual([['p1', 6998.89, 3], ['p2', 50, null]]);
   });
 
-  it('maps the product icon key to a Tabler icon, falling back to the generic one', async () => {
+  it('maps the product icon key to an emoji, falling back to the generic one', async () => {
     const c = await create([{ ...found('p1', 'Tinta', 10), icon: 'PAINT' }, { ...found('p2', 'Piso', 10), icon: 'FLOORING' },
       found('p3', 'Sem ícone', 10), { ...found('p4', 'Desconhecido', 10), icon: 'NOVO' }]);
 
-    expect(c.produtos().map(p => p.icone)).toEqual(['ti-paint', 'ti-layout-grid', 'ti-package', 'ti-package']);
+    expect(c.produtos().map(p => p.icone)).toEqual(['🪣', '🔲', '📦', '📦']);
   });
 
   it('searches on the server after typing, keeping only the newest answer', async () => {
