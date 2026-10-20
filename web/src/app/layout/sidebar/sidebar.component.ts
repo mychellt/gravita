@@ -5,6 +5,9 @@ import { AuthService } from '../../core/services/auth.service';
 import { DataService } from '../../core/services/data.service';
 import { initialsOf, profileLabel } from '../../core/user-display';
 
+/** Página pública do site, servida na raiz fora do app Angular. */
+const PUBLIC_PAGE_URL = '/';
+
 interface NavItem {
   label: string;
   icon: string;
@@ -47,7 +50,8 @@ export class SidebarComponent implements OnInit {
 
   async logout() {
     await this.auth.logout();
-    await this.router.navigateByUrl(AUTH_PATHS.login);
+    // A página pública (marketing) é estática, fora do Angular: precisa de navegação completa, que ainda descarta o estado em memória.
+    window.location.assign(PUBLIC_PAGE_URL);
   }
 
   readonly criticalCount = computed(() => this.data.produtosCriticos().length);
