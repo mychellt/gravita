@@ -1,0 +1,15 @@
+# ICON | NCM prefixes | keywords (accents ignored). Line order breaks score ties.
+PAINT | 32 | tinta verniz esmalte selador massa corrida textura solvente thinner pincel rolo
+FLOORING | 6907 6908 4418 | piso porcelanato ceramica laminado rodape revestimento azulejo vinilico
+CEMENT | 2523 2522 3816 | cimento argamassa rejunte cal areia brita concreto gesso
+PLUMBING | 3917 7307 | tubo joelho registro torneira sifao conexao cano luva pvc flange
+SANITARY | 6910 | vaso sanitario pia cuba lavatorio chuveiro ducha box bacia
+ELECTRICAL | 85 | fio cabo disjuntor tomada lampada interruptor led eletroduto isolante
+TOOLS | 82 | martelo chave furadeira serra alicate trena esmerilhadeira parafusadeira broca lixa nivel
+FASTENERS | 7318 | parafuso prego bucha porca arruela rebite grampo
+WOOD | 44 | madeira compensado mdf caibro tabua viga ripa
+ADHESIVE | 3506 | cola silicone adesivo fita veda calafetar
+LOCKSMITH | 8301 8302 | fechadura cadeado dobradica trinco macaneta cilindro
+SAFETY | 6307 6401 | capacete bota oculos mascara protetor epi
+CLEANING | 34 | detergente sabao desinfetante vassoura rodo balde sanitizante cloro
+GARDEN | 3101 | mangueira regador adubo vaso terra grama pa enxada

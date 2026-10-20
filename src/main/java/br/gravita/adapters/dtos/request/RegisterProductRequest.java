@@ -3,6 +3,8 @@ package br.gravita.adapters.dtos.request;
 import br.gravita.core.domain.ClassificationDomain;
 import br.gravita.core.domain.KitComponentDomain;
 import br.gravita.core.domain.ProductDomain;
+import br.gravita.core.domain.ProductIcon;
+import br.gravita.core.domain.ProductIconSource;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.ProductVariantDomain;
 import br.gravita.core.domain.StockParametersDomain;
@@ -41,7 +43,9 @@ public record RegisterProductRequest(
 		@Valid ClassificationRequest classification,
 		@Size(max = ProductDomain.MAX_IMAGES, message = "A product can have at most 5 images") List<String> images,
 		@Valid List<@Valid KitComponentRequest> kitComponents,
-		@Valid List<@Valid VariantRequest> variants) {
+		@Valid List<@Valid VariantRequest> variants,
+		/** Optional manual icon; when absent it is classified from the description, NCM and classification. */
+		ProductIcon icon) {
 
 	public record TaxProfileRequest(
 			BigDecimal icmsRate,
@@ -108,6 +112,8 @@ public record RegisterProductRequest(
 				.images(images)
 				.kitComponents(kitComponents == null ? null : kitComponents.stream().map(KitComponentRequest::toDomain).toList())
 				.variants(variants == null ? null : variants.stream().map(VariantRequest::toDomain).toList())
+				.icon(icon)
+				.iconSource(icon == null ? null : ProductIconSource.MANUAL)
 				.build();
 	}
 }

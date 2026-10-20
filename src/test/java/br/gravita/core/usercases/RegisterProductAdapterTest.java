@@ -117,4 +117,20 @@ class RegisterProductAdapterTest {
 		assertThatThrownBy(() -> adapter.execute(new Context(product))).isInstanceOf(BusinessRuleException.class);
 		verify(productRepositoryPort, never()).save(any());
 	}
+
+	@DisplayName("Registering classifies the icon from the description unless one was picked by hand")
+	@Test
+	void shouldClassifyIconOnRegisterUnlessPickedByHand() {
+		final RegisterProductAdapter adapter = new RegisterProductAdapter(productRepositoryPort);
+		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		final ProductDomain auto = adapter.execute(new Context(ProductDomain.builder().type(ProductType.SIMPLE).internalCode("Tinta Acrílica 18L").build()));
+		final ProductDomain manual = adapter.execute(new Context(ProductDomain.builder().type(ProductType.SIMPLE).internalCode("Tinta Acrílica 18L")
+				.icon(br.gravita.core.domain.ProductIcon.TOOLS).iconSource(br.gravita.core.domain.ProductIconSource.MANUAL).build()));
+
+		assertThat(auto.getIcon()).isEqualTo(br.gravita.core.domain.ProductIcon.PAINT);
+		assertThat(auto.getIconSource()).isEqualTo(br.gravita.core.domain.ProductIconSource.AUTO);
+		assertThat(manual.getIcon()).isEqualTo(br.gravita.core.domain.ProductIcon.TOOLS);
+		assertThat(manual.getIconSource()).isEqualTo(br.gravita.core.domain.ProductIconSource.MANUAL);
+	}
 }

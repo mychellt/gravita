@@ -3,6 +3,8 @@ package br.gravita.adapters.dtos.response;
 import br.gravita.core.domain.ClassificationDomain;
 import br.gravita.core.domain.KitComponentDomain;
 import br.gravita.core.domain.ProductDomain;
+import br.gravita.core.domain.ProductIcon;
+import br.gravita.core.domain.ProductIconSource;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import br.gravita.core.domain.ProductVariantDomain;
@@ -38,7 +40,9 @@ public record ProductResponse(
 		List<String> images,
 		ProductStatus status,
 		List<KitComponentDomain> kitComponents,
-		List<ProductVariantDomain> variants) {
+		List<ProductVariantDomain> variants,
+		ProductIcon icon,
+		ProductIconSource iconSource) {
 
 	public static ProductResponse from(final ProductDomain domain) {
 		return new ProductResponse(
@@ -65,6 +69,8 @@ public record ProductResponse(
 				domain.getImages(),
 				domain.getStatus(),
 				domain.getKitComponents(),
-				domain.getVariants());
+				domain.getVariants(),
+				domain.resolvedIcon(),
+				domain.getIconSource() == null ? ProductIconSource.AUTO : domain.getIconSource());
 	}
 }

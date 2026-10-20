@@ -11,6 +11,8 @@ export interface ProductSearchResult {
   /** Preço já resolvido para o cliente informado (tabela de preço dele, senão o preço-base). */
   unitPrice: number;
   availableForSale: boolean;
+  /** Chave semântica do ícone (ProductIcon); ausente em backends antigos. */
+  icon?: string;
 }
 
 /** Busca de produtos por código/código de barras, com o preço do cliente (GET /api/pdv/products/search). */

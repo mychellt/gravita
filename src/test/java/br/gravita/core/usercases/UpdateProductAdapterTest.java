@@ -209,4 +209,27 @@ class UpdateProductAdapterTest {
 		assertThat(updated.getAllowNegativeStock()).isTrue();
 		assertThat(updated.getInternalCode()).isEqualTo("SKU-1");
 	}
+
+	@DisplayName("Renaming reclassifies an automatic icon but keeps a manual one; handing it back to auto reclassifies")
+	@Test
+	void shouldReclassifyOnlyAutomaticIcons() {
+		final UpdateProductAdapter adapter = new UpdateProductAdapter(productRepositoryPort, inventoryLotSerialRepositoryPort);
+		final UUID id = UUID.randomUUID();
+		final ProductDomain existing = ProductDomain.builder().id(id).type(ProductType.SIMPLE).internalCode("Tinta Branca")
+				.icon(br.gravita.core.domain.ProductIcon.PAINT).iconSource(br.gravita.core.domain.ProductIconSource.AUTO).build();
+		when(productRepositoryPort.get(id)).thenReturn(Optional.of(existing));
+		when(productRepositoryPort.save(any(ProductDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		assertThat(adapter.execute(new Context(ProductDomain.builder().id(id).internalCode("Piso Laminado").build())).getIcon())
+				.isEqualTo(br.gravita.core.domain.ProductIcon.FLOORING);
+
+		adapter.execute(new Context(ProductDomain.builder().id(id).icon(br.gravita.core.domain.ProductIcon.TOOLS)
+				.iconSource(br.gravita.core.domain.ProductIconSource.MANUAL).build()));
+		assertThat(adapter.execute(new Context(ProductDomain.builder().id(id).internalCode("Cimento CP-II").build())).getIcon())
+				.isEqualTo(br.gravita.core.domain.ProductIcon.TOOLS);
+
+		final ProductDomain back = adapter.execute(new Context(ProductDomain.builder().id(id)
+				.iconSource(br.gravita.core.domain.ProductIconSource.AUTO).build()));
+		assertThat(back.getIcon()).isEqualTo(br.gravita.core.domain.ProductIcon.CEMENT);
+	}
 }

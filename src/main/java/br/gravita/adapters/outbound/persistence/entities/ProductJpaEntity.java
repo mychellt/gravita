@@ -1,5 +1,7 @@
 package br.gravita.adapters.outbound.persistence.entities;
 
+import br.gravita.core.domain.ProductIcon;
+import br.gravita.core.domain.ProductIconSource;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import jakarta.persistence.*;
@@ -93,6 +95,14 @@ public class ProductJpaEntity extends AbstractEntity<UUID> {
 	@Column(nullable = false, length = 20)
 	@Enumerated(EnumType.STRING)
 	private ProductStatus status;
+
+	@Column(name = "icon_key", length = 30)
+	@Enumerated(EnumType.STRING)
+	private ProductIcon icon;
+
+	@Column(name = "icon_source", nullable = false, length = 10)
+	@Enumerated(EnumType.STRING)
+	private ProductIconSource iconSource = ProductIconSource.AUTO;
 
 	@ElementCollection
 	@CollectionTable(name = "product_kit_components", joinColumns = @JoinColumn(name = "product_id"))

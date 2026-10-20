@@ -33,6 +33,7 @@ public class RegisterProductAdapter implements RegisterProductPort {
 			product.setAllowNegativeStock(Boolean.FALSE);
 		}
 
+		product.refreshIcon();
 		product.validate();
 		validateBarcodesAreUnique(product.getBarcodes());
 		validateKitComponentsExist(product);

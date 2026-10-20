@@ -279,6 +279,7 @@
                     <include>application-*.properties</include>
                     <include>db/**</include>
                     <include>mails/**</include>
+                    <include>product-icon-rules.txt</include>
                 </includes>
             </resource>
         </resources>

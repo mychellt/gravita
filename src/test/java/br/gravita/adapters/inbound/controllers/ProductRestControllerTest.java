@@ -43,7 +43,7 @@ class ProductRestControllerTest {
 	private final RegisterProductRequest request = new RegisterProductRequest(
 			"SKU-1", List.of("7891234567895"), ProductType.SIMPLE, "12345678", "0100", 0,
 			null, null, null, null, null, null, null, null, null, null, null, null,
-			List.of("http://example.com/1.png"), null, null);
+			List.of("http://example.com/1.png"), null, null, null);
 
 	@Test
 	@DisplayName("Returns 201 Created when a product is registered")
@@ -66,7 +66,7 @@ class ProductRestControllerTest {
 		final RegisterProductRequest tooManyImages = new RegisterProductRequest(
 				"SKU-1", List.of("7891234567895"), ProductType.SIMPLE, "12345678", "0100", 0,
 				null, null, null, null, null, null, null, null, null, null, null, null,
-				List.of("1", "2", "3", "4", "5", "6"), null, null);
+				List.of("1", "2", "3", "4", "5", "6"), null, null, null);
 
 		mockMvc.perform(post("/api/products")
 						.contentType("application/json")
@@ -80,7 +80,7 @@ class ProductRestControllerTest {
 		final RegisterProductRequest missingType = new RegisterProductRequest(
 				"SKU-1", null, null, null, null, null,
 				null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null);
+				null, null, null, null);
 
 		mockMvc.perform(post("/api/products")
 						.contentType("application/json")
@@ -94,7 +94,7 @@ class ProductRestControllerTest {
 		final UUID id = UUID.randomUUID();
 		final UpdateProductRequest partialUpdate = new UpdateProductRequest(
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, ProductStatus.INACTIVE, null, null);
+				null, null, null, null, ProductStatus.INACTIVE, null, null, null, null);
 		final ProductDomain updated = request.toDomain(id);
 		updated.setStatus(ProductStatus.INACTIVE);
 		when(updateProductPort.execute(any())).thenReturn(updated);

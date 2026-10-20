@@ -6,6 +6,8 @@ import br.gravita.adapters.dtos.request.RegisterProductRequest.StockRequest;
 import br.gravita.adapters.dtos.request.RegisterProductRequest.TaxProfileRequest;
 import br.gravita.adapters.dtos.request.RegisterProductRequest.VariantRequest;
 import br.gravita.core.domain.ProductDomain;
+import br.gravita.core.domain.ProductIcon;
+import br.gravita.core.domain.ProductIconSource;
 import br.gravita.core.domain.ProductStatus;
 import br.gravita.core.domain.ProductType;
 import jakarta.validation.Valid;
@@ -41,7 +43,11 @@ public record UpdateProductRequest(
 		@Size(max = ProductDomain.MAX_IMAGES, message = "A product can have at most 5 images") List<String> images,
 		ProductStatus status,
 		@Valid List<@Valid KitComponentRequest> kitComponents,
-		@Valid List<@Valid VariantRequest> variants) {
+		@Valid List<@Valid VariantRequest> variants,
+		/** Picks the icon by hand. */
+		ProductIcon icon,
+		/** True gives the icon back to the classifier (ignored when {@code icon} is set). */
+		Boolean autoIcon) {
 
 	public ProductDomain toDomain(final UUID id) {
 		return ProductDomain.builder()
@@ -69,6 +75,8 @@ public record UpdateProductRequest(
 				.status(status)
 				.kitComponents(kitComponents == null ? null : kitComponents.stream().map(KitComponentRequest::toDomain).toList())
 				.variants(variants == null ? null : variants.stream().map(VariantRequest::toDomain).toList())
+				.icon(icon)
+				.iconSource(icon != null ? ProductIconSource.MANUAL : Boolean.TRUE.equals(autoIcon) ? ProductIconSource.AUTO : null)
 				.build();
 	}
 }

@@ -42,6 +42,8 @@ public class ProductDomain extends AbstractDomain {
 	private ClassificationDomain classification;
 	private List<String> images;
 	private ProductStatus status;
+	private ProductIcon icon;
+	private ProductIconSource iconSource;
 	private List<KitComponentDomain> kitComponents;
 	private List<ProductVariantDomain> variants;
 
@@ -109,12 +111,39 @@ public class ProductDomain extends AbstractDomain {
 		if (patch.status != null) {
 			this.status = patch.status;
 		}
+		if (patch.icon != null) {
+			this.icon = patch.icon;
+		}
+		if (patch.iconSource != null) {
+			this.iconSource = patch.iconSource;
+		}
 		if (patch.kitComponents != null) {
 			this.kitComponents = patch.kitComponents;
 		}
 		if (patch.variants != null) {
 			this.variants = patch.variants;
 		}
+	}
+
+	/** Recomputes the icon from the product text unless the user picked one by hand. */
+	public void refreshIcon() {
+		if (iconSource == ProductIconSource.MANUAL && icon != null) {
+			return;
+		}
+		final ClassificationDomain c = classification;
+		icon = ProductIconClassifier.getDefault().classify(internalCode, ncm,
+				c == null ? null : c.group(), c == null ? null : c.subgroup(), c == null ? null : c.section(), c == null ? null : c.brand());
+		iconSource = ProductIconSource.AUTO;
+	}
+
+	/** The stored icon, or the classified one for products registered before icons existed. */
+	public ProductIcon resolvedIcon() {
+		if (icon != null) {
+			return icon;
+		}
+		final ProductDomain copy = ProductDomain.builder().internalCode(internalCode).ncm(ncm).classification(classification).build();
+		copy.refreshIcon();
+		return copy.icon;
 	}
 
 	public void validate() {

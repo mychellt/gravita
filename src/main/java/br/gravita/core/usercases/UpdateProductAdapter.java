@@ -31,6 +31,7 @@ public class UpdateProductAdapter implements UpdateProductPort {
 		validateLotSerialControlDowngrade(patch, existing);
 
 		existing.applyPartialUpdate(patch);
+		existing.refreshIcon();
 		existing.validate();
 
 		return productRepositoryPort.save(existing);

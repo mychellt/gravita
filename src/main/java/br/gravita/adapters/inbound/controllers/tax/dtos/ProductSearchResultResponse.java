@@ -1,15 +1,16 @@
 package br.gravita.adapters.inbound.controllers.tax.dtos;
 
+import br.gravita.core.domain.ProductIcon;
 import br.gravita.core.ports.inbound.tax.ProductSearchResult;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public record ProductSearchResultResponse(UUID productId, String description, String ncm, BigDecimal unitPrice,
-		boolean availableForSale) {
+		boolean availableForSale, ProductIcon icon) {
 
 	public static ProductSearchResultResponse from(final ProductSearchResult result) {
 		return new ProductSearchResultResponse(result.productId(), result.description(), result.ncm(),
-				result.unitPrice(), result.availableForSale());
+				result.unitPrice(), result.availableForSale(), result.icon());
 	}
 }
