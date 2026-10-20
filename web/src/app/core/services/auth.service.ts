@@ -58,6 +58,20 @@ export class AuthService {
     }
   }
 
+  /**
+   * POST /api/auth/logout — encerra a sessão no servidor e, aconteça o que acontecer com a chamada,
+   * esquece o token local: sair nunca pode ficar preso por uma falha de rede.
+   */
+  async logout(): Promise<void> {
+    const token = this.token();
+    try {
+      if (token) {
+        await firstValueFrom(this.http.post<void>(`${this.baseUrl}/logout`, null, { headers: { Authorization: `Bearer ${token}` } }));
+      }
+    } catch { /* servidor indisponível: a sessão local é encerrada mesmo assim */ }
+    this.clearSession();
+  }
+
   /** POST /api/auth/login */
   login(email: string, password: string): Promise<LoginOutcome> {
     return this.authenticate('login', { email, password });

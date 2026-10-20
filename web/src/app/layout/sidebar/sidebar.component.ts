@@ -45,6 +45,11 @@ export class SidebarComponent implements OnInit {
     if (!this.auth.isAuthenticated()) await this.router.navigateByUrl(AUTH_PATHS.login);
   }
 
+  async logout() {
+    await this.auth.logout();
+    await this.router.navigateByUrl(AUTH_PATHS.login);
+  }
+
   readonly criticalCount = computed(() => this.data.produtosCriticos().length);
 
   get sections(): NavSection[] {

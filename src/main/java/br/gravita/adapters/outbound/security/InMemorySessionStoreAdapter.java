@@ -22,4 +22,9 @@ public class InMemorySessionStoreAdapter implements SessionStorePort {
 	public Optional<UserId> resolve(final String sessionToken) {
 		return Optional.ofNullable(sessions.get(sessionToken));
 	}
+
+	@Override
+	public void revoke(final String sessionToken) {
+		sessions.remove(sessionToken);
+	}
 }

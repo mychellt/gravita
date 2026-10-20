@@ -9,4 +9,7 @@ public interface SessionStorePort {
 	void store(String sessionToken, UserId userId);
 
 	Optional<UserId> resolve(String sessionToken);
+
+	/** Forgets the session; unknown tokens are ignored. */
+	void revoke(String sessionToken);
 }

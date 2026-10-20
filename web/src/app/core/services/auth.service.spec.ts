@@ -116,6 +116,32 @@ describe('AuthService', () => {
       expect(sessionStorage.getItem(SESSION_TOKEN_KEY)).toBeNull();
     });
 
+    it('logs out on the server and forgets the local session', async () => {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, 'abc');
+      create();
+      const leaving = service.logout();
+      const req = http.expectOne('/api/auth/logout');
+      expect(req.request.method).toBe('POST');
+      expect(req.request.headers.get('Authorization')).toBe('Bearer abc');
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      await leaving;
+
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(service.currentUser()).toBeNull();
+      expect(sessionStorage.getItem(SESSION_TOKEN_KEY)).toBeNull();
+    });
+
+    it('still ends the local session when the server cannot be reached on logout', async () => {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, 'abc');
+      create();
+      const leaving = service.logout();
+      http.expectOne('/api/auth/logout').flush(null, { status: 503, statusText: 'Service Unavailable' });
+      await leaving;
+
+      expect(service.isAuthenticated()).toBeFalse();
+      expect(sessionStorage.getItem(SESSION_TOKEN_KEY)).toBeNull();
+    });
+
     it('keeps the session when the server is merely unavailable', async () => {
       sessionStorage.setItem(SESSION_TOKEN_KEY, 'abc');
       create();

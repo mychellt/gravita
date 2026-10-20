@@ -8,6 +8,7 @@ import br.gravita.core.usercases.system.AuthenticateCommand;
 import br.gravita.core.usercases.system.AuthenticateUseCase;
 import br.gravita.core.usercases.system.CurrentUser;
 import br.gravita.core.usercases.system.GetCurrentUserUseCase;
+import br.gravita.core.usercases.system.LogoutUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +45,9 @@ class AuthControllerTest {
 	@MockitoBean
 	private GetCurrentUserUseCase getCurrentUserUseCase;
 
+	@MockitoBean
+	private LogoutUseCase logoutUseCase;
+
 	@Test
 	@DisplayName("GET /me answers with the logged user behind the bearer session token")
 	void shouldReturnTheLoggedUser() throws Exception {
@@ -57,6 +61,16 @@ class AuthControllerTest {
 				.andExpect(jsonPath("$.email").value("ana@acme.com"))
 				.andExpect(jsonPath("$.profile").value("Administrator"))
 				.andExpect(jsonPath("$.companyId").value(companyId.toString()));
+	}
+
+	@Test
+	@DisplayName("POST /logout ends the bearer session and answers 204, even without a token")
+	void shouldLogOut() throws Exception {
+		mockMvc.perform(post("/api/auth/logout").header("Authorization", "Bearer token-123")).andExpect(status().isNoContent());
+		verify(logoutUseCase).execute("token-123");
+
+		mockMvc.perform(post("/api/auth/logout")).andExpect(status().isNoContent());
+		verify(logoutUseCase).execute(null);
 	}
 
 	@Test
