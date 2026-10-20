@@ -16,6 +16,9 @@ public interface ReceivableRepositoryPort {
 	/** The receivables already generated for a fiscal document, ordered by installment number. */
 	List<Receivable> findByOriginDocumentRef(UUID originDocumentRef);
 
+	/** Every title of any of the customers, whatever its status, newest due date first. */
+	List<Receivable> findByCustomerIds(java.util.Collection<UUID> customerIds);
+
 	/** Every title of the customer, whatever its status. */
 	List<Receivable> findByCustomerId(UUID customerId);
 

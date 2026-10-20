@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PayableJpaRepository extends JpaRepository<PayableJpaEntity, UUID> {
 
 	List<PayableJpaEntity> findByPurchaseReceiptRefOrderByInstallmentNumber(UUID purchaseReceiptRef);
+
+	List<PayableJpaEntity> findByCompanyIdOrderByDueDateDescIdAsc(UUID companyId);
 }

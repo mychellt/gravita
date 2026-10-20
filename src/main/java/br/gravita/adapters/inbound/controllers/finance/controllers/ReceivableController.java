@@ -29,8 +29,13 @@ import br.gravita.core.ports.inbound.finance.SettleTitleManuallyUseCase;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
+import br.gravita.core.domain.Context;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.finance.ListReceivablesUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -55,12 +60,19 @@ public class ReceivableController {
 	private final GeneratePixChargeUseCase generatePixChargeUseCase;
 	private final RenegotiateTitleUseCase renegotiateTitleUseCase;
 	private final SettleTitleManuallyUseCase settleTitleManuallyUseCase;
+	private final ListReceivablesUseCase listReceivablesUseCase;
 
 	@PostMapping
 	public ResponseEntity<ReceivableResponse> create(@Valid @RequestBody final CreateManualReceivableRequest request) {
 		final Receivable created = createManualReceivableUseCase.execute(request.toCommand());
 		return ResponseEntity.created(URI.create("/api/finance/receivables/" + created.getId().value()))
 				.body(ReceivableResponse.from(created));
+	}
+
+	/** Every receivable of the caller's company's customers, latest due date first. */
+	@GetMapping
+	public List<ReceivableResponse> findAll(@AuthenticatedUser final UserId callerId) {
+		return listReceivablesUseCase.execute(new Context().withCaller(callerId)).stream().map(ReceivableResponse::from).toList();
 	}
 
 	@GetMapping("/aging")

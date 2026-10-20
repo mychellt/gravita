@@ -49,6 +49,11 @@ class PayableRepositoryAdapter implements PayableRepositoryPort {
 	}
 
 	@Override
+	public List<Payable> findAllByCompany(final UUID companyId) {
+		return jpaRepository.findByCompanyIdOrderByDueDateDescIdAsc(companyId).stream().map(mapper::map).toList();
+	}
+
+	@Override
 	public List<Payable> findByIds(final Collection<PayableId> ids) {
 		if (ids.isEmpty()) {
 			return List.of();

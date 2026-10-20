@@ -17,6 +17,9 @@ public interface PayableRepositoryPort {
 	/** The payables already generated for a purchase receipt, ordered by installment number. */
 	List<Payable> findByPurchaseReceiptRef(UUID purchaseReceiptRef);
 
+	/** Every payable placed in the company's books ({@code scope.companyId}), whatever its status, latest due date first. */
+	List<Payable> findAllByCompany(UUID companyId);
+
 	/** The payables with the given ids; unknown ids are left out. */
 	List<Payable> findByIds(Collection<PayableId> ids);
 

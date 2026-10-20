@@ -24,8 +24,14 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
+import br.gravita.core.domain.Context;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.finance.ListPayablesUseCase;
+import org.springframework.web.bind.annotation.GetMapping;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,6 +57,13 @@ public class PayableController {
 	private final BatchPayUseCase batchPayUseCase;
 	private final PayViaPixUseCase payViaPixUseCase;
 	private final AttachPayableDocumentUseCase attachPayableDocumentUseCase;
+	private final ListPayablesUseCase listPayablesUseCase;
+
+	/** Every payable in the caller's company's books, latest due date first. */
+	@GetMapping
+	public List<PayableResponse> findAll(@AuthenticatedUser final UserId callerId) {
+		return listPayablesUseCase.execute(new Context().withCaller(callerId)).stream().map(PayableResponse::from).toList();
+	}
 
 	@PostMapping
 	public ResponseEntity<PayableResponse> create(@Valid @RequestBody final CreateManualPayableRequest request) {

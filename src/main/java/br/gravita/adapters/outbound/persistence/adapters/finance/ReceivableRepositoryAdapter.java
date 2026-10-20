@@ -54,6 +54,14 @@ class ReceivableRepositoryAdapter implements ReceivableRepositoryPort {
 	}
 
 	@Override
+	public List<Receivable> findByCustomerIds(final java.util.Collection<UUID> customerIds) {
+		if (customerIds.isEmpty()) {
+			return List.of();
+		}
+		return jpaRepository.findByCustomerIdInOrderByDueDateDescIdAsc(customerIds).stream().map(mapper::map).toList();
+	}
+
+	@Override
 	public List<Receivable> findUnsettledByCustomerId(final UUID customerId) {
 		return jpaRepository
 				.findByCustomerIdAndStatusIn(customerId,

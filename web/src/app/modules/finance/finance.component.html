@@ -8,19 +8,19 @@
     <div class="kpi-icon green"><i class="ti ti-arrow-down-right"></i></div>
     <div class="kpi-label">A receber (abertos)</div>
     <div class="kpi-value text-success">{{ totalReceivable() | brl }}</div>
-    <div class="kpi-sub">{{ receivables().length }} títulos</div>
+    <div class="kpi-sub">{{ openReceivableCount() }} títulos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon red"><i class="ti ti-arrow-up-right"></i></div>
     <div class="kpi-label">A pagar (abertos)</div>
     <div class="kpi-value text-danger">{{ totalPayable() | brl }}</div>
-    <div class="kpi-sub">{{ payables().length }} títulos</div>
+    <div class="kpi-sub">{{ openPayableCount() }} títulos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon blue"><i class="ti ti-building-bank"></i></div>
-    <div class="kpi-label">Saldo bancário</div>
-    <div class="kpi-value">{{ bankBalance | brl }}</div>
-    <div class="kpi-sub">Bradesco + Caixa interno</div>
+    <div class="kpi-label">Saldo projetado (7 dias)</div>
+    <div class="kpi-value" [class.text-danger]="projectedBalance() < 0">{{ projectedBalance() | brl }}</div>
+    <div class="kpi-sub">entradas − saídas previstas</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon amber"><i class="ti ti-alert-circle"></i></div>
@@ -49,31 +49,41 @@
           <th>Descrição</th>
           <th>Parceiro</th>
           <th>Vencimento</th>
-          <th>Forma</th>
+          <th>Origem</th>
           <th class="td-right">Valor</th>
           <th>Status</th>
           <th class="td-right">Ações</th>
         </tr>
       </thead>
       <tbody>
-        @for (t of receivables(); track t.id) {
-          <tr>
-            <td class="td-name">{{ t.descricao }}</td>
-            <td>{{ t.parceiro }}</td>
-            <td style="font-size:12px" [class.overdue]="t.status === 'vencido'">
-              {{ t.vencimento | date:'dd/MM/yy' }}
-              @if (t.status === 'vencido') { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
-            </td>
-            <td style="font-size:12px;color:var(--text3)">{{ t.formaPagamento }}</td>
-            <td class="td-amount">{{ t.valor | brl }}</td>
-            <td><app-badge [value]="t.status" /></td>
-            <td class="td-actions">
-              @if (t.status !== 'pago') {
-                <button class="action-btn success" (click)="settleTitle(t.id)">Baixar</button>
-              }
-              <button class="action-btn">Ver</button>
-            </td>
-          </tr>
+        @if (receivablesStatus() === 'loading') {
+          <tr><td colspan="7" class="fin-state">Carregando…</td></tr>
+        } @else if (receivablesStatus() === 'error') {
+          <tr><td colspan="7" class="fin-state" role="alert">
+            Não foi possível carregar as contas a receber.
+            <button class="action-btn" (click)="reloadReceivables()">Tentar novamente</button>
+          </td></tr>
+        } @else {
+          @for (t of receivables(); track t.id) {
+            <tr>
+              <td class="td-name">{{ t.descricao }}</td>
+              <td>{{ t.parceiro }}</td>
+              <td style="font-size:12px" [class.overdue]="t.status === 'vencido'">
+                {{ t.vencimento | date:'dd/MM/yy' }}
+                @if (t.status === 'vencido') { <i class="ti ti-alert-triangle" style="font-size:11px"></i> }
+              </td>
+              <td style="font-size:12px;color:var(--text3)">{{ t.origem }}</td>
+              <td class="td-amount">{{ t.valor | brl }}</td>
+              <td><app-badge [value]="t.status" /></td>
+              <td class="td-actions">
+                @if (t.aberto) {
+                  <button class="action-btn success" [disabled]="busyId() === t.id" (click)="settleReceivable(t)">Baixar</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="fin-state">Nenhuma conta a receber</td></tr>
+          }
         }
       </tbody>
     </table>
@@ -92,30 +102,36 @@
           <th>Descrição</th>
           <th>Fornecedor / Credor</th>
           <th>Vencimento</th>
-          <th>Forma</th>
+          <th>Origem</th>
           <th class="td-right">Valor</th>
           <th>Status</th>
           <th class="td-right">Ações</th>
         </tr>
       </thead>
       <tbody>
-        @for (t of payables(); track t.id) {
-          <tr>
-            <td class="td-name">{{ t.descricao }}</td>
-            <td>{{ t.parceiro }}</td>
-            <td style="font-size:12px" [class.overdue]="t.status === 'vencido'">
-              {{ t.vencimento | date:'dd/MM/yy' }}
-            </td>
-            <td style="font-size:12px;color:var(--text3)">{{ t.formaPagamento }}</td>
-            <td class="td-amount text-danger">{{ t.valor | brl }}</td>
-            <td><app-badge [value]="t.status" /></td>
-            <td class="td-actions">
-              @if (t.status !== 'pago') {
-                <button class="action-btn danger" (click)="settleTitle(t.id)">Pagar</button>
-              }
-              <button class="action-btn">Ver</button>
-            </td>
-          </tr>
+        @if (payablesStatus() === 'loading') {
+          <tr><td colspan="7" class="fin-state">Carregando…</td></tr>
+        } @else if (payablesStatus() === 'error') {
+          <tr><td colspan="7" class="fin-state" role="alert">
+            Não foi possível carregar as contas a pagar.
+            <button class="action-btn" (click)="reloadPayables()">Tentar novamente</button>
+          </td></tr>
+        } @else {
+          @for (t of payables(); track t.id) {
+            <tr>
+              <td class="td-name">{{ t.descricao }}</td>
+              <td>{{ t.parceiro }}</td>
+              <td style="font-size:12px" [class.overdue]="t.status === 'vencido'">
+                {{ t.vencimento | date:'dd/MM/yy' }}
+              </td>
+              <td style="font-size:12px;color:var(--text3)">{{ t.origem }}</td>
+              <td class="td-amount text-danger">{{ t.valor | brl }}</td>
+              <td><app-badge [value]="t.status" /></td>
+              <td class="td-actions"></td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="fin-state">Nenhuma conta a pagar</td></tr>
+          }
         }
       </tbody>
     </table>
@@ -128,25 +144,34 @@
       <span class="card-title">Fluxo de Caixa — Próximos 7 dias</span>
     </div>
     <div class="card-body">
-      <div class="cf-chart">
-        @for (bar of cashflowBars; track bar.day) {
-          <div class="cf-col">
-            <div class="cf-bars">
-              <div class="cf-in"  [style.height.px]="bar.inH"  title="Entradas"></div>
-              <div class="cf-out" [style.height.px]="bar.outH" title="Saídas"></div>
+      @if (cashFlowStatus() === 'loading') {
+        <div class="fin-state">Carregando…</div>
+      } @else if (cashFlowStatus() === 'error') {
+        <div class="fin-state" role="alert">
+          Não foi possível carregar o fluxo de caixa.
+          <button class="action-btn" (click)="reloadCashFlow()">Tentar novamente</button>
+        </div>
+      } @else {
+        <div class="cf-chart">
+          @for (bar of cashflowBars(); track $index) {
+            <div class="cf-col">
+              <div class="cf-bars">
+                <div class="cf-in"  [style.height.px]="bar.inH"  [title]="'Entradas: ' + (bar.inValue | brl)"></div>
+                <div class="cf-out" [style.height.px]="bar.outH" [title]="'Saídas: ' + (bar.outValue | brl)"></div>
+              </div>
+              <div class="cf-label">{{ bar.day }}</div>
             </div>
-            <div class="cf-label">{{ bar.day }}</div>
-          </div>
-        }
-      </div>
-      <div class="cf-legend">
-        <span class="cf-legend-item"><span class="cf-dot green"></span> Entradas previstas</span>
-        <span class="cf-legend-item"><span class="cf-dot red"></span> Saídas previstas</span>
-      </div>
-      <div class="cf-saldo-proj">
-        <div class="cf-saldo-label">Saldo projetado em 7 dias</div>
-        <div class="cf-saldo-val text-success">R$ 46.820</div>
-      </div>
+          }
+        </div>
+        <div class="cf-legend">
+          <span class="cf-legend-item"><span class="cf-dot green"></span> Entradas previstas</span>
+          <span class="cf-legend-item"><span class="cf-dot red"></span> Saídas previstas</span>
+        </div>
+        <div class="cf-saldo-proj">
+          <div class="cf-saldo-label">Saldo projetado em 7 dias</div>
+          <div class="cf-saldo-val" [class.text-success]="projectedBalance() >= 0" [class.text-danger]="projectedBalance() < 0">{{ projectedBalance() | brl }}</div>
+        </div>
+      }
     </div>
   </div>
 }
