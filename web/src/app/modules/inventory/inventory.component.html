@@ -5,14 +5,14 @@
 
 <div class="stock-kpis">
   <div class="stock-kpi">
-    <div class="stock-kpi-val">{{ totalSKUs() }}</div>
+    <div class="stock-kpi-val">{{ totalSKUs() ?? '—' }}</div>
     <div class="stock-kpi-label">SKUs ativos</div>
   </div>
   <div class="stock-kpi">
-    <div class="stock-kpi-val text-danger">{{ abaixoDoMinimo() }}</div>
+    <div class="stock-kpi-val text-danger">{{ abaixoDoMinimo() ?? '—' }}</div>
     <div class="stock-kpi-label">Abaixo do mínimo</div>
     <div class="progress-bar kpi-bar">
-      <div class="progress-fill red" [style.width.%]="totalSKUs() ? (abaixoDoMinimo() / totalSKUs()) * 100 : 0"></div>
+      <div class="progress-fill red" [style.width.%]="totalSKUs() && abaixoDoMinimo() !== null ? (abaixoDoMinimo()! / totalSKUs()!) * 100 : 0"></div>
     </div>
   </div>
   <div class="stock-kpi">

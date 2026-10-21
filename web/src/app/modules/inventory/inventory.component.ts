@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
-import { DataService } from '../../core/services/data.service';
+import { InventorySummaryService } from '../../core/services/inventory-summary.service';
 import { InventoryAlertsService } from '../../core/services/inventory-alerts.service';
 import { InventoryChangesService } from '../../core/services/inventory-changes.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -26,15 +26,16 @@ type AbaEstoque = 'movimentos' | 'saldos' | 'lotes' | 'reservas' | 'inventario' 
   templateUrl: './inventory.component.html'
 })
 export class InventoryComponent implements OnInit {
-  private readonly data = inject(DataService);
+  private readonly summaryService = inject(InventorySummaryService);
   private readonly changes = inject(InventoryChangesService);
   readonly alertas = inject(InventoryAlertsService);
 
   readonly aba = signal<AbaEstoque>('movimentos');
   readonly ajusteAberto = signal(false);
 
-  readonly totalSKUs = computed(() => this.data.produtos().filter(p => p.status === 'ativo').length);
-  readonly abaixoDoMinimo = computed(() => this.data.produtosCriticos().length);
+  /** `null` enquanto carrega ou se falhar: o cabeçalho mostra "—" em vez de um número inventado. */
+  readonly totalSKUs = computed(() => this.summaryService.summary()?.activeSkus ?? null);
+  readonly abaixoDoMinimo = computed(() => this.summaryService.summary()?.belowMinimum ?? null);
   readonly abas = computed<{ id: AbaEstoque; rotulo: string; contador?: number }[]>(() => [
     { id: 'movimentos', rotulo: 'Movimentações' },
     { id: 'saldos', rotulo: 'Saldos' },
@@ -47,13 +48,18 @@ export class InventoryComponent implements OnInit {
   constructor() {
     // Ajuste, contagem aprovada ou reserva liberada: os contadores e o painel de alertas vêm do servidor de novo.
     effect(() => {
-      if (this.changes.version()) untracked(() => void this.alertas.loadAll());
+      if (this.changes.version()) untracked(() => this.reload());
     });
   }
 
   /** Alertas de validade e de estoque baixo alimentam o painel, os contadores e as abas Lotes e Reposição. */
   ngOnInit(): void {
+    this.reload();
+  }
+
+  private reload(): void {
     void this.alertas.loadAll();
+    void this.summaryService.load();
   }
 
   abrirInventario(): void {

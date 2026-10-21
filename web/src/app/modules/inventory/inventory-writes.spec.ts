@@ -467,6 +467,7 @@ describe('Inventory writes backed by the API', () => {
       fixture.detectChanges();
       http.expectOne(byUrl('/api/inventory/alerts/expiring-lots')).flush([]);
       http.expectOne(byUrl('/api/inventory/alerts/low-stock')).flush([]);
+      http.expectOne(byUrl('/api/inventory/summary')).flush({ activeSkus: 0, belowMinimum: 0 });
       http.expectOne(byUrl('/api/inventory/movements')).flush(page([]));
       await settle(fixture);
 
@@ -474,6 +475,40 @@ describe('Inventory writes backed by the API', () => {
       expect(labels.some(l => l.includes('Transferências'))).toBeFalse();
       expect(text(fixture)).not.toContain('em trânsito');
       expect(labels.length).toBe(6);
+    });
+
+    it('shows the SKU, below-minimum and expiring-lot figures from the backend', async () => {
+      const fixture = TestBed.createComponent(InventoryComponent);
+      fixture.detectChanges();
+      http.expectOne(byUrl('/api/inventory/alerts/expiring-lots')).flush([
+        { productId: PRODUCT, warehouseId: 'w', lotCode: 'L1', expiryDate: '2026-12-31', quantity: 3 },
+        { productId: PRODUCT, warehouseId: 'w', lotCode: 'L2', expiryDate: '2026-12-31', quantity: 1 },
+      ]);
+      http.expectOne(byUrl('/api/inventory/alerts/low-stock')).flush([]);
+      http.expectOne(byUrl('/api/inventory/summary')).flush({ activeSkus: 12, belowMinimum: 3 });
+      http.expectOne(byUrl('/api/inventory/movements')).flush(page([]));
+      await settle(fixture);
+
+      const kpis = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.stock-kpi'))
+        .map(k => (k.textContent ?? '').replace(/\s+/g, ' ').trim());
+      expect(kpis[0]).toMatch(/12\s*SKUs ativos/);
+      expect(kpis[1]).toMatch(/3\s*Abaixo do mínimo/);
+      expect(kpis[2]).toMatch(/2\s*Lotes a vencer/);
+    });
+
+    it('shows a dash instead of an invented number when the summary cannot be loaded', async () => {
+      const fixture = TestBed.createComponent(InventoryComponent);
+      fixture.detectChanges();
+      http.expectOne(byUrl('/api/inventory/alerts/expiring-lots')).flush([]);
+      http.expectOne(byUrl('/api/inventory/alerts/low-stock')).flush([]);
+      http.expectOne(byUrl('/api/inventory/summary')).flush(null, FAIL);
+      http.expectOne(byUrl('/api/inventory/movements')).flush(page([]));
+      await settle(fixture);
+
+      const kpis = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.stock-kpi'))
+        .map(k => (k.textContent ?? '').replace(/\s+/g, ' ').trim());
+      expect(kpis[0]).toMatch(/—\s*SKUs ativos/);
+      expect(kpis[1]).toMatch(/—\s*Abaixo do mínimo/);
     });
   });
 });
