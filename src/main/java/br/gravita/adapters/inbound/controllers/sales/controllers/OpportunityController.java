@@ -4,6 +4,7 @@ import br.gravita.adapters.inbound.controllers.sales.dtos.ChangeOpportunityStage
 import br.gravita.adapters.inbound.controllers.sales.dtos.CreateOpportunityRequest;
 import br.gravita.adapters.inbound.controllers.sales.dtos.InteractionResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.LogInteractionRequest;
+import br.gravita.adapters.inbound.controllers.sales.dtos.OpportunityListItemResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.OpportunityResponse;
 import br.gravita.adapters.inbound.controllers.sales.dtos.UpdateOpportunityRequest;
 import br.gravita.core.domain.sales.OpportunityId;
@@ -54,10 +55,10 @@ public class OpportunityController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<OpportunityResponse>> list(@RequestParam(required = false) final OpportunityStage stage) {
-		final List<OpportunityResponse> response = listOpportunitiesUseCase.execute(new ListOpportunitiesQuery(stage))
+	public ResponseEntity<List<OpportunityListItemResponse>> list(@RequestParam(required = false) final OpportunityStage stage) {
+		final List<OpportunityListItemResponse> response = listOpportunitiesUseCase.execute(new ListOpportunitiesQuery(stage))
 				.stream()
-				.map(OpportunityResponse::from)
+				.map(OpportunityListItemResponse::from)
 				.toList();
 		return ResponseEntity.ok(response);
 	}
