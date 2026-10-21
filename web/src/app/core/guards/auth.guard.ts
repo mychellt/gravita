@@ -16,6 +16,9 @@ export const guestGuard: CanActivateFn = () => {
 };
 
 /** Perfil dos funcionários da Gravita, o único com acesso à área administrativa (`/admin`). */
+/** Destino do GRAVITA_ADMINISTRATOR depois do login e ao tentar a área das empresas. */
+export const ADMIN_HOME_PATH = '/admin';
+
 export const GRAVITA_ADMINISTRATOR_PROFILE = 'GRAVITA_ADMINISTRATOR';
 
 /**
@@ -29,4 +32,16 @@ export const adminGuard: CanActivateFn = async () => {
   if (!auth.currentUser()) await auth.loadCurrentUser();
   if (!auth.isAuthenticated()) return router.createUrlTree([AUTH_PATHS.login]);
   return auth.currentUser()?.profile === GRAVITA_ADMINISTRATOR_PROFILE ? true : router.createUrlTree([POST_LOGIN_PATH]);
+};
+
+/**
+ * Área das empresas (ERP): o GRAVITA_ADMINISTRATOR não entra, só na área administrativa — vai direto para `/admin`.
+ * Sem sessão, o authGuard (antes deste na rota) já mandou para o login.
+ */
+export const tenantAreaGuard: CanActivateFn = async () => {
+  const router = inject(Router);
+  const auth = inject(AuthService);
+  if (!auth.isAuthenticated()) return true;
+  if (!auth.currentUser()) await auth.loadCurrentUser();
+  return auth.currentUser()?.profile === GRAVITA_ADMINISTRATOR_PROFILE ? router.createUrlTree([ADMIN_HOME_PATH]) : true;
 };

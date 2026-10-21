@@ -7,7 +7,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { AuthService, SESSION_TOKEN_KEY } from '../services/auth.service';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { adminGuard, authGuard, guestGuard } from './auth.guard';
+import { adminGuard, authGuard, guestGuard, tenantAreaGuard } from './auth.guard';
 
 /** Rotas do critério 6 do UC-M10-15 (as `/admin/*` vêm de `ADMIN_PATHS`). */
 const AUTHENTICATED_PATHS = [
@@ -102,6 +102,33 @@ describe('route guards (UC-M10-15)', () => {
     });
   });
 
+  describe('tenantAreaGuard', () => {
+    function setupTenant() {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      const http = TestBed.inject(HttpTestingController);
+      const run = () => runInInjectionContext(TestBed.inject(Injector), () =>
+        tenantAreaGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
+      return { http, run };
+    }
+    const me = (profile: string) => ({ name: 'Ana', email: 'a@b.c', profile, companyId: null });
+
+    it('sends a GRAVITA_ADMINISTRATOR to /admin instead of the ERP', async () => {
+      setup('token');
+      const { http, run } = setupTenant();
+      const result = run();
+      http.expectOne('/api/auth/me').flush(me('GRAVITA_ADMINISTRATOR'));
+      expect(TestBed.inject(Router).serializeUrl((await result) as UrlTree)).toBe('/admin');
+    });
+
+    it('lets a company user into the ERP', async () => {
+      setup('token');
+      const { http, run } = setupTenant();
+      const result = run();
+      http.expectOne('/api/auth/me').flush(me('Administrator'));
+      expect(await result).toBeTrue();
+    });
+  });
+
   describe('route table', () => {
     const protectedRoots = (): Route[] => routes.filter(r => r.path === 'admin' || r.path === '');
 
@@ -110,6 +137,7 @@ describe('route guards (UC-M10-15)', () => {
       for (const route of protectedRoots()) {
         // A área administrativa troca o authGuard pelo adminGuard, que também exige sessão.
         expect(route.canActivate).toContain(route.path === 'admin' ? adminGuard : authGuard);
+        if (route.path === '') expect(route.canActivate).toContain(tenantAreaGuard);
         expect(route.canActivateChild).toContain(authGuard);
       }
     });

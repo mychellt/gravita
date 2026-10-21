@@ -28,10 +28,6 @@
         </a>
       }
       <div class="nav-section">Atalhos</div>
-      <a class="nav-item" routerLink="/dashboard">
-        <i class="ni ti ti-arrow-back-up"></i>
-        <span class="nav-label">Voltar ao ERP</span>
-      </a>
       <a class="nav-item" href="index.html#pricing" target="_blank" rel="noopener">
         <i class="ni ti ti-world"></i>
         <span class="nav-label">Ver site público</span>
@@ -40,13 +36,18 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="user-pill">
-        <div class="user-avatar">RL</div>
-        <div>
-          <div class="user-name">Ricardo Lima</div>
-          <div class="user-role">Admin da plataforma</div>
+      @if (user(); as u) {
+        <div class="user-pill">
+          <div class="user-avatar">{{ initials() }}</div>
+          <div>
+            <div class="user-name">{{ u.name }}</div>
+            <div class="user-role">Admin da plataforma</div>
+          </div>
+          <button class="user-logout" type="button" title="Sair" aria-label="Sair" (click)="logout()">
+            <i class="ti ti-logout"></i>
+          </button>
         </div>
-      </div>
+      }
     </div>
 
   </aside>
