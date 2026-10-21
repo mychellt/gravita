@@ -7,7 +7,10 @@ import br.gravita.core.annotations.PersistenceAdapter;
 import br.gravita.core.domain.purchasing.PurchaseOrder;
 import br.gravita.core.domain.purchasing.PurchaseOrderId;
 import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRepositoryPort;
+import br.gravita.core.ports.outbound.persistence.purchasing.PurchaseOrderRecord;
+import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @PersistenceAdapter
 class PurchaseOrderRepositoryAdapter implements PurchaseOrderRepositoryPort {
@@ -26,6 +29,13 @@ class PurchaseOrderRepositoryAdapter implements PurchaseOrderRepositoryPort {
 		entity.setNew(!jpaRepository.existsById(entity.getId()));
 		final PurchaseOrderJpaEntity saved = jpaRepository.save(entity);
 		return mapper.map(saved);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<PurchaseOrderRecord> findAllNewestFirst() {
+		return jpaRepository.findAllByOrderByCreatedAtDesc().stream()
+				.map(entity -> new PurchaseOrderRecord(mapper.map(entity), entity.getCreatedAt())).toList();
 	}
 
 	@Override

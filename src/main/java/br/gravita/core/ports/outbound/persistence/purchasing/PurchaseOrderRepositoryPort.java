@@ -7,4 +7,7 @@ import java.util.Optional;
 public interface PurchaseOrderRepositoryPort {
 	PurchaseOrder save(PurchaseOrder purchaseOrder);
 	Optional<PurchaseOrder> findById(PurchaseOrderId id);
+
+	/** Every order, newest first. */
+	java.util.List<PurchaseOrderRecord> findAllNewestFirst();
 }

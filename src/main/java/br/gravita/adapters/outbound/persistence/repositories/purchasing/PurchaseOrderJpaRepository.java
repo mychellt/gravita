@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface PurchaseOrderJpaRepository extends JpaRepository<PurchaseOrderJpaEntity, UUID> {
 
+	List<PurchaseOrderJpaEntity> findAllByOrderByCreatedAtDesc();
+
 	/** The orders created in {@code [from, to)} that are not waiting for approval and are not in {@code excluded}. */
 	@Query("select o from PurchaseOrderJpaEntity o where o.createdAt >= :from and o.createdAt < :to"
 			+ " and o.approvalRequired = false and o.status <> :excluded")

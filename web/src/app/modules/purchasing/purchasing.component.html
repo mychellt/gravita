@@ -14,19 +14,19 @@
     <div class="kpi-icon blue"><i class="ti ti-truck"></i></div>
     <div class="kpi-label">Aguardando entrega</div>
     <div class="kpi-value">{{ totals().awaitingDelivery }}</div>
-    <div class="kpi-sub">em trânsito</div>
+    <div class="kpi-sub">aprovados e ainda não recebidos</div>
   </div>
   <div class="kpi">
     <div class="kpi-icon green"><i class="ti ti-package"></i></div>
-    <div class="kpi-label">Recebidos no mês</div>
-    <div class="kpi-value">{{ totals().received }}</div>
-    <div class="kpi-sub">pedidos encerrados</div>
+    <div class="kpi-label">Encerrados no mês</div>
+    <div class="kpi-value">{{ totals().closedThisMonth }}</div>
+    <div class="kpi-sub">pedidos do mês já recebidos</div>
   </div>
   <div class="kpi">
-    <div class="kpi-icon purple"><i class="ti ti-users"></i></div>
-    <div class="kpi-label">Fornecedores ativos</div>
-    <div class="kpi-value">{{ totals().suppliers }}</div>
-    <div class="kpi-sub">cadastrados</div>
+    <div class="kpi-icon purple"><i class="ti ti-cash"></i></div>
+    <div class="kpi-label">Valor em aberto</div>
+    <div class="kpi-value">{{ totals().openValue | brl }}</div>
+    <div class="kpi-sub">pedidos abertos</div>
   </div>
 </div>
 
@@ -37,45 +37,59 @@
   <div class="tab" [class.active]="activeTab() === 'returns'"   (click)="activeTab.set('returns')">Devoluções</div>
 </div>
 
-<div class="card">
-  <div class="card-head">
-    <span class="card-title">Pedidos de compra</span>
+@if (activeTab() !== 'orders') {
+  <div class="card">
+    <div class="card-body" style="text-align:center;padding:32px;color:var(--text3)">
+      Esta aba ainda não está conectada ao backend.
+    </div>
   </div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Número</th>
-        <th>Fornecedor</th>
-        <th>Data</th>
-        <th>Previsão</th>
-        <th class="td-right">Total</th>
-        <th>Status</th>
-        <th class="td-right">Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (p of orders(); track p.id) {
+} @else {
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Pedidos de compra</span>
+    </div>
+    <table class="data-table">
+      <thead>
         <tr>
-          <td class="td-mono">{{ p.numero }}</td>
-          <td class="td-name">{{ p.fornecedorNome }}</td>
-          <td style="font-size:12px;color:var(--text3)">{{ p.dataPedido | date:'dd/MM/yy' }}</td>
-          <td style="font-size:12px;color:var(--text3)">{{ p.dataPrevisao ? (p.dataPrevisao | date:'dd/MM/yy') : '—' }}</td>
-          <td class="td-amount">{{ p.valorTotal | brl }}</td>
-          <td><app-badge [value]="p.status" /></td>
-          <td class="td-actions">
-            @if (p.status === 'aguarda_aprovacao') {
-              <button class="action-btn success" (click)="approve(p.id)">Aprovar</button>
-            }
-            @if (p.status === 'em_transito') {
-              <button class="action-btn success" (click)="receive(p.id)">Receber</button>
-            }
-            @if (p.status === 'encerrado') {
-              <button class="action-btn">XML NF</button>
-            }
-            <button class="action-btn">Ver</button>
-          </td>
+          <th>Número</th>
+          <th>Fornecedor</th>
+          <th>Data</th>
+          <th class="td-right">Total</th>
+          <th>Status</th>
+          <th class="td-right">Ações</th>
         </tr>
-      }
-    </tbody>
-  </table>
-</div>
+      </thead>
+      <tbody>
+        @if (loadStatus() === 'loading') {
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Carregando…</td></tr>
+        } @else if (loadStatus() === 'error') {
+          <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)" role="alert">
+            Não foi possível carregar os pedidos de compra.
+            <button class="action-btn" (click)="reload()">Tentar novamente</button>
+          </td></tr>
+        } @else {
+          @for (p of orders(); track p.id) {
+            <tr>
+              <td class="td-mono">{{ p.numero }}</td>
+              <td class="td-name">{{ p.fornecedorNome }}</td>
+              <td style="font-size:12px;color:var(--text3)">{{ p.dataPedido | date:'dd/MM/yy' }}</td>
+              <td class="td-amount">{{ p.valorTotal | brl }}</td>
+              <td><app-badge [value]="p.status" /></td>
+              <td class="td-actions">
+                @if (p.aguardaAprovacao) {
+                  <button class="action-btn success" [disabled]="busyId() === p.id" (click)="decide(p, 'APPROVE')">Aprovar</button>
+                  <button class="action-btn danger" [disabled]="busyId() === p.id" (click)="decide(p, 'REJECT')">Rejeitar</button>
+                }
+                @if (p.recebivel) {
+                  <button class="action-btn success" [disabled]="busyId() === p.id" (click)="receive(p)">Receber</button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Nenhum pedido de compra</td></tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,7 +1,9 @@
 package br.gravita.adapters.inbound.controllers.purchasing.controllers;
 
 import br.gravita.adapters.inbound.controllers.purchasing.dtos.*;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
 import br.gravita.core.domain.masterdata.CompanyId;
+import br.gravita.core.domain.system.UserId;
 import br.gravita.core.domain.purchasing.*;
 import br.gravita.core.domain.shared.BusinessRuleException;
 import br.gravita.core.ports.inbound.purchasing.*;
@@ -16,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -28,6 +31,13 @@ public class PurchaseOrderController {
     private final ReceivePurchaseOrderUseCase receivePurchaseOrderUseCase;
     private final ApprovePurchaseOrderUseCase approvePurchaseOrderUseCase;
     private final ImportSupplierNfeAtReceivingUseCase importSupplierNfeAtReceivingUseCase;
+    private final ListPurchaseOrdersUseCase listPurchaseOrdersUseCase;
+
+    /** Every purchase order, newest first. */
+    @GetMapping
+    public List<PurchaseOrderListItemResponse> findAll() {
+        return listPurchaseOrdersUseCase.execute().stream().map(PurchaseOrderListItemResponse::from).toList();
+    }
 
     @PostMapping
     public ResponseEntity<PurchaseOrderResponse> create(@Valid @RequestBody final CreatePurchaseOrderRequest request) {
@@ -45,9 +55,10 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/approve")
-    public ResponseEntity<Void> approve(@PathVariable final UUID id,
+    public ResponseEntity<Void> approve(@AuthenticatedUser final UserId callerId, @PathVariable final UUID id,
                                         @Valid @RequestBody final ApprovePurchaseOrderRequest request) {
-        approvePurchaseOrderUseCase.execute(request.toCommand(id));
+        // The approver is the logged user unless the client names one explicitly.
+        approvePurchaseOrderUseCase.execute(request.toCommand(id, callerId.value()));
         return ResponseEntity.noContent().build();
     }
 

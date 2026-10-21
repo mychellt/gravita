@@ -6,9 +6,10 @@ import br.gravita.core.ports.inbound.purchasing.ApprovePurchaseOrderCommand;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
-public record ApprovePurchaseOrderRequest(@NotNull UUID approvedBy, @NotNull ApprovalDecision decision) {
+public record ApprovePurchaseOrderRequest(UUID approvedBy, @NotNull ApprovalDecision decision) {
 
-	public ApprovePurchaseOrderCommand toCommand(final UUID orderId) {
-		return new ApprovePurchaseOrderCommand(PurchaseOrderId.of(orderId), approvedBy, decision);
+	/** The approver is {@code approvedBy} when the client names one, otherwise the logged user. */
+	public ApprovePurchaseOrderCommand toCommand(final UUID orderId, final UUID loggedUser) {
+		return new ApprovePurchaseOrderCommand(PurchaseOrderId.of(orderId), approvedBy != null ? approvedBy : loggedUser, decision);
 	}
 }
