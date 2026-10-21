@@ -1,4 +1,5 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { PlatformPayment } from '../../../core/models';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PlatformCustomersService } from '../../../core/services/platform-customers.service';
@@ -19,14 +20,31 @@ export class PlatformCustomerPaymentsComponent {
   /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
+  readonly status = this.customers.status;
   readonly customer = computed(() => this.customers.getById(this.id()));
+  private readonly received = signal<PlatformPayment[]>([]);
+  readonly paymentsStatus = signal<'loading' | 'ready' | 'error'>('loading');
+
+  constructor() {
+    void this.customers.load();
+    effect(() => { void this.loadPayments(this.id()); }, { allowSignalWrites: true });
+  }
+
+  private async loadPayments(id: string) {
+    this.paymentsStatus.set('loading');
+    try {
+      this.received.set(await this.customers.payments(id));
+      this.paymentsStatus.set('ready');
+    } catch {
+      this.paymentsStatus.set('error');
+    }
+  }
 
   /** Most recent first; an unpaid invoice past its due date is shown as overdue. */
   readonly payments = computed(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return this.customers.payments()
-      .filter(p => p.customerId === this.id())
+    return [...this.received()]
       .sort((a, b) => b.vencimento.getTime() - a.vencimento.getTime())
       .map(p => ({ ...p, vencido: p.status === 'aberto' && p.vencimento < today }));
   });

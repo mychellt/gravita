@@ -8,6 +8,14 @@
            [value]="searchQuery()"
            (input)="searchQuery.set($any($event.target).value)" />
   </div>
+  @if (status() === 'loading') {
+    <div style="text-align:center;padding:32px;color:var(--text3)">Carregando clientes…</div>
+  } @else if (status() === 'error') {
+    <div role="alert" style="text-align:center;padding:32px;color:var(--danger)">
+      Não foi possível carregar os clientes.
+      <button class="action-btn" (click)="reload()">Tentar novamente</button>
+    </div>
+  } @else {
   <table class="data-table">
     <thead>
       <tr>
@@ -42,4 +50,5 @@
       }
     </tbody>
   </table>
+  }
 </div>

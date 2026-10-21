@@ -1,48 +1,93 @@
-import { Injectable, signal } from '@angular/core';
-import { PlatformCustomer, PlatformPayment, PlatformPaymentStatus } from '../models';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { PlanTier, PlatformCustomer, PlatformPayment } from '../models';
+import type { LoadStatus } from './customer.service';
 
-/**
- * Últimas mensalidades de um cliente, da mais antiga para a mais recente. Mês de referência e
- * vencimento (dia 10) são relativos a hoje para o histórico acompanhar o calendário.
- */
-function mensalidades(customerId: string, valor: number, statuses: PlatformPaymentStatus[], forma: string): PlatformPayment[] {
-  const now = new Date();
-  return statuses.map((status, i) => {
-    const offset = i - (statuses.length - 1);
-    const competencia = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    const vencimento = new Date(now.getFullYear(), now.getMonth() + offset, 10);
-    return {
-      id: `${customerId}-m${i + 1}`, customerId, competencia, vencimento, valor, status,
-      ...(status === 'pago' ? { pagoEm: new Date(vencimento.getTime() - 2 * 86400000), formaPagamento: forma } : {}),
-    };
-  });
+type SubscriptionStatus = 'PENDING' | 'ACTIVE' | 'PAYMENT_FAILURE';
+
+/** Cliente da plataforma, como devolvido por GET /api/admin/customers (PlatformCustomerView). */
+interface PlatformCustomerResponse {
+  companyId: string;
+  cnpj: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  planTier: PlanTier;
+  planName: string;
+  status: SubscriptionStatus;
+  activationDate: string;
+  expirationDate: string;
 }
 
-/**
- * Clientes da Gravita (tenants com plano). Mock em memória, como o `DataService`;
- * substituir por chamadas à API.
- */
+/** Pagamento recebido, como devolvido por GET /api/admin/customers/{id}/payments (PlatformPaymentView). */
+interface PlatformPaymentResponse {
+  id: string;
+  amount: number;
+  paymentDate: string;
+}
+
+const STATUS: Record<SubscriptionStatus, PlatformCustomer['status']> = {
+  ACTIVE: 'ativo', PAYMENT_FAILURE: 'inadimplente', PENDING: 'inativo',
+};
+
+/** `yyyy-MM-dd` vira data local (e não UTC, que recuaria um dia no Brasil). */
+const localDate = (iso: string) => {
+  const [year, month, day] = iso.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const formatCnpj = (digits: string) =>
+  digits.length === 14 ? digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : digits;
+
+/** Clientes da Gravita (empresas com assinatura): GET /api/admin/customers, somente leitura. */
 @Injectable({ providedIn: 'root' })
 export class PlatformCustomersService {
-  readonly customers = signal<PlatformCustomer[]>([
-    { id:'t1', cnpj:'11.222.333/0001-44', razaoSocial:'Mercado Moderno Ltda',       nomeFantasia:'Mercado Moderno',    email:'financeiro@mercadomoderno.com.br', planTier:'SILVER', status:'ativo',        assinaturaDesde:new Date('2025-03-10'), responsavel:'Carla Mendes', telefone:'(11) 3000-1001' },
-    { id:'t2', cnpj:'22.333.444/0001-55', razaoSocial:'Rede Compra Fácil S.A.',     nomeFantasia:'Compra Fácil',       email:'ti@compraf.com.br',                planTier:'GOLD',   status:'ativo',        assinaturaDesde:new Date('2024-11-02'), responsavel:'Rafael Souza', telefone:'(21) 3000-2002' },
-    { id:'t3', cnpj:'33.444.555/0001-66', razaoSocial:'Padaria São José ME',        nomeFantasia:'Padaria São José',   email:'contato@padariasaojose.com.br',    planTier:'BRONZE', status:'ativo',        assinaturaDesde:new Date('2026-01-20'), responsavel:'José Lima', telefone:'(11) 3000-3003' },
-    { id:'t4', cnpj:'44.555.666/0001-77', razaoSocial:'Hortifrúti Central Eireli',  nomeFantasia:'Hortifrúti Central', email:'admin@hortcentral.com.br',         planTier:'BRONZE', status:'inadimplente', assinaturaDesde:new Date('2025-08-15'), responsavel:'Marta Alves', telefone:'(31) 3000-4004' },
-    { id:'t5', cnpj:'55.666.777/0001-88', razaoSocial:'Mini Mercado Flores Ltda',   nomeFantasia:'Mini Mercado Flores', email:'flores@minimercado.com.br',       planTier:'SILVER', status:'bloqueado',    assinaturaDesde:new Date('2025-05-04'), responsavel:'Paulo Ramos', telefone:'(41) 3000-5005' },
-    { id:'t6', cnpj:'66.777.888/0001-99', razaoSocial:'Loja Central Eireli',        nomeFantasia:'Loja Central',       email:'loja@central.com.br',              planTier:'BRONZE', status:'inativo',      assinaturaDesde:new Date('2024-06-30'), responsavel:'Sandra Dias', telefone:'(51) 3000-6006' },
-  ]);
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiUrl}/admin/customers`;
 
-  readonly payments = signal<PlatformPayment[]>([
-    ...mensalidades('t1', 597,  ['pago','pago','pago','pago','pago','aberto'], 'Cartão de crédito'),
-    ...mensalidades('t2', 1197, ['pago','pago','pago','pago','pago','aberto'], 'Boleto'),
-    ...mensalidades('t3', 297,  ['pago','pago','pago','pago','pago','aberto'], 'PIX'),
-    ...mensalidades('t4', 297,  ['pago','pago','pago','pago','aberto','aberto'], 'Boleto'),
-    ...mensalidades('t5', 597,  ['pago','pago','pago','aberto','aberto','aberto'], 'Cartão de crédito'),
-    ...mensalidades('t6', 297,  ['pago','pago','pago','pago','cancelado','cancelado'], 'Boleto'),
-  ]);
+  private readonly list = signal<PlatformCustomer[]>([]);
+  private readonly loadState = signal<LoadStatus>('loading');
+
+  readonly customers = this.list.asReadonly();
+  readonly status = this.loadState.asReadonly();
+
+  /** Recarrega os clientes; nunca rejeita, o resultado fica em `status`. */
+  async load(): Promise<void> {
+    this.loadState.set('loading');
+    try {
+      const response = await firstValueFrom(this.http.get<PlatformCustomerResponse[]>(this.baseUrl));
+      this.list.set(response.map(c => ({
+        id: c.companyId,
+        cnpj: formatCnpj(c.cnpj),
+        razaoSocial: c.name,
+        nomeFantasia: '',
+        email: c.email ?? '',
+        planTier: c.planTier,
+        status: STATUS[c.status],
+        assinaturaDesde: localDate(c.activationDate),
+        telefone: c.phone ?? undefined,
+      })));
+      this.loadState.set('ready');
+    } catch {
+      this.loadState.set('error');
+    }
+  }
 
   getById(id: string): PlatformCustomer | undefined {
-    return this.customers().find(c => c.id === id);
+    return this.list().find(c => c.id === id);
+  }
+
+  /** Pagamentos já recebidos da assinatura. Rejeita se o servidor falha. */
+  async payments(customerId: string): Promise<PlatformPayment[]> {
+    const response = await firstValueFrom(this.http.get<PlatformPaymentResponse[]>(`${this.baseUrl}/${customerId}/payments`));
+    return response.map(p => {
+      const paidAt = localDate(p.paymentDate);
+      return {
+        id: p.id, customerId, competencia: new Date(paidAt.getFullYear(), paidAt.getMonth(), 1), vencimento: paidAt,
+        valor: p.amount, status: 'pago' as const, pagoEm: paidAt,
+      };
+    });
   }
 }

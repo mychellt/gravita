@@ -21,6 +21,12 @@ export class PlatformCustomerDetailComponent {
   /** Route param `:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
+  readonly status = this.customers.status;
+
+  constructor() {
+    void this.customers.load();
+  }
+
   readonly customer = computed(() => this.customers.getById(this.id()));
   readonly plan = computed(() => this.platform.config().plans.find(p => p.tier === this.customer()?.planTier));
 

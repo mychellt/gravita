@@ -18,7 +18,14 @@ export class PlatformCustomersComponent {
   private customersSvc = inject(PlatformCustomersService);
   private platform = inject(PlatformConfigService);
 
+  readonly status = this.customersSvc.status;
   readonly searchQuery = signal('');
+
+  constructor() {
+    void this.customersSvc.load();
+  }
+
+  reload() { void this.customersSvc.load(); }
 
   readonly customers = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();

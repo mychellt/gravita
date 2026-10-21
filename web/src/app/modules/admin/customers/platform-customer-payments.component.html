@@ -23,6 +23,11 @@
     <div class="card-head">
       <span class="card-title">Histórico de pagamentos</span>
     </div>
+    @if (paymentsStatus() === 'loading') {
+      <div style="text-align:center;padding:24px;color:var(--text3)">Carregando pagamentos…</div>
+    } @else if (paymentsStatus() === 'error') {
+      <div role="alert" style="text-align:center;padding:24px;color:var(--danger)">Não foi possível carregar os pagamentos.</div>
+    } @else {
     <table class="data-table">
       <thead>
         <tr>
@@ -58,7 +63,14 @@
         }
       </tbody>
     </table>
+    }
   </div>
+} @else if (status() === 'loading') {
+  <app-page-header title="Carregando…" subtitle="Buscando o cliente" />
+} @else if (status() === 'error') {
+  <app-page-header title="Não foi possível carregar o cliente" subtitle="Tente novamente em instantes">
+    <a routerLink="/admin/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
+  </app-page-header>
 } @else {
   <app-page-header title="Cliente não encontrado" subtitle="Nenhum cliente com este identificador">
     <a routerLink="/admin/customers" class="btn btn-ghost"><i class="ti ti-arrow-left"></i> Voltar</a>
