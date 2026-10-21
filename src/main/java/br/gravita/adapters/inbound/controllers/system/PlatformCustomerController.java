@@ -6,6 +6,7 @@ import br.gravita.core.ports.inbound.system.ListPlatformCustomerPaymentsUseCase;
 import br.gravita.core.ports.inbound.system.ListPlatformCustomersUseCase;
 import br.gravita.core.ports.inbound.system.PlatformCustomerView;
 import br.gravita.core.ports.inbound.system.PlatformPaymentView;
+import br.gravita.core.ports.inbound.system.RequireGravitaAdministratorUseCase;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,17 +21,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/customers")
 public class PlatformCustomerController {
 
+	private final RequireGravitaAdministratorUseCase requireGravitaAdministratorUseCase;
 	private final ListPlatformCustomersUseCase listPlatformCustomersUseCase;
 	private final ListPlatformCustomerPaymentsUseCase listPlatformCustomerPaymentsUseCase;
 
 	@GetMapping
 	public List<PlatformCustomerView> findAll(@AuthenticatedUser final UserId callerId) {
+		requireGravitaAdministratorUseCase.execute(callerId);
 		return listPlatformCustomersUseCase.execute();
 	}
 
 	@GetMapping("/{companyId}/payments")
 	public List<PlatformPaymentView> findPayments(@AuthenticatedUser final UserId callerId,
 			@PathVariable final UUID companyId) {
+		requireGravitaAdministratorUseCase.execute(callerId);
 		return listPlatformCustomerPaymentsUseCase.execute(companyId);
 	}
 }

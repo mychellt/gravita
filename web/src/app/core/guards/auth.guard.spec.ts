@@ -6,7 +6,8 @@ import { ActivatedRouteSnapshot, Route, Router, RouterStateSnapshot, UrlTree, pr
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { AuthService, SESSION_TOKEN_KEY } from '../services/auth.service';
-import { authGuard, guestGuard } from './auth.guard';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { adminGuard, authGuard, guestGuard } from './auth.guard';
 
 /** Rotas do critério 6 do UC-M10-15 (as `/admin/*` vêm de `ADMIN_PATHS`). */
 const AUTHENTICATED_PATHS = [
@@ -61,13 +62,54 @@ describe('route guards (UC-M10-15)', () => {
     });
   });
 
+  describe('adminGuard', () => {
+    function setupAdmin() {
+      TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])] });
+      const http = TestBed.inject(HttpTestingController);
+      const run = () => runInInjectionContext(TestBed.inject(Injector), () =>
+        adminGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot)) as Promise<boolean | UrlTree>;
+      return { http, run, url: (r: boolean | UrlTree) => TestBed.inject(Router).serializeUrl(r as UrlTree) };
+    }
+    const me = (profile: string | null) => ({ name: 'Ana', email: 'a@b.c', profile, companyId: null });
+
+    it('sends an anonymous visitor to /login', async () => {
+      const { run, url } = setupAdmin();
+      expect(url(await run())).toBe('/login');
+    });
+
+    it('lets a GRAVITA_ADMINISTRATOR in', async () => {
+      setup('token');
+      const { http, run } = setupAdmin();
+      const result = run();
+      http.expectOne('/api/auth/me').flush(me('GRAVITA_ADMINISTRATOR'));
+      expect(await result).toBeTrue();
+    });
+
+    it('sends any other profile back to /dashboard, even a tenant Administrator', async () => {
+      setup('token');
+      const { http, run, url } = setupAdmin();
+      const result = run();
+      http.expectOne('/api/auth/me').flush(me('Administrator'));
+      expect(url(await result)).toBe('/dashboard');
+    });
+
+    it('sends the visitor to /login when the server no longer knows the session', async () => {
+      setup('token');
+      const { http, run, url } = setupAdmin();
+      const result = run();
+      http.expectOne('/api/auth/me').flush(null, { status: 401, statusText: 'Unauthorized' });
+      expect(url(await result)).toBe('/login');
+    });
+  });
+
   describe('route table', () => {
     const protectedRoots = (): Route[] => routes.filter(r => r.path === 'admin' || r.path === '');
 
     it('protects both authenticated shells with authGuard on the route and its children', () => {
       expect(protectedRoots().length).toBe(2);
       for (const route of protectedRoots()) {
-        expect(route.canActivate).toContain(authGuard);
+        // A área administrativa troca o authGuard pelo adminGuard, que também exige sessão.
+        expect(route.canActivate).toContain(route.path === 'admin' ? adminGuard : authGuard);
         expect(route.canActivateChild).toContain(authGuard);
       }
     });

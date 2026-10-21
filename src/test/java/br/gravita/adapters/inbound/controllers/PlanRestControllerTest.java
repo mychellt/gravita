@@ -8,6 +8,12 @@ import br.gravita.core.domain.PlanLimits;
 import br.gravita.core.domain.PlanSupport;
 import br.gravita.core.domain.PlanTier;
 import br.gravita.core.domain.exceptions.BusinessRuleException;
+import br.gravita.core.domain.exceptions.ForbiddenException;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.system.RequireGravitaAdministratorUseCase;
+import br.gravita.core.ports.outbound.security.SessionStorePort;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
 import br.gravita.core.ports.business.CreatePlanPort;
 import br.gravita.core.ports.business.DeletePlanPort;
 import br.gravita.core.ports.business.FindPlanPort;
@@ -47,6 +53,19 @@ class PlanRestControllerTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
+	private static final String BEARER = "Bearer session-token";
+
+	@MockitoBean
+	private SessionStorePort sessionStorePort;
+
+	@MockitoBean
+	private RequireGravitaAdministratorUseCase requireGravitaAdministratorUseCase;
+
+	@BeforeEach
+	void authenticate() {
+		when(sessionStorePort.resolve("session-token")).thenReturn(java.util.Optional.of(UserId.generate()));
+	}
+
 	@MockitoBean
 	private CreatePlanPort createPlanPort;
 
@@ -76,6 +95,7 @@ class PlanRestControllerTest {
 		when(createPlanPort.execute(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/plans")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isCreated())
@@ -88,6 +108,7 @@ class PlanRestControllerTest {
 		when(createPlanPort.execute(any())).thenReturn(request.toDomain(UUID.randomUUID()));
 
 		mockMvc.perform(post("/api/plans")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isCreated());
@@ -140,6 +161,7 @@ class PlanRestControllerTest {
 			body.remove(field);
 
 			mockMvc.perform(post("/api/plans")
+						.header("Authorization", BEARER)
 							.contentType("application/json")
 							.content(objectMapper.writeValueAsBytes(body)))
 					.andExpect(status().isBadRequest());
@@ -152,6 +174,7 @@ class PlanRestControllerTest {
 		when(createPlanPort.execute(any())).thenThrow(new BusinessRuleException("A plan named 'Bronze' already exists"));
 
 		mockMvc.perform(post("/api/plans")
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isConflict());
@@ -185,6 +208,7 @@ class PlanRestControllerTest {
 		when(updatePlanPort.execute(any())).thenReturn(request.toDomain(id));
 
 		mockMvc.perform(put("/api/plans/" + id)
+						.header("Authorization", BEARER)
 						.contentType("application/json")
 						.content(objectMapper.writeValueAsBytes(request)))
 				.andExpect(status().isOk());
@@ -193,7 +217,8 @@ class PlanRestControllerTest {
 	@Test
 	@DisplayName("Returns 204 No Content when a plan is deleted")
 	void shouldReturn204WhenDeletingPlan() throws Exception {
-		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID()))
+		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID())
+						.header("Authorization", BEARER))
 				.andExpect(status().isNoContent());
 	}
 
@@ -202,7 +227,36 @@ class PlanRestControllerTest {
 	void shouldReturn409WhenDeletingPlanWithSubscriptions() throws Exception {
 		when(deletePlanPort.execute(any())).thenThrow(new BusinessRuleException("Plan has subscriptions"));
 
-		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID()))
+		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID())
+						.header("Authorization", BEARER))
 				.andExpect(status().isConflict());
+	}
+
+	@Test
+	@DisplayName("Returns 403 and creates nothing when the caller is not a Gravita administrator")
+	void shouldReturn403WhenCallerIsNotGravitaAdministrator() throws Exception {
+		Mockito.doThrow(new ForbiddenException("no")).when(requireGravitaAdministratorUseCase).execute(any());
+
+		mockMvc.perform(post("/api/plans")
+						.header("Authorization", BEARER)
+						.contentType("application/json")
+						.content(objectMapper.writeValueAsBytes(request)))
+				.andExpect(status().isForbidden());
+
+		Mockito.verifyNoInteractions(createPlanPort);
+	}
+
+	@Test
+	@DisplayName("Returns 401 when changing plans without a session")
+	void shouldReturn401WithoutSession() throws Exception {
+		mockMvc.perform(delete("/api/plans/" + UUID.randomUUID())).andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	@DisplayName("Keeps listing plans open, for the public pricing page")
+	void shouldListPlansWithoutSession() throws Exception {
+		when(listPlansPort.execute(any())).thenReturn(List.of());
+
+		mockMvc.perform(get("/api/plans")).andExpect(status().isOk());
 	}
 }

@@ -1,11 +1,11 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { adminGuard, authGuard, guestGuard } from './core/guards/auth.guard';
 import { unsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 
 export const routes: Routes = [
   {
     path: 'admin',
-    canActivate: [authGuard],
+    canActivate: [adminGuard],
     canActivateChild: [authGuard],
     loadComponent: () => import('./layout/admin-shell/admin-shell.component').then(m => m.AdminShellComponent),
     children: [

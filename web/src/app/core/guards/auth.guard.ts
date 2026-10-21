@@ -14,3 +14,19 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   return inject(AuthService).isAuthenticated() ? router.createUrlTree([POST_LOGIN_PATH]) : true;
 };
+
+/** Perfil dos funcionários da Gravita, o único com acesso à área administrativa (`/admin`). */
+export const GRAVITA_ADMINISTRATOR_PROFILE = 'GRAVITA_ADMINISTRATOR';
+
+/**
+ * Área administrativa da plataforma: só o perfil GRAVITA_ADMINISTRATOR entra; os demais voltam ao dashboard.
+ * Sem sessão vai para o login. O servidor repete a checagem em cada chamada `/api/admin/**`.
+ */
+export const adminGuard: CanActivateFn = async () => {
+  const router = inject(Router);
+  const auth = inject(AuthService);
+  if (!auth.isAuthenticated()) return router.createUrlTree([AUTH_PATHS.login]);
+  if (!auth.currentUser()) await auth.loadCurrentUser();
+  if (!auth.isAuthenticated()) return router.createUrlTree([AUTH_PATHS.login]);
+  return auth.currentUser()?.profile === GRAVITA_ADMINISTRATOR_PROFILE ? true : router.createUrlTree([POST_LOGIN_PATH]);
+};

@@ -3,7 +3,10 @@ package br.gravita.adapters.inbound.controllers;
 import br.gravita.adapters.dtos.request.PlanRequest;
 import br.gravita.adapters.dtos.response.PlanResponse;
 import br.gravita.core.domain.Context;
+import br.gravita.adapters.inbound.controllers.security.AuthenticatedUser;
 import br.gravita.core.domain.PlanDomain;
+import br.gravita.core.domain.system.UserId;
+import br.gravita.core.ports.inbound.system.RequireGravitaAdministratorUseCase;
 import br.gravita.core.ports.business.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/api/plans")
 public class PlanRestController {
 
+    private final RequireGravitaAdministratorUseCase requireGravitaAdministratorUseCase;
     private final CreatePlanPort createPlanPort;
     private final FindPlanPort findPlanPort;
     private final ListPlansPort listPlansPort;
@@ -26,7 +30,8 @@ public class PlanRestController {
     private final DeletePlanPort deletePlanPort;
 
     @PostMapping
-    public ResponseEntity<PlanResponse> create(@Valid @RequestBody final PlanRequest request) {
+    public ResponseEntity<PlanResponse> create(@AuthenticatedUser final UserId callerId, @Valid @RequestBody final PlanRequest request) {
+        requireGravitaAdministratorUseCase.execute(callerId);
         final PlanDomain created = createPlanPort.execute(new Context(request.toDomain(null)));
         return ResponseEntity.created(URI.create("/api/plans/" + created.getId())).body(PlanResponse.from(created));
     }
@@ -43,13 +48,16 @@ public class PlanRestController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PlanResponse> update(@PathVariable final UUID id, @Valid @RequestBody final PlanRequest request) {
+    public ResponseEntity<PlanResponse> update(@AuthenticatedUser final UserId callerId, @PathVariable final UUID id,
+            @Valid @RequestBody final PlanRequest request) {
+        requireGravitaAdministratorUseCase.execute(callerId);
         final PlanDomain updated = updatePlanPort.execute(new Context(request.toDomain(id)));
         return ResponseEntity.ok(PlanResponse.from(updated));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable final UUID id) {
+    public ResponseEntity<Void> delete(@AuthenticatedUser final UserId callerId, @PathVariable final UUID id) {
+        requireGravitaAdministratorUseCase.execute(callerId);
         deletePlanPort.execute(new Context(id));
         return ResponseEntity.noContent().build();
     }
