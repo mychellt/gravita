@@ -40,10 +40,10 @@ public class SuggestReorderService implements SuggestReorderUseCase {
 	}
 
 	private Optional<ReorderSuggestion> toSuggestion(final StockBalance balance) {
-		return productRepositoryPort.get(balance.getProductId())
-				.map(ProductDomain::getStock)
+		final Optional<ProductDomain> product = productRepositoryPort.get(balance.getProductId());
+		return product.map(ProductDomain::getStock)
 				.filter(stock -> stock != null && stock.reorderPoint() != null)
 				.filter(stock -> stock.isAtOrBelowReorderPoint(balance.available()))
-				.map(stock -> ReorderSuggestion.of(balance, stock));
+				.map(stock -> ReorderSuggestion.of(balance, stock).withProductCode(product.get().getInternalCode()));
 	}
 }

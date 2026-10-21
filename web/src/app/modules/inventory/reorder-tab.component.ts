@@ -61,7 +61,7 @@ export class ReorderTabComponent {
   readonly alertas = inject(InventoryAlertsService);
 
   rotulo(sugestao: LowStockRow): string {
-    return productLabel(sugestao.productId);
+    return productLabel(sugestao.productId, sugestao.productCode);
   }
 
   async pedir(sugestao: LowStockRow): Promise<void> {

@@ -7,10 +7,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record ExpiringLotResponse(UUID productId, UUID warehouseId, String lotCode, LocalDate expiryDate,
-		BigDecimal remainingQuantity) {
+		BigDecimal remainingQuantity, String productCode) {
 
 	public static ExpiringLotResponse from(final ExpiringLotView view) {
 		return new ExpiringLotResponse(view.productId(), view.warehouseId(), view.lotCode(), view.expiryDate(),
-				view.remainingQuantity());
+				view.remainingQuantity(), view.productCode());
 	}
 }

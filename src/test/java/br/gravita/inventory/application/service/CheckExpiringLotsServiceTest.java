@@ -35,6 +35,9 @@ class CheckExpiringLotsServiceTest {
 	@Mock
 	private NotifyExpiringLotPort notifyExpiringLotPort;
 
+	@Mock
+	private br.gravita.core.ports.outbound.persistence.ProductRepositoryPort productRepositoryPort;
+
 	private CheckExpiringLotsService service;
 
 	private final UUID productId = UUID.randomUUID();
@@ -42,7 +45,7 @@ class CheckExpiringLotsServiceTest {
 
 	@BeforeEach
 	void setUp() {
-		service = new CheckExpiringLotsService(lotRepositoryPort, notifyExpiringLotPort);
+		service = new CheckExpiringLotsService(lotRepositoryPort, notifyExpiringLotPort, productRepositoryPort);
 	}
 
 	@Test
@@ -78,6 +81,21 @@ class CheckExpiringLotsServiceTest {
 
 		assertThat(result).hasSize(1);
 		assertThat(result.get(0).expiryDate()).isEqualTo(cutoff);
+	}
+
+	@Test
+	@DisplayName("Names each expiring lot's product by its code, and leaves it empty when the product is unknown")
+	void namesTheProductOfEachLot() {
+		final LocalDate cutoff = LocalDate.now().plusDays(30);
+		final Lot lot = lotOf(cutoff, "10");
+		when(lotRepositoryPort.findByExpiryDateLessThanEqual(cutoff)).thenReturn(List.of(lot));
+		when(productRepositoryPort.get(lot.getProductId())).thenReturn(java.util.Optional.of(
+				br.gravita.core.domain.ProductDomain.builder().internalCode("TINTA BRANCA 18L").build()));
+
+		assertThat(service.execute(CheckExpiringLotsQuery.of(30)).get(0).productCode()).isEqualTo("TINTA BRANCA 18L");
+
+		when(productRepositoryPort.get(lot.getProductId())).thenReturn(java.util.Optional.empty());
+		assertThat(service.execute(CheckExpiringLotsQuery.of(30)).get(0).productCode()).isNull();
 	}
 
 	@Test

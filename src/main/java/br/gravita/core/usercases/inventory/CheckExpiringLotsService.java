@@ -1,6 +1,8 @@
 package br.gravita.core.usercases.inventory;
 
 import br.gravita.core.annotations.UseCase;
+import br.gravita.core.domain.ProductDomain;
+import br.gravita.core.ports.outbound.persistence.ProductRepositoryPort;
 import br.gravita.core.domain.inventory.Lot;
 import br.gravita.core.ports.inbound.inventory.CheckExpiringLotsQuery;
 import br.gravita.core.ports.inbound.inventory.CheckExpiringLotsUseCase;
@@ -16,10 +18,13 @@ public class CheckExpiringLotsService implements CheckExpiringLotsUseCase {
 
 	private final LotRepositoryPort lotRepositoryPort;
 	private final NotifyExpiringLotPort notifyExpiringLotPort;
+	private final ProductRepositoryPort productRepositoryPort;
 
-	public CheckExpiringLotsService(final LotRepositoryPort lotRepositoryPort, final NotifyExpiringLotPort notifyExpiringLotPort) {
+	public CheckExpiringLotsService(final LotRepositoryPort lotRepositoryPort, final NotifyExpiringLotPort notifyExpiringLotPort,
+			final ProductRepositoryPort productRepositoryPort) {
 		this.lotRepositoryPort = lotRepositoryPort;
 		this.notifyExpiringLotPort = notifyExpiringLotPort;
+		this.productRepositoryPort = productRepositoryPort;
 	}
 
 	@Override
@@ -32,7 +37,8 @@ public class CheckExpiringLotsService implements CheckExpiringLotsUseCase {
 
 		final List<ExpiringLotView> expiringLots = candidates.stream()
 				.filter(lot -> lot.getQuantity().signum() > 0)
-				.map(ExpiringLotView::from)
+				.map(lot -> ExpiringLotView.from(lot)
+						.withProductCode(productRepositoryPort.get(lot.getProductId()).map(ProductDomain::getInternalCode).orElse(null)))
 				.toList();
 
 		notifyExpiringLotPort.notify(expiringLots);

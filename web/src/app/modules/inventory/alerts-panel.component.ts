@@ -26,8 +26,8 @@ import { LoadStateComponent } from '../../shared/components/load-state/load-stat
         <div class="alert-item">
           <div class="alert-dot red"></div>
           <div class="alert-info">
-            <div class="alert-prod">{{ rotulo(s.productId) }}</div>
-            <div class="alert-stock text-danger">{{ s.available }} disp. (mín: {{ s.reorderPoint }})</div>
+            <div class="alert-prod">{{ rotulo(s.productId, s.productCode) }}</div>
+            <div class="alert-stock text-danger">{{ s.available }} disp. (ponto de pedido: {{ s.reorderPoint }})</div>
           </div>
           @if (s.request === 'requested') {
             <span class="done"><i class="ti ti-check"></i> Pedido</span>
@@ -44,7 +44,7 @@ import { LoadStateComponent } from '../../shared/components/load-state/load-stat
         <div class="alert-item">
           <div class="alert-dot amber"></div>
           <div class="alert-info">
-            <div class="alert-prod">{{ rotulo(l.productId) }} · {{ l.lotCode }}</div>
+            <div class="alert-prod">{{ rotulo(l.productId, l.productCode) }} · {{ l.lotCode }}</div>
             <div class="alert-stock text-warn">{{ textoValidade(l) }}</div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" (click)="verLotes.emit()">Ver lote</button>
@@ -76,8 +76,8 @@ export class AlertsPanelComponent {
 
   @Output() verLotes = new EventEmitter<void>();
 
-  rotulo(productId: string): string {
-    return productLabel(productId);
+  rotulo(productId: string, productCode?: string | null): string {
+    return productLabel(productId, productCode);
   }
 
   textoValidade(lote: ExpiringLot): string {
@@ -89,6 +89,6 @@ export class AlertsPanelComponent {
   async pedir(sugestao: LowStockRow): Promise<void> {
     const resultado = await this.alertas.requestPurchase(sugestao.productId);
     if (!resultado.ok) return this.toast.danger(resultado.error);
-    this.toast.success(`Requisição de compra criada para "${this.rotulo(sugestao.productId)}"`);
+    this.toast.success(`Requisição de compra criada para "${this.rotulo(sugestao.productId, sugestao.productCode)}"`);
   }
 }

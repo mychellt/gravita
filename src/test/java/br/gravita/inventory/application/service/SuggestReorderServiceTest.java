@@ -63,6 +63,7 @@ class SuggestReorderServiceTest {
 		assertThat(suggestion.warehouseId()).isEqualTo(warehouseId);
 		assertThat(suggestion.available()).isEqualByComparingTo("15");
 		assertThat(suggestion.reorderPoint()).isEqualByComparingTo("20");
+		assertThat(suggestion.productCode()).isEqualTo("PISO PORCELANATO 60X60");
 	}
 
 	@Test
@@ -160,6 +161,7 @@ class SuggestReorderServiceTest {
 	private ProductDomain productWithStock(final String minimum, final String maximum, final String reorderPoint) {
 		return ProductDomain.builder()
 				.id(productId)
+				.internalCode("PISO PORCELANATO 60X60")
 				.stock(new StockParametersDomain(bigDecimalOrNull(minimum), bigDecimalOrNull(maximum),
 						bigDecimalOrNull(reorderPoint)))
 				.build();

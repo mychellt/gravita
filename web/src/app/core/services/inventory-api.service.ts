@@ -85,6 +85,8 @@ export interface ExpiringLot {
   lotCode: string;
   expiryDate: string;
   remainingQuantity: number;
+  /** Código/nome do produto; ausente em backends antigos ou produto desconhecido. */
+  productCode?: string | null;
 }
 
 /** Sugestão de reposição, como devolvida por GET /api/inventory/alerts/low-stock. */
@@ -94,6 +96,7 @@ export interface ReorderSuggestion {
   available: number;
   reorderPoint: number;
   suggestedQuantity: number;
+  productCode?: string | null;
 }
 
 export type ReservationStatus = 'ACTIVE' | 'CONSUMED' | 'RELEASED';

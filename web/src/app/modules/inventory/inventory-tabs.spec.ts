@@ -242,6 +242,22 @@ describe('Inventory tabs backed by the API', () => {
       expect(text(panel)).toContain('Pedido');
     });
 
+    it('names the products of the low-stock and expiring-lot alerts by their code, not by the id', async () => {
+      const alertas = TestBed.inject(InventoryAlertsService);
+      const loading = alertas.loadAll();
+      http.expectOne(byUrl('/api/inventory/alerts/expiring-lots')).flush([
+        { productId: PRODUCT, warehouseId: 'w', lotCode: 'L9', expiryDate: isoDay(3), remainingQuantity: 2, productCode: 'TINTA BRANCA 18L' }]);
+      http.expectOne(byUrl('/api/inventory/alerts/low-stock')).flush([
+        { productId: PRODUCT, warehouseId: 'w', available: 1, reorderPoint: 5, suggestedQuantity: 20, productCode: 'PISO 60X60' }]);
+      await loading;
+      const panel = TestBed.createComponent(AlertsPanelComponent);
+      panel.detectChanges();
+
+      expect(text(panel)).toContain('PISO 60X60');
+      expect(text(panel)).toContain('TINTA BRANCA 18L · L9');
+      expect(text(panel)).not.toContain(PRODUCT.slice(0, 8));
+    });
+
     it('keeps the button available when the request fails', async () => {
       const alertas = TestBed.inject(InventoryAlertsService);
       await load(alertas);
