@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars (git-ignored) and fill in.
+
+# instance_type = "t4g.medium"   # 4 GB, if 2 GB turns out tight
+# aws_region    = "sa-east-1"    # São Paulo: lower latency, ~50% more expensive
+
+budget_alert_emails = [
+  "ops@example.com",
+]
+
+# SSH is optional: by default port 22 is closed and you use `aws ssm start-session`.
+# ssh_public_keys = [
+#   "ssh-ed25519 AAAA... teammate-1",
+# ]
+# ssh_allowed_cidrs = [
+#   "203.0.113.10/32",
+# ]

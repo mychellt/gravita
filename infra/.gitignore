@@ -1,0 +1,20 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfvars
+!*.tfvars.example
+backend.hcl
+!backend.hcl.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Decrypted secrets and runtime files (only SOPS-encrypted files are committed)
+compose/.env
+compose/web/
+secrets/*.dec.env

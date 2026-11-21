@@ -1,0 +1,7 @@
+# SOPS configuration for infra/secrets.
+# Generate a key with `age-keygen -o ~/.config/sops/age/keys.txt` and replace the
+# recipient below with its public key (add one recipient per team member, comma-separated).
+creation_rules:
+  - path_regex: secrets/[^/]+\.env$
+    age: >-
+      age1REPLACE_WITH_TEAM_PUBLIC_KEY

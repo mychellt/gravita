@@ -1,7 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # --- Build stage -----------------------------------------------------------
-FROM eclipse-temurin:25-jdk AS build
+# Runs on the builder's own platform: the jar is architecture-independent, so a
+# cross-build (e.g. linux/arm64 on an amd64 CI runner) doesn't emulate Maven.
+FROM --platform=$BUILDPLATFORM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 
 COPY .mvn/ .mvn/
