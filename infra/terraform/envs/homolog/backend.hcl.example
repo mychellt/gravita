@@ -1,0 +1,8 @@
+# Copy to backend.hcl (git-ignored) and fill in.
+# The bucket must exist before `terraform init` (see infra/README.md, "Prerequisites").
+bucket       = "gravita-tfstate-<account-id>"
+key          = "homolog/terraform.tfstate"
+region       = "us-east-1"
+profile      = "gravita-homolog"
+encrypt      = true
+use_lockfile = true

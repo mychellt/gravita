@@ -1,0 +1,52 @@
+name: Infra checks
+
+on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/infra-ci.yml"]
+  push:
+    branches: ["master"]
+    paths: ["infra/**", ".github/workflows/infra-ci.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Format
+        run: terraform fmt -check -recursive
+
+      - name: Validate homolog
+        working-directory: infra/terraform/envs/homolog
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+  scripts-and-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck
+        run: shellcheck -x infra/scripts/*.sh
+
+      - name: Compose file is valid
+        working-directory: infra/compose
+        run: |
+          cp ../secrets/homolog.env.example .env
+          docker compose -f docker-compose.homolog.yaml config --quiet
+
+      - name: Only encrypted env files are committed
+        run: |
+          shopt -s nullglob
+          for f in infra/secrets/*.env; do
+            grep -q '^sops_' "$f" || { echo "::error file=$f::$f is not SOPS-encrypted"; exit 1; }
+          done

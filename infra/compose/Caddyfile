@@ -1,0 +1,37 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# App: Angular build + Spring Boot API under /api (same origin, as web/src/environments/environment.prod.ts expects).
+{$HOMOLOG_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy app:8080
+	}
+
+	handle {
+		root * /srv/web
+		try_files {path} {path}.html /index.html
+		file_server
+
+		@html path *.html /
+		header @html Cache-Control "no-cache, no-store, must-revalidate"
+	}
+}
+
+# Mailpit UI: every e-mail the app sends in homologation lands here.
+{$MAIL_DOMAIN} {
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+	reverse_proxy mailpit:8025
+}
